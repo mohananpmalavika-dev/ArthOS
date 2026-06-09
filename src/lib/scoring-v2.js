@@ -330,6 +330,8 @@ function getAwarenessScore(awareness) {
 }
 
 
+const CRISIS_ELASTICITY_FACTOR = 0.4; // Assumes 40% of variable lifestyle cost can be frozen in crisis mode
+
 function getStabilityScore(profile) {
   const monthlyExpenses = toNumber(profile.monthlyExpenses);
   const fixedSavings = toNumber(profile.emergencySavingsFixed);
@@ -341,23 +343,28 @@ function getStabilityScore(profile) {
   const totalSavings = fixedSavings + discretionarySavings;
   const survivalMonthsRaw =
     monthlyExpenses > 0 && totalSavings > 0 ? totalSavings / monthlyExpenses : 0;
+
+  const variableExpenses = Math.max(0, monthlyExpenses - monthlyLiabilities);
+  const bareMinimumBurn = monthlyLiabilities + variableExpenses * (1 - CRISIS_ELASTICITY_FACTOR);
+  const bareMinimumSurvivalMonthsRaw =
+    bareMinimumBurn > 0 && totalSavings > 0 ? totalSavings / bareMinimumBurn : 0;
+
   const fixedBufferMonths = monthlyExpenses > 0 ? fixedSavings / monthlyExpenses : 0;
   const discretionaryBufferMonths = monthlyExpenses > 0 ? discretionarySavings / monthlyExpenses : 0;
 
-  const emergencyScore = Math.min(survivalMonthsRaw, 6) * 1.5; // smaller weight in v2
-
+  const emergencyScore = Math.min(survivalMonthsRaw, 6) * 1.5;
   const debtScore = getDebtScore(totalDebt, monthlyIncome);
   const incomeScore = incomeStabilityScores[profile.incomeStability] ?? 0;
   const dependentsScore = dependentsScores[profile.dependentsBucket] ?? 0;
   const liabilityScore = getLiabilityScore(monthlyLiabilities, monthlyIncome);
 
   const raw = emergencyScore + debtScore + incomeScore + dependentsScore + liabilityScore;
-  // normalize to 25
   const normalized = clamp((raw / 20) * componentMaximumsV2.stability, 0, componentMaximumsV2.stability);
 
   return {
     score: roundToOne(normalized),
     survivalMonthsRaw,
+    bareMinimumSurvivalMonthsRaw,
     fixedBufferMonths,
     discretionaryBufferMonths,
     fixedEmergencySavings: fixedSavings,
@@ -527,11 +534,17 @@ export function calculateFinancialHealthV2(assessment) {
     categoryBand,
     survivalMonthsRaw: stability.survivalMonthsRaw,
     survivalMonthsDisplay: formatMonths(stability.survivalMonthsRaw),
+    bareMinimumSurvivalMonthsRaw: stability.bareMinimumSurvivalMonthsRaw,
+    bareMinimumSurvivalMonthsDisplay: formatMonths(
+      stability.bareMinimumSurvivalMonthsRaw,
+    ),
     survivalBand,
     fixedBufferMonths: stability.fixedBufferMonths,
     discretionaryBufferMonths: stability.discretionaryBufferMonths,
     fixedBufferMonthsDisplay: formatMonths(stability.fixedBufferMonths),
-    discretionaryBufferMonthsDisplay: formatMonths(stability.discretionaryBufferMonths),
+    discretionaryBufferMonthsDisplay: formatMonths(
+      stability.discretionaryBufferMonths,
+    ),
     fixedBufferAmount: stability.fixedEmergencySavings,
     discretionaryBufferAmount: stability.discretionaryEmergencySavings,
     totalEmergencySavings: stability.totalEmergencySavings,

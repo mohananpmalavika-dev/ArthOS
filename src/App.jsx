@@ -384,6 +384,17 @@ export default function App() {
         categoryBand,
         survivalMonthsRaw: stability.survivalMonthsRaw,
         survivalMonthsDisplay,
+        bareMinimumSurvivalMonthsRaw:
+          stability.bareMinimumSurvivalMonthsRaw ?? 0,
+        bareMinimumSurvivalMonthsDisplay:
+          stability.bareMinimumSurvivalMonthsRaw <= 0 ||
+          !Number.isFinite(stability.bareMinimumSurvivalMonthsRaw)
+            ? "0"
+            : stability.bareMinimumSurvivalMonthsRaw >= 60
+            ? "60+"
+            : Number.isInteger(stability.bareMinimumSurvivalMonthsRaw)
+            ? String(stability.bareMinimumSurvivalMonthsRaw)
+            : stability.bareMinimumSurvivalMonthsRaw.toFixed(1),
         survivalBand,
         componentRows: componentRows.map((row) => {
           const band =
@@ -1141,9 +1152,21 @@ const SurvivalBlock = memo(function SurvivalBlock({ result, assessment, mode }) 
         {result.survivalBand.label}
       </p>
       {mode === "v2" ? (
-        <p className="buffer-summary">
-          Fixed: {result.fixedBufferMonthsDisplay} · Discretionary: {result.discretionaryBufferMonthsDisplay}
-        </p>
+        <>
+          <div className="dual-survival-grid">
+            <div>
+              <span>As-Is Lifestyle</span>
+              <strong>{result.survivalMonthsDisplay} mos</strong>
+            </div>
+            <div>
+              <span>Crisis Mode Optimized</span>
+              <strong>{result.bareMinimumSurvivalMonthsDisplay} mos</strong>
+            </div>
+          </div>
+          <p className="buffer-summary">
+            Fixed: {result.fixedBufferMonthsDisplay} · Discretionary: {result.discretionaryBufferMonthsDisplay}
+          </p>
+        </>
       ) : null}
       <div className="survival-rail" aria-hidden="true">
         {milestones.map((month) => (
@@ -1156,12 +1179,12 @@ const SurvivalBlock = memo(function SurvivalBlock({ result, assessment, mode }) 
       {mode === "v2" ? (
         <>
           <div className="money-pair">
-            <span>Fixed buffer: {formatCurrency(fixedValue)}</span>
-            <span>Discretionary buffer: {formatCurrency(discretionaryValue)}</span>
+            <span>Fixed buffer: {formatCurrencyV2(fixedValue)}</span>
+            <span>Discretionary buffer: {formatCurrencyV2(discretionaryValue)}</span>
           </div>
           <div className="money-pair">
-            <span>Total: {formatCurrency(totalSavingsValue)}</span>
-            <span>{formatCurrency(expenseValue)} monthly burn</span>
+            <span>Total: {formatCurrencyV2(totalSavingsValue)}</span>
+            <span>{formatCurrencyV2(expenseValue)} monthly burn</span>
           </div>
         </>
       ) : (
