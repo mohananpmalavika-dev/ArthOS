@@ -47,6 +47,8 @@ import {
   calculateFutureRiskV2,
   calculatePersonalityTypeV2,
   calculateAwarenessGapV2,
+  calculateBlindSpotV2,
+  calculatePersonalityReportV2,
   componentMaximumsV2,
   formatCurrency as formatCurrencyV2,
   formatMonths as formatMonthsV2,
@@ -268,6 +270,16 @@ export default function App() {
     );
   }, [mode, v2AwarenessResult, v2StabilityResult?.survivalMonthsRaw]);
 
+  const v2BlindSpot = useMemo(() => {
+    if (mode !== "v2" || !v2AwarenessGap) return null;
+    return calculateBlindSpotV2(v2AwarenessGap);
+  }, [mode, v2AwarenessGap]);
+
+  const v2PersonalityReport = useMemo(() => {
+    if (mode !== "v2") return null;
+    return calculatePersonalityReportV2(v2PersonalityType ?? "Survivor");
+  }, [mode, v2PersonalityType]);
+
   const result = useMemo(() => {
     if (mode === "v2") {
       const behaviourScore = v2BehaviourResult ?? 0;
@@ -344,6 +356,23 @@ export default function App() {
 
       const futureRisk = v2FutureRisk ?? { score: 0, label: "Unknown" };
       const personalityType = v2PersonalityType ?? "Survivor";
+      const personalityReport = v2PersonalityReport ?? {
+        title: personalityType,
+        strengths: [],
+        risks: [],
+        dangerZone: "",
+        recommendedRule: "",
+      };
+
+      const blindSpot = v2BlindSpot ?? {
+        headline: "Watch your runway assumptions.",
+        summary:
+          "Your awareness of survival time is your most valuable financial insight.",
+        perceivedSurvivalMonthsDisplay: "0",
+        actualSurvivalMonthsDisplay: "0",
+        gapDisplay: "0",
+        direction: "aligned",
+      };
 
       const perceivedSurvivalMonthsDisplay =
         awarenessGapMetrics.perceivedSurvivalMonths <= 0 ||
@@ -451,6 +480,12 @@ export default function App() {
         actualSurvivalMonths: awarenessGapMetrics.actualSurvivalMonths,
         awarenessGap: awarenessGapMetrics.awarenessGap,
         awarenessGapDisplay,
+        blindSpotHeadline: blindSpot.headline,
+        blindSpotSummary: blindSpot.summary,
+        blindSpotPerceived: blindSpot.perceivedSurvivalMonthsDisplay,
+        blindSpotActual: blindSpot.actualSurvivalMonthsDisplay,
+        blindSpotGap: blindSpot.gapDisplay,
+        blindSpotDirection: blindSpot.direction,
         futureRiskScore: futureRisk.score,
         futureRiskLabel: futureRisk.label,
         personalityType,
@@ -891,7 +926,7 @@ function AssessmentSection({ assessment, result, onChange, ui, mode }) {
         <aside className="result-stack" aria-label="Financial health result">
           <ScoreOverview result={result} />
           <ComponentBreakdown result={result} />
-          {mode === "v2" ? <ResiliencePanel result={result} /> : null}
+          {mode === "v2" ? <BlindSpotPanel result={result} /> : null}
           <SurvivalBlock result={result} assessment={assessment} mode={mode} />
           <ActionBlock result={result} mode={mode} />
 
@@ -1191,45 +1226,51 @@ const ComponentBreakdown = memo(function ComponentBreakdown({ result }) {
   );
 });
 
-const ResiliencePanel = memo(function ResiliencePanel({ result }) {
-  const gapAlert =
-    result.awarenessGap > 2
-      ? "Awareness gap is widening. Track actual runway monthly."
-      : "Runway awareness is well aligned with your stability profile.";
+const BlindSpotPanel = memo(function BlindSpotPanel({ result }) {
+  const gapMessage =
+    result.blindSpotDirection === "overestimated"
+      ? `You are overestimating your runway by ${result.blindSpotGap} months.`
+      : result.blindSpotDirection === "underestimated"
+      ? `You are underestimating your runway by ${result.blindSpotGap} months.`
+      : "Your perceived runway matches your actual cash runway.";
 
   return (
-    <section className="result-card insight-panel">
+    <section className="result-card blindspot-panel">
       <div className="result-heading">
         <Activity size={19} />
         <div>
-          <h2>Resilience Snapshot</h2>
-          <span>Dual survival and behavioral risk view</span>
+          <h2>Your Financial Blind Spot</h2>
+          <span>What your score hides about actual runway</span>
         </div>
+      </div>
+      <div className="blindspot-copy">
+        <p>{result.blindSpotHeadline}</p>
+        <p>{result.blindSpotSummary}</p>
       </div>
       <div className="insight-grid">
         <div className="insight-stat">
-          <span>Current runway</span>
-          <strong>{result.survivalMonthsDisplay} mos</strong>
+          <span>Perceived runway</span>
+          <strong>{result.blindSpotPerceived} mos</strong>
         </div>
         <div className="insight-stat">
-          <span>Crisis runway</span>
-          <strong>{result.bareMinimumSurvivalMonthsDisplay} mos</strong>
+          <span>Actual runway</span>
+          <strong>{result.blindSpotActual} mos</strong>
         </div>
         <div className="insight-stat">
-          <span>Awareness gap</span>
-          <strong>{result.awarenessGapDisplay} mos</strong>
+          <span>Blind spot size</span>
+          <strong>{result.blindSpotGap} mos</strong>
         </div>
         <div className="insight-stat">
-          <span>Future risk</span>
+          <span>Risk signal</span>
           <strong>{result.futureRiskLabel}</strong>
         </div>
       </div>
       <div className="insight-meta">
         <div>
-          <span>Persona</span>
-          <strong>{result.personalityType}</strong>
+          <span>Financial personality</span>
+          <strong>{result.personalityReport.title}</strong>
         </div>
-        <p>{gapAlert}</p>
+        <p>{gapMessage}</p>
       </div>
     </section>
   );

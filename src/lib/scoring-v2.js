@@ -400,10 +400,104 @@ function getAwarenessGap(awarenessScore, survivalMonthsRaw) {
     survivalMonthsRaw,
     awarenessScore,
   );
+  const awarenessBias = perceivedSurvivalMonths - survivalMonthsRaw;
   return {
     perceivedSurvivalMonths,
     actualSurvivalMonths: survivalMonthsRaw,
-    awarenessGap: Math.abs(perceivedSurvivalMonths - survivalMonthsRaw),
+    awarenessGap: Math.abs(awarenessBias),
+    awarenessBias,
+  };
+}
+
+function getBlindSpotInsight(awarenessMetrics) {
+  const {
+    perceivedSurvivalMonths,
+    actualSurvivalMonths,
+    awarenessGap,
+  } = awarenessMetrics;
+
+  const headline = perceivedSurvivalMonths > actualSurvivalMonths
+    ? `You believe you can survive ${formatMonths(perceivedSurvivalMonths)} months without income.`
+    : perceivedSurvivalMonths < actualSurvivalMonths
+      ? `You are more conservative than your actual runway suggests.`
+      : `Your survival perception is tightly aligned with your actual runway.`;
+
+  const summary = perceivedSurvivalMonths > actualSurvivalMonths
+    ? `Actual survival time is ${formatMonths(actualSurvivalMonths)} months, meaning you are overestimating your financial security by ${formatMonths(awarenessGap)} months.`
+    : perceivedSurvivalMonths < actualSurvivalMonths
+      ? `Actual survival time is ${formatMonths(actualSurvivalMonths)} months, meaning you are underestimating your financial security by ${formatMonths(awarenessGap)} months.`
+      : `Your perceived and actual survival times match, so your runway awareness is strong.`;
+
+  return {
+    headline,
+    summary,
+    perceivedSurvivalMonthsDisplay: formatMonths(perceivedSurvivalMonths),
+    actualSurvivalMonthsDisplay: formatMonths(actualSurvivalMonths),
+    gapDisplay: formatMonths(awarenessGap),
+    direction:
+      perceivedSurvivalMonths > actualSurvivalMonths
+        ? "overestimated"
+        : perceivedSurvivalMonths < actualSurvivalMonths
+          ? "underestimated"
+          : "aligned",
+  };
+}
+
+function getPersonalityReport(personalityType) {
+  const profiles = {
+    Reactor: {
+      strengths: [
+        "Acts quickly",
+        "Takes opportunities",
+      ],
+      risks: [
+        "Emotional spending",
+        "Social influence",
+      ],
+      dangerZone: "Stress periods",
+      recommendedRule: "Use a 24-hour purchase delay for non-essential decisions.",
+    },
+    Survivor: {
+      strengths: [
+        "Stays cautious",
+        "Protects short-term safety",
+      ],
+      risks: [
+        "Misses growth opportunities",
+        "Stays in a comfort zone",
+      ],
+      dangerZone: "Sudden income shock",
+      recommendedRule: "Build a small automated buffer before large commitments.",
+    },
+    Planner: {
+      strengths: [
+        "Plans ahead",
+        "Tracks commitments",
+      ],
+      risks: [
+        "Overplanning",
+        "Analysis paralysis",
+      ],
+      dangerZone: "Unexpected shocks",
+      recommendedRule: "Review the plan monthly and keep 3 months liquid.",
+    },
+    Builder: {
+      strengths: [
+        "Disciplined",
+        "Focuses on growth",
+      ],
+      risks: [
+        "Underestimates stress",
+        "Neglects liquidity",
+      ],
+      dangerZone: "Burnout from overly rigid budgets",
+      recommendedRule: "Keep a separate cash reserve for surprises.",
+    },
+  };
+
+  return {
+    title: personalityType,
+    ...(profiles[personalityType] ?? profiles.Survivor),
   };
 }
 
@@ -585,6 +679,14 @@ export function calculatePersonalityTypeV2(behaviour) {
 
 export function calculateAwarenessGapV2(awarenessScore, survivalMonthsRaw) {
   return getAwarenessGap(awarenessScore, survivalMonthsRaw);
+}
+
+export function calculateBlindSpotV2(awarenessMetrics) {
+  return getBlindSpotInsight(awarenessMetrics);
+}
+
+export function calculatePersonalityReportV2(personalityType) {
+  return getPersonalityReport(personalityType);
 }
 
 export function calculateFinancialHealthV2(assessment) {

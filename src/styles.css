@@ -1188,7 +1188,6 @@ blockquote {
   font-size: 12px;
   font-weight: 780;
 }
-
 .survival-insight-grid,
 .future-risk-grid {
   display: grid;
@@ -1207,14 +1206,14 @@ blockquote {
   border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
-.insight-panel {
+.blindspot-panel {
   border-color: rgba(98, 228, 209, 0.24);
   background:
     linear-gradient(180deg, rgba(98, 228, 209, 0.08), rgba(24, 31, 55, 0.95)),
     rgba(15, 18, 34, 0.92);
 }
 
-.insight-panel .result-heading > div {
+.blindspot-panel .result-heading > div {
   display: grid;
   gap: 4px;
 }
@@ -1256,6 +1255,19 @@ blockquote {
   background: rgba(255, 255, 255, 0.04);
 }
 
+.blindspot-copy {
+  display: grid;
+  gap: 10px;
+  padding-top: 12px;
+}
+
+.blindspot-copy p {
+  color: var(--text);
+  font-size: 15px;
+  line-height: 1.65;
+  margin: 0;
+}
+
 .insight-meta > div {
   display: grid;
   gap: 4px;
@@ -1267,7 +1279,6 @@ blockquote {
   font-weight: 900;
   text-transform: uppercase;
 }
-
 .insight-meta strong {
   color: var(--text);
   font-size: 16px;
