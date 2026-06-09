@@ -11,13 +11,14 @@ import {
   Cpu,
   Download,
   LockKeyhole,
+  MessageSquare,
   Network,
   RotateCcw,
   Save,
   ShieldCheck,
   Sparkles,
   Target,
-  User,
+  ThumbsUp,
   WalletCards,
 } from "lucide-react";
 import {
@@ -31,6 +32,7 @@ import {
 } from "./lib/scoring-v2.js";
 
 import AnalyticsDashboard from "./components/AnalyticsDashboard.jsx";
+import ValidationFeedbackForm from "./components/ValidationFeedbackForm.jsx";
 
 import {
   v2BehaviourQuestions,
@@ -216,6 +218,29 @@ export default function App() {
       habits: true,
     },
   };
+
+  async function dispatchAnonymousTelemetryEvent(telemetryPayload) {
+    try {
+      await dispatchAnonymousTelemetry(telemetryPayload);
+    } catch (error) {
+      console.warn("Telemetry event could not be sent:", error?.message || error);
+    }
+  }
+
+  async function dispatchAnonymousFeedbackEvent(feedbackPayload) {
+    try {
+      const feedbackUrl = "https://api.arth-os.dev/feedback" || process.env.REACT_APP_FEEDBACK_ENDPOINT;
+      await fetch(feedbackUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(feedbackPayload),
+        keepalive: true,
+      });
+      console.log("[Feedback] Captured cleanly.");
+    } catch (error) {
+      console.warn("[Feedback] Transmission deferred:", error?.message || error);
+    }
+  }
 
 
 
@@ -502,180 +527,152 @@ function FounderSection() {
 }
 
 function AssessmentSection({ assessment, result, onChange, ui }) {
-  const [currentStep, setCurrentStep] = useState(0);
-  const [showAnalytics, setShowAnalytics] = useState(false);
+  const [currentStep, setCurrentStep] = useState(() => {
+    try {
+      const saved = window.localStorage.getItem("arth-os-wizard-step");
+      return saved ? Math.min(parseInt(saved, 10), 4) : 0;
+    } catch {
+      return 0;
+    }
+  });
+  const [showFeedback, setShowFeedback] = useState(false);
 
+  const mode = result?.mode || "v2";
   const steps = [
-    { id: "participant", label: "About You", icon: User },
-    { id: "behaviour", label: "Financial Behaviour", icon: Brain },
-    { id: "awareness", label: "Financial Awareness", icon: BarChart3 },
-    { id: "stability", label: "Financial Stability", icon: ShieldCheck },
-    { id: "habits", label: "Daily Habits", icon: Activity },
+    { id: "behaviour", label: "Psychology", icon: Brain },
+    { id: "awareness", label: "Clarity", icon: BarChart3 },
+    { id: "stability", label: "Resilience", icon: ShieldCheck },
+    ...(mode === "v2" ? [{ id: "habits", label: "Habits", icon: Activity }] : []),
   ];
 
   const totalSteps = steps.length;
+  const isLastStep = currentStep === totalSteps - 1;
 
-  const nextStep = () => {
-    if (currentStep < totalSteps - 1) {
-      setCurrentStep((prev) => Math.min(prev + 1, totalSteps - 1));
-    } else {
-      // On final step completion, show analytics and dispatch telemetry
-      setShowAnalytics(true);
-      
-      // Dispatch telemetry asynchronously (non-blocking)
-      const payload = buildAnonymousTelemetryPayload(result, assessment);
-      dispatchAnonymousTelemetry(payload);
+  const handleStepChange = (newStep) => {
+    setCurrentStep(newStep);
+    try {
+      window.localStorage.setItem("arth-os-wizard-step", String(newStep));
+    } catch (e) {
+      console.warn("Could not persist step:", e);
     }
   };
 
-  const prevStep = () => setCurrentStep((prev) => Math.max(prev - 1, 0));
+  const handleNext = async () => {
+    if (currentStep < totalSteps - 1) {
+      handleStepChange(currentStep + 1);
+      return;
+    }
 
-  const isLastStep = currentStep === totalSteps - 1;
-  const participant = assessment.participant ?? {};
-  const emailIsValid = participant.email
-    ? /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(participant.email)
-    : true;
-  const ageIsValid = participant.age === "" || participant.age > 0;
-  const participantValidationMessage = participant.name || participant.age || participant.email
-    ? emailIsValid && ageIsValid
-      ? "Thanks! This info helps us personalize your feedback. You can continue anytime."
-      : "A valid email and positive age are helpful, but you can still continue without them."
-    : "Optional: add name, age and email to personalize your insights. You can continue without them.";
+    const payload = buildAnonymousTelemetryPayload(result, assessment);
+    await dispatchAnonymousTelemetryEvent(payload);
+    setShowFeedback(true);
+  };
+
+  const handlePrev = () => handleStepChange(Math.max(currentStep - 1, 0));
 
   return (
     <section className="assessment-section" id="assessment">
       <div className="assessment-heading">
-        <span>Live Score Engine</span>
+        <span>Guided Experience</span>
         <h2>
           Run your Financial Health <em>Behavior Score.</em>
         </h2>
         <p>
-          {!showAnalytics
-            ? "Complete the guided assessment step-by-step. The intelligence panel on the right updates instantly as your profile shifts."
-            : "Your assessment is complete. Review your financial insights below."}
+          Complete the guided assessment step-by-step. The intelligence metrics panel
+          updates instantly in real time.
         </p>
       </div>
 
       <div className="workspace">
         <section className="form-stack" aria-label="Financial health assessment">
-          {!showAnalytics && (
-            <>
-              {/* Progress Multi-Step Tracker Header Bar */}
-              <div className="wizard-progress-bar">
-                {steps.map((step, idx) => (
-                  <div
-                    key={step.id}
-                    className={`wizard-step-node ${idx <= currentStep ? "active" : ""} ${
-                      idx === currentStep ? "current" : ""
-                    }`}
-                  >
-                    <div className="step-number-circle">{idx + 1}</div>
-                    <span>{step.label}</span>
-                  </div>
-                ))}
-              </div>
-
-              {/* Dynamic Form Step Stage */}
-              {currentStep === 0 && (
-                <UserInfoSection
-                  values={assessment.participant}
-                  onChange={(key, value) => onChange("participant", key, value)}
-                  validationMessage={participantValidationMessage}
-                  onSkip={() => setCurrentStep(1)}
-                />
-              )}
-
-              {currentStep === 1 && (
-                <QuestionSection
-                  icon={Brain}
-                  title="Behaviour"
-                  score={`${result.behaviourScore}/${ui.componentMaximums.behaviour}`}
-                  questions={ui.behaviourQuestions}
-                  values={assessment.behaviour}
-                  onChange={(key, value) => onChange("behaviour", key, value)}
-                />
-              )}
-
-              {currentStep === 2 && (
-                <QuestionSection
-                  icon={BarChart3}
-                  title="Awareness"
-                  score={`${result.awarenessScore}/${ui.componentMaximums.awareness}`}
-                  questions={ui.awarenessQuestions}
-                  values={assessment.awareness}
-                  onChange={(key, value) => onChange("awareness", key, value)}
-                />
-              )}
-
-              {currentStep === 3 && (
-                <ProfileSection
-                  values={assessment.profile}
-                  score={`${result.stabilityScore}/${ui.componentMaximums.stability}`}
-                  onChange={(key, value) => onChange("profile", key, value)}
-                />
-              )}
-
-              {currentStep === 4 && (
-                <QuestionSection
-                  icon={Activity}
-                  title="Daily Habits"
-                  score={`${result.habits.habitScore}/${100}`}
-                  questions={v2HabitsQuestions}
-                  values={assessment.habits}
-                  onChange={(key, value) => onChange("habits", key, value)}
-                />
-              )}
-
-              {/* Stepper Wizard Control Navigation Buttons */}
-              <div className="wizard-navigation-controls">
-                <button
-                  type="button"
-                  className="wizard-nav-button"
-                  onClick={prevStep}
-                  disabled={currentStep === 0}
+          {!showFeedback && (
+            <div className="wizard-progress-track" aria-label="Assessment progress">
+              {steps.map((step, idx) => (
+                <div
+                  key={step.id}
+                  className={`wizard-node ${idx <= currentStep ? "active" : ""} ${
+                    idx === currentStep ? "current" : ""
+                  }`}
                 >
-                  <ChevronLeft size={16} />
-                  Back
-                </button>
-
-                {!isLastStep ? (
-                  <button
-                    type="button"
-                    className="wizard-nav-button primary-wizard-btn"
-                    onClick={nextStep}
-                  >
-                    Continue
-                    <ChevronRight size={16} />
-                  </button>
-                ) : (
-                  <button type="button" className="wizard-nav-button primary-wizard-btn" onClick={nextStep}>
-                    View Full Analysis
-                    <Sparkles size={16} />
-                  </button>
-                )}
-              </div>
-            </>
+                  <div className="wizard-node-marker">{idx + 1}</div>
+                  <span className="wizard-node-label">{step.label}</span>
+                  {idx < steps.length - 1 && <div className="wizard-node-connector" />}
+                </div>
+              ))}
+            </div>
           )}
 
-          {showAnalytics && (
-            <div>
-              <button
-                type="button"
-                className="wizard-nav-button"
-                onClick={() => {
-                  setShowAnalytics(false);
-                  setCurrentStep(0);
-                }}
-              >
-                <ChevronLeft size={16} />
-                Edit Assessment
-              </button>
-              <AnalyticsDashboard result={result} />
-            </div>
+          {!showFeedback && currentStep === 0 && (
+            <QuestionSection
+              icon={Brain}
+              title="Psychology"
+              score={`${result.behaviourScore}/${ui.componentMaximums.behaviour}`}
+              questions={ui.behaviourQuestions}
+              values={assessment.behaviour}
+              onChange={(key, value) => onChange("behaviour", key, value)}
+            />
+          )}
+
+          {!showFeedback && currentStep === 1 && (
+            <QuestionSection
+              icon={BarChart3}
+              title="Clarity"
+              score={`${result.awarenessScore}/${ui.componentMaximums.awareness}`}
+              questions={ui.awarenessQuestions}
+              values={assessment.awareness}
+              onChange={(key, value) => onChange("awareness", key, value)}
+            />
+          )}
+
+          {!showFeedback && currentStep === 2 && (
+            <ProfileSection
+              values={assessment.profile}
+              score={`${result.stabilityScore}/${ui.componentMaximums.stability}`}
+              onChange={(key, value) => onChange("profile", key, value)}
+            />
+          )}
+
+          {!showFeedback && currentStep === 3 && mode === "v2" && (
+            <QuestionSection
+              icon={Activity}
+              title="Habits"
+              score={`${result.habits.habitScore}/100`}
+              questions={ui.habitsQuestions}
+              values={assessment.habits}
+              onChange={(key, value) => onChange("habits", key, value)}
+            />
+          )}
+
+          {!showFeedback && (
+            <div className="wizard-nav-footer">
+            <button
+              type="button"
+              className="ghost-button"
+              onClick={handlePrev}
+              disabled={currentStep === 0}
+            >
+              <ChevronLeft size={16} />
+              Previous
+            </button>
+
+            <button type="button" className="wizard-primary-btn" onClick={handleNext}>
+              {isLastStep ? "Finish & Review Score" : "Continue"}
+              {!isLastStep && <ChevronRight size={16} />}
+            </button>
+          </div>
+          )}
+
+          {showFeedback && (
+            <ValidationFeedbackForm
+              healthScore={result.healthScore}
+              onSubmitFeedback={async (feedbackPayload) => {
+                await dispatchAnonymousFeedbackEvent(feedbackPayload);
+                window.location.href = "#home";
+              }}
+            />
           )}
         </section>
 
-        {/* Persistent Diagnostic Analytics Panel Sidebar */}
         <aside className="result-stack" aria-label="Financial health result">
           <ScoreOverview result={result} />
           <ComponentBreakdown result={result} />
@@ -754,65 +751,6 @@ function QuestionSection({ icon: Icon, title, score, questions, values, onChange
   );
 }
 
-function UserInfoSection({ values, onChange, validationMessage, onSkip }) {
-  return (
-    <section className="panel">
-      <div className="panel-heading">
-        <div>
-          <User size={20} />
-          <h2>About You</h2>
-        </div>
-        <span>One more step before we begin</span>
-      </div>
-
-      <div className="question-list">
-        <div className="question-row">
-          <label className="question-label" htmlFor="participant-name">
-            Name
-          </label>
-          <input
-            id="participant-name"
-            type="text"
-            value={values.name || ""}
-            onChange={(event) => onChange("name", event.target.value)}
-          />
-        </div>
-
-        <div className="question-row">
-          <label className="question-label" htmlFor="participant-age">
-            Age
-          </label>
-          <input
-            id="participant-age"
-            type="number"
-            min="0"
-            inputMode="numeric"
-            value={values.age ?? ""}
-            onChange={(event) => onChange("age", event.target.value === "" ? "" : Number.parseInt(event.target.value, 10))}
-          />
-        </div>
-
-        <div className="question-row">
-          <label className="question-label" htmlFor="participant-email">
-            Email address
-          </label>
-          <input
-            id="participant-email"
-            type="email"
-            value={values.email || ""}
-            onChange={(event) => onChange("email", event.target.value)}
-          />
-        </div>
-      </div>
-      <div className="validation-area">
-        <p className="validation-note">{validationMessage}</p>
-        <button type="button" className="skip-cta" onClick={onSkip}>
-          Skip for now
-        </button>
-      </div>
-    </section>
-  );
-}
 
 function ProfileSection({ values, score, onChange }) {
   return (
