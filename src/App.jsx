@@ -157,6 +157,7 @@ const navItems = [
   { label: "Business", href: "#business" },
   { label: "Founder", href: "#founder" },
   { label: "Investors", href: "#assessment" },
+  { label: "Admin", href: "#admin" },
 ];
 
 const engineSignals = [
@@ -311,6 +312,19 @@ export default function App() {
   const [assessment, setAssessment] = useState(() => makeEmptyAssessment());
   const [saveState, setSaveState] = useState("Ready");
   const [resetTrigger, setResetTrigger] = useState(0);
+  const [activeHash, setActiveHash] = useState(
+    isBrowser() ? window.location.hash || "#home" : "#home"
+  );
+  const [adminLoggedIn, setAdminLoggedIn] = useState(false);
+  const [adminCredentials, setAdminCredentials] = useState({ username: "", password: "" });
+  const [adminLoginError, setAdminLoginError] = useState("");
+  const [adminReport, setAdminReport] = useState(null);
+
+  useEffect(() => {
+    const handleHashChange = () => setActiveHash(window.location.hash || "#home");
+    window.addEventListener("hashchange", handleHashChange);
+    return () => window.removeEventListener("hashchange", handleHashChange);
+  }, []);
 
   // Clear any persisted state on initial load so the user must actively select answers
   useEffect(() => {
@@ -392,6 +406,34 @@ export default function App() {
     }
   }
 
+  function handleAdminLogin(event) {
+    event.preventDefault();
+    if (adminCredentials.username === "ankit" && adminCredentials.password === "admin") {
+      setAdminLoggedIn(true);
+      setAdminLoginError("");
+      setActiveHash("#admin");
+      return;
+    }
+
+    setAdminLoginError("Invalid username or password. Please try again.");
+  }
+
+  function handleAdminLogout() {
+    setAdminLoggedIn(false);
+    setAdminCredentials({ username: "", password: "" });
+    setAdminLoginError("");
+    window.location.hash = "#home";
+  }
+
+  function generateAdminReport() {
+    const report = {
+      assessment,
+      result,
+      createdAt: new Date().toISOString(),
+    };
+    setAdminReport(report);
+  }
+
   function resetAssessment() {
     setAssessment(makeEmptyAssessment());
     try {
@@ -431,36 +473,156 @@ export default function App() {
         onSave={saveAssessment}
       />
 
-
       <main>
-        <HeroSection result={result} />
-        <IntelligenceSection />
-        <BusinessSection />
-        <FounderSection />
-        <AssessmentSection
-          assessment={assessment}
-          result={result}
-          onChange={updateGroup}
-          ui={ui}
-          resetTrigger={resetTrigger}
-        />
+        {activeHash === "#admin" ? (
+          <AdminSection
+            assessment={assessment}
+            result={result}
+            adminLoggedIn={adminLoggedIn}
+            adminCredentials={adminCredentials}
+            adminLoginError={adminLoginError}
+            adminReport={adminReport}
+            onAdminCredentialChange={setAdminCredentials}
+            onAdminLogin={handleAdminLogin}
+            onAdminLogout={handleAdminLogout}
+            onGenerateReport={generateAdminReport}
+          />
+        ) : (
+          <>
+            <HeroSection result={result} />
+            <IntelligenceSection />
+            <BusinessSection />
+            <FounderSection />
+            <AssessmentSection
+              assessment={assessment}
+              result={result}
+              onChange={updateGroup}
+              ui={ui}
+              resetTrigger={resetTrigger}
+            />
 
-        <section className="assessment-summary-grid">
-          <AnalyticsDashboard result={result} />
-          <div className="assessment-summary-sidebar">
-            <FinancialTwin
-              personalityType={result.personalityType}
-              behaviourScore={result.behaviourScore}
-              awarenessScore={result.awarenessScore}
-            />
-            <UserHistory
-              currentScore={result.healthScore}
-              personalityType={result.personalityType}
-            />
-          </div>
-        </section>
+            <section className="assessment-summary-grid">
+              <AnalyticsDashboard result={result} />
+              <div className="assessment-summary-sidebar">
+                <FinancialTwin
+                  personalityType={result.personalityType}
+                  behaviourScore={result.behaviourScore}
+                  awarenessScore={result.awarenessScore}
+                />
+                <UserHistory
+                  currentScore={result.healthScore}
+                  personalityType={result.personalityType}
+                />
+              </div>
+            </section>
+          </>
+        )}
       </main>
     </div>
+  );
+}
+
+function AdminSection({
+  assessment,
+  result,
+  adminLoggedIn,
+  adminCredentials,
+  adminLoginError,
+  adminReport,
+  onAdminCredentialChange,
+  onAdminLogin,
+  onAdminLogout,
+  onGenerateReport,
+}) {
+  return (
+    <section className="admin-section">
+      <div className="admin-panel">
+        <div className="admin-header">
+          <div>
+            <span className="admin-label">Admin Dashboard</span>
+          </div>
+          {adminLoggedIn && (
+            <button type="button" className="ghost-button admin-logout-btn" onClick={onAdminLogout}>
+              Logout
+            </button>
+          )}
+        </div>
+
+        {!adminLoggedIn ? (
+          <form className="admin-login-card" onSubmit={onAdminLogin} autoComplete="off">
+            <label>
+              Username
+              <input
+                type="text"
+                autoComplete="username"
+                value={adminCredentials.username}
+                onChange={(event) => onAdminCredentialChange({
+                  ...adminCredentials,
+                  username: event.target.value,
+                })}
+              />
+            </label>
+            <label>
+              Password
+              <input
+                type="password"
+                autoComplete="current-password"
+                value={adminCredentials.password}
+                onChange={(event) => onAdminCredentialChange({
+                  ...adminCredentials,
+                  password: event.target.value,
+                })}
+              />
+            </label>
+            {adminLoginError && <p className="admin-login-error">{adminLoginError}</p>}
+            <button type="submit" className="primary-link admin-login-btn">
+              Sign In
+            </button>
+          </form>
+        ) : (
+          <>
+            <div className="admin-summary-grid">
+              <div className="admin-card">
+                <h3>Participant data</h3>
+                <pre>{JSON.stringify(assessment.participant, null, 2)}</pre>
+              </div>
+              <div className="admin-card">
+                <h3>Profile inputs</h3>
+                <pre>{JSON.stringify(assessment.profile, null, 2)}</pre>
+              </div>
+              <div className="admin-card">
+                <h3>Behaviour answers</h3>
+                <pre>{JSON.stringify(assessment.behaviour, null, 2)}</pre>
+              </div>
+              <div className="admin-card">
+                <h3>Awareness answers</h3>
+                <pre>{JSON.stringify(assessment.awareness, null, 2)}</pre>
+              </div>
+              {assessment.habits && (
+                <div className="admin-card admin-habits-card">
+                  <h3>Habits answers</h3>
+                  <pre>{JSON.stringify(assessment.habits, null, 2)}</pre>
+                </div>
+              )}
+            </div>
+
+            <div className="admin-actions-row">
+              <button type="button" className="admin-generate-btn" onClick={onGenerateReport}>
+                Generate report
+              </button>
+              <span className="admin-report-hint">This produces the same report payload visible for review.</span>
+            </div>
+
+            {adminReport && (
+              <div className="admin-report-preview">
+                <h3>Generated report preview</h3>
+                <pre>{JSON.stringify(adminReport, null, 2)}</pre>
+              </div>
+            )}
+          </>
+        )}
+      </div>
+    </section>
   );
 }
 
