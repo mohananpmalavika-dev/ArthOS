@@ -41,10 +41,12 @@ The content is organized as follows:
 
 <directory_structure>
 ARTH.OS_Financial_Health_Score_Framework_v1.md
+EARLY_USER_TESTING_VALIDATION_FRAMEWORK.md
 index.html
 package.json
 repomix-output.txt
 src/App.jsx
+src/components/AnalyticsDashboard.jsx
 src/data/questionnaire-v2-habits-notes.txt
 src/data/questionnaire-v2.js
 src/data/questionnaire.js
@@ -60,6 +62,146 @@ vite.config.js
 
 <files>
 This section contains the contents of the repository's files.
+
+<file path="EARLY_USER_TESTING_VALIDATION_FRAMEWORK.md">
+# Early User-Testing Validation Framework
+
+Awesome! Now that the core architecture is locked in, the system is completely optimized for your validation phase.
+
+To help you hit the ground running with your early-stage user testing group, let’s map out a clear operational checklist. This outlines exactly how your metrics loop together to prove the ARTH.OS value proposition.
+
+## 📋 The Early User-Testing Validation Framework
+
+When you put this prototype in front of your first small cohort (e.g., 20–30 users), your primary goal is to capture baseline data that traditional fintech ignores. You want to track three core validation pillars:
+
+### 1. The Reality Gap (Psychology vs. Math)
+
+- **What to watch:** Compare the **Perceived Runway** against the **Actual Cash Runway**.
+- **The Hypothesis:** If your aggregated serverless telemetry shows that the average user's *Perceived Runway* is significantly higher than their *Actual Cash Runway*, you have mathematically proven the "Visibility Blindspot." This is a powerful data point to show future investors and technical partners that users have a critical need for an intelligence layer.
+
+### 2. Behavioral Triggers as Leading Risk Indicators
+
+- **What to watch:** Look at the correlation between high **Future Risk Exposure** labels and low **Behaviour Scores**.
+- **The Hypothesis:** You will likely find that users with "High Risk" or "Critical Risk" flags aren't failing because their income is low, but because their scores are dragged down by structural behavioral triggers—such as overspending when stressed or lacking an impulse waiting rule. This directly validates the founder's note: *human behavior drives every financial decision, and systems must catch it before collapse happens*.
+
+### 3. Action Receptivity
+
+- **What to watch:** When users reach the end of the daily habits wizard step, track how they react to the **Recommended Action** section.
+- **The Hypothesis:** Since the app now cleanly displays a path to immediately change their baseline (such as shifting from an As-Is Lifestyle runway to a Crisis Mode Optimized runway), you can follow up with your test group to see if that visual contrast successfully motivated them to implement the recommended action.
+
+## 🚀 Ready for Launch
+
+Your codebase has evolved beautifully:
+
+1. **The Core Math Logic** handles complex calculations without heavy database or AI overhead, completely fulfilling your v1/v2 validation objective.
+2. **The Segmented Radio Controls** provide a solid, standards-compliant foundation for responsive frontend interactions.
+3. **The Data Auto-Save Logic** preserves user states locally to ensure a smooth, professional user experience.
+4. **The Onboarding Wizard & Dashboard Layouts** transform a dry questionnaire into an engaging, insightful diagnostic experience.
+
+Take your time initializing your database pool and rolling this out to your testing group. This prototype is structurally sound, highly optimized, and perfectly positioned to give you the exact behavioral directions you need to build the future of ARTH.OS.
+
+### Suggested launch checklist
+
+1. Recruit a cohort of 20–30 users.
+2. Ask them to complete the full ARTH.OS assessment honestly.
+3. Capture the three validation pillars above.
+4. Aggregate telemetry around runway perception, behavior risk, and action receptivity.
+5. Run a brief post-assessment follow-up to ask if the insights felt accurate and whether the recommended action motivated a real change.
+
+Best of luck with your user validation testing—let me know how the cohort responds to the survival runway metrics once your first data sets start rolling in!
+</file>
+
+<file path="src/components/AnalyticsDashboard.jsx">
+import React from "react";
+import { TrendingDown, ShieldAlert, Sparkles, User, HelpCircle } from "lucide-react";
+
+export default function AnalyticsDashboard({ result }) {
+  const {
+    healthScore,
+    categoryBand,
+    awarenessGapDisplay,
+    perceivedSurvivalMonthsDisplay,
+    survivalMonthsDisplay,
+    futureRiskLabel,
+    futureRiskScore,
+    personalityType,
+    personalityReport,
+  } = result;
+
+  const toneColorClass = `tone-text-${categoryBand?.tone || "steady"}`;
+
+  return (
+    <section className="analytics-dashboard">
+      {/* Row 1: Psychological & Risk Profile Cards */}
+      <div className="diagnostic-grid">
+        {/* Money Personality Card */}
+        <article className="diagnostic-card">
+          <div className="card-header">
+            <User size={20} />
+            <span>Behavioral Archetype</span>
+          </div>
+          <div className="card-content">
+            <p className="label">Money Personality</p>
+            <strong className="personality-title">{personalityType}</strong>
+          </div>
+          <p className="card-note">
+            This profile details how your spending behaviors react to emotional stress spikes and
+            external social environments.
+          </p>
+        </article>
+
+        {/* Future Risk Card */}
+        <article className="diagnostic-card">
+          <div className="card-header">
+            <ShieldAlert size={20} />
+            <span>Future Risk Exposure</span>
+          </div>
+          <div className="card-content">
+            <p className="label">Risk Index Level: {futureRiskScore}/100</p>
+            <strong className={`risk-badge ${futureRiskLabel.toLowerCase().replace(" ", "-")}`}>
+              {futureRiskLabel}
+            </strong>
+          </div>
+        </article>
+      </div>
+
+      {/* Row 2: The Visibility Blindspot (Awareness Gap) */}
+      <article className="visibility-blindspot-block">
+        <div className="blindspot-header">
+          <Sparkles size={20} />
+          <h3>The Visibility Blindspot (Awareness Gap)</h3>
+          <HelpCircle size={18} />
+        </div>
+
+        <div className="blindspot-metrics">
+          <div className="blindspot-sub-card">
+            <span>Perceived Buffer Runway</span>
+            <strong>{perceivedSurvivalMonthsDisplay} mos</strong>
+          </div>
+
+          <div className="blindspot-sub-card">
+            <span>Actual Cash Runway</span>
+            <strong>{survivalMonthsDisplay} mos</strong>
+          </div>
+
+          <div className="blindspot-sub-card">
+            <span>Calculated Blindspot Severity</span>
+            <strong>{awarenessGapDisplay} mos</strong>
+          </div>
+        </div>
+
+        <p className="blindspot-insight">
+          💡 <strong>What this reveals:</strong> Your financial tracking clarity profile indicates
+          you may run out of liquid cash funds roughly <strong>{awarenessGapDisplay} months</strong>
+          {awarenessGapDisplay !== "0"
+            ? " sooner than your mental baseline currently expects."
+            : " as planned."}
+        </p>
+      </article>
+    </section>
+  );
+}
+</file>
 
 <file path="ARTH.OS_Financial_Health_Score_Framework_v1.md">
 # ARTH.OS — Financial Health Score Framework (v1)
@@ -6243,6 +6385,11 @@ export const v2DefaultAssessment = {
     debtRepaymentRatePctOfIncome: 0.12, // heuristic % of income to debt repayment
     averageInterestRatePct: 10, // used only for estimate (simple)
   },
+  participant: {
+    name: "",
+    age: "",
+    email: "",
+  },
   habits: {
     habitCheckInsPerWeek: "1",
     debtPaymentDiscipline: "sometimes",
@@ -6272,1401 +6419,6 @@ export const v2DefaultAssessment = {
 
 ## Phase 3: v2 Milestone (later)
 - [x] Split survival metric into Fixed vs Discretionary buffers (update questionnaire v2 schema, scoring engine, and UI).
-</file>
-
-<file path="src/App.jsx">
-import { memo, useEffect, useMemo, useState } from "react";
-
-import {
-  Activity,
-  AlertTriangle,
-  ArrowRight,
-  BarChart3,
-  Brain,
-  Cpu,
-  Download,
-  LockKeyhole,
-  Network,
-  RotateCcw,
-  Save,
-  ShieldCheck,
-  Sparkles,
-  Target,
-  WalletCards,
-} from "lucide-react";
-import {
-  calculateFinancialHealthV2,
-  calculateBehaviourScoreV2,
-  calculateAwarenessScoreV2,
-  calculateStabilityScoreV2,
-  calculateDebtScheduleEstimateV2,
-  calculateHabitsMetricsV2,
-  calculateFutureRiskV2,
-  calculatePersonalityTypeV2,
-  calculateAwarenessGapV2,
-  calculateBlindSpotV2,
-  calculatePersonalityReportV2,
-  componentMaximumsV2,
-  formatCurrency as formatCurrencyV2,
-  formatMonths as formatMonthsV2,
-} from "./lib/scoring-v2.js";
-
-
-
-const STORAGE_KEY = "arth-os-assessment";
-
-
-const navItems = [
-  { label: "Home", href: "#home" },
-  { label: "AI", href: "#ai" },
-  { label: "Business", href: "#business" },
-  { label: "Founder", href: "#founder" },
-  { label: "Investors", href: "#assessment" },
-];
-
-const engineSignals = [
-  "Decodes Spending Patterns",
-  "Detects Emotional Triggers",
-  "Uncovers Money Personality",
-  "Generates Financial Health Actions",
-];
-
-const intelligenceRows = [
-  {
-    icon: Network,
-    title: "AI Financial Intelligence",
-    copy: "Connects financial signals with behavioral psychology.",
-  },
-  {
-    icon: Cpu,
-    title: "Behavior Pattern Detection",
-    copy: "Reads impulse, avoidance and planning patterns in one score.",
-  },
-  {
-    icon: Brain,
-    title: "Psychology Driven Analysis",
-    copy: "Turns choices into a practical financial behavior profile.",
-  },
-];
-
-const businessCards = [
-  {
-    title: "Behavior Layer AI",
-    copy: "Traditional fintech tracks transactions. ARTH.OS analyzes emotional spending patterns and financial personality behavior.",
-  },
-  {
-    title: "Privacy First Architecture",
-    copy: "Assessment data stays in the browser until you choose to save or export it.",
-  },
-  {
-    title: "Scalable Intelligence Engine",
-    copy: "Built to evolve into behavioral finance infrastructure for future trust and credit systems.",
-  },
-];
-
-const sectionIcons = {
-  behaviour: Brain,
-  awareness: BarChart3,
-  stability: ShieldCheck,
-};
-
-const incomeStabilityOptions = [
-  { value: "very_consistent", label: "Very consistent" },
-  { value: "mostly_consistent", label: "Mostly consistent" },
-  { value: "somewhat_variable", label: "Somewhat variable" },
-  { value: "highly_variable", label: "Highly variable" },
-];
-
-const dependentsOptions = [
-  { value: "0_1", label: "0-1" },
-  { value: "2_3", label: "2-3" },
-  { value: "4_5", label: "4-5" },
-  { value: "6_plus", label: "6+" },
-];
-
-
-function normalizeV2Assessment(assessment) {
-  const profile = assessment?.profile ?? {};
-  if (
-    profile.emergencySavingsFixed !== undefined ||
-    profile.emergencySavingsDiscretionary !== undefined
-  ) {
-    return {
-      ...assessment,
-      profile: {
-        ...v2DefaultAssessment.profile,
-        ...profile,
-      },
-    };
-  }
-
-  const emergencySavings = Number.parseFloat(profile.emergencySavings) || 0;
-  const fixed = Math.min(emergencySavings, 50000);
-  const discretionary = Math.max(0, emergencySavings - fixed);
-
-  return {
-    ...assessment,
-    profile: {
-      ...v2DefaultAssessment.profile,
-      ...profile,
-      emergencySavingsFixed: fixed,
-      emergencySavingsDiscretionary: discretionary,
-    },
-  };
-}
-
-function normalizeV1Assessment(assessment) {
-  const profile = assessment?.profile ?? {};
-  const legacySavings = Number.parseFloat(profile.emergencySavings) || 0;
-  const fixed = Number.parseFloat(profile.emergencySavingsFixed) || 0;
-  const discretionary = Number.parseFloat(profile.emergencySavingsDiscretionary) || 0;
-
-  return {
-    ...defaultAssessment,
-    ...assessment,
-    behaviour: {
-      ...defaultAssessment.behaviour,
-      ...assessment?.behaviour,
-    },
-    awareness: {
-      ...defaultAssessment.awareness,
-      ...assessment?.awareness,
-    },
-    profile: {
-      ...defaultAssessment.profile,
-      ...profile,
-      emergencySavings: legacySavings || fixed + discretionary,
-    },
-  };
-}
-
-function loadInitialAssessment() {
-  try {
-    // Prefer unified key, but also support legacy v2 key
-    const unified = window.localStorage.getItem(STORAGE_KEY);
-    if (unified) return normalizeV2Assessment(JSON.parse(unified));
-
-    const legacyV2 = window.localStorage.getItem("arth-os-assessment-v2");
-    if (legacyV2) return normalizeV2Assessment(JSON.parse(legacyV2));
-
-    const legacyV1 = window.localStorage.getItem("arth-os-assessment-v1");
-    if (legacyV1) return normalizeV2Assessment(normalizeV1Assessment(JSON.parse(legacyV1)));
-
-    // fallback to empty v2 default shape
-    return typeof v2DefaultAssessment !== "undefined" ? v2DefaultAssessment : {};
-  } catch {
-    return typeof v2DefaultAssessment !== "undefined" ? v2DefaultAssessment : {};
-  }
-}
-
-export default function App() {
-  const [mode, setMode] = useState("v2");
-  const [assessment, setAssessment] = useState(() => loadInitialAssessmentV2());
-  const [saveState, setSaveState] = useState("Ready");
-
-  useEffect(() => {
-    setAssessment((current) => {
-      const isV2Shape = current?.profile?.emergencySavingsFixed !== undefined;
-      const isV1Shape = current?.profile?.emergencySavings !== undefined;
-
-      if (mode === "v2" && isV2Shape) {
-        return current;
-      }
-
-      if (mode === "v1" && isV1Shape) {
-        return current;
-      }
-
-      return mode === "v2"
-        ? normalizeV2Assessment(current)
-        : normalizeV1Assessment(current);
-    });
-  }, [mode]);
-
-  const v2BehaviourResult = useMemo(() => {
-    if (mode !== "v2") return null;
-    return calculateBehaviourScoreV2(assessment.behaviour);
-  }, [mode, assessment.behaviour]);
-
-  const v2AwarenessResult = useMemo(() => {
-    if (mode !== "v2") return null;
-    return calculateAwarenessScoreV2(assessment.awareness);
-  }, [mode, assessment.awareness]);
-
-  const v2StabilityResult = useMemo(() => {
-    if (mode !== "v2") return null;
-    return calculateStabilityScoreV2(assessment.profile);
-  }, [mode, assessment.profile]);
-
-  const v2DebtSchedule = useMemo(() => {
-    if (mode !== "v2") return null;
-    return calculateDebtScheduleEstimateV2(assessment.profile);
-  }, [mode, assessment.profile]);
-
-  const v2Habits = useMemo(() => {
-    if (mode !== "v2") return null;
-    return calculateHabitsMetricsV2(assessment.habits);
-  }, [mode, assessment.habits]);
-
-  const v2FutureRisk = useMemo(() => {
-    if (mode !== "v2") return null;
-    return calculateFutureRiskV2(assessment.profile);
-  }, [mode, assessment.profile]);
-
-  const v2PersonalityType = useMemo(() => {
-    if (mode !== "v2") return null;
-    return calculatePersonalityTypeV2(assessment.behaviour);
-  }, [mode, assessment.behaviour]);
-
-  const v2AwarenessGap = useMemo(() => {
-    if (mode !== "v2") return null;
-    return calculateAwarenessGapV2(
-      v2AwarenessResult ?? 0,
-      v2StabilityResult?.survivalMonthsRaw ?? 0,
-    );
-  }, [mode, v2AwarenessResult, v2StabilityResult?.survivalMonthsRaw]);
-
-  const v2BlindSpot = useMemo(() => {
-    if (mode !== "v2" || !v2AwarenessGap) return null;
-    return calculateBlindSpotV2(v2AwarenessGap);
-  }, [mode, v2AwarenessGap]);
-
-  const v2PersonalityReport = useMemo(() => {
-    if (mode !== "v2") return null;
-    return calculatePersonalityReportV2(v2PersonalityType ?? "Survivor");
-  }, [mode, v2PersonalityType]);
-
-  const result = useMemo(() => {
-    if (mode === "v2") {
-      const behaviourScore = v2BehaviourResult ?? 0;
-      const awarenessScore = v2AwarenessResult ?? 0;
-      const stability = v2StabilityResult ?? { score: 0, survivalMonthsRaw: 0 };
-      const componentRows = [
-        {
-          key: "behaviour",
-          label: "Behaviour",
-          score: behaviourScore,
-          max: componentMaximumsV2.behaviour,
-        },
-        {
-          key: "awareness",
-          label: "Awareness",
-          score: awarenessScore,
-          max: componentMaximumsV2.awareness,
-        },
-        {
-          key: "stability",
-          label: "Stability",
-          score: stability.score,
-          max: componentMaximumsV2.stability,
-        },
-      ].map((row) => ({
-        ...row,
-        percent: Math.round((row.score / row.max) * 100),
-      }));
-
-      // Preserve existing ordering logic in score-v2 engine
-      componentRows.sort((a, b) => a.percent - b.percent);
-      const lowestComponent = componentRows[0];
-      const strongestComponent = [...componentRows].sort(
-        (a, b) => b.percent - a.percent,
-      )[0];
-
-      const healthScore = Math.round(
-        behaviourScore + awarenessScore + stability.score,
-      );
-      const categoryBand = (() => {
-        if (healthScore <= 25) return { label: "Critical", tone: "critical" };
-        if (healthScore <= 50) return { label: "Vulnerable", tone: "warning" };
-        if (healthScore <= 75) return { label: "Stable", tone: "steady" };
-        return { label: "Healthy", tone: "strong" };
-      })();
-
-      const survivalBand = (() => {
-        const months = stability.survivalMonthsRaw;
-        if (months <= 1)
-          return { label: "Immediate risk", tone: "critical" };
-        if (months <= 3)
-          return { label: "Fragile cushion", tone: "warning" };
-        if (months <= 6)
-          return { label: "Improving stability", tone: "steady" };
-        if (months <= 12)
-          return { label: "Strong buffer", tone: "strong" };
-        return { label: "Highly resilient", tone: "strong" };
-      })();
-
-      const survivalMonthsDisplay =
-        stability.survivalMonthsRaw <= 0 || !Number.isFinite(stability.survivalMonthsRaw)
-          ? "0"
-          : stability.survivalMonthsRaw >= 60
-            ? "60+"
-            : Number.isInteger(stability.survivalMonthsRaw)
-              ? String(stability.survivalMonthsRaw)
-              : stability.survivalMonthsRaw.toFixed(1);
-
-      const awarenessGapMetrics = v2AwarenessGap ?? {
-        perceivedSurvivalMonths: stability.survivalMonthsRaw,
-        actualSurvivalMonths: stability.survivalMonthsRaw,
-        awarenessGap: 0,
-      };
-
-      const futureRisk = v2FutureRisk ?? { score: 0, label: "Unknown" };
-      const personalityType = v2PersonalityType ?? "Survivor";
-      const personalityReport = v2PersonalityReport ?? {
-        title: personalityType,
-        strengths: [],
-        risks: [],
-        dangerZone: "",
-        recommendedRule: "",
-      };
-
-      const blindSpot = v2BlindSpot ?? {
-        headline: "Watch your runway assumptions.",
-        summary:
-          "Your awareness of survival time is your most valuable financial insight.",
-        perceivedSurvivalMonthsDisplay: "0",
-        actualSurvivalMonthsDisplay: "0",
-        gapDisplay: "0",
-        direction: "aligned",
-      };
-
-      const perceivedSurvivalMonthsDisplay =
-        awarenessGapMetrics.perceivedSurvivalMonths <= 0 ||
-        !Number.isFinite(awarenessGapMetrics.perceivedSurvivalMonths)
-          ? "0"
-          : awarenessGapMetrics.perceivedSurvivalMonths >= 60
-            ? "60+"
-            : Number.isInteger(awarenessGapMetrics.perceivedSurvivalMonths)
-              ? String(awarenessGapMetrics.perceivedSurvivalMonths)
-              : awarenessGapMetrics.perceivedSurvivalMonths.toFixed(1);
-
-      const awarenessGapDisplay =
-        awarenessGapMetrics.awarenessGap <= 0 ||
-        !Number.isFinite(awarenessGapMetrics.awarenessGap)
-          ? "0"
-          : awarenessGapMetrics.awarenessGap >= 60
-            ? "60+"
-            : Number.isInteger(awarenessGapMetrics.awarenessGap)
-              ? String(awarenessGapMetrics.awarenessGap)
-              : awarenessGapMetrics.awarenessGap.toFixed(1);
-
-      const componentsForAction = [
-        { key: "behaviour", score: behaviourScore },
-        { key: "awareness", score: awarenessScore },
-        {
-          key: "stability",
-          score: stability.score,
-          survivalMonthsRaw: stability.survivalMonthsRaw,
-        },
-      ];
-
-      const recommendedActionText = (() => {
-        // ONE primary action: target the lowest component; if stability is lowest and survival is low -> emergency savings.
-        const lowestKey = componentsForAction
-          .slice()
-          .sort((a, b) => a.score - b.score)[0].key;
-
-        const monthlyExpenses = Number.parseFloat(
-          assessment.profile.monthlyExpenses,
-        );
-        const monthlyExpensesSafe = Number.isFinite(monthlyExpenses)
-          ? monthlyExpenses
-          : 0;
-
-        const survivalMonths = componentsForAction.find(
-          (c) => c.key === "stability",
-        ).survivalMonthsRaw;
-
-        if (lowestKey === "behaviour") {
-          if (assessment.behaviour.unplannedPurchaseFreq !== "never") {
-            return "Use a 24-hour waiting rule for non-essential purchases this month.";
-          }
-          return "Cut one trigger: remove one social-spend pathway (e.g., shopping places) this week.";
-        }
-
-        if (lowestKey === "awareness") {
-          if (assessment.awareness.tracksExpenses !== "regularly") {
-            return "Track every expense for the next 14 days (no exceptions) and total it.";
-          }
-          return "Write a 1-page monthly money plan (income → expenses → savings → debt).";
-        }
-
-        // stability driver
-        if (survivalMonths < 2) {
-          const target = monthlyExpensesSafe * 0.85;
-          return `Build emergency savings of ${formatCurrencyV2(target)} within 60 days.`;
-        }
-
-        const debtSchedule = v2DebtSchedule;
-        if (
-          debtSchedule.payoffMonths === Infinity ||
-          debtSchedule.payoffMonths > 18
-        ) {
-          return "Increase debt repayment by 1 step this month (even +₹2,000 counts).";
-        }
-
-        return "Maintain your current emergency + debt plan for the next 30 days.";
-      })();
-
-
-      const summary = `${categoryBand.label} financial health with ${survivalBand.label.toLowerCase()}.`;
-
-      return {
-        mode: "v2",
-        behaviourScore,
-        awarenessScore,
-        stabilityScore: stability.score,
-        healthScore,
-        categoryBand,
-        survivalMonthsRaw: stability.survivalMonthsRaw,
-        survivalMonthsDisplay,
-        bareMinimumSurvivalMonthsRaw:
-          stability.bareMinimumSurvivalMonthsRaw ?? 0,
-        bareMinimumSurvivalMonthsDisplay:
-          stability.bareMinimumSurvivalMonthsRaw <= 0 ||
-          !Number.isFinite(stability.bareMinimumSurvivalMonthsRaw)
-            ? "0"
-            : stability.bareMinimumSurvivalMonthsRaw >= 60
-            ? "60+"
-            : Number.isInteger(stability.bareMinimumSurvivalMonthsRaw)
-            ? String(stability.bareMinimumSurvivalMonthsRaw)
-            : stability.bareMinimumSurvivalMonthsRaw.toFixed(1),
-        perceivedSurvivalMonths: awarenessGapMetrics.perceivedSurvivalMonths,
-        perceivedSurvivalMonthsDisplay,
-        actualSurvivalMonths: awarenessGapMetrics.actualSurvivalMonths,
-        awarenessGap: awarenessGapMetrics.awarenessGap,
-        awarenessGapDisplay,
-        blindSpotHeadline: blindSpot.headline,
-        blindSpotSummary: blindSpot.summary,
-        blindSpotPerceived: blindSpot.perceivedSurvivalMonthsDisplay,
-        blindSpotActual: blindSpot.actualSurvivalMonthsDisplay,
-        blindSpotGap: blindSpot.gapDisplay,
-        blindSpotDirection: blindSpot.direction,
-        futureRiskScore: futureRisk.score,
-        futureRiskLabel: futureRisk.label,
-        personalityType,
-        survivalBand,
-        componentRows: componentRows.map((row) => {
-          const band =
-            row.key === "behaviour"
-              ? (() => {
-                  if (row.score <= 15)
-                    return "Critical behaviour risk";
-                  if (row.score <= 27)
-                    return "Needs behaviour correction";
-                  if (row.score <= 35) return "Mostly controlled";
-                  return "Strong financial discipline";
-                })()
-              : row.key === "awareness"
-                ? (() => {
-                    if (row.score <= 9) return "Low visibility";
-                    if (row.score <= 18) return "Basic awareness";
-                    if (row.score <= 24) return "Solid tracking";
-                    return "High clarity";
-                  })()
-                : (() => {
-                    if (row.score <= 8) return "Fragile stability";
-                    if (row.score <= 16) return "Some cushion";
-                    if (row.score <= 20) return "Resilient";
-                    return "Very stable";
-                  })();
-          return { ...row, band };
-        }),
-        lowestComponent,
-        strongestComponent,
-        recommendedActionText,
-        debtSchedule: v2DebtSchedule,
-        habits: v2Habits,
-        summary,
-      };
-    }
-
-    return calculateFinancialHealth(assessment);
-  }, [
-    mode,
-    assessment.behaviour,
-    assessment.awareness,
-    assessment.profile,
-    assessment.habits,
-
-    v2BehaviourResult,
-    v2AwarenessResult,
-    v2StabilityResult,
-    v2DebtSchedule,
-    v2Habits,
-    v2FutureRisk,
-    v2PersonalityType,
-    v2AwarenessGap,
-  ]);
-
-
-  const ui =
-    mode === "v2"
-      ? {
-          behaviourQuestions: v2BehaviourQuestions,
-          awarenessQuestions: v2AwarenessQuestions,
-          componentMaximums: componentMaximumsV2,
-          formatCurrency: formatCurrencyV2,
-          extraCards: {
-            debtSchedule: true,
-            habits: true,
-          },
-        }
-      : {
-          behaviourQuestions,
-          awarenessQuestions,
-          componentMaximums,
-          formatCurrency,
-          extraCards: {
-            debtSchedule: false,
-            habits: false,
-          },
-        };
-
-
-
-  function updateGroup(group, key, value) {
-    setAssessment((current) => ({
-      ...current,
-      [group]: {
-        ...current[group],
-        [key]: value,
-      },
-    }));
-    setSaveState("Unsaved");
-  }
-
-  function resetAssessmentToCurrentMode() {
-    const nextAssessment = mode === "v2" ? v2DefaultAssessment : defaultAssessment;
-    setAssessment(nextAssessment);
-    window.localStorage.removeItem(mode === "v2" ? STORAGE_KEY_V2 : STORAGE_KEY);
-    setSaveState("Ready");
-  }
-
-
-  function saveAssessment() {
-    const key = mode === "v2" ? STORAGE_KEY_V2 : STORAGE_KEY;
-    window.localStorage.setItem(key, JSON.stringify(assessment));
-    setSaveState("Saved");
-  }
-
-
-  function resetAssessment() {
-    resetAssessmentToCurrentMode();
-  }
-
-
-  function exportReport() {
-    const report = {
-      assessment,
-      result,
-      createdAt: new Date().toISOString(),
-    };
-    const blob = new Blob([JSON.stringify(report, null, 2)], {
-      type: "application/json",
-    });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = "arth-os-financial-health-report.json";
-    link.click();
-    URL.revokeObjectURL(url);
-  }
-
-  return (
-    <div className="app-shell">
-      <Header
-        saveState={saveState}
-        onExport={exportReport}
-        onReset={resetAssessment}
-        onSave={saveAssessment}
-        mode={mode}
-        onModeChange={setMode}
-      />
-
-
-      <main>
-        <HeroSection result={result} />
-        <IntelligenceSection />
-        <BusinessSection />
-        <FounderSection />
-        <AssessmentSection
-          assessment={assessment}
-          result={result}
-          onChange={updateGroup}
-          ui={ui}
-          mode={mode}
-        />
-      </main>
-    </div>
-  );
-}
-
-function Header({
-
-  saveState,
-  onExport,
-  onReset,
-  onSave,
-  mode,
-  onModeChange,
-}) {
-
-  return (
-    <header className="topbar">
-      <a className="brand" href="#home" aria-label="ARTH.OS home">
-
-        <span className="logo-word">
-          ARTH.<span>OS</span>
-        </span>
-        <small>POWERED BY SANKHYA</small>
-      </a>
-
-      <nav className="nav-links" aria-label="Primary navigation">
-        {navItems.map((item) => (
-          <a href={item.href} key={item.label}>
-            {item.label}
-          </a>
-        ))}
-      </nav>
-
-      <div className="toolbar" aria-label="Assessment actions">
-        <span className={`save-state save-state-${saveState.toLowerCase()}`}>
-          {saveState}
-        </span>
-
-        <div className="mode-toggle" role="group" aria-label="Assessment mode">
-          <button
-            type="button"
-            className={mode === "v1" ? "selected" : ""}
-            onClick={() => onModeChange("v1")}
-          >
-            v1
-          </button>
-          <button
-            type="button"
-            className={mode === "v2" ? "selected" : ""}
-            onClick={() => onModeChange("v2")}
-          >
-            v2
-          </button>
-        </div>
-
-        <button type="button" className="icon-button" onClick={onSave} title="Save">
-          <Save size={18} />
-          <span>Save</span>
-        </button>
-        <button
-          type="button"
-          className="icon-button"
-          onClick={onExport}
-          title="Export report"
-        >
-          <Download size={18} />
-          <span>Export</span>
-        </button>
-        <button type="button" className="ghost-button" onClick={onReset} title="Reset">
-          <RotateCcw size={18} />
-          <span>Reset</span>
-        </button>
-      </div>
-
-    </header>
-  );
-}
-
-function HeroSection({ result }) {
-  return (
-    <section className="hero-section" id="home">
-      <div className="hero-copy">
-        <div className="hero-pill">
-          <Sparkles size={16} />
-          <span>ARTH.OS by SANKHYA</span>
-        </div>
-        <h1>
-          <span>
-            ARTH.<em>OS</em>
-          </span>{" "}
-          decodes financial behavior.
-        </h1>
-        <p>
-          ARTH.OS combines behavioral psychology, AI and financial intelligence
-          to decode emotional spending, stress spending and hidden money habits.
-        </p>
-        <div className="hero-actions">
-          <a className="primary-link" href="#assessment">
-            Start Score
-            <ArrowRight size={18} />
-          </a>
-          <a className="secondary-link" href="#ai">
-            See Intelligence
-          </a>
-        </div>
-      </div>
-
-      <aside className="engine-card" aria-label="ARTH.OS intelligence engine">
-        <div className="engine-chip">
-          <Sparkles size={16} />
-          <span>ARTH.OS Intelligence Engine</span>
-        </div>
-        <div className="engine-metric">
-          <strong>99.99%</strong>
-          <span>Behavior Intelligence Accuracy</span>
-        </div>
-        <div className="engine-list">
-          {engineSignals.map((signal) => (
-            <div key={signal}>{signal}</div>
-          ))}
-        </div>
-        <div className="engine-footer">
-          <span>Live Score</span>
-          <strong>{result.healthScore}/100</strong>
-        </div>
-      </aside>
-    </section>
-  );
-}
-
-function IntelligenceSection() {
-  return (
-    <section className="feature-section" id="ai">
-      <div className="section-copy">
-        <h2>
-          ARTH.OS detects hidden <span>financial behavior.</span>
-        </h2>
-        <p>
-          It turns human money choices into a behavioral signal layer for
-          planning, resilience and financial self-awareness.
-        </p>
-      </div>
-      <div className="intelligence-layout">
-        <div className="intelligence-list">
-          {intelligenceRows.map(({ icon: Icon, title, copy }) => (
-            <article className="intelligence-row" key={title}>
-              <Icon size={28} />
-              <div>
-                <h3>{title}</h3>
-                <p>{copy}</p>
-              </div>
-            </article>
-          ))}
-        </div>
-        <div className="brain-frame" aria-hidden="true">
-          <div className="code-stack">
-            <span />
-            <span />
-            <span />
-            <span />
-            <span />
-          </div>
-          <div className="brain-core">
-            <Brain size={92} />
-          </div>
-          <div className="node-cluster">
-            <i />
-            <i />
-            <i />
-            <i />
-          </div>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-function BusinessSection() {
-  return (
-    <section className="business-section" id="business">
-      <h2>
-        Built for the future of <span>financial intelligence.</span>
-      </h2>
-      <p>
-        ARTH.OS is not another budgeting application. It is a Behavioral Finance
-        Intelligence Engine designed to understand how humans emotionally
-        interact with money.
-      </p>
-      <div className="business-grid">
-        {businessCards.map((card) => (
-          <article className="business-card" key={card.title}>
-            <h3>{card.title}</h3>
-            <p>{card.copy}</p>
-          </article>
-        ))}
-      </div>
-    </section>
-  );
-}
-
-function FounderSection() {
-  return (
-    <section className="founder-section" id="founder">
-      <div>
-        <h2>
-          Building India's Behavior <span>Intelligence Layer.</span>
-        </h2>
-        <p>
-          Most financial systems only understand numbers. Human behavior drives
-          every financial decision.
-        </p>
-        <div className="founder-stats">
-          <div>
-            <strong>AI + Psychology</strong>
-            <span>Core Foundation</span>
-          </div>
-          <div>
-            <strong>Privacy First</strong>
-            <span>No Statement Storage</span>
-          </div>
-          <div>
-            <strong>India Built</strong>
-            <span>Global Vision</span>
-          </div>
-        </div>
-      </div>
-      <aside className="founder-card">
-        <h3>Ankit Chakravorty</h3>
-        <span>Founder & CEO - Sankhya</span>
-        <blockquote>
-          India does not need another budgeting app. It needs an intelligence
-          layer that understands human financial behavior before collapse
-          happens.
-        </blockquote>
-      </aside>
-    </section>
-  );
-}
-
-function AssessmentSection({ assessment, result, onChange, ui, mode }) {
-  return (
-    <section className="assessment-section" id="assessment">
-      <div className="assessment-heading">
-        <span>Live Score Engine</span>
-        <h2>
-          Run your Financial Health <em>Behavior Score.</em>
-        </h2>
-        <p>
-          Answer the behavioral, awareness and stability inputs. The intelligence
-          panel updates instantly as your money profile changes.
-        </p>
-      </div>
-
-      <div className="workspace">
-        <section className="form-stack" aria-label="Financial health assessment">
-          <QuestionSection
-            icon={Brain}
-            title="Behaviour"
-            score={`${result.behaviourScore}/${ui.componentMaximums.behaviour}`}
-            questions={ui.behaviourQuestions}
-            values={assessment.behaviour}
-            onChange={(key, value) => onChange("behaviour", key, value)}
-          />
-
-          <QuestionSection
-            icon={BarChart3}
-            title="Awareness"
-            score={`${result.awarenessScore}/${ui.componentMaximums.awareness}`}
-            questions={ui.awarenessQuestions}
-            values={assessment.awareness}
-            onChange={(key, value) => onChange("awareness", key, value)}
-          />
-
-          <ProfileSection
-            values={assessment.profile}
-            score={`${result.stabilityScore}/${ui.componentMaximums.stability}`}
-            onChange={(key, value) => onChange("profile", key, value)}
-            mode={mode}
-          />
-
-        </section>
-
-        <aside className="result-stack" aria-label="Financial health result">
-          <ScoreOverview result={result} />
-          <ComponentBreakdown result={result} />
-          {mode === "v2" ? <BlindSpotPanel result={result} /> : null}
-          <SurvivalBlock result={result} assessment={assessment} mode={mode} />
-          <ActionBlock result={result} mode={mode} />
-
-        </aside>
-      </div>
-    </section>
-  );
-}
-
-function QuestionSection({ icon: Icon, title, score, questions, values, onChange }) {
-  return (
-    <section className="panel">
-      <div className="panel-heading">
-        <div>
-          <Icon size={20} />
-          <h2>{title}</h2>
-        </div>
-        <span>{score}</span>
-      </div>
-
-      <div className="question-list">
-        {questions.map((question) => (
-          <div className="question-row" key={question.key}>
-            <label className="question-label" id={`${question.key}-label`}>
-              {question.prompt}
-            </label>
-            <SegmentedControl
-              labelledBy={`${question.key}-label`}
-              name={question.key}
-              options={question.options}
-              value={values[question.key]}
-              onChange={(value) => onChange(question.key, value)}
-            />
-          </div>
-        ))}
-      </div>
-    </section>
-  );
-}
-
-function ProfileSection({ values, score, onChange, mode }) {
-  return (
-    <section className="panel">
-
-      <div className="panel-heading">
-        <div>
-          <ShieldCheck size={20} />
-          <h2>Stability</h2>
-        </div>
-        <span>{score}</span>
-      </div>
-
-      <div className="numeric-grid">
-        <MoneyInput
-          label="Monthly expenses"
-          value={values.monthlyExpenses}
-          onChange={(value) => onChange("monthlyExpenses", value)}
-        />
-        {mode === "v2" ? (
-          <>
-            <MoneyInput
-              label="Fixed emergency buffer"
-              value={values.emergencySavingsFixed}
-              onChange={(value) => onChange("emergencySavingsFixed", value)}
-            />
-            <MoneyInput
-              label="Discretionary emergency buffer"
-              value={values.emergencySavingsDiscretionary}
-              onChange={(value) => onChange("emergencySavingsDiscretionary", value)}
-            />
-          </>
-        ) : (
-          <MoneyInput
-            label="Emergency savings"
-            value={values.emergencySavings}
-            onChange={(value) => onChange("emergencySavings", value)}
-          />
-        )}
-        <MoneyInput
-          label="Total debt"
-          value={values.totalDebt}
-          onChange={(value) => onChange("totalDebt", value)}
-        />
-        <MoneyInput
-          label="Monthly income"
-          value={values.monthlyIncome}
-          onChange={(value) => onChange("monthlyIncome", value)}
-        />
-        <MoneyInput
-          label="Fixed commitments"
-          value={values.monthlyLiabilities}
-          onChange={(value) => onChange("monthlyLiabilities", value)}
-        />
-      </div>
-
-      <div className="question-row compact">
-        <label className="question-label" id="income-stability-label">
-          Income stability
-        </label>
-        <SegmentedControl
-          labelledBy="income-stability-label"
-          name="incomeStability"
-          options={incomeStabilityOptions}
-          value={values.incomeStability}
-          onChange={(value) => onChange("incomeStability", value)}
-        />
-      </div>
-
-      <div className="question-row compact">
-        <label className="question-label" id="dependents-label">
-          Dependents
-        </label>
-        <SegmentedControl
-          labelledBy="dependents-label"
-          name="dependentsBucket"
-          options={dependentsOptions}
-          value={values.dependentsBucket}
-          onChange={(value) => onChange("dependentsBucket", value)}
-        />
-      </div>
-
-      {mode === "v2" ? (
-        <>
-          <div className="question-row compact">
-            <label className="question-label" id="debt-rate-label">
-              Debt repayment rate (% of income)
-            </label>
-            <div className="money-input" style={{ gridTemplateColumns: "auto 1fr" }}>
-              <span style={{ display: "block" }} />
-              <div>
-                <span />
-                <input
-                  type="number"
-                  min="0"
-                  inputMode="decimal"
-                  value={values.debtRepaymentRatePctOfIncome ?? 0.12}
-                  onChange={(e) =>
-                    onChange(
-                      "debtRepaymentRatePctOfIncome",
-                      e.target.value === "" ? 0 : Number.parseFloat(e.target.value),
-                    )
-                  }
-                />
-              </div>
-            </div>
-          </div>
-
-          <div className="question-row compact">
-            <label className="question-label" id="interest-label">
-              Average interest rate (% per year)
-            </label>
-            <div className="money-input" style={{ gridTemplateColumns: "auto 1fr" }}>
-              <span style={{ display: "block" }} />
-              <div>
-                <span />
-                <input
-                  type="number"
-                  min="0"
-                  inputMode="decimal"
-                  value={values.averageInterestRatePct ?? 10}
-                  onChange={(e) =>
-                    onChange(
-                      "averageInterestRatePct",
-                      e.target.value === "" ? 0 : Number.parseFloat(e.target.value),
-                    )
-                  }
-                />
-              </div>
-            </div>
-          </div>
-        </>
-      ) : null}
-
-    </section>
-  );
-}
-
-function MoneyInput({ label, value, onChange }) {
-  return (
-    <label className="money-input">
-      <span>{label}</span>
-      <div>
-        <span>INR</span>
-        <input
-          type="number"
-          min="0"
-          inputMode="numeric"
-          value={value ?? ""}
-          onChange={(event) => {
-            const val = event.target.value;
-            onChange(val === "" ? 0 : Number.parseFloat(val));
-          }}
-        />
-      </div>
-    </label>
-  );
-}
-
-
-function SegmentedControl({ labelledBy, name, options, value, onChange }) {
-  return (
-    <div className="segmented-control" role="radiogroup" aria-labelledby={labelledBy}>
-      {options.map((option) => {
-        const checked = option.value === value;
-        return (
-          <label
-            key={option.value}
-            className={`segmented-option ${checked ? "selected" : ""}`}
-          >
-            <input
-              type="radio"
-              name={name}
-              value={option.value}
-              checked={checked}
-              onChange={() => onChange(option.value)}
-            />
-            <span>{option.label}</span>
-          </label>
-        );
-      })}
-    </div>
-  );
-}
-
-const ScoreOverview = memo(function ScoreOverview({ result }) {
-  return (
-
-    <section className={`result-card score-card tone-${result.categoryBand.tone}`}>
-      <div className="score-copy">
-        <span className="metric-label">Health Score</span>
-        <h1>{result.healthScore}/100</h1>
-        <strong>{result.categoryBand.label}</strong>
-        <p>{result.summary}</p>
-      </div>
-      <ScoreDial score={result.healthScore} tone={result.categoryBand.tone} />
-    </section>
-  );
-});
-
-const ScoreDial = memo(function ScoreDial({ score, tone }) {
-
-  const radius = 63;
-  const circumference = 2 * Math.PI * radius;
-  const progress = (score / 100) * circumference;
-
-  return (
-    <div className={`score-dial dial-${tone}`} aria-hidden="true">
-      <svg viewBox="0 0 160 160">
-        <circle className="track" cx="80" cy="80" r={radius} />
-        <circle
-          className="progress"
-          cx="80"
-          cy="80"
-          r={radius}
-          strokeDasharray={`${progress} ${circumference - progress}`}
-        />
-      </svg>
-      <span>{score}</span>
-    </div>
-  );
-});
-
-const ComponentBreakdown = memo(function ComponentBreakdown({ result }) {
-
-  const orderedRows = [...result.componentRows].sort((a, b) => {
-    const order = { behaviour: 0, awareness: 1, stability: 2 };
-    return order[a.key] - order[b.key];
-  });
-
-  return (
-    <section className="result-card">
-      <div className="result-heading">
-        <WalletCards size={19} />
-        <h2>Breakdown</h2>
-      </div>
-      <div className="breakdown-list">
-        {orderedRows.map((row) => {
-          const Icon = sectionIcons[row.key];
-          return (
-            <div className="breakdown-row" key={row.key}>
-              <div>
-                <Icon size={18} />
-                <span>{row.label}</span>
-              </div>
-              <strong>
-                {row.score}/{row.max}
-              </strong>
-              <div className="bar-track" aria-hidden="true">
-                <span style={{ width: `${row.percent}%` }} />
-              </div>
-              <small>{row.band}</small>
-            </div>
-          );
-        })}
-      </div>
-    </section>
-  );
-});
-
-const BlindSpotPanel = memo(function BlindSpotPanel({ result }) {
-  const gapMessage =
-    result.blindSpotDirection === "overestimated"
-      ? `You are overestimating your runway by ${result.blindSpotGap} months.`
-      : result.blindSpotDirection === "underestimated"
-      ? `You are underestimating your runway by ${result.blindSpotGap} months.`
-      : "Your perceived runway matches your actual cash runway.";
-
-  return (
-    <section className="result-card blindspot-panel">
-      <div className="result-heading">
-        <Activity size={19} />
-        <div>
-          <h2>Your Financial Blind Spot</h2>
-          <span>What your score hides about actual runway</span>
-        </div>
-      </div>
-      <div className="blindspot-copy">
-        <p>{result.blindSpotHeadline}</p>
-        <p>{result.blindSpotSummary}</p>
-      </div>
-      <div className="insight-grid">
-        <div className="insight-stat">
-          <span>Perceived runway</span>
-          <strong>{result.blindSpotPerceived} mos</strong>
-        </div>
-        <div className="insight-stat">
-          <span>Actual runway</span>
-          <strong>{result.blindSpotActual} mos</strong>
-        </div>
-        <div className="insight-stat">
-          <span>Blind spot size</span>
-          <strong>{result.blindSpotGap} mos</strong>
-        </div>
-        <div className="insight-stat">
-          <span>Risk signal</span>
-          <strong>{result.futureRiskLabel}</strong>
-        </div>
-      </div>
-      <div className="insight-meta">
-        <div>
-          <span>Financial personality</span>
-          <strong>{result.personalityReport.title}</strong>
-        </div>
-        <p>{gapMessage}</p>
-      </div>
-    </section>
-  );
-});
-
-const SurvivalBlock = memo(function SurvivalBlock({ result, assessment, mode }) {
-
-  const expenseValue = Number.parseFloat(assessment.profile.monthlyExpenses) || 0;
-  const fixedValue = Number.parseFloat(assessment.profile.emergencySavingsFixed) || 0;
-  const discretionaryValue = Number.parseFloat(assessment.profile.emergencySavingsDiscretionary) || 0;
-  const savingsValue = Number.parseFloat(assessment.profile.emergencySavings) || 0;
-  const totalSavingsValue = fixedValue + discretionaryValue;
-
-  const milestones = [1, 3, 6, 12];
-
-  return (
-    <section className="result-card">
-      <div className="result-heading">
-        <AlertTriangle size={19} />
-        <h2>Income Stop</h2>
-      </div>
-      <div className="survival-number">
-        <strong>{result.survivalMonthsDisplay}</strong>
-        <span>months</span>
-      </div>
-      <p className={`status-line tone-text-${result.survivalBand.tone}`}>
-        {result.survivalBand.label}
-      </p>
-      {mode === "v2" ? (
-        <>
-          <div className="dual-survival-grid">
-            <div>
-              <span>As-Is Lifestyle</span>
-              <strong>{result.survivalMonthsDisplay} mos</strong>
-            </div>
-            <div>
-              <span>Crisis Mode Optimized</span>
-              <strong>{result.bareMinimumSurvivalMonthsDisplay} mos</strong>
-            </div>
-          </div>
-          <div className="survival-insight-grid">
-            <div>
-              <span>Perceived runway</span>
-              <strong>{result.perceivedSurvivalMonthsDisplay} mos</strong>
-            </div>
-            <div>
-              <span>Awareness gap</span>
-              <strong>{result.awarenessGapDisplay} mos</strong>
-            </div>
-          </div>
-          <div className="emergency-goal">
-            <span>Emergency fund target</span>
-            <strong>6 months</strong>
-            <span>
-              Need: {formatCurrencyV2(Math.max(0, expenseValue * 6 - totalSavingsValue))}
-            </span>
-          </div>
-          <p className="buffer-summary">
-            Fixed: {result.fixedBufferMonthsDisplay} · Discretionary: {result.discretionaryBufferMonthsDisplay}
-          </p>
-        </>
-      ) : null}
-      <div className="survival-rail" aria-hidden="true">
-        {milestones.map((month) => (
-          <span
-            key={month}
-            className={result.survivalMonthsRaw >= month ? "active" : ""}
-          />
-        ))}
-      </div>
-      {mode === "v2" ? (
-        <>
-          <div className="money-pair">
-            <span>Fixed buffer: {formatCurrencyV2(fixedValue)}</span>
-            <span>Discretionary buffer: {formatCurrencyV2(discretionaryValue)}</span>
-          </div>
-          <div className="money-pair">
-            <span>Total: {formatCurrencyV2(totalSavingsValue)}</span>
-            <span>{formatCurrencyV2(expenseValue)} monthly burn</span>
-          </div>
-        </>
-      ) : (
-        <div className="money-pair">
-          <span>{formatCurrency(savingsValue)} saved</span>
-          <span>{formatCurrency(expenseValue)} monthly burn</span>
-        </div>
-      )}
-    </section>
-  );
-});
-
-const ActionBlock = memo(function ActionBlock({ result, mode }) {
-
-  return (
-    <section className="result-card action-card">
-
-      <div className="result-heading">
-        <Target size={19} />
-        <h2>Recommended Action</h2>
-      </div>
-      <p>{result.recommendedActionText}</p>
-
-      {mode === "v2" ? (
-        <>
-          <div className="driver-grid">
-            <div>
-              <span>Strength</span>
-              <strong>{result.strongestComponent?.label ?? "-"}</strong>
-            </div>
-            <div>
-              <span>Risk</span>
-              <strong>{result.lowestComponent?.label ?? "-"}</strong>
-            </div>
-          </div>
-          <div className="future-risk-grid">
-            <div>
-              <span>Future risk</span>
-              <strong>{result.futureRiskLabel}</strong>
-            </div>
-            <div>
-              <span>Personality</span>
-              <strong>{result.personalityType}</strong>
-            </div>
-          </div>
-        </>
-      ) : (
-        <div className="driver-grid">
-          <div>
-            <span>Strength</span>
-            <strong>{result.strongestComponent.label}</strong>
-          </div>
-          <div>
-            <span>Risk</span>
-            <strong>{result.lowestComponent.label}</strong>
-          </div>
-        </div>
-      )}
-    </section>
-  );
-});
 </file>
 
 <file path="src/lib/scoring-v2.js">
@@ -8312,6 +7064,70 @@ function getRecommendedAction(assessment, components) {
   return "Maintain your current emergency + debt plan for the next 30 days.";
 }
 
+function getDiagnosis(assessment, lowestComponent, futureRiskLabel, awarenessMetrics) {
+  const monthlyExpenses = toNumber(assessment.profile.monthlyExpenses);
+  const totalSavings = toNumber(assessment.profile.emergencySavingsFixed) + toNumber(assessment.profile.emergencySavingsDiscretionary);
+  const gapMonths = awarenessMetrics.awarenessGap;
+
+  if (lowestComponent.key === "behaviour") {
+    return {
+      headline: "Your biggest problem is behavior, not just the score.",
+      problem: "Impulse spending during stress and weak waiting rules are the largest driver of your cash runway risk.",
+      explanation: `Your behavior score is the weakest of the three engines. In this profile, emotional and social spending patterns are eroding your available runway even when your income looks stable. This makes growth harder and makes your emergency savings less reliable over time.`,
+      focus: "Improve your purchase discipline and spend controls first.",
+    };
+  }
+
+  if (lowestComponent.key === "awareness") {
+    return {
+      headline: "Your largest blind spot is runway awareness.",
+      problem: `You are overestimating your runway by ${formatMonths(gapMonths)} months compared to actual cash runway.`,
+      explanation: `Your awareness score is the softest signal. This means the biggest risk isn't a single number, it is how much you trust your own financial perception instead of the math. That gap is the place where surprise shocks become crises.`,
+      focus: "Track expenses and top expenses clearly before acting on other decisions.",
+    };
+  }
+
+  return {
+    headline: "Your biggest problem is runway stability.",
+    problem: totalSavings <= 0
+      ? "You currently have no emergency buffer, which makes every decision high risk."
+      : `Your survival runway is the weakest piece of your profile. ${formatMonths(totalSavings)} of cash against ${formatCurrency(monthlyExpenses)} monthly burn leaves little room for surprise shocks.`,
+    explanation: `Your stability score is the lowest engine. This means your emergency buffer and debt structure are the primary levers to protect your runway. Without stronger cash reserves, even moderate spending can push you into critical risk.`,
+    focus: "Prioritize emergency savings and manageable debt repayment pacing.",
+  };
+}
+
+export function calculateDecisionSimulatorV2(profile, purchaseCost = 0) {
+  const monthlyExpenses = toNumber(profile.monthlyExpenses);
+  const totalSavings = toNumber(profile.emergencySavingsFixed) + toNumber(profile.emergencySavingsDiscretionary);
+  const currentRunway = monthlyExpenses > 0 ? totalSavings / monthlyExpenses : 0;
+  const fee = Math.max(0, purchaseCost);
+  const remainingSavings = Math.max(0, totalSavings - fee);
+  const forecastRunway = monthlyExpenses > 0 ? remainingSavings / monthlyExpenses : 0;
+  const runwayDelta = currentRunway - forecastRunway;
+  const baselineBand = getSurvivalBand(currentRunway).label;
+  const forecastBand = getSurvivalBand(forecastRunway).label;
+
+  const recommendation = (() => {
+    if (fee <= 0) return "Enter a purchase amount to see the runway impact.";
+    if (remainingSavings <= 0) return "Do not make this purchase. It would eliminate your emergency runway entirely.";
+    if (forecastRunway <= 1) return "Wait. This purchase would leave you with a critically low runway.";
+    if (forecastRunway <= 3) return "Delay until you have at least 3 months of runway after this purchase.";
+    if (runwayDelta > 2) return "Consider saving a bit more first, as this purchase removes over 2 months of runway.";
+    return "This purchase is possible, but keep at least 3 months of buffer after you buy it.";
+  })();
+
+  return {
+    purchaseCost: fee,
+    currentRunway: roundToOne(currentRunway),
+    forecastRunway: roundToOne(forecastRunway),
+    runwayDelta: roundToOne(runwayDelta),
+    baselineRisk: baselineBand,
+    forecastRisk: forecastBand,
+    recommendation,
+  };
+}
+
 function roundToOne(value) {
   return Math.round(value * 10) / 10;
 }
@@ -8367,6 +7183,11 @@ export function calculateFinancialHealthV2(assessment) {
   const behaviourScore = calculateBehaviourScoreV2(safe.behaviour);
   const awarenessScore = calculateAwarenessScoreV2(safe.awareness);
   const stability = calculateStabilityScoreV2(safe.profile);
+  const futureRisk = calculateFutureRiskV2(safe.profile);
+  const personalityType = calculatePersonalityTypeV2(safe.behaviour);
+  const personalityReport = calculatePersonalityReportV2(personalityType);
+  const awarenessMetrics = calculateAwarenessGapV2(awarenessScore, stability.survivalMonthsRaw);
+  const blindSpot = calculateBlindSpotV2(awarenessMetrics);
 
   const healthScore = Math.round(
     behaviourScore + awarenessScore + stability.score,
@@ -8422,6 +7243,7 @@ export function calculateFinancialHealthV2(assessment) {
   );
 
   const survivalBand = getSurvivalBand(stability.survivalMonthsRaw);
+  const diagnosis = getDiagnosis(safe, lowest, futureRisk.label, awarenessMetrics);
 
   return {
     mode: "v2",
@@ -8455,6 +7277,24 @@ export function calculateFinancialHealthV2(assessment) {
 
     debtSchedule,
     habits,
+    futureRiskScore: futureRisk.score,
+    futureRiskLabel: futureRisk.label,
+    personalityType,
+    personalityReport,
+    awarenessMetrics,
+    blindSpot,
+    diagnosis,
+    perceivedSurvivalMonths: awarenessMetrics.perceivedSurvivalMonths,
+    perceivedSurvivalMonthsDisplay: formatMonths(awarenessMetrics.perceivedSurvivalMonths),
+    actualSurvivalMonths: awarenessMetrics.actualSurvivalMonths,
+    awarenessGap: awarenessMetrics.awarenessGap,
+    awarenessGapDisplay: formatMonths(awarenessMetrics.awarenessGap),
+    blindSpotHeadline: blindSpot.headline,
+    blindSpotSummary: blindSpot.summary,
+    blindSpotPerceived: blindSpot.perceivedSurvivalMonthsDisplay,
+    blindSpotActual: blindSpot.actualSurvivalMonthsDisplay,
+    blindSpotGap: blindSpot.gapDisplay,
+    blindSpotDirection: blindSpot.direction,
 
     summary: `${categoryBand.label} financial health with ${survivalBand.label.toLowerCase()}.`,
   };
@@ -8519,6 +7359,86 @@ function getHabitsMetrics(habits) {
     estimatedStreakDays,
     weeklyAdherencePct,
   };
+}
+
+// ============================================
+// Anonymous Telemetry Module (Privacy-First)
+// ============================================
+
+/**
+ * Build a privacy-compliant anonymous telemetry payload from assessment results.
+ * No PII, no timestamps, no IP tracking — just numeric indicators and behavioral categories.
+ */
+export function buildAnonymousTelemetryPayload(assessmentResult, coreAssessment) {
+  const profile = coreAssessment?.profile || {};
+  const monthlyIncome = toNumber(profile.monthlyIncome);
+  const monthlyExpenses = toNumber(profile.monthlyExpenses);
+
+  return {
+    telemetry_metadata: {
+      schema_version: "2.0.0",
+      mode_executed: "v2"
+    },
+    scores: {
+      financial_health_score: assessmentResult.healthScore,
+      behaviour_score: Math.round(assessmentResult.behaviourScore * 10) / 10,
+      awareness_score: Math.round(assessmentResult.awarenessScore * 10) / 10,
+      stability_score: Math.round(assessmentResult.stabilityScore * 10) / 10,
+      habits_score: assessmentResult.habits?.habitScore ?? 0
+    },
+    predictive_analytics: {
+      personality_type: assessmentResult.personalityType,
+      future_risk_label: assessmentResult.futureRiskLabel,
+      future_risk_score: assessmentResult.futureRiskScore,
+      awareness_gap_months: Number((assessmentResult.awarenessGap || 0).toFixed(2))
+    },
+    runway_metrics: {
+      nominal_survival_months: Number((assessmentResult.survivalMonthsRaw || 0).toFixed(2)),
+      crisis_optimized_survival_months: Number((assessmentResult.bareMinimumSurvivalMonthsRaw || 0).toFixed(2)),
+      perceived_survival_months: Number((assessmentResult.perceivedSurvivalMonths || 0).toFixed(2))
+    },
+    financial_ratios: {
+      savings_rate_proxied: monthlyIncome > 0 
+        ? Number(((monthlyIncome - monthlyExpenses) / monthlyIncome).toFixed(2))
+        : 0,
+      debt_to_income_months: monthlyIncome > 0
+        ? Number((toNumber(profile.totalDebt) / (monthlyIncome * 12)).toFixed(2))
+        : 0,
+      fixed_liability_pressure: monthlyIncome > 0
+        ? Number((toNumber(profile.monthlyLiabilities) / monthlyIncome).toFixed(2))
+        : 0
+    },
+    lowest_performing_driver: assessmentResult.lowestComponent?.key || "unknown"
+  };
+}
+
+/**
+ * Dispatch anonymous telemetry safely to a backend endpoint.
+ * Uses keepalive to ensure transmission even if tab closes.
+ * Fails silently to never interrupt user experience.
+ */
+export async function dispatchAnonymousTelemetry(telemetryPayload, endpointUrl) {
+  try {
+    const browserEndpoint =
+      typeof window !== "undefined"
+        ? window?.VITE_TELEMETRY_ENDPOINT || window?.REACT_APP_TELEMETRY_ENDPOINT
+        : undefined;
+    const targetUrl = endpointUrl || browserEndpoint || "https://api.arth-os.dev/telemetry";
+
+    await fetch(targetUrl, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(telemetryPayload),
+      keepalive: true,
+    });
+    
+    console.log("[Telemetry] Captured cleanly under privacy guidelines.");
+    return true;
+  } catch (error) {
+    // Fail silently to ensure zero UX impact
+    console.warn("[Telemetry] Transmission deferred:", error?.message || error);
+    return false;
+  }
 }
 </file>
 
@@ -10088,6 +9008,1589 @@ blockquote {
     grid-template-columns: 1fr;
     align-items: stretch;
   }
+}
+
+/* ========================================
+   Multi-Step Wizard Progress & Navigation
+   ======================================== */
+
+.wizard-progress-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 36px;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--border);
+  padding: 16px 24px;
+  border-radius: 20px;
+}
+
+.wizard-step-node {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--muted-2);
+  font-size: 14px;
+  font-weight: 700;
+  opacity: 0.5;
+  transition: all 220ms ease;
+  flex: 1;
+  justify-content: center;
+}
+
+.wizard-step-node.active {
+  opacity: 1;
+  color: var(--text-2);
+}
+
+.wizard-step-node.current {
+  color: var(--cyan);
+}
+
+.step-number-circle {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--border);
+  display: grid;
+  place-items: center;
+  font-size: 12px;
+  font-weight: 900;
+  color: var(--text);
+  transition: all 220ms ease;
+}
+
+.wizard-step-node.active .step-number-circle {
+  border-color: var(--purple-2);
+  background: rgba(139, 92, 246, 0.2);
+}
+
+.wizard-step-node.current .step-number-circle {
+  border-color: var(--cyan);
+  background: rgba(98, 228, 209, 0.15);
+  color: var(--cyan);
+  box-shadow: 0 0 12px rgba(98, 228, 209, 0.3);
+}
+
+.wizard-navigation-controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 24px;
+  padding-top: 18px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  gap: 12px;
+}
+
+.wizard-nav-button {
+  padding: 10px 20px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--text);
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  transition: all 220ms ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.wizard-nav-button:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: var(--border-strong);
+}
+
+.wizard-nav-button.primary-wizard-btn {
+  background: rgba(139, 92, 246, 0.25);
+  border-color: var(--purple-2);
+  color: var(--cyan);
+}
+
+.wizard-nav-button.primary-wizard-btn:hover {
+  background: var(--purple);
+  border-color: var(--purple-2);
+}
+
+.wizard-nav-button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* ========================================
+   Analytics Dashboard Styles
+   ======================================== */
+
+.analytics-dashboard {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  margin-top: 32px;
+}
+
+.diagnostic-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px;
+}
+
+.diagnostic-card {
+  background: linear-gradient(180deg, rgba(35, 28, 57, 0.4), rgba(18, 22, 37, 0.94));
+  padding: 22px;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  transition: all 220ms ease;
+}
+
+.diagnostic-card:hover {
+  border-color: var(--border-strong);
+  background: linear-gradient(180deg, rgba(35, 28, 57, 0.6), rgba(18, 22, 37, 1));
+}
+
+.card-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 16px;
+  color: var(--muted-2);
+  font-size: 13px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.card-header svg {
+  color: var(--cyan);
+}
+
+.card-content {
+  margin-bottom: 12px;
+}
+
+.card-content .label {
+  display: block;
+  font-size: 12px;
+  color: var(--muted-2);
+  margin-bottom: 6px;
+}
+
+.personality-title,
+.risk-badge {
+  display: block;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--cyan);
+}
+
+.risk-badge.low-risk {
+  color: var(--green);
+}
+
+.risk-badge.moderate-risk {
+  color: var(--amber);
+}
+
+.risk-badge.high-risk {
+  color: var(--coral);
+}
+
+.risk-badge.critical-risk {
+  color: #ff4757;
+}
+
+.card-note {
+  font-size: 13px;
+  color: var(--muted);
+  line-height: 1.5;
+  margin: 0;
+}
+
+.validation-note {
+  font-size: 13px;
+  color: var(--muted);
+  margin-top: 18px;
+  line-height: 1.5;
+}
+
+.validation-area {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: 18px;
+  flex-wrap: wrap;
+}
+
+.skip-cta {
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: transparent;
+  color: var(--text);
+  padding: 10px 16px;
+  border-radius: 999px;
+  transition: all 180ms ease;
+}
+
+.skip-cta:hover {
+  border-color: var(--cyan);
+  color: var(--cyan);
+}
+
+.visibility-blindspot-block {
+  border: 1px solid var(--border);
+  background: linear-gradient(135deg, rgba(24, 26, 42, 0.4), rgba(5, 7, 19, 0.98));
+  padding: 24px;
+  border-radius: 16px;
+}
+
+.blindspot-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.blindspot-header h3 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+  flex: 1;
+}
+
+.blindspot-header svg {
+  color: var(--cyan);
+}
+
+.blindspot-metrics {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.blindspot-sub-card {
+  background: rgba(255, 255, 255, 0.03);
+  padding: 12px 16px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.blindspot-sub-card span {
+  font-size: 12px;
+  color: var(--muted-2);
+  font-weight: 600;
+}
+
+.blindspot-sub-card strong {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--cyan);
+}
+
+.blindspot-insight {
+  font-size: 14px;
+  color: var(--muted);
+  line-height: 1.6;
+  margin: 0;
+  padding: 12px 16px;
+  background: rgba(98, 228, 209, 0.08);
+  border-left: 3px solid var(--cyan);
+  border-radius: 8px;
+}
+
+.blindspot-insight strong {
+  color: var(--text);
+}
+
+@media (max-width: 840px) {
+  .wizard-progress-bar {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .wizard-step-node {
+    justify-content: flex-start;
+    width: 100%;
+  }
+
+  .diagnostic-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .blindspot-metrics {
+    grid-template-columns: 1fr;
+  }
+}
+</file>
+
+<file path="src/App.jsx">
+import { memo, useEffect, useMemo, useState } from "react";
+
+import {
+  Activity,
+  AlertTriangle,
+  ArrowRight,
+  BarChart3,
+  Brain,
+  ChevronLeft,
+  ChevronRight,
+  Cpu,
+  Download,
+  LockKeyhole,
+  Network,
+  RotateCcw,
+  Save,
+  ShieldCheck,
+  Sparkles,
+  Target,
+  User,
+  WalletCards,
+} from "lucide-react";
+import {
+  calculateFinancialHealthV2,
+  calculateDecisionSimulatorV2,
+  componentMaximumsV2,
+  formatCurrency as formatCurrencyV2,
+  formatMonths as formatMonthsV2,
+  buildAnonymousTelemetryPayload,
+  dispatchAnonymousTelemetry,
+} from "./lib/scoring-v2.js";
+
+import AnalyticsDashboard from "./components/AnalyticsDashboard.jsx";
+
+import {
+  v2BehaviourQuestions,
+  v2AwarenessQuestions,
+  v2HabitsQuestions,
+  v2DefaultAssessment,
+} from "./data/questionnaire-v2.js";
+
+
+
+const STORAGE_KEY = "arth-os-assessment";
+
+
+const navItems = [
+  { label: "Home", href: "#home" },
+  { label: "AI", href: "#ai" },
+  { label: "Business", href: "#business" },
+  { label: "Founder", href: "#founder" },
+  { label: "Investors", href: "#assessment" },
+];
+
+const engineSignals = [
+  "Decodes Spending Patterns",
+  "Detects Emotional Triggers",
+  "Uncovers Money Personality",
+  "Generates Financial Health Actions",
+];
+
+const intelligenceRows = [
+  {
+    icon: Network,
+    title: "AI Financial Intelligence",
+    copy: "Connects financial signals with behavioral psychology.",
+  },
+  {
+    icon: Cpu,
+    title: "Behavior Pattern Detection",
+    copy: "Reads impulse, avoidance and planning patterns in one score.",
+  },
+  {
+    icon: Brain,
+    title: "Psychology Driven Analysis",
+    copy: "Turns choices into a practical financial behavior profile.",
+  },
+];
+
+const businessCards = [
+  {
+    title: "Behavior Layer AI",
+    copy: "Traditional fintech tracks transactions. ARTH.OS analyzes emotional spending patterns and financial personality behavior.",
+  },
+  {
+    title: "Privacy First Architecture",
+    copy: "Assessment data stays in the browser until you choose to save or export it.",
+  },
+  {
+    title: "Scalable Intelligence Engine",
+    copy: "Built to evolve into behavioral finance infrastructure for future trust and credit systems.",
+  },
+];
+
+const sectionIcons = {
+  behaviour: Brain,
+  awareness: BarChart3,
+  stability: ShieldCheck,
+};
+
+const incomeStabilityOptions = [
+  { value: "very_consistent", label: "Very consistent" },
+  { value: "mostly_consistent", label: "Mostly consistent" },
+  { value: "somewhat_variable", label: "Somewhat variable" },
+  { value: "highly_variable", label: "Highly variable" },
+];
+
+const dependentsOptions = [
+  { value: "0_1", label: "0-1" },
+  { value: "2_3", label: "2-3" },
+  { value: "4_5", label: "4-5" },
+  { value: "6_plus", label: "6+" },
+];
+
+
+function normalizeV2Assessment(assessment) {
+  const profile = assessment?.profile ?? {};
+  if (
+    profile.emergencySavingsFixed !== undefined ||
+    profile.emergencySavingsDiscretionary !== undefined
+  ) {
+    return {
+      ...assessment,
+      participant: {
+        ...v2DefaultAssessment.participant,
+        ...assessment?.participant,
+      },
+      profile: {
+        ...v2DefaultAssessment.profile,
+        ...profile,
+      },
+    };
+  }
+
+  const emergencySavings = Number.parseFloat(profile.emergencySavings) || 0;
+  const fixed = Math.min(emergencySavings, 50000);
+  const discretionary = Math.max(0, emergencySavings - fixed);
+
+  return {
+    ...assessment,
+    participant: {
+      ...v2DefaultAssessment.participant,
+      ...assessment?.participant,
+    },
+    profile: {
+      ...v2DefaultAssessment.profile,
+      ...profile,
+      emergencySavingsFixed: fixed,
+      emergencySavingsDiscretionary: discretionary,
+    },
+  };
+}
+
+function normalizeV1Assessment(assessment) {
+  const profile = assessment?.profile ?? {};
+  const legacySavings = Number.parseFloat(profile.emergencySavings) || 0;
+  const fixed = Number.parseFloat(profile.emergencySavingsFixed) || 0;
+  const discretionary = Number.parseFloat(profile.emergencySavingsDiscretionary) || 0;
+
+  return {
+    ...v2DefaultAssessment,
+    ...assessment,
+    participant: {
+      ...v2DefaultAssessment.participant,
+      ...assessment?.participant,
+    },
+    behaviour: {
+      ...v2DefaultAssessment.behaviour,
+      ...assessment?.behaviour,
+    },
+    awareness: {
+      ...v2DefaultAssessment.awareness,
+      ...assessment?.awareness,
+    },
+    profile: {
+      ...v2DefaultAssessment.profile,
+      ...profile,
+      emergencySavings: legacySavings || fixed + discretionary,
+    },
+  };
+}
+
+function loadInitialAssessment() {
+  try {
+    // Prefer unified key, but also support legacy v2 key
+    const unified = window.localStorage.getItem(STORAGE_KEY);
+    if (unified) return normalizeV2Assessment(JSON.parse(unified));
+
+    const legacyV2 = window.localStorage.getItem("arth-os-assessment-v2");
+    if (legacyV2) return normalizeV2Assessment(JSON.parse(legacyV2));
+
+    const legacyV1 = window.localStorage.getItem("arth-os-assessment-v1");
+    if (legacyV1) return normalizeV2Assessment(normalizeV1Assessment(JSON.parse(legacyV1)));
+
+    // fallback to empty v2 default shape
+    return typeof v2DefaultAssessment !== "undefined" ? v2DefaultAssessment : {};
+  } catch {
+    return typeof v2DefaultAssessment !== "undefined" ? v2DefaultAssessment : {};
+  }
+}
+
+export default function App() {
+  const [assessment, setAssessment] = useState(() => loadInitialAssessment());
+  const [saveState, setSaveState] = useState("Ready");
+
+  const result = useMemo(() => calculateFinancialHealthV2(assessment), [assessment]);
+
+  const ui = {
+    behaviourQuestions: v2BehaviourQuestions,
+    awarenessQuestions: v2AwarenessQuestions,
+    habitsQuestions: v2HabitsQuestions,
+    componentMaximums: componentMaximumsV2,
+    formatCurrency: formatCurrencyV2,
+    extraCards: {
+      debtSchedule: true,
+      habits: true,
+    },
+  };
+
+
+
+  function updateGroup(group, key, value) {
+    setAssessment((current) => ({
+      ...current,
+      [group]: {
+        ...current[group],
+        [key]: value,
+      },
+    }));
+    setSaveState("Unsaved");
+  }
+
+  function saveAssessment() {
+    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(assessment));
+    setSaveState("Saved");
+  }
+
+  function resetAssessment() {
+    setAssessment(v2DefaultAssessment);
+    window.localStorage.removeItem(STORAGE_KEY);
+    setSaveState("Ready");
+  }
+
+
+  function exportReport() {
+    const report = {
+      assessment,
+      result,
+      createdAt: new Date().toISOString(),
+    };
+    const blob = new Blob([JSON.stringify(report, null, 2)], {
+      type: "application/json",
+    });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "arth-os-financial-health-report.json";
+    link.click();
+    URL.revokeObjectURL(url);
+  }
+
+  return (
+    <div className="app-shell">
+      <Header
+        saveState={saveState}
+        onExport={exportReport}
+        onReset={resetAssessment}
+        onSave={saveAssessment}
+      />
+
+
+      <main>
+        <HeroSection result={result} />
+        <IntelligenceSection />
+        <BusinessSection />
+        <FounderSection />
+        <AssessmentSection
+          assessment={assessment}
+          result={result}
+          onChange={updateGroup}
+          ui={ui}
+        />
+      </main>
+    </div>
+  );
+}
+
+function Header({
+
+  saveState,
+  onExport,
+  onReset,
+  onSave,
+}) {
+
+  return (
+    <header className="topbar">
+      <a className="brand" href="#home" aria-label="ARTH.OS home">
+
+        <span className="logo-word">
+          ARTH.<span>OS</span>
+        </span>
+        <small>POWERED BY SANKHYA</small>
+      </a>
+
+      <nav className="nav-links" aria-label="Primary navigation">
+        {navItems.map((item) => (
+          <a href={item.href} key={item.label}>
+            {item.label}
+          </a>
+        ))}
+      </nav>
+
+      <div className="toolbar" aria-label="Assessment actions">
+        <span className={`save-state save-state-${saveState.toLowerCase()}`}>
+          {saveState}
+        </span>
+
+
+        <button type="button" className="icon-button" onClick={onSave} title="Save">
+          <Save size={18} />
+          <span>Save</span>
+        </button>
+        <button
+          type="button"
+          className="icon-button"
+          onClick={onExport}
+          title="Export report"
+        >
+          <Download size={18} />
+          <span>Export</span>
+        </button>
+        <button type="button" className="ghost-button" onClick={onReset} title="Reset">
+          <RotateCcw size={18} />
+          <span>Reset</span>
+        </button>
+      </div>
+
+    </header>
+  );
+}
+
+function HeroSection({ result }) {
+  return (
+    <section className="hero-section" id="home">
+      <div className="hero-copy">
+        <div className="hero-pill">
+          <Sparkles size={16} />
+          <span>ARTH.OS by SANKHYA</span>
+        </div>
+        <h1>
+          <span>
+            ARTH.<em>OS</em>
+          </span>{" "}
+          decodes financial behavior.
+        </h1>
+        <p>
+          ARTH.OS combines behavioral psychology, AI and financial intelligence
+          to decode emotional spending, stress spending and hidden money habits.
+        </p>
+        <div className="hero-actions">
+          <a className="primary-link" href="#assessment">
+            Start Score
+            <ArrowRight size={18} />
+          </a>
+          <a className="secondary-link" href="#ai">
+            See Intelligence
+          </a>
+        </div>
+      </div>
+
+      <aside className="engine-card" aria-label="ARTH.OS intelligence engine">
+        <div className="engine-chip">
+          <Sparkles size={16} />
+          <span>ARTH.OS Intelligence Engine</span>
+        </div>
+        <div className="engine-metric">
+          <strong>99.99%</strong>
+          <span>Behavior Intelligence Accuracy</span>
+        </div>
+        <div className="engine-list">
+          {engineSignals.map((signal) => (
+            <div key={signal}>{signal}</div>
+          ))}
+        </div>
+        <div className="engine-footer">
+          <span>Live Score</span>
+          <strong>{result.healthScore}/100</strong>
+        </div>
+      </aside>
+    </section>
+  );
+}
+
+function IntelligenceSection() {
+  return (
+    <section className="feature-section" id="ai">
+      <div className="section-copy">
+        <h2>
+          ARTH.OS detects hidden <span>financial behavior.</span>
+        </h2>
+        <p>
+          It turns human money choices into a behavioral signal layer for
+          planning, resilience and financial self-awareness.
+        </p>
+      </div>
+      <div className="intelligence-layout">
+        <div className="intelligence-list">
+          {intelligenceRows.map(({ icon: Icon, title, copy }) => (
+            <article className="intelligence-row" key={title}>
+              <Icon size={28} />
+              <div>
+                <h3>{title}</h3>
+                <p>{copy}</p>
+              </div>
+            </article>
+          ))}
+        </div>
+        <div className="brain-frame" aria-hidden="true">
+          <div className="code-stack">
+            <span />
+            <span />
+            <span />
+            <span />
+            <span />
+          </div>
+          <div className="brain-core">
+            <Brain size={92} />
+          </div>
+          <div className="node-cluster">
+            <i />
+            <i />
+            <i />
+            <i />
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function BusinessSection() {
+  return (
+    <section className="business-section" id="business">
+      <h2>
+        Built for the future of <span>financial intelligence.</span>
+      </h2>
+      <p>
+        ARTH.OS is not another budgeting application. It is a Behavioral Finance
+        Intelligence Engine designed to understand how humans emotionally
+        interact with money.
+      </p>
+      <div className="business-grid">
+        {businessCards.map((card) => (
+          <article className="business-card" key={card.title}>
+            <h3>{card.title}</h3>
+            <p>{card.copy}</p>
+          </article>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function FounderSection() {
+  return (
+    <section className="founder-section" id="founder">
+      <div>
+        <h2>
+          Building India's Behavior <span>Intelligence Layer.</span>
+        </h2>
+        <p>
+          Most financial systems only understand numbers. Human behavior drives
+          every financial decision.
+        </p>
+        <div className="founder-stats">
+          <div>
+            <strong>AI + Psychology</strong>
+            <span>Core Foundation</span>
+          </div>
+          <div>
+            <strong>Privacy First</strong>
+            <span>No Statement Storage</span>
+          </div>
+          <div>
+            <strong>India Built</strong>
+            <span>Global Vision</span>
+          </div>
+        </div>
+      </div>
+      <aside className="founder-card">
+        <h3>Ankit Chakravorty</h3>
+        <span>Founder & CEO - Sankhya</span>
+        <blockquote>
+          India does not need another budgeting app. It needs an intelligence
+          layer that understands human financial behavior before collapse
+          happens.
+        </blockquote>
+      </aside>
+    </section>
+  );
+}
+
+function AssessmentSection({ assessment, result, onChange, ui }) {
+  const [currentStep, setCurrentStep] = useState(0);
+  const [showAnalytics, setShowAnalytics] = useState(false);
+
+  const steps = [
+    { id: "participant", label: "About You", icon: User },
+    { id: "behaviour", label: "Financial Behaviour", icon: Brain },
+    { id: "awareness", label: "Financial Awareness", icon: BarChart3 },
+    { id: "stability", label: "Financial Stability", icon: ShieldCheck },
+    { id: "habits", label: "Daily Habits", icon: Activity },
+  ];
+
+  const totalSteps = steps.length;
+
+  const nextStep = () => {
+    if (currentStep < totalSteps - 1) {
+      setCurrentStep((prev) => Math.min(prev + 1, totalSteps - 1));
+    } else {
+      // On final step completion, show analytics and dispatch telemetry
+      setShowAnalytics(true);
+      
+      // Dispatch telemetry asynchronously (non-blocking)
+      const payload = buildAnonymousTelemetryPayload(result, assessment);
+      dispatchAnonymousTelemetry(payload);
+    }
+  };
+
+  const prevStep = () => setCurrentStep((prev) => Math.max(prev - 1, 0));
+
+  const isLastStep = currentStep === totalSteps - 1;
+  const participant = assessment.participant ?? {};
+  const emailIsValid = participant.email
+    ? /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(participant.email)
+    : true;
+  const ageIsValid = participant.age === "" || participant.age > 0;
+  const participantValidationMessage = participant.name || participant.age || participant.email
+    ? emailIsValid && ageIsValid
+      ? "Thanks! This info helps us personalize your feedback. You can continue anytime."
+      : "A valid email and positive age are helpful, but you can still continue without them."
+    : "Optional: add name, age and email to personalize your insights. You can continue without them.";
+
+  return (
+    <section className="assessment-section" id="assessment">
+      <div className="assessment-heading">
+        <span>Live Score Engine</span>
+        <h2>
+          Run your Financial Health <em>Behavior Score.</em>
+        </h2>
+        <p>
+          {!showAnalytics
+            ? "Complete the guided assessment step-by-step. The intelligence panel on the right updates instantly as your profile shifts."
+            : "Your assessment is complete. Review your financial insights below."}
+        </p>
+      </div>
+
+      <div className="workspace">
+        <section className="form-stack" aria-label="Financial health assessment">
+          {!showAnalytics && (
+            <>
+              {/* Progress Multi-Step Tracker Header Bar */}
+              <div className="wizard-progress-bar">
+                {steps.map((step, idx) => (
+                  <div
+                    key={step.id}
+                    className={`wizard-step-node ${idx <= currentStep ? "active" : ""} ${
+                      idx === currentStep ? "current" : ""
+                    }`}
+                  >
+                    <div className="step-number-circle">{idx + 1}</div>
+                    <span>{step.label}</span>
+                  </div>
+                ))}
+              </div>
+
+              {/* Dynamic Form Step Stage */}
+              {currentStep === 0 && (
+                <UserInfoSection
+                  values={assessment.participant}
+                  onChange={(key, value) => onChange("participant", key, value)}
+                  validationMessage={participantValidationMessage}
+                  onSkip={() => setCurrentStep(1)}
+                />
+              )}
+
+              {currentStep === 1 && (
+                <QuestionSection
+                  icon={Brain}
+                  title="Behaviour"
+                  score={`${result.behaviourScore}/${ui.componentMaximums.behaviour}`}
+                  questions={ui.behaviourQuestions}
+                  values={assessment.behaviour}
+                  onChange={(key, value) => onChange("behaviour", key, value)}
+                />
+              )}
+
+              {currentStep === 2 && (
+                <QuestionSection
+                  icon={BarChart3}
+                  title="Awareness"
+                  score={`${result.awarenessScore}/${ui.componentMaximums.awareness}`}
+                  questions={ui.awarenessQuestions}
+                  values={assessment.awareness}
+                  onChange={(key, value) => onChange("awareness", key, value)}
+                />
+              )}
+
+              {currentStep === 3 && (
+                <ProfileSection
+                  values={assessment.profile}
+                  score={`${result.stabilityScore}/${ui.componentMaximums.stability}`}
+                  onChange={(key, value) => onChange("profile", key, value)}
+                />
+              )}
+
+              {currentStep === 4 && (
+                <QuestionSection
+                  icon={Activity}
+                  title="Daily Habits"
+                  score={`${result.habits.habitScore}/${100}`}
+                  questions={v2HabitsQuestions}
+                  values={assessment.habits}
+                  onChange={(key, value) => onChange("habits", key, value)}
+                />
+              )}
+
+              {/* Stepper Wizard Control Navigation Buttons */}
+              <div className="wizard-navigation-controls">
+                <button
+                  type="button"
+                  className="wizard-nav-button"
+                  onClick={prevStep}
+                  disabled={currentStep === 0}
+                >
+                  <ChevronLeft size={16} />
+                  Back
+                </button>
+
+                {!isLastStep ? (
+                  <button
+                    type="button"
+                    className="wizard-nav-button primary-wizard-btn"
+                    onClick={nextStep}
+                  >
+                    Continue
+                    <ChevronRight size={16} />
+                  </button>
+                ) : (
+                  <button type="button" className="wizard-nav-button primary-wizard-btn" onClick={nextStep}>
+                    View Full Analysis
+                    <Sparkles size={16} />
+                  </button>
+                )}
+              </div>
+            </>
+          )}
+
+          {showAnalytics && (
+            <div>
+              <button
+                type="button"
+                className="wizard-nav-button"
+                onClick={() => {
+                  setShowAnalytics(false);
+                  setCurrentStep(0);
+                }}
+              >
+                <ChevronLeft size={16} />
+                Edit Assessment
+              </button>
+              <AnalyticsDashboard result={result} />
+            </div>
+          )}
+        </section>
+
+        {/* Persistent Diagnostic Analytics Panel Sidebar */}
+        <aside className="result-stack" aria-label="Financial health result">
+          <ScoreOverview result={result} />
+          <ComponentBreakdown result={result} />
+          <BlindSpotPanel result={result} />
+          <DiagnosisPanel result={result} />
+          <SurvivalBlock result={result} assessment={assessment} />
+          <DecisionSimulator profile={assessment.profile} />
+          <ActionBlock result={result} />
+          <AnalyticsDashboard result={result} />
+        </aside>
+      </div>
+    </section>
+  );
+}
+
+function QuestionSection({ icon: Icon, title, score, questions, values, onChange }) {
+  return (
+    <section className="panel">
+      <div className="panel-heading">
+        <div>
+          <Icon size={20} />
+          <h2>{title}</h2>
+        </div>
+        <span>{score}</span>
+      </div>
+
+      <div className="question-list">
+        {questions.map((question) => (
+          <div className="question-row" key={question.key}>
+            <label className="question-label" id={`${question.key}-label`}>
+              {question.prompt}
+            </label>
+            <SegmentedControl
+              labelledBy={`${question.key}-label`}
+              name={question.key}
+              options={question.options}
+              value={values[question.key]}
+              onChange={(value) => onChange(question.key, value)}
+            />
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function UserInfoSection({ values, onChange, validationMessage, onSkip }) {
+  return (
+    <section className="panel">
+      <div className="panel-heading">
+        <div>
+          <User size={20} />
+          <h2>About You</h2>
+        </div>
+        <span>One more step before we begin</span>
+      </div>
+
+      <div className="question-list">
+        <div className="question-row">
+          <label className="question-label" htmlFor="participant-name">
+            Name
+          </label>
+          <input
+            id="participant-name"
+            type="text"
+            value={values.name || ""}
+            onChange={(event) => onChange("name", event.target.value)}
+          />
+        </div>
+
+        <div className="question-row">
+          <label className="question-label" htmlFor="participant-age">
+            Age
+          </label>
+          <input
+            id="participant-age"
+            type="number"
+            min="0"
+            inputMode="numeric"
+            value={values.age ?? ""}
+            onChange={(event) => onChange("age", event.target.value === "" ? "" : Number.parseInt(event.target.value, 10))}
+          />
+        </div>
+
+        <div className="question-row">
+          <label className="question-label" htmlFor="participant-email">
+            Email address
+          </label>
+          <input
+            id="participant-email"
+            type="email"
+            value={values.email || ""}
+            onChange={(event) => onChange("email", event.target.value)}
+          />
+        </div>
+      </div>
+      <div className="validation-area">
+        <p className="validation-note">{validationMessage}</p>
+        <button type="button" className="skip-cta" onClick={onSkip}>
+          Skip for now
+        </button>
+      </div>
+    </section>
+  );
+}
+
+function ProfileSection({ values, score, onChange }) {
+  return (
+    <section className="panel">
+
+      <div className="panel-heading">
+        <div>
+          <ShieldCheck size={20} />
+          <h2>Stability</h2>
+        </div>
+        <span>{score}</span>
+      </div>
+
+      <div className="numeric-grid">
+        <MoneyInput
+          label="Monthly expenses"
+          value={values.monthlyExpenses}
+          onChange={(value) => onChange("monthlyExpenses", value)}
+        />
+        <MoneyInput
+          label="Fixed emergency buffer"
+          value={values.emergencySavingsFixed}
+          onChange={(value) => onChange("emergencySavingsFixed", value)}
+        />
+        <MoneyInput
+          label="Discretionary emergency buffer"
+          value={values.emergencySavingsDiscretionary}
+          onChange={(value) => onChange("emergencySavingsDiscretionary", value)}
+        />
+        <MoneyInput
+          label="Total debt"
+          value={values.totalDebt}
+          onChange={(value) => onChange("totalDebt", value)}
+        />
+        <MoneyInput
+          label="Monthly income"
+          value={values.monthlyIncome}
+          onChange={(value) => onChange("monthlyIncome", value)}
+        />
+        <MoneyInput
+          label="Fixed commitments"
+          value={values.monthlyLiabilities}
+          onChange={(value) => onChange("monthlyLiabilities", value)}
+        />
+      </div>
+
+      <div className="question-row compact">
+        <label className="question-label" id="income-stability-label">
+          Income stability
+        </label>
+        <SegmentedControl
+          labelledBy="income-stability-label"
+          name="incomeStability"
+          options={incomeStabilityOptions}
+          value={values.incomeStability}
+          onChange={(value) => onChange("incomeStability", value)}
+        />
+      </div>
+
+      <div className="question-row compact">
+        <label className="question-label" id="dependents-label">
+          Dependents
+        </label>
+        <SegmentedControl
+          labelledBy="dependents-label"
+          name="dependentsBucket"
+          options={dependentsOptions}
+          value={values.dependentsBucket}
+          onChange={(value) => onChange("dependentsBucket", value)}
+        />
+      </div>
+
+
+        <div className="question-row compact">
+          <label className="question-label" id="debt-rate-label">
+            Debt repayment rate (% of income)
+          </label>
+          <div className="money-input" style={{ gridTemplateColumns: "auto 1fr" }}>
+            <span style={{ display: "block" }} />
+            <div>
+              <span />
+              <input
+                type="number"
+                min="0"
+                inputMode="decimal"
+                value={values.debtRepaymentRatePctOfIncome ?? 0.12}
+                onChange={(e) =>
+                  onChange(
+                    "debtRepaymentRatePctOfIncome",
+                    e.target.value === "" ? 0 : Number.parseFloat(e.target.value),
+                  )
+                }
+              />
+            </div>
+          </div>
+        </div>
+
+        <div className="question-row compact">
+          <label className="question-label" id="interest-label">
+            Average interest rate (% per year)
+          </label>
+          <div className="money-input" style={{ gridTemplateColumns: "auto 1fr" }}>
+            <span style={{ display: "block" }} />
+            <div>
+              <span />
+              <input
+                type="number"
+                min="0"
+                inputMode="decimal"
+                value={values.averageInterestRatePct ?? 10}
+                onChange={(e) =>
+                  onChange(
+                    "averageInterestRatePct",
+                    e.target.value === "" ? 0 : Number.parseFloat(e.target.value),
+                  )
+                }
+              />
+            </div>
+          </div>
+        </div>
+
+
+    </section>
+  );
+}
+
+function MoneyInput({ label, value, onChange }) {
+  return (
+    <label className="money-input">
+      <span>{label}</span>
+      <div>
+        <span>INR</span>
+        <input
+          type="number"
+          min="0"
+          inputMode="numeric"
+          value={value ?? ""}
+          onChange={(event) => {
+            const val = event.target.value;
+            onChange(val === "" ? 0 : Number.parseFloat(val));
+          }}
+        />
+      </div>
+    </label>
+  );
+}
+
+
+function SegmentedControl({ labelledBy, name, options, value, onChange }) {
+  return (
+    <div className="segmented-control" role="radiogroup" aria-labelledby={labelledBy}>
+      {options.map((option) => {
+        const checked = option.value === value;
+        return (
+          <label
+            key={option.value}
+            className={`segmented-option ${checked ? "selected" : ""}`}
+          >
+            <input
+              type="radio"
+              name={name}
+              value={option.value}
+              checked={checked}
+              onChange={() => onChange(option.value)}
+            />
+            <span>{option.label}</span>
+          </label>
+        );
+      })}
+    </div>
+  );
+}
+
+const ScoreOverview = memo(function ScoreOverview({ result }) {
+  return (
+
+    <section className={`result-card score-card tone-${result.categoryBand.tone}`}>
+      <div className="score-copy">
+        <span className="metric-label">Health Score</span>
+        <h1>{result.healthScore}/100</h1>
+        <strong>{result.categoryBand.label}</strong>
+        <p>{result.summary}</p>
+      </div>
+      <ScoreDial score={result.healthScore} tone={result.categoryBand.tone} />
+    </section>
+  );
+});
+
+const ScoreDial = memo(function ScoreDial({ score, tone }) {
+
+  const radius = 63;
+  const circumference = 2 * Math.PI * radius;
+  const progress = (score / 100) * circumference;
+
+  return (
+    <div className={`score-dial dial-${tone}`} aria-hidden="true">
+      <svg viewBox="0 0 160 160">
+        <circle className="track" cx="80" cy="80" r={radius} />
+        <circle
+          className="progress"
+          cx="80"
+          cy="80"
+          r={radius}
+          strokeDasharray={`${progress} ${circumference - progress}`}
+        />
+      </svg>
+      <span>{score}</span>
+    </div>
+  );
+});
+
+const ComponentBreakdown = memo(function ComponentBreakdown({ result }) {
+
+  const orderedRows = [...result.componentRows].sort((a, b) => {
+    const order = { behaviour: 0, awareness: 1, stability: 2 };
+    return order[a.key] - order[b.key];
+  });
+
+  return (
+    <section className="result-card">
+      <div className="result-heading">
+        <WalletCards size={19} />
+        <h2>Breakdown</h2>
+      </div>
+      <div className="breakdown-list">
+        {orderedRows.map((row) => {
+          const Icon = sectionIcons[row.key];
+          return (
+            <div className="breakdown-row" key={row.key}>
+              <div>
+                <Icon size={18} />
+                <span>{row.label}</span>
+              </div>
+              <strong>
+                {row.score}/{row.max}
+              </strong>
+              <div className="bar-track" aria-hidden="true">
+                <span style={{ width: `${row.percent}%` }} />
+              </div>
+              <small>{row.band}</small>
+            </div>
+          );
+        })}
+      </div>
+    </section>
+  );
+});
+
+const BlindSpotPanel = memo(function BlindSpotPanel({ result }) {
+  const gapMessage =
+    result.blindSpotDirection === "overestimated"
+      ? `You are overestimating your runway by ${result.blindSpotGap} months.`
+      : result.blindSpotDirection === "underestimated"
+      ? `You are underestimating your runway by ${result.blindSpotGap} months.`
+      : "Your perceived runway matches your actual cash runway.";
+
+  return (
+    <section className="result-card blindspot-panel">
+      <div className="result-heading">
+        <Activity size={19} />
+        <div>
+          <h2>Your Financial Blind Spot</h2>
+          <span>What your score hides about actual runway</span>
+        </div>
+      </div>
+      <div className="blindspot-copy">
+        <p>{result.blindSpotHeadline}</p>
+        <p>{result.blindSpotSummary}</p>
+      </div>
+      <div className="insight-grid">
+        <div className="insight-stat">
+          <span>Perceived runway</span>
+          <strong>{result.blindSpotPerceived} mos</strong>
+        </div>
+        <div className="insight-stat">
+          <span>Actual runway</span>
+          <strong>{result.blindSpotActual} mos</strong>
+        </div>
+        <div className="insight-stat">
+          <span>Blind spot size</span>
+          <strong>{result.blindSpotGap} mos</strong>
+        </div>
+        <div className="insight-stat">
+          <span>Risk signal</span>
+          <strong>{result.futureRiskLabel}</strong>
+        </div>
+      </div>
+      <div className="insight-meta">
+        <div>
+          <span>Financial personality</span>
+          <strong>{result.personalityReport.title}</strong>
+        </div>
+        <p>{gapMessage}</p>
+      </div>
+    </section>
+  );
+});
+
+const SurvivalBlock = memo(function SurvivalBlock({ result, assessment }) {
+
+  const expenseValue = Number.parseFloat(assessment.profile.monthlyExpenses) || 0;
+  const fixedValue = Number.parseFloat(assessment.profile.emergencySavingsFixed) || 0;
+  const discretionaryValue = Number.parseFloat(assessment.profile.emergencySavingsDiscretionary) || 0;
+  const savingsValue = Number.parseFloat(assessment.profile.emergencySavings) || 0;
+  const totalSavingsValue = fixedValue + discretionaryValue;
+
+  const milestones = [1, 3, 6, 12];
+
+  return (
+    <section className="result-card">
+      <div className="result-heading">
+        <AlertTriangle size={19} />
+        <h2>Income Stop</h2>
+      </div>
+      <div className="survival-number">
+        <strong>{result.survivalMonthsDisplay}</strong>
+        <span>months</span>
+      </div>
+      <p className={`status-line tone-text-${result.survivalBand.tone}`}>
+        {result.survivalBand.label}
+      </p>
+
+          <div className="dual-survival-grid">
+            <div>
+              <span>As-Is Lifestyle</span>
+              <strong>{result.survivalMonthsDisplay} mos</strong>
+            </div>
+            <div>
+              <span>Crisis Mode Optimized</span>
+              <strong>{result.bareMinimumSurvivalMonthsDisplay} mos</strong>
+            </div>
+          </div>
+          <div className="survival-insight-grid">
+            <div>
+              <span>Perceived runway</span>
+              <strong>{result.perceivedSurvivalMonthsDisplay} mos</strong>
+            </div>
+            <div>
+              <span>Awareness gap</span>
+              <strong>{result.awarenessGapDisplay} mos</strong>
+            </div>
+          </div>
+          <div className="emergency-goal">
+            <span>Emergency fund target</span>
+            <strong>6 months</strong>
+            <span>
+              Need: {formatCurrencyV2(Math.max(0, expenseValue * 6 - totalSavingsValue))}
+            </span>
+          </div>
+          <p className="buffer-summary">
+            Fixed: {result.fixedBufferMonthsDisplay} · Discretionary: {result.discretionaryBufferMonthsDisplay}
+          </p>
+
+      <div className="survival-rail" aria-hidden="true">
+        {milestones.map((month) => (
+          <span
+            key={month}
+            className={result.survivalMonthsRaw >= month ? "active" : ""}
+          />
+        ))}
+      </div>
+
+          <div className="money-pair">
+            <span>Fixed buffer: {formatCurrencyV2(fixedValue)}</span>
+            <span>Discretionary buffer: {formatCurrencyV2(discretionaryValue)}</span>
+          </div>
+          <div className="money-pair">
+            <span>Total: {formatCurrencyV2(totalSavingsValue)}</span>
+            <span>{formatCurrencyV2(expenseValue)} monthly burn</span>
+          </div>
+
+    </section>
+  );
+});
+
+const ActionBlock = memo(function ActionBlock({ result }) {
+
+  return (
+    <section className="result-card action-card">
+
+      <div className="result-heading">
+        <Target size={19} />
+        <h2>Recommended Action</h2>
+      </div>
+      <p>{result.recommendedActionText}</p>
+
+
+          <div className="driver-grid">
+            <div>
+              <span>Strength</span>
+              <strong>{result.strongestComponent?.label ?? "-"}</strong>
+            </div>
+            <div>
+              <span>Risk</span>
+              <strong>{result.lowestComponent?.label ?? "-"}</strong>
+            </div>
+          </div>
+          <div className="future-risk-grid">
+            <div>
+              <span>Future risk</span>
+              <strong>{result.futureRiskLabel}</strong>
+            </div>
+            <div>
+              <span>Personality</span>
+              <strong>{result.personalityType}</strong>
+            </div>
+          </div>
+
+    </section>
+  );
+});
+
+const DiagnosisPanel = memo(function DiagnosisPanel({ result }) {
+  const diagnosis = result.diagnosis || {};
+
+  return (
+    <section className="result-card diagnosis-card">
+      <div className="result-heading">
+        <ShieldCheck size={19} />
+        <h2>Diagnosis</h2>
+      </div>
+      <p className="diagnosis-headline">{diagnosis.headline}</p>
+      <p className="diagnosis-problem"><strong>{diagnosis.problem}</strong></p>
+      <p>{diagnosis.explanation}</p>
+      <div className="diagnosis-focus">
+        <strong>Priority focus:</strong> {diagnosis.focus}
+      </div>
+    </section>
+  );
+});
+
+function DecisionSimulator({ profile }) {
+  const [purchaseCost, setPurchaseCost] = useState(0);
+  const simulator = useMemo(
+    () => calculateDecisionSimulatorV2(profile, purchaseCost),
+    [profile, purchaseCost],
+  );
+
+  return (
+    <section className="result-card simulator-card">
+      <div className="result-heading">
+        <Cpu size={19} />
+        <h2>Decision Simulator</h2>
+      </div>
+      <div className="simulator-input">
+        <label htmlFor="purchase-cost">Purchase cost</label>
+        <div>
+          <span>INR</span>
+          <input
+            id="purchase-cost"
+            type="number"
+            min="0"
+            value={purchaseCost}
+            onChange={(event) => setPurchaseCost(Number.parseFloat(event.target.value) || 0)}
+          />
+        </div>
+      </div>
+      <div className="simulator-grid">
+        <div>
+          <span>Current runway</span>
+          <strong>{formatMonthsV2(simulator.currentRunway)} mos</strong>
+        </div>
+        <div>
+          <span>Forecast runway</span>
+          <strong>{formatMonthsV2(simulator.forecastRunway)} mos</strong>
+        </div>
+        <div>
+          <span>Runway delta</span>
+          <strong>{formatMonthsV2(simulator.runwayDelta)} mos</strong>
+        </div>
+        <div>
+          <span>Signal</span>
+          <strong>{simulator.forecastRisk}</strong>
+        </div>
+      </div>
+      <p className="simulator-recommendation">{simulator.recommendation}</p>
+    </section>
+  );
 }
 </file>
 

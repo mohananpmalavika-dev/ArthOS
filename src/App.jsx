@@ -6,6 +6,8 @@ import {
   ArrowRight,
   BarChart3,
   Brain,
+  ChevronLeft,
+  ChevronRight,
   Cpu,
   Download,
   LockKeyhole,
@@ -15,28 +17,25 @@ import {
   ShieldCheck,
   Sparkles,
   Target,
+  User,
   WalletCards,
 } from "lucide-react";
 import {
   calculateFinancialHealthV2,
-  calculateBehaviourScoreV2,
-  calculateAwarenessScoreV2,
-  calculateStabilityScoreV2,
-  calculateDebtScheduleEstimateV2,
-  calculateHabitsMetricsV2,
-  calculateFutureRiskV2,
-  calculatePersonalityTypeV2,
-  calculateAwarenessGapV2,
-  calculateBlindSpotV2,
-  calculatePersonalityReportV2,
+  calculateDecisionSimulatorV2,
   componentMaximumsV2,
   formatCurrency as formatCurrencyV2,
   formatMonths as formatMonthsV2,
+  buildAnonymousTelemetryPayload,
+  dispatchAnonymousTelemetry,
 } from "./lib/scoring-v2.js";
+
+import AnalyticsDashboard from "./components/AnalyticsDashboard.jsx";
 
 import {
   v2BehaviourQuestions,
   v2AwarenessQuestions,
+  v2HabitsQuestions,
   v2DefaultAssessment,
 } from "./data/questionnaire-v2.js";
 
@@ -122,6 +121,10 @@ function normalizeV2Assessment(assessment) {
   ) {
     return {
       ...assessment,
+      participant: {
+        ...v2DefaultAssessment.participant,
+        ...assessment?.participant,
+      },
       profile: {
         ...v2DefaultAssessment.profile,
         ...profile,
@@ -135,6 +138,10 @@ function normalizeV2Assessment(assessment) {
 
   return {
     ...assessment,
+    participant: {
+      ...v2DefaultAssessment.participant,
+      ...assessment?.participant,
+    },
     profile: {
       ...v2DefaultAssessment.profile,
       ...profile,
@@ -151,18 +158,22 @@ function normalizeV1Assessment(assessment) {
   const discretionary = Number.parseFloat(profile.emergencySavingsDiscretionary) || 0;
 
   return {
-    ...defaultAssessment,
+    ...v2DefaultAssessment,
     ...assessment,
+    participant: {
+      ...v2DefaultAssessment.participant,
+      ...assessment?.participant,
+    },
     behaviour: {
-      ...defaultAssessment.behaviour,
+      ...v2DefaultAssessment.behaviour,
       ...assessment?.behaviour,
     },
     awareness: {
-      ...defaultAssessment.awareness,
+      ...v2DefaultAssessment.awareness,
       ...assessment?.awareness,
     },
     profile: {
-      ...defaultAssessment.profile,
+      ...v2DefaultAssessment.profile,
       ...profile,
       emergencySavings: legacySavings || fixed + discretionary,
     },
@@ -192,291 +203,12 @@ export default function App() {
   const [assessment, setAssessment] = useState(() => loadInitialAssessment());
   const [saveState, setSaveState] = useState("Ready");
 
-  const v2BehaviourResult = useMemo(() => calculateBehaviourScoreV2(assessment.behaviour), [assessment.behaviour]);
-
-  const v2AwarenessResult = useMemo(() => calculateAwarenessScoreV2(assessment.awareness), [assessment.awareness]);
-
-  const v2StabilityResult = useMemo(() => calculateStabilityScoreV2(assessment.profile), [assessment.profile]);
-
-  const v2DebtSchedule = useMemo(() => calculateDebtScheduleEstimateV2(assessment.profile), [assessment.profile]);
-
-  const v2Habits = useMemo(() => calculateHabitsMetricsV2(assessment.habits), [assessment.habits]);
-
-  const v2FutureRisk = useMemo(() => calculateFutureRiskV2(assessment.profile), [assessment.profile]);
-
-  const v2PersonalityType = useMemo(() => calculatePersonalityTypeV2(assessment.behaviour), [assessment.behaviour]);
-
-  const v2AwarenessGap = useMemo(() => calculateAwarenessGapV2(v2AwarenessResult ?? 0, v2StabilityResult?.survivalMonthsRaw ?? 0), [v2AwarenessResult, v2StabilityResult?.survivalMonthsRaw]);
-
-  const v2BlindSpot = useMemo(() => (v2AwarenessGap ? calculateBlindSpotV2(v2AwarenessGap) : null), [v2AwarenessGap]);
-
-  const v2PersonalityReport = useMemo(() => calculatePersonalityReportV2(v2PersonalityType ?? "Survivor"), [v2PersonalityType]);
-
-  const result = useMemo(() => {
-      const behaviourScore = v2BehaviourResult ?? 0;
-      const awarenessScore = v2AwarenessResult ?? 0;
-      const stability = v2StabilityResult ?? { score: 0, survivalMonthsRaw: 0 };
-      const componentRows = [
-        {
-          key: "behaviour",
-          label: "Behaviour",
-          score: behaviourScore,
-          max: componentMaximumsV2.behaviour,
-        },
-        {
-          key: "awareness",
-          label: "Awareness",
-          score: awarenessScore,
-          max: componentMaximumsV2.awareness,
-        },
-        {
-          key: "stability",
-          label: "Stability",
-          score: stability.score,
-          max: componentMaximumsV2.stability,
-        },
-      ].map((row) => ({
-        ...row,
-        percent: Math.round((row.score / row.max) * 100),
-      }));
-
-      // Preserve existing ordering logic in score-v2 engine
-      componentRows.sort((a, b) => a.percent - b.percent);
-      const lowestComponent = componentRows[0];
-      const strongestComponent = [...componentRows].sort(
-        (a, b) => b.percent - a.percent,
-      )[0];
-
-      const healthScore = Math.round(
-        behaviourScore + awarenessScore + stability.score,
-      );
-      const categoryBand = (() => {
-        if (healthScore <= 25) return { label: "Critical", tone: "critical" };
-        if (healthScore <= 50) return { label: "Vulnerable", tone: "warning" };
-        if (healthScore <= 75) return { label: "Stable", tone: "steady" };
-        return { label: "Healthy", tone: "strong" };
-      })();
-
-      const survivalBand = (() => {
-        const months = stability.survivalMonthsRaw;
-        if (months <= 1)
-          return { label: "Immediate risk", tone: "critical" };
-        if (months <= 3)
-          return { label: "Fragile cushion", tone: "warning" };
-        if (months <= 6)
-          return { label: "Improving stability", tone: "steady" };
-        if (months <= 12)
-          return { label: "Strong buffer", tone: "strong" };
-        return { label: "Highly resilient", tone: "strong" };
-      })();
-
-      const survivalMonthsDisplay =
-        stability.survivalMonthsRaw <= 0 || !Number.isFinite(stability.survivalMonthsRaw)
-          ? "0"
-          : stability.survivalMonthsRaw >= 60
-            ? "60+"
-            : Number.isInteger(stability.survivalMonthsRaw)
-              ? String(stability.survivalMonthsRaw)
-              : stability.survivalMonthsRaw.toFixed(1);
-
-      const awarenessGapMetrics = v2AwarenessGap ?? {
-        perceivedSurvivalMonths: stability.survivalMonthsRaw,
-        actualSurvivalMonths: stability.survivalMonthsRaw,
-        awarenessGap: 0,
-      };
-
-      const futureRisk = v2FutureRisk ?? { score: 0, label: "Unknown" };
-      const personalityType = v2PersonalityType ?? "Survivor";
-      const personalityReport = v2PersonalityReport ?? {
-        title: personalityType,
-        strengths: [],
-        risks: [],
-        dangerZone: "",
-        recommendedRule: "",
-      };
-
-      const blindSpot = v2BlindSpot ?? {
-        headline: "Watch your runway assumptions.",
-        summary:
-          "Your awareness of survival time is your most valuable financial insight.",
-        perceivedSurvivalMonthsDisplay: "0",
-        actualSurvivalMonthsDisplay: "0",
-        gapDisplay: "0",
-        direction: "aligned",
-      };
-
-      const perceivedSurvivalMonthsDisplay =
-        awarenessGapMetrics.perceivedSurvivalMonths <= 0 ||
-        !Number.isFinite(awarenessGapMetrics.perceivedSurvivalMonths)
-          ? "0"
-          : awarenessGapMetrics.perceivedSurvivalMonths >= 60
-            ? "60+"
-            : Number.isInteger(awarenessGapMetrics.perceivedSurvivalMonths)
-              ? String(awarenessGapMetrics.perceivedSurvivalMonths)
-              : awarenessGapMetrics.perceivedSurvivalMonths.toFixed(1);
-
-      const awarenessGapDisplay =
-        awarenessGapMetrics.awarenessGap <= 0 ||
-        !Number.isFinite(awarenessGapMetrics.awarenessGap)
-          ? "0"
-          : awarenessGapMetrics.awarenessGap >= 60
-            ? "60+"
-            : Number.isInteger(awarenessGapMetrics.awarenessGap)
-              ? String(awarenessGapMetrics.awarenessGap)
-              : awarenessGapMetrics.awarenessGap.toFixed(1);
-
-      const componentsForAction = [
-        { key: "behaviour", score: behaviourScore },
-        { key: "awareness", score: awarenessScore },
-        {
-          key: "stability",
-          score: stability.score,
-          survivalMonthsRaw: stability.survivalMonthsRaw,
-        },
-      ];
-
-      const recommendedActionText = (() => {
-        // ONE primary action: target the lowest component; if stability is lowest and survival is low -> emergency savings.
-        const lowestKey = componentsForAction
-          .slice()
-          .sort((a, b) => a.score - b.score)[0].key;
-
-        const monthlyExpenses = Number.parseFloat(
-          assessment.profile.monthlyExpenses,
-        );
-        const monthlyExpensesSafe = Number.isFinite(monthlyExpenses)
-          ? monthlyExpenses
-          : 0;
-
-        const survivalMonths = componentsForAction.find(
-          (c) => c.key === "stability",
-        ).survivalMonthsRaw;
-
-        if (lowestKey === "behaviour") {
-          if (assessment.behaviour.unplannedPurchaseFreq !== "never") {
-            return "Use a 24-hour waiting rule for non-essential purchases this month.";
-          }
-          return "Cut one trigger: remove one social-spend pathway (e.g., shopping places) this week.";
-        }
-
-        if (lowestKey === "awareness") {
-          if (assessment.awareness.tracksExpenses !== "regularly") {
-            return "Track every expense for the next 14 days (no exceptions) and total it.";
-          }
-          return "Write a 1-page monthly money plan (income → expenses → savings → debt).";
-        }
-
-        // stability driver
-        if (survivalMonths < 2) {
-          const target = monthlyExpensesSafe * 0.85;
-          return `Build emergency savings of ${formatCurrencyV2(target)} within 60 days.`;
-        }
-
-        const debtSchedule = v2DebtSchedule;
-        if (
-          debtSchedule.payoffMonths === Infinity ||
-          debtSchedule.payoffMonths > 18
-        ) {
-          return "Increase debt repayment by 1 step this month (even +₹2,000 counts).";
-        }
-
-        return "Maintain your current emergency + debt plan for the next 30 days.";
-      })();
-
-
-      const summary = `${categoryBand.label} financial health with ${survivalBand.label.toLowerCase()}.`;
-
-      return {
-        behaviourScore,
-        awarenessScore,
-        stabilityScore: stability.score,
-        healthScore,
-        categoryBand,
-        survivalMonthsRaw: stability.survivalMonthsRaw,
-        survivalMonthsDisplay,
-        bareMinimumSurvivalMonthsRaw:
-          stability.bareMinimumSurvivalMonthsRaw ?? 0,
-        bareMinimumSurvivalMonthsDisplay:
-          stability.bareMinimumSurvivalMonthsRaw <= 0 ||
-          !Number.isFinite(stability.bareMinimumSurvivalMonthsRaw)
-            ? "0"
-            : stability.bareMinimumSurvivalMonthsRaw >= 60
-            ? "60+"
-            : Number.isInteger(stability.bareMinimumSurvivalMonthsRaw)
-            ? String(stability.bareMinimumSurvivalMonthsRaw)
-            : stability.bareMinimumSurvivalMonthsRaw.toFixed(1),
-        perceivedSurvivalMonths: awarenessGapMetrics.perceivedSurvivalMonths,
-        perceivedSurvivalMonthsDisplay,
-        actualSurvivalMonths: awarenessGapMetrics.actualSurvivalMonths,
-        awarenessGap: awarenessGapMetrics.awarenessGap,
-        awarenessGapDisplay,
-        blindSpotHeadline: blindSpot.headline,
-        blindSpotSummary: blindSpot.summary,
-        blindSpotPerceived: blindSpot.perceivedSurvivalMonthsDisplay,
-        blindSpotActual: blindSpot.actualSurvivalMonthsDisplay,
-        blindSpotGap: blindSpot.gapDisplay,
-        blindSpotDirection: blindSpot.direction,
-        futureRiskScore: futureRisk.score,
-        futureRiskLabel: futureRisk.label,
-        personalityType,
-        survivalBand,
-        componentRows: componentRows.map((row) => {
-          const band =
-            row.key === "behaviour"
-              ? (() => {
-                  if (row.score <= 15)
-                    return "Critical behaviour risk";
-                  if (row.score <= 27)
-                    return "Needs behaviour correction";
-                  if (row.score <= 35) return "Mostly controlled";
-                  return "Strong financial discipline";
-                })()
-              : row.key === "awareness"
-                ? (() => {
-                    if (row.score <= 9) return "Low visibility";
-                    if (row.score <= 18) return "Basic awareness";
-                    if (row.score <= 24) return "Solid tracking";
-                    return "High clarity";
-                  })()
-                : (() => {
-                    if (row.score <= 8) return "Fragile stability";
-                    if (row.score <= 16) return "Some cushion";
-                    if (row.score <= 20) return "Resilient";
-                    return "Very stable";
-                  })();
-          return { ...row, band };
-        }),
-        lowestComponent,
-        strongestComponent,
-        recommendedActionText,
-        debtSchedule: v2DebtSchedule,
-        habits: v2Habits,
-        summary,
-        personalityReport,
-        blindSpot,
-      };
-
-  }, [
-
-    assessment.behaviour,
-    assessment.awareness,
-    assessment.profile,
-    assessment.habits,
-
-    v2BehaviourResult,
-    v2AwarenessResult,
-    v2StabilityResult,
-    v2DebtSchedule,
-    v2Habits,
-    v2FutureRisk,
-    v2PersonalityType,
-    v2AwarenessGap,
-  ]);
-
+  const result = useMemo(() => calculateFinancialHealthV2(assessment), [assessment]);
 
   const ui = {
     behaviourQuestions: v2BehaviourQuestions,
     awarenessQuestions: v2AwarenessQuestions,
+    habitsQuestions: v2HabitsQuestions,
     componentMaximums: componentMaximumsV2,
     formatCurrency: formatCurrencyV2,
     extraCards: {
@@ -770,6 +502,46 @@ function FounderSection() {
 }
 
 function AssessmentSection({ assessment, result, onChange, ui }) {
+  const [currentStep, setCurrentStep] = useState(0);
+  const [showAnalytics, setShowAnalytics] = useState(false);
+
+  const steps = [
+    { id: "participant", label: "About You", icon: User },
+    { id: "behaviour", label: "Financial Behaviour", icon: Brain },
+    { id: "awareness", label: "Financial Awareness", icon: BarChart3 },
+    { id: "stability", label: "Financial Stability", icon: ShieldCheck },
+    { id: "habits", label: "Daily Habits", icon: Activity },
+  ];
+
+  const totalSteps = steps.length;
+
+  const nextStep = () => {
+    if (currentStep < totalSteps - 1) {
+      setCurrentStep((prev) => Math.min(prev + 1, totalSteps - 1));
+    } else {
+      // On final step completion, show analytics and dispatch telemetry
+      setShowAnalytics(true);
+      
+      // Dispatch telemetry asynchronously (non-blocking)
+      const payload = buildAnonymousTelemetryPayload(result, assessment);
+      dispatchAnonymousTelemetry(payload);
+    }
+  };
+
+  const prevStep = () => setCurrentStep((prev) => Math.max(prev - 1, 0));
+
+  const isLastStep = currentStep === totalSteps - 1;
+  const participant = assessment.participant ?? {};
+  const emailIsValid = participant.email
+    ? /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(participant.email)
+    : true;
+  const ageIsValid = participant.age === "" || participant.age > 0;
+  const participantValidationMessage = participant.name || participant.age || participant.email
+    ? emailIsValid && ageIsValid
+      ? "Thanks! This info helps us personalize your feedback. You can continue anytime."
+      : "A valid email and positive age are helpful, but you can still continue without them."
+    : "Optional: add name, age and email to personalize your insights. You can continue without them.";
+
   return (
     <section className="assessment-section" id="assessment">
       <div className="assessment-heading">
@@ -778,51 +550,178 @@ function AssessmentSection({ assessment, result, onChange, ui }) {
           Run your Financial Health <em>Behavior Score.</em>
         </h2>
         <p>
-          Answer the behavioral, awareness and stability inputs. The intelligence
-          panel updates instantly as your money profile changes.
+          {!showAnalytics
+            ? "Complete the guided assessment step-by-step. The intelligence panel on the right updates instantly as your profile shifts."
+            : "Your assessment is complete. Review your financial insights below."}
         </p>
       </div>
 
       <div className="workspace">
         <section className="form-stack" aria-label="Financial health assessment">
-          <QuestionSection
-            icon={Brain}
-            title="Behaviour"
-            score={`${result.behaviourScore}/${ui.componentMaximums.behaviour}`}
-            questions={ui.behaviourQuestions}
-            values={assessment.behaviour}
-            onChange={(key, value) => onChange("behaviour", key, value)}
-          />
+          {!showAnalytics && (
+            <>
+              {/* Progress Multi-Step Tracker Header Bar */}
+              <div className="wizard-progress-bar">
+                {steps.map((step, idx) => (
+                  <div
+                    key={step.id}
+                    className={`wizard-step-node ${idx <= currentStep ? "active" : ""} ${
+                      idx === currentStep ? "current" : ""
+                    }`}
+                  >
+                    <div className="step-number-circle">{idx + 1}</div>
+                    <span>{step.label}</span>
+                  </div>
+                ))}
+              </div>
 
-          <QuestionSection
-            icon={BarChart3}
-            title="Awareness"
-            score={`${result.awarenessScore}/${ui.componentMaximums.awareness}`}
-            questions={ui.awarenessQuestions}
-            values={assessment.awareness}
-            onChange={(key, value) => onChange("awareness", key, value)}
-          />
+              {/* Dynamic Form Step Stage */}
+              {currentStep === 0 && (
+                <UserInfoSection
+                  values={assessment.participant}
+                  onChange={(key, value) => onChange("participant", key, value)}
+                  validationMessage={participantValidationMessage}
+                  onSkip={() => setCurrentStep(1)}
+                />
+              )}
 
-          <ProfileSection
-            values={assessment.profile}
-            score={`${result.stabilityScore}/${ui.componentMaximums.stability}`}
-            onChange={(key, value) => onChange("profile", key, value)}
-          />
+              {currentStep === 1 && (
+                <QuestionSection
+                  icon={Brain}
+                  title="Behaviour"
+                  score={`${result.behaviourScore}/${ui.componentMaximums.behaviour}`}
+                  questions={ui.behaviourQuestions}
+                  values={assessment.behaviour}
+                  onChange={(key, value) => onChange("behaviour", key, value)}
+                />
+              )}
 
+              {currentStep === 2 && (
+                <QuestionSection
+                  icon={BarChart3}
+                  title="Awareness"
+                  score={`${result.awarenessScore}/${ui.componentMaximums.awareness}`}
+                  questions={ui.awarenessQuestions}
+                  values={assessment.awareness}
+                  onChange={(key, value) => onChange("awareness", key, value)}
+                />
+              )}
+
+              {currentStep === 3 && (
+                <ProfileSection
+                  values={assessment.profile}
+                  score={`${result.stabilityScore}/${ui.componentMaximums.stability}`}
+                  onChange={(key, value) => onChange("profile", key, value)}
+                />
+              )}
+
+              {currentStep === 4 && (
+                <QuestionSection
+                  icon={Activity}
+                  title="Daily Habits"
+                  score={`${result.habits.habitScore}/${100}`}
+                  questions={v2HabitsQuestions}
+                  values={assessment.habits}
+                  onChange={(key, value) => onChange("habits", key, value)}
+                />
+              )}
+
+              {/* Stepper Wizard Control Navigation Buttons */}
+              <div className="wizard-navigation-controls">
+                <button
+                  type="button"
+                  className="wizard-nav-button"
+                  onClick={prevStep}
+                  disabled={currentStep === 0}
+                >
+                  <ChevronLeft size={16} />
+                  Back
+                </button>
+
+                {!isLastStep ? (
+                  <button
+                    type="button"
+                    className="wizard-nav-button primary-wizard-btn"
+                    onClick={nextStep}
+                  >
+                    Continue
+                    <ChevronRight size={16} />
+                  </button>
+                ) : (
+                  <button type="button" className="wizard-nav-button primary-wizard-btn" onClick={nextStep}>
+                    View Full Analysis
+                    <Sparkles size={16} />
+                  </button>
+                )}
+              </div>
+            </>
+          )}
+
+          {showAnalytics && (
+            <div>
+              <button
+                type="button"
+                className="wizard-nav-button"
+                onClick={() => {
+                  setShowAnalytics(false);
+                  setCurrentStep(0);
+                }}
+              >
+                <ChevronLeft size={16} />
+                Edit Assessment
+              </button>
+              <AnalyticsDashboard result={result} />
+            </div>
+          )}
         </section>
 
+        {/* Persistent Diagnostic Analytics Panel Sidebar */}
         <aside className="result-stack" aria-label="Financial health result">
           <ScoreOverview result={result} />
           <ComponentBreakdown result={result} />
           <BlindSpotPanel result={result} />
+          <DiagnosisPanel result={result} />
           <SurvivalBlock result={result} assessment={assessment} />
+          <DecisionSimulator profile={assessment.profile} />
           <ActionBlock result={result} />
-
+          <DiagnosticAnalyticsDashboard result={result} />
+          <AnalyticsDashboard result={result} />
         </aside>
       </div>
     </section>
   );
 }
+
+const DiagnosticAnalyticsDashboard = memo(function DiagnosticAnalyticsDashboard({ result }) {
+  if (result.mode !== "v2") return null;
+
+  return (
+    <section className="result-card analytics-dashboard-card">
+      <div className="result-heading">
+        <Sparkles size={19} />
+        <h2>Advanced Psychological Telemetry</h2>
+      </div>
+      <div className="analytics-summary-grid">
+        <div className="analytics-metric">
+          <span>Money Archetype</span>
+          <strong>{result.personalityType}</strong>
+        </div>
+        <div className="analytics-metric">
+          <span>Future Risk</span>
+          <strong>{result.futureRiskScore}/100</strong>
+          <small>{result.futureRiskLabel}</small>
+        </div>
+        <div className="analytics-metric">
+          <span>Visibility Blindspot</span>
+          <strong>{result.awarenessGapDisplay} mos</strong>
+        </div>
+      </div>
+      <p className="analytics-dashboard-copy">
+        💡 <strong>What this means:</strong> Based on your visibility score, you are likely to miscalculate your actual survival runway limits by approximately <strong>{result.awarenessGapDisplay} months</strong> due to unidentified spending avoidance behaviors.
+      </p>
+    </section>
+  );
+});
 
 function QuestionSection({ icon: Icon, title, score, questions, values, onChange }) {
   return (
@@ -850,6 +749,66 @@ function QuestionSection({ icon: Icon, title, score, questions, values, onChange
             />
           </div>
         ))}
+      </div>
+    </section>
+  );
+}
+
+function UserInfoSection({ values, onChange, validationMessage, onSkip }) {
+  return (
+    <section className="panel">
+      <div className="panel-heading">
+        <div>
+          <User size={20} />
+          <h2>About You</h2>
+        </div>
+        <span>One more step before we begin</span>
+      </div>
+
+      <div className="question-list">
+        <div className="question-row">
+          <label className="question-label" htmlFor="participant-name">
+            Name
+          </label>
+          <input
+            id="participant-name"
+            type="text"
+            value={values.name || ""}
+            onChange={(event) => onChange("name", event.target.value)}
+          />
+        </div>
+
+        <div className="question-row">
+          <label className="question-label" htmlFor="participant-age">
+            Age
+          </label>
+          <input
+            id="participant-age"
+            type="number"
+            min="0"
+            inputMode="numeric"
+            value={values.age ?? ""}
+            onChange={(event) => onChange("age", event.target.value === "" ? "" : Number.parseInt(event.target.value, 10))}
+          />
+        </div>
+
+        <div className="question-row">
+          <label className="question-label" htmlFor="participant-email">
+            Email address
+          </label>
+          <input
+            id="participant-email"
+            type="email"
+            value={values.email || ""}
+            onChange={(event) => onChange("email", event.target.value)}
+          />
+        </div>
+      </div>
+      <div className="validation-area">
+        <p className="validation-note">{validationMessage}</p>
+        <button type="button" className="skip-cta" onClick={onSkip}>
+          Skip for now
+        </button>
       </div>
     </section>
   );
@@ -1265,3 +1224,71 @@ const ActionBlock = memo(function ActionBlock({ result }) {
     </section>
   );
 });
+
+const DiagnosisPanel = memo(function DiagnosisPanel({ result }) {
+  const diagnosis = result.diagnosis || {};
+
+  return (
+    <section className="result-card diagnosis-card">
+      <div className="result-heading">
+        <ShieldCheck size={19} />
+        <h2>Diagnosis</h2>
+      </div>
+      <p className="diagnosis-headline">{diagnosis.headline}</p>
+      <p className="diagnosis-problem"><strong>{diagnosis.problem}</strong></p>
+      <p>{diagnosis.explanation}</p>
+      <div className="diagnosis-focus">
+        <strong>Priority focus:</strong> {diagnosis.focus}
+      </div>
+    </section>
+  );
+});
+
+function DecisionSimulator({ profile }) {
+  const [purchaseCost, setPurchaseCost] = useState(0);
+  const simulator = useMemo(
+    () => calculateDecisionSimulatorV2(profile, purchaseCost),
+    [profile, purchaseCost],
+  );
+
+  return (
+    <section className="result-card simulator-card">
+      <div className="result-heading">
+        <Cpu size={19} />
+        <h2>Decision Simulator</h2>
+      </div>
+      <div className="simulator-input">
+        <label htmlFor="purchase-cost">Purchase cost</label>
+        <div>
+          <span>INR</span>
+          <input
+            id="purchase-cost"
+            type="number"
+            min="0"
+            value={purchaseCost}
+            onChange={(event) => setPurchaseCost(Number.parseFloat(event.target.value) || 0)}
+          />
+        </div>
+      </div>
+      <div className="simulator-grid">
+        <div>
+          <span>Current runway</span>
+          <strong>{formatMonthsV2(simulator.currentRunway)} mos</strong>
+        </div>
+        <div>
+          <span>Forecast runway</span>
+          <strong>{formatMonthsV2(simulator.forecastRunway)} mos</strong>
+        </div>
+        <div>
+          <span>Runway delta</span>
+          <strong>{formatMonthsV2(simulator.runwayDelta)} mos</strong>
+        </div>
+        <div>
+          <span>Signal</span>
+          <strong>{simulator.forecastRisk}</strong>
+        </div>
+      </div>
+      <p className="simulator-recommendation">{simulator.recommendation}</p>
+    </section>
+  );
+}

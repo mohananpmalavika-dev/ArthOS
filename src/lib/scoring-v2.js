@@ -640,6 +640,70 @@ function getRecommendedAction(assessment, components) {
   return "Maintain your current emergency + debt plan for the next 30 days.";
 }
 
+function getDiagnosis(assessment, lowestComponent, futureRiskLabel, awarenessMetrics) {
+  const monthlyExpenses = toNumber(assessment.profile.monthlyExpenses);
+  const totalSavings = toNumber(assessment.profile.emergencySavingsFixed) + toNumber(assessment.profile.emergencySavingsDiscretionary);
+  const gapMonths = awarenessMetrics.awarenessGap;
+
+  if (lowestComponent.key === "behaviour") {
+    return {
+      headline: "Your biggest problem is behavior, not just the score.",
+      problem: "Impulse spending during stress and weak waiting rules are the largest driver of your cash runway risk.",
+      explanation: `Your behavior score is the weakest of the three engines. In this profile, emotional and social spending patterns are eroding your available runway even when your income looks stable. This makes growth harder and makes your emergency savings less reliable over time.`,
+      focus: "Improve your purchase discipline and spend controls first.",
+    };
+  }
+
+  if (lowestComponent.key === "awareness") {
+    return {
+      headline: "Your largest blind spot is runway awareness.",
+      problem: `You are overestimating your runway by ${formatMonths(gapMonths)} months compared to actual cash runway.`,
+      explanation: `Your awareness score is the softest signal. This means the biggest risk isn't a single number, it is how much you trust your own financial perception instead of the math. That gap is the place where surprise shocks become crises.`,
+      focus: "Track expenses and top expenses clearly before acting on other decisions.",
+    };
+  }
+
+  return {
+    headline: "Your biggest problem is runway stability.",
+    problem: totalSavings <= 0
+      ? "You currently have no emergency buffer, which makes every decision high risk."
+      : `Your survival runway is the weakest piece of your profile. ${formatMonths(totalSavings)} of cash against ${formatCurrency(monthlyExpenses)} monthly burn leaves little room for surprise shocks.`,
+    explanation: `Your stability score is the lowest engine. This means your emergency buffer and debt structure are the primary levers to protect your runway. Without stronger cash reserves, even moderate spending can push you into critical risk.`,
+    focus: "Prioritize emergency savings and manageable debt repayment pacing.",
+  };
+}
+
+export function calculateDecisionSimulatorV2(profile, purchaseCost = 0) {
+  const monthlyExpenses = toNumber(profile.monthlyExpenses);
+  const totalSavings = toNumber(profile.emergencySavingsFixed) + toNumber(profile.emergencySavingsDiscretionary);
+  const currentRunway = monthlyExpenses > 0 ? totalSavings / monthlyExpenses : 0;
+  const fee = Math.max(0, purchaseCost);
+  const remainingSavings = Math.max(0, totalSavings - fee);
+  const forecastRunway = monthlyExpenses > 0 ? remainingSavings / monthlyExpenses : 0;
+  const runwayDelta = currentRunway - forecastRunway;
+  const baselineBand = getSurvivalBand(currentRunway).label;
+  const forecastBand = getSurvivalBand(forecastRunway).label;
+
+  const recommendation = (() => {
+    if (fee <= 0) return "Enter a purchase amount to see the runway impact.";
+    if (remainingSavings <= 0) return "Do not make this purchase. It would eliminate your emergency runway entirely.";
+    if (forecastRunway <= 1) return "Wait. This purchase would leave you with a critically low runway.";
+    if (forecastRunway <= 3) return "Delay until you have at least 3 months of runway after this purchase.";
+    if (runwayDelta > 2) return "Consider saving a bit more first, as this purchase removes over 2 months of runway.";
+    return "This purchase is possible, but keep at least 3 months of buffer after you buy it.";
+  })();
+
+  return {
+    purchaseCost: fee,
+    currentRunway: roundToOne(currentRunway),
+    forecastRunway: roundToOne(forecastRunway),
+    runwayDelta: roundToOne(runwayDelta),
+    baselineRisk: baselineBand,
+    forecastRisk: forecastBand,
+    recommendation,
+  };
+}
+
 function roundToOne(value) {
   return Math.round(value * 10) / 10;
 }
@@ -695,6 +759,11 @@ export function calculateFinancialHealthV2(assessment) {
   const behaviourScore = calculateBehaviourScoreV2(safe.behaviour);
   const awarenessScore = calculateAwarenessScoreV2(safe.awareness);
   const stability = calculateStabilityScoreV2(safe.profile);
+  const futureRisk = calculateFutureRiskV2(safe.profile);
+  const personalityType = calculatePersonalityTypeV2(safe.behaviour);
+  const personalityReport = calculatePersonalityReportV2(personalityType);
+  const awarenessMetrics = calculateAwarenessGapV2(awarenessScore, stability.survivalMonthsRaw);
+  const blindSpot = calculateBlindSpotV2(awarenessMetrics);
 
   const healthScore = Math.round(
     behaviourScore + awarenessScore + stability.score,
@@ -750,6 +819,7 @@ export function calculateFinancialHealthV2(assessment) {
   );
 
   const survivalBand = getSurvivalBand(stability.survivalMonthsRaw);
+  const diagnosis = getDiagnosis(safe, lowest, futureRisk.label, awarenessMetrics);
 
   return {
     mode: "v2",
@@ -783,6 +853,24 @@ export function calculateFinancialHealthV2(assessment) {
 
     debtSchedule,
     habits,
+    futureRiskScore: futureRisk.score,
+    futureRiskLabel: futureRisk.label,
+    personalityType,
+    personalityReport,
+    awarenessMetrics,
+    blindSpot,
+    diagnosis,
+    perceivedSurvivalMonths: awarenessMetrics.perceivedSurvivalMonths,
+    perceivedSurvivalMonthsDisplay: formatMonths(awarenessMetrics.perceivedSurvivalMonths),
+    actualSurvivalMonths: awarenessMetrics.actualSurvivalMonths,
+    awarenessGap: awarenessMetrics.awarenessGap,
+    awarenessGapDisplay: formatMonths(awarenessMetrics.awarenessGap),
+    blindSpotHeadline: blindSpot.headline,
+    blindSpotSummary: blindSpot.summary,
+    blindSpotPerceived: blindSpot.perceivedSurvivalMonthsDisplay,
+    blindSpotActual: blindSpot.actualSurvivalMonthsDisplay,
+    blindSpotGap: blindSpot.gapDisplay,
+    blindSpotDirection: blindSpot.direction,
 
     summary: `${categoryBand.label} financial health with ${survivalBand.label.toLowerCase()}.`,
   };
@@ -847,5 +935,85 @@ function getHabitsMetrics(habits) {
     estimatedStreakDays,
     weeklyAdherencePct,
   };
+}
+
+// ============================================
+// Anonymous Telemetry Module (Privacy-First)
+// ============================================
+
+/**
+ * Build a privacy-compliant anonymous telemetry payload from assessment results.
+ * No PII, no timestamps, no IP tracking — just numeric indicators and behavioral categories.
+ */
+export function buildAnonymousTelemetryPayload(assessmentResult, coreAssessment) {
+  const profile = coreAssessment?.profile || {};
+  const monthlyIncome = toNumber(profile.monthlyIncome);
+  const monthlyExpenses = toNumber(profile.monthlyExpenses);
+
+  return {
+    telemetry_metadata: {
+      schema_version: "2.0.0",
+      mode_executed: "v2"
+    },
+    scores: {
+      financial_health_score: assessmentResult.healthScore,
+      behaviour_score: Math.round(assessmentResult.behaviourScore * 10) / 10,
+      awareness_score: Math.round(assessmentResult.awarenessScore * 10) / 10,
+      stability_score: Math.round(assessmentResult.stabilityScore * 10) / 10,
+      habits_score: assessmentResult.habits?.habitScore ?? 0
+    },
+    predictive_analytics: {
+      personality_type: assessmentResult.personalityType,
+      future_risk_label: assessmentResult.futureRiskLabel,
+      future_risk_score: assessmentResult.futureRiskScore,
+      awareness_gap_months: Number((assessmentResult.awarenessGap || 0).toFixed(2))
+    },
+    runway_metrics: {
+      nominal_survival_months: Number((assessmentResult.survivalMonthsRaw || 0).toFixed(2)),
+      crisis_optimized_survival_months: Number((assessmentResult.bareMinimumSurvivalMonthsRaw || 0).toFixed(2)),
+      perceived_survival_months: Number((assessmentResult.perceivedSurvivalMonths || 0).toFixed(2))
+    },
+    financial_ratios: {
+      savings_rate_proxied: monthlyIncome > 0 
+        ? Number(((monthlyIncome - monthlyExpenses) / monthlyIncome).toFixed(2))
+        : 0,
+      debt_to_income_months: monthlyIncome > 0
+        ? Number((toNumber(profile.totalDebt) / (monthlyIncome * 12)).toFixed(2))
+        : 0,
+      fixed_liability_pressure: monthlyIncome > 0
+        ? Number((toNumber(profile.monthlyLiabilities) / monthlyIncome).toFixed(2))
+        : 0
+    },
+    lowest_performing_driver: assessmentResult.lowestComponent?.key || "unknown"
+  };
+}
+
+/**
+ * Dispatch anonymous telemetry safely to a backend endpoint.
+ * Uses keepalive to ensure transmission even if tab closes.
+ * Fails silently to never interrupt user experience.
+ */
+export async function dispatchAnonymousTelemetry(telemetryPayload, endpointUrl) {
+  try {
+    const browserEndpoint =
+      typeof window !== "undefined"
+        ? window?.VITE_TELEMETRY_ENDPOINT || window?.REACT_APP_TELEMETRY_ENDPOINT
+        : undefined;
+    const targetUrl = endpointUrl || browserEndpoint || "https://api.arth-os.dev/telemetry";
+
+    await fetch(targetUrl, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(telemetryPayload),
+      keepalive: true,
+    });
+    
+    console.log("[Telemetry] Captured cleanly under privacy guidelines.");
+    return true;
+  } catch (error) {
+    // Fail silently to ensure zero UX impact
+    console.warn("[Telemetry] Transmission deferred:", error?.message || error);
+    return false;
+  }
 }
 

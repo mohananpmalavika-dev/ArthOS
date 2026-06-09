@@ -312,6 +312,11 @@ export const v2DefaultAssessment = {
     debtRepaymentRatePctOfIncome: 0.12, // heuristic % of income to debt repayment
     averageInterestRatePct: 10, // used only for estimate (simple)
   },
+  participant: {
+    name: "",
+    age: "",
+    email: "",
+  },
   habits: {
     habitCheckInsPerWeek: "1",
     debtPaymentDiscipline: "sometimes",
