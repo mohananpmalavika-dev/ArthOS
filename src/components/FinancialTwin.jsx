@@ -1,6 +1,7 @@
 // src/components/FinancialTwin.jsx
 // Display personality archetype generated from behavior patterns
 
+import React from "react";
 import { Sparkles, Award, Heart, Target, Zap } from "lucide-react";
 
 const ARCHETYPES = {
@@ -10,7 +11,9 @@ const ARCHETYPES = {
     description: "Strategic planner who builds wealth systematically",
     traits: ["Goal-oriented", "Disciplined", "Long-term focused"],
     strength: "Consistent progress toward financial goals",
-    challenge: "Can be rigid when markets shift"
+    challenge: "Can be rigid when markets shift",
+    dangerZone: "Burnout from too much structure",
+    recommendedRule: "Keep a flexible emergency bucket and review commitments quarterly.",
   },
   Survivor: {
     icon: Heart,
@@ -18,7 +21,9 @@ const ARCHETYPES = {
     description: "Pragmatic protector focused on stability",
     traits: ["Risk-aware", "Security-first", "Adaptive"],
     strength: "Strong crisis management and resilience",
-    challenge: "May miss growth opportunities"
+    challenge: "May miss growth opportunities",
+    dangerZone: "Income shock after long-term stagnation",
+    recommendedRule: "Build a basic buffer, then allocate a small growth bucket for higher confidence choices.",
   },
   Optimizer: {
     icon: Award,
@@ -26,7 +31,9 @@ const ARCHETYPES = {
     description: "Efficiency expert maximizing every rupee",
     traits: ["Detail-oriented", "Resourceful", "Analytical"],
     strength: "Exceptional cost optimization",
-    challenge: "Can over-analyze minor decisions"
+    challenge: "Can over-analyze minor decisions",
+    dangerZone: "Missing quick timing windows",
+    recommendedRule: "Set clear review rituals and avoid overreacting to short-term spending noise.",
   },
   Dreamer: {
     icon: Sparkles,
@@ -34,15 +41,19 @@ const ARCHETYPES = {
     description: "Visionary pursuing ambitious financial dreams",
     traits: ["Creative", "Optimistic", "Forward-thinking"],
     strength: "Inspires action and innovation",
-    challenge: "Needs better risk management"
+    challenge: "Needs better risk management",
+    dangerZone: "Reality shock when plans meet cash flow",
+    recommendedRule: "Translate aspirations into a concrete 30-day spending plan.",
   },
-  Risk_Taker: {
+  "Risk Taker": {
     icon: Zap,
     color: "risk_taker",
     description: "Bold investor embracing calculated chances",
     traits: ["Confident", "Opportunistic", "Dynamic"],
     strength: "Quick decision-making in changing markets",
-    challenge: "May overextend without safety nets"
+    challenge: "May overextend without safety nets",
+    dangerZone: "High-stress market or income swings",
+    recommendedRule: "Pause major commitments and build a 2-month safety runway first.",
   }
 };
 
@@ -94,6 +105,17 @@ export default function FinancialTwin({ personalityType, behaviourScore, awarene
         <div className="guidance-item challenge">
           <span className="guidance-label">Area to Grow</span>
           <p>{archetype.challenge}</p>
+        </div>
+      </div>
+
+      <div className="twin-guidance small">
+        <div className="guidance-item focus">
+          <span className="guidance-label">Danger Zone</span>
+          <p>{archetype.dangerZone}</p>
+        </div>
+        <div className="guidance-item rule">
+          <span className="guidance-label">Recommended Rule</span>
+          <p>{archetype.recommendedRule}</p>
         </div>
       </div>
 

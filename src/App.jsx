@@ -1,4 +1,4 @@
-import { memo, useEffect, useMemo, useState } from "react";
+import React, { memo, useEffect, useMemo, useState } from "react";
 
 import {
   Activity,
@@ -23,18 +23,16 @@ import {
 } from "lucide-react";
 import {
   calculateFinancialHealthV2,
-  calculateDecisionSimulatorV2,
   componentMaximumsV2,
   formatCurrency as formatCurrencyV2,
   formatMonths as formatMonthsV2,
-  buildAnonymousTelemetryPayload,
-  dispatchAnonymousTelemetry,
+  initOfflineApiQueue,
 } from "./lib/scoring-v2.js";
 
 import AnalyticsDashboard from "./components/AnalyticsDashboard.jsx";
-import ValidationFeedbackForm from "./components/ValidationFeedbackForm.jsx";
 import FinancialTwin from "./components/FinancialTwin.jsx";
 import UserHistory from "./components/UserHistory.jsx";
+import AssessmentSection from "./components/AssessmentSection.jsx";
 
 import {
   v2BehaviourQuestions,
@@ -83,6 +81,75 @@ function makeEmptyAssessment() {
   };
 }
 
+const ASSESSMENT_SAVE_QUEUE_KEY = "arth-os-assessment-save-queue";
+
+function isBrowser() {
+  return typeof window !== "undefined";
+}
+
+function isLocalDevHost() {
+  if (!isBrowser()) return false;
+  const host = window.location.hostname || "";
+  return host === "localhost" || host.startsWith("127.");
+}
+
+function loadQueuedAssessmentSaves() {
+  if (!isBrowser()) return [];
+
+  try {
+    const raw = window.localStorage.getItem(ASSESSMENT_SAVE_QUEUE_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch {
+    return [];
+  }
+}
+
+function persistQueuedAssessmentSaves(queue) {
+  if (!isBrowser()) return;
+
+  try {
+    if (queue.length) {
+      window.localStorage.setItem(ASSESSMENT_SAVE_QUEUE_KEY, JSON.stringify(queue));
+    } else {
+      window.localStorage.removeItem(ASSESSMENT_SAVE_QUEUE_KEY);
+    }
+  } catch {
+    // ignore storage failures
+  }
+}
+
+function enqueueAssessmentSave(payload) {
+  if (!isBrowser()) return;
+  const queue = loadQueuedAssessmentSaves();
+  queue.push({ payload, queuedAt: new Date().toISOString() });
+  persistQueuedAssessmentSaves(queue);
+}
+
+async function flushQueuedAssessmentSaves() {
+  if (!isBrowser() || isLocalDevHost()) return;
+  if (typeof navigator !== "undefined" && !navigator.onLine) return;
+
+  const queue = loadQueuedAssessmentSaves();
+  if (!queue.length) return;
+
+  const remaining = [];
+  for (const queued of queue) {
+    try {
+      const response = await fetch("/api/saveAssessment", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(queued.payload),
+      });
+      if (!response.ok) {
+        remaining.push(queued);
+      }
+    } catch {
+      remaining.push(queued);
+    }
+  }
+
+  persistQueuedAssessmentSaves(remaining);
+}
 
 const navItems = [
   { label: "Home", href: "#home" },
@@ -234,7 +301,8 @@ function loadInitialAssessment() {
 
     // fallback to empty v2 default shape
     return typeof v2DefaultAssessment !== "undefined" ? v2DefaultAssessment : {};
-  } catch {
+  } catch (error) {
+    console.warn("Could not load initial assessment from localStorage:", error);
     return typeof v2DefaultAssessment !== "undefined" ? v2DefaultAssessment : {};
   }
 }
@@ -242,6 +310,7 @@ function loadInitialAssessment() {
 export default function App() {
   const [assessment, setAssessment] = useState(() => makeEmptyAssessment());
   const [saveState, setSaveState] = useState("Ready");
+  const [resetTrigger, setResetTrigger] = useState(0);
 
   // Clear any persisted state on initial load so the user must actively select answers
   useEffect(() => {
@@ -251,9 +320,21 @@ export default function App() {
       window.localStorage.removeItem("arth-os-assessment-v1");
       window.localStorage.removeItem("arth-os-wizard-step");
       window.localStorage.removeItem("arth-os-score-history");
-    } catch (e) {
-      // ignore
+    } catch (error) {
+      console.warn("Could not clear localStorage on page load:", error);
     }
+  }, []);
+
+  useEffect(() => {
+    initOfflineApiQueue();
+    void flushQueuedAssessmentSaves();
+
+    function handleOnline() {
+      void flushQueuedAssessmentSaves();
+    }
+
+    window.addEventListener("online", handleOnline);
+    return () => window.removeEventListener("online", handleOnline);
   }, []);
 
   const result = useMemo(() => calculateFinancialHealthV2(assessment), [assessment]);
@@ -269,29 +350,6 @@ export default function App() {
       habits: true,
     },
   };
-
-  async function dispatchAnonymousTelemetryEvent(telemetryPayload) {
-    try {
-      await dispatchAnonymousTelemetry(telemetryPayload);
-    } catch (error) {
-      console.warn("Telemetry event could not be sent:", error?.message || error);
-    }
-  }
-
-  async function dispatchAnonymousFeedbackEvent(feedbackPayload) {
-    try {
-      const feedbackUrl = "https://api.arth-os.dev/feedback" || process.env.REACT_APP_FEEDBACK_ENDPOINT;
-      await fetch(feedbackUrl, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(feedbackPayload),
-        keepalive: true,
-      });
-      console.log("[Feedback] Captured cleanly.");
-    } catch (error) {
-      console.warn("[Feedback] Transmission deferred:", error?.message || error);
-    }
-  }
 
 
 
@@ -314,17 +372,23 @@ export default function App() {
       console.warn("Could not save locally:", e);
     }
 
-    // Also attempt to persist to server-side storage (development API)
-    try {
+    const payload = { assessment, result: calculateFinancialHealthV2(assessment) };
+    if (isBrowser() && !isLocalDevHost()) {
       fetch("/api/saveAssessment", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ assessment, result: calculateFinancialHealthV2(assessment) }),
-      }).then((resp) => {
-        if (!resp.ok) console.warn("Remote save failed", resp.statusText);
-      }).catch((err) => console.warn("Remote save error", err));
-    } catch (err) {
-      console.warn("Could not dispatch remote save:", err);
+        body: JSON.stringify(payload),
+      })
+        .then((resp) => {
+          if (!resp.ok) {
+            enqueueAssessmentSave(payload);
+            console.warn("Remote save failed, queued for retry:", resp.statusText);
+          }
+        })
+        .catch((err) => {
+          enqueueAssessmentSave(payload);
+          console.warn("Remote save error, queued for retry:", err);
+        });
     }
   }
 
@@ -333,8 +397,11 @@ export default function App() {
     try {
       window.localStorage.removeItem(STORAGE_KEY);
       window.localStorage.removeItem("arth-os-wizard-step");
-    } catch (e) {}
+    } catch (error) {
+      console.warn("Could not clear reset storage:", error);
+    }
     setSaveState("Ready");
+    setResetTrigger((current) => current + 1);
   }
 
 
@@ -375,7 +442,23 @@ export default function App() {
           result={result}
           onChange={updateGroup}
           ui={ui}
+          resetTrigger={resetTrigger}
         />
+
+        <section className="assessment-summary-grid">
+          <AnalyticsDashboard result={result} />
+          <div className="assessment-summary-sidebar">
+            <FinancialTwin
+              personalityType={result.personalityType}
+              behaviourScore={result.behaviourScore}
+              awarenessScore={result.awarenessScore}
+            />
+            <UserHistory
+              currentScore={result.healthScore}
+              personalityType={result.personalityType}
+            />
+          </div>
+        </section>
       </main>
     </div>
   );
@@ -594,464 +677,6 @@ function FounderSection() {
         </blockquote>
       </aside>
     </section>
-  );
-}
-
-function AssessmentSection({ assessment, result, onChange, ui }) {
-  const [currentStep, setCurrentStep] = useState(() => {
-    try {
-      const saved = window.localStorage.getItem("arth-os-wizard-step");
-      return saved ? Math.min(parseInt(saved, 10), 4) : 0;
-    } catch {
-      return 0;
-    }
-  });
-  const [showFeedback, setShowFeedback] = useState(false);
-
-  const mode = result?.mode || "v2";
-  const steps = [
-    { id: "behaviour", label: "Psychology", icon: Brain },
-    { id: "awareness", label: "Clarity", icon: BarChart3 },
-    { id: "stability", label: "Resilience", icon: ShieldCheck },
-    ...(mode === "v2" ? [{ id: "habits", label: "Habits", icon: Activity }] : []),
-  ];
-
-  const totalSteps = steps.length;
-  const isLastStep = currentStep === totalSteps - 1;
-
-  const handleStepChange = (newStep) => {
-    setCurrentStep(newStep);
-    try {
-      window.localStorage.setItem("arth-os-wizard-step", String(newStep));
-    } catch (e) {
-      console.warn("Could not persist step:", e);
-    }
-  };
-
-  const handleNext = async () => {
-    if (currentStep < totalSteps - 1) {
-      handleStepChange(currentStep + 1);
-      return;
-    }
-
-    const payload = buildAnonymousTelemetryPayload(result, assessment);
-    await dispatchAnonymousTelemetryEvent(payload);
-    setShowFeedback(true);
-  };
-
-  const handlePrev = () => handleStepChange(Math.max(currentStep - 1, 0));
-
-  return (
-    <section className="assessment-section" id="assessment">
-      <ParticipantSection
-        values={assessment.participant}
-        onChange={(key, value) => onChange("participant", key, value)}
-      />
-      <div className="assessment-heading">
-        <span>Guided Experience</span>
-        <h2>
-          Run your Financial Health <em>Behavior Score.</em>
-        </h2>
-        <p>
-          Complete the guided assessment step-by-step. The intelligence metrics panel
-          updates instantly in real time.
-        </p>
-      </div>
-
-      <div className="workspace">
-        <section className="form-stack" aria-label="Financial health assessment">
-          {!showFeedback && (
-            <div className="wizard-progress-track" aria-label="Assessment progress">
-              {steps.map((step, idx) => (
-                <div
-                  key={step.id}
-                  className={`wizard-node ${idx <= currentStep ? "active" : ""} ${
-                    idx === currentStep ? "current" : ""
-                  }`}
-                >
-                  <div className="wizard-node-marker">{idx + 1}</div>
-                  <span className="wizard-node-label">{step.label}</span>
-                  {idx < steps.length - 1 && <div className="wizard-node-connector" />}
-                </div>
-              ))}
-            </div>
-          )}
-
-          {!showFeedback && currentStep === 0 && (
-            <QuestionSection
-              icon={Brain}
-              title="Psychology"
-              score={`${result.behaviourScore}/${ui.componentMaximums.behaviour}`}
-              questions={ui.behaviourQuestions}
-              values={assessment.behaviour}
-              onChange={(key, value) => onChange("behaviour", key, value)}
-            />
-          )}
-
-          {!showFeedback && currentStep === 1 && (
-            <QuestionSection
-              icon={BarChart3}
-              title="Clarity"
-              score={`${result.awarenessScore}/${ui.componentMaximums.awareness}`}
-              questions={ui.awarenessQuestions}
-              values={assessment.awareness}
-              onChange={(key, value) => onChange("awareness", key, value)}
-            />
-          )}
-
-          {!showFeedback && currentStep === 2 && (
-            <ProfileSection
-              values={assessment.profile}
-              score={`${result.stabilityScore}/${ui.componentMaximums.stability}`}
-              onChange={(key, value) => onChange("profile", key, value)}
-            />
-          )}
-
-          {!showFeedback && currentStep === 3 && mode === "v2" && (
-            <QuestionSection
-              icon={Activity}
-              title="Habits"
-              score={`${result.habits.habitScore}/100`}
-              questions={ui.habitsQuestions}
-              values={assessment.habits}
-              onChange={(key, value) => onChange("habits", key, value)}
-            />
-          )}
-
-          {!showFeedback && (
-            <div className="wizard-nav-footer">
-            <button
-              type="button"
-              className="ghost-button"
-              onClick={handlePrev}
-              disabled={currentStep === 0}
-            >
-              <ChevronLeft size={16} />
-              Previous
-            </button>
-
-            <button type="button" className="wizard-primary-btn" onClick={handleNext}>
-              {isLastStep ? "Finish & Review Score" : "Continue"}
-              {!isLastStep && <ChevronRight size={16} />}
-            </button>
-          </div>
-          )}
-
-          {showFeedback && (
-            <ValidationFeedbackForm
-              healthScore={result.healthScore}
-              onSubmitFeedback={async (feedbackPayload) => {
-                await dispatchAnonymousFeedbackEvent(feedbackPayload);
-                window.location.href = "#home";
-              }}
-            />
-          )}
-        </section>
-
-        <aside className="result-stack" aria-label="Financial health result">
-          <ScoreOverview result={result} />
-          <ComponentBreakdown result={result} />
-          <BlindSpotPanel result={result} />
-          <DiagnosisPanel result={result} />
-          <SurvivalBlock result={result} assessment={assessment} />
-          <DecisionSimulator profile={assessment.profile} />
-          <ActionBlock result={result} />
-          <FinancialTwin 
-            personalityType={result.personalityType} 
-            behaviourScore={result.behaviourScore}
-            awarenessScore={result.awarenessScore}
-          />
-          <DiagnosticAnalyticsDashboard result={result} />
-          <UserHistory 
-            currentScore={result.healthScore}
-            personalityType={result.personalityType}
-          />
-          <AnalyticsDashboard result={result} />
-        </aside>
-      </div>
-    </section>
-  );
-}
-
-function ParticipantSection({ values = {}, onChange }) {
-  return (
-    <div className="participant-card" style={{ margin: "0 0 18px 0" }}>
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 120px", gap: 12 }}>
-        <label className="money-input">
-          <span>Name</span>
-          <div>
-            <input
-              type="text"
-              value={values.name ?? ""}
-              onChange={(e) => onChange("name", e.target.value)}
-              placeholder="Your name"
-            />
-          </div>
-        </label>
-
-        <label className="money-input">
-          <span>Age</span>
-          <div>
-            <input
-              type="number"
-              min="0"
-              value={values.age ?? ""}
-              onChange={(e) => onChange("age", e.target.value)}
-              placeholder="Age"
-            />
-          </div>
-        </label>
-      </div>
-
-      <div style={{ marginTop: 10 }}>
-        <label className="money-input">
-          <span>Email</span>
-          <div>
-            <input
-              type="email"
-              value={values.email ?? ""}
-              onChange={(e) => onChange("email", e.target.value)}
-              placeholder="you@domain.com"
-            />
-          </div>
-        </label>
-      </div>
-    </div>
-  );
-}
-
-const DiagnosticAnalyticsDashboard = memo(function DiagnosticAnalyticsDashboard({ result }) {
-  if (result.mode !== "v2") return null;
-
-  return (
-    <section className="result-card analytics-dashboard-card">
-      <div className="result-heading">
-        <Sparkles size={19} />
-        <h2>Advanced Psychological Telemetry</h2>
-      </div>
-      <div className="analytics-summary-grid">
-        <div className="analytics-metric">
-          <span>Money Archetype</span>
-          <strong>{result.personalityType}</strong>
-        </div>
-        <div className="analytics-metric">
-          <span>Future Risk</span>
-          <strong>{result.futureRiskScore}/100</strong>
-          <small>{result.futureRiskLabel}</small>
-        </div>
-        <div className="analytics-metric">
-          <span>Visibility Blindspot</span>
-          <strong>{result.awarenessGapDisplay} mos</strong>
-        </div>
-      </div>
-      <p className="analytics-dashboard-copy">
-        💡 <strong>What this means:</strong> Based on your visibility score, you are likely to miscalculate your actual survival runway limits by approximately <strong>{result.awarenessGapDisplay} months</strong> due to unidentified spending avoidance behaviors.
-      </p>
-    </section>
-  );
-});
-
-function QuestionSection({ icon: Icon, title, score, questions, values, onChange }) {
-  return (
-    <section className="panel">
-      <div className="panel-heading">
-        <div>
-          <Icon size={20} />
-          <h2>{title}</h2>
-        </div>
-        <span>{score}</span>
-      </div>
-
-      <div className="question-list">
-        {questions.map((question) => (
-          <div className="question-row" key={question.key}>
-            <label className="question-label" id={`${question.key}-label`}>
-              {question.prompt}
-            </label>
-            <SegmentedControl
-              labelledBy={`${question.key}-label`}
-              name={question.key}
-              options={question.options}
-              value={values[question.key]}
-              onChange={(value) => onChange(question.key, value)}
-            />
-          </div>
-        ))}
-      </div>
-    </section>
-  );
-}
-
-
-function ProfileSection({ values, score, onChange }) {
-  return (
-    <section className="panel">
-
-      <div className="panel-heading">
-        <div>
-          <ShieldCheck size={20} />
-          <h2>Stability</h2>
-        </div>
-        <span>{score}</span>
-      </div>
-
-      <div className="numeric-grid">
-        <MoneyInput
-          label="Monthly expenses"
-          value={values.monthlyExpenses}
-          onChange={(value) => onChange("monthlyExpenses", value)}
-        />
-        <MoneyInput
-          label="Fixed emergency buffer"
-          value={values.emergencySavingsFixed}
-          onChange={(value) => onChange("emergencySavingsFixed", value)}
-        />
-        <MoneyInput
-          label="Discretionary emergency buffer"
-          value={values.emergencySavingsDiscretionary}
-          onChange={(value) => onChange("emergencySavingsDiscretionary", value)}
-        />
-        <MoneyInput
-          label="Total debt"
-          value={values.totalDebt}
-          onChange={(value) => onChange("totalDebt", value)}
-        />
-        <MoneyInput
-          label="Monthly income"
-          value={values.monthlyIncome}
-          onChange={(value) => onChange("monthlyIncome", value)}
-        />
-        <MoneyInput
-          label="Fixed commitments"
-          value={values.monthlyLiabilities}
-          onChange={(value) => onChange("monthlyLiabilities", value)}
-        />
-      </div>
-
-      <div className="question-row compact">
-        <label className="question-label" id="income-stability-label">
-          Income stability
-        </label>
-        <SegmentedControl
-          labelledBy="income-stability-label"
-          name="incomeStability"
-          options={incomeStabilityOptions}
-          value={values.incomeStability}
-          onChange={(value) => onChange("incomeStability", value)}
-        />
-      </div>
-
-      <div className="question-row compact">
-        <label className="question-label" id="dependents-label">
-          Dependents
-        </label>
-        <SegmentedControl
-          labelledBy="dependents-label"
-          name="dependentsBucket"
-          options={dependentsOptions}
-          value={values.dependentsBucket}
-          onChange={(value) => onChange("dependentsBucket", value)}
-        />
-      </div>
-
-
-        <div className="question-row compact">
-          <label className="question-label" id="debt-rate-label">
-            Debt repayment rate (% of income)
-          </label>
-          <div className="money-input" style={{ gridTemplateColumns: "auto 1fr" }}>
-            <span style={{ display: "block" }} />
-            <div>
-              <span />
-              <input
-                type="number"
-                min="0"
-                inputMode="decimal"
-                value={values.debtRepaymentRatePctOfIncome ?? 0.12}
-                onChange={(e) =>
-                  onChange(
-                    "debtRepaymentRatePctOfIncome",
-                    e.target.value === "" ? 0 : Number.parseFloat(e.target.value),
-                  )
-                }
-              />
-            </div>
-          </div>
-        </div>
-
-        <div className="question-row compact">
-          <label className="question-label" id="interest-label">
-            Average interest rate (% per year)
-          </label>
-          <div className="money-input" style={{ gridTemplateColumns: "auto 1fr" }}>
-            <span style={{ display: "block" }} />
-            <div>
-              <span />
-              <input
-                type="number"
-                min="0"
-                inputMode="decimal"
-                value={values.averageInterestRatePct ?? 10}
-                onChange={(e) =>
-                  onChange(
-                    "averageInterestRatePct",
-                    e.target.value === "" ? 0 : Number.parseFloat(e.target.value),
-                  )
-                }
-              />
-            </div>
-          </div>
-        </div>
-
-
-    </section>
-  );
-}
-
-function MoneyInput({ label, value, onChange }) {
-  return (
-    <label className="money-input">
-      <span>{label}</span>
-      <div>
-        <span>INR</span>
-        <input
-          type="number"
-          min="0"
-          inputMode="numeric"
-          value={value ?? ""}
-          onChange={(event) => {
-            const val = event.target.value;
-            onChange(val === "" ? 0 : Number.parseFloat(val));
-          }}
-        />
-      </div>
-    </label>
-  );
-}
-
-
-function SegmentedControl({ labelledBy, name, options, value, onChange }) {
-  return (
-    <div className="segmented-control" role="radiogroup" aria-labelledby={labelledBy}>
-      {options.map((option) => {
-        const checked = option.value === value;
-        return (
-          <label
-            key={option.value}
-            className={`segmented-option ${checked ? "selected" : ""}`}
-          >
-            <input
-              type="radio"
-              name={name}
-              value={option.value}
-              checked={checked}
-              onChange={() => onChange(option.value)}
-            />
-            <span>{option.label}</span>
-          </label>
-        );
-      })}
-    </div>
   );
 }
 
@@ -1312,88 +937,3 @@ const DiagnosisPanel = memo(function DiagnosisPanel({ result }) {
     </section>
   );
 });
-
-function DecisionSimulator({ profile }) {
-  const [purchaseCost, setPurchaseCost] = useState(0);
-  const simulator = useMemo(
-    () => calculateDecisionSimulatorV2(profile, purchaseCost),
-    [profile, purchaseCost],
-  );
-
-  // Calculate risk increase percentage
-  const getRiskIncrease = () => {
-    if (purchaseCost <= 0) return 0;
-    const currentRiskIndex = simulator.currentRunway > 0 ? 100 / simulator.currentRunway : 100;
-    const forecastRiskIndex = simulator.forecastRunway > 0 ? 100 / simulator.forecastRunway : 100;
-    const riskDelta = forecastRiskIndex - currentRiskIndex;
-    return Math.round((riskDelta / currentRiskIndex) * 100);
-  };
-
-  const riskIncrease = getRiskIncrease();
-  const riskTrend = purchaseCost > 0 && riskIncrease > 0 ? "negative" : purchaseCost > 0 ? "positive" : "neutral";
-
-  return (
-    <section className="result-card simulator-card">
-      <div className="result-heading">
-        <Cpu size={19} />
-        <h2>Decision Simulator</h2>
-      </div>
-      
-      <p className="simulator-subtitle">See the financial impact of a potential purchase</p>
-      
-      <div className="simulator-input">
-        <label htmlFor="purchase-cost">How much do you want to spend?</label>
-        <div className="input-wrapper">
-          <span className="currency-label">INR</span>
-          <input
-            id="purchase-cost"
-            type="number"
-            min="0"
-            step="1000"
-            placeholder="0"
-            value={purchaseCost}
-            onChange={(event) => setPurchaseCost(Number.parseFloat(event.target.value) || 0)}
-          />
-        </div>
-      </div>
-
-      {purchaseCost > 0 && (
-        <>
-          {/* Impact summary */}
-          <div className="simulator-impact-summary">
-            <div className="impact-row">
-              <span className="impact-label">Current runway</span>
-              <strong className="impact-value current">{formatMonthsV2(simulator.currentRunway)} months</strong>
-            </div>
-            <div className="impact-arrow">↓</div>
-            <div className="impact-row">
-              <span className="impact-label">After purchase</span>
-              <strong className="impact-value forecast">{formatMonthsV2(simulator.forecastRunway)} months</strong>
-            </div>
-            <div className="impact-reduction">
-              <span>Loss: {formatMonthsV2(simulator.runwayDelta)} months</span>
-            </div>
-          </div>
-
-          {/* Risk indicator */}
-          <div className={`simulator-risk-indicator risk-${riskTrend}`}>
-            <span className="risk-label">Risk Increase</span>
-            <span className="risk-value">{riskIncrease > 0 ? "+" : ""}{riskIncrease}%</span>
-          </div>
-
-          {/* Recommendation */}
-          <div className="simulator-recommendation-box">
-            <span className="rec-label">Recommendation</span>
-            <p className="rec-text">{simulator.recommendation}</p>
-          </div>
-        </>
-      )}
-
-      {purchaseCost <= 0 && (
-        <div className="simulator-placeholder">
-          <p>Enter an amount to see the financial impact on your runway.</p>
-        </div>
-      )}
-    </section>
-  );
-}

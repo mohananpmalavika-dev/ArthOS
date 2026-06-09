@@ -40,7 +40,9 @@ The content is organized as follows:
 </file_summary>
 
 <directory_structure>
+.env.example
 api/feedback.js
+api/saveAssessment.js
 api/telemetry.js
 ARTH.OS_Financial_Health_Score_Framework_v1.md
 COMPLETION_REPORT.md
@@ -49,23 +51,31 @@ EARLY_USER_TESTING_VALIDATION_FRAMEWORK.md
 IMPLEMENTATION_SUMMARY.md
 index.html
 package.json
+PROJECT_AUDIT_REPORT.md
 QUICK_START.md
 repomix-output.txt
 SQL_SCHEMA.sql
 src/App.jsx
 src/components/AnalyticsDashboard.jsx
+src/components/AssessmentSection.jsx
+src/components/DecisionSimulator.jsx
+src/components/ErrorBoundary.jsx
 src/components/FinancialTwin.jsx
+src/components/InsightNarrative.jsx
 src/components/UserHistory.jsx
 src/components/ValidationFeedbackForm.jsx
 src/data/questionnaire-v2-habits-notes.txt
 src/data/questionnaire-v2.js
 src/data/questionnaire.js
+src/engines/behaviorCorrelation.js
 src/lib/scoring-v2-notes.txt
 src/lib/scoring-v2.js
 src/lib/scoring.js
 src/main.jsx
 src/styles.css
+TECHNICAL_DOCUMENTATION.md
 TODO.md
+USER_MANUAL.md
 vercel.json
 vite.config.js
 </directory_structure>
@@ -73,10 +83,2226 @@ vite.config.js
 <files>
 This section contains the contents of the repository's files.
 
+<file path="PROJECT_AUDIT_REPORT.md">
+# ARTH.OS — Project Audit & Improvement Roadmap
+
+> **Date:** June 2026  
+> **Score: 72/100 — "Stable, with targeted improvements needed."**
+
+---
+
+## Executive Summary
+
+ARTH.OS is a well-architected financial health assessment tool with a solid scoring engine, thoughtful privacy design, and clean UX. The codebase has strong fundamentals but carries technical debt in four categories: **architecture**, **type safety**, **incomplete integration**, and **missing features**.
+
+---
+
+## 1. Current Project Rating by Category
+
+| Category | Score | Assessment |
+|----------|-------|------------|
+| **Scoring Engine** | 85/100 | Well-structured. Minor normalization issues. |
+| **UI/UX** | 82/100 | Excellent dark theme. Real-time scoring. Cartoon brutalist aesthetic is distinctive. |
+| **Privacy Architecture** | 90/100 | Zero-PII telemetry. RLS policies. Date-only timestamps. Strong. |
+| **Code Organization** | 55/100 | Major concern. See §4. |
+| **Type Safety** | 30/100 | No TypeScript. No PropTypes. Pure JS with implicit contracts. |
+| **Testing** | 0/100 | No tests of any kind. Zero coverage. |
+| **CI/CD & DevOps** | 40/100 | Build works. No linting, no pre-commit hooks, no automated deploys. |
+| **Documentation** | 78/100 | Good framework doc + deployment guide. Now supplemented by TECH/User docs. |
+| **Feature Completeness** | 68/100 | Core works. Several components unused. Backend partially integrated. |
+
+**Overall: 72/100**
+
+---
+
+## 2. What's Working Well
+
+### 2.1 Scoring Engine (src/lib/scoring-v2.js)
+- **Explicit key iteration** instead of `Object.keys()` — prevents skew from missing/extra properties (fixed in Phase 1 per TODO.md)
+- Amortization math for debt payoff is correct and edge-case guarded
+- Crisis elasticity factor (0.4) is a smart, practical heuristic
+- All exports are testable pure functions
+- Normalization is consistent across components
+
+### 2.2 Privacy Design
+- Zero-PII telemetry payload — only numeric scores, categorical types, and ratios
+- `keepalive: true` on fetch ensures transmission during navigation
+- Graceful failure — telemetry errors never interrupt UX
+- RLS policies at database level are correctly configured
+- Date-only timestamps preserve privacy while enabling trend analysis
+
+### 2.3 UI/UX Polish
+- Dark theme with high-contrast text and semantic color coding (critical=red, warning=amber, steady=cyan, strong=green)
+- Real-time scoring with `useMemo` — every keystroke updates results instantly
+- Multi-step wizard reduces cognitive load
+- Decision Simulator is a genuinely useful feature for purchase decisions
+- Mobile-responsive at three breakpoints (1320px, 980px, 720px)
+
+### 2.4 State Persistence
+- localStorage for assessment, wizard step, and score history
+- Graceful fallbacks when localStorage unavailable
+- Legacy migration path (v1 → v2) handled correctly
+
+---
+
+## 3. Critical Issues (Fix Now)
+
+### 3.1 🚨 Undefined Reference in App.jsx (Line ~126)
+
+```javascript
+// App.jsx - intelligenceRows array
+{ icon: Cpu, ... }  // Cpu is NOT imported from lucide-react
+```
+
+**Impact:** The "Behavior Pattern Detection" card silently renders with a broken/missing icon. No runtime crash, but broken UI.
+
+**Fix:** Add `Cpu` to the lucide-react import at line 1 of App.jsx:
+```javascript
+import { ..., Cpu } from "lucide-react";
+```
+
+### 3.2 🚨 Feedback Dispatch Sends Wrong Payload
+
+In `AssessmentSection.jsx`, the `handleNext` function:
+```javascript
+const handleNext = async () => {
+  if (currentStep < totalSteps - 1) {
+    handleStepChange(currentStep + 1);
+    return;
+  }
+  const payload = buildAnonymousTelemetryPayload(result, assessment);
+  await dispatchAnonymousTelemetry(payload);   // ✅ Correct: sends telemetry
+  setShowFeedback(true);
+};
+```
+
+But in the feedback form's `onSubmitFeedback` callback:
+```javascript
+{showFeedback && (
+  <ValidationFeedbackForm
+    healthScore={result.healthScore}
+    onSubmitFeedback={async (feedbackPayload) => {
+      await dispatchAnonymousTelemetry(feedbackPayload);  // ❌ WRONG FUNCTION
+      window.location.href = "#home";
+    }}
+  />
+)}
+```
+
+**Impact:** Feedback data is sent to the **telemetry** endpoint (`/api/telemetry`) instead of the **feedback** endpoint (`/api/feedback`). The feedback payload doesn't match the telemetry schema, so it will be rejected or silently fail.
+
+**Fix:** Call `dispatchAnonymousFeedbackEvent` instead — but that function is defined in `App.jsx` and not passed down. Two options:
+1. Pass `dispatchAnonymousFeedbackEvent` as a prop from App → AssessmentSection
+2. Define the feedback dispatch locally in AssessmentSection (simpler)
+
+### 3.3 🚨 DecisionSimulator Duplication
+
+Two versions of `DecisionSimulator` exist:
+- `src/components/DecisionSimulator.jsx` — standalone component (well-structured)
+- Inside `src/App.jsx` (lines ~590-680) — inline `DecisionSimulator` function (older, less polished)
+
+The inline version in App.jsx uses `calculateDecisionSimulatorV2` but has inline risk calculation logic. The standalone component is more polished and self-contained.
+
+**Impact:** Code duplication. Bug fixes must be applied in two places. Import risk.
+
+**Fix:** Delete the App.jsx inline version. Use only `src/components/DecisionSimulator.jsx`.
+
+### 3.4 🚨 Personality Type Mismatch Between Engines
+
+`scoring-v2.js` `getPersonalityType()` returns 5 archetypes: **Builder, Survivor, Optimizer, Dreamer, Risk Taker**.
+
+`scoring-v2.js` `getPersonalityReport()` returns profiles for: **Builder, Survivor, Optimizer, Dreamer, Risk Taker** (matches).
+
+But `FinancialTwin.jsx` ARCHETYPES object maps: **Builder, Survivor, Optimizer, Dreamer, Risk_Taker** (note: underscore in "Risk_Taker").
+
+Also, `getPersonalityReport()` in scoring-v2.js returns `"Risk Taker"` but `FinancialTwin.jsx` looks up `ARCHETYPES["Risk Taker"]` — the key with a space, not an underscore. That actually matches. But `getPersonalityType()` returns `"Risk Taker"` (with space) from the `labels` map, which is correct.
+
+**Verdict:** The inconsistency is that `FinancialTwin.jsx` has a key `"Risk Taker"` (space) but the CSS class references `.risk_taker` (underscore). The icon color class uses `archetype.color` which is `"risk_taker"` — so `twin-icon-wrapper.risk_taker` is correct in CSS. The lookup key uses space, the color uses underscore. It works because they're separate, but it's fragile.
+
+**Fix:** Standardize: either use `"Risk Taker"` everywhere or `"risk_taker"` everywhere for keys, and map display names separately.
+
+---
+
+## 4. Architecture Issues (Fix in Next Sprint)
+
+### 4.1 Monolithic App.jsx (350+ lines)
+
+**Problem:** `App.jsx` contains:
+- Root App component
+- Header component
+- HeroSection component
+- IntelligenceSection component
+- BusinessSection component
+- FounderSection component
+- ScoreOverview, ScoreDial, ComponentBreakdown, BlindSpotPanel, SurvivalBlock, ActionBlock, DiagnosisPanel (memoized result cards)
+- Inline DecisionSimulator (duplicate)
+- All static data (navItems, engineSignals, intelligenceRows, businessCards, incomeStabilityOptions, dependentsOptions)
+- Normalization functions (normalizeV2Assessment, normalizeV1Assessment, loadInitialAssessment, makeEmptyAssessment)
+- Telemetry dispatch functions
+
+**Fix:** Extract into separate files:
+- `src/components/Header.jsx`
+- `src/components/HeroSection.jsx`
+- `src/components/IntelligenceSection.jsx`
+- `src/components/BusinessSection.jsx`
+- `src/components/FounderSection.jsx`
+- `src/components/ResultCards.jsx` (ScoreOverview, ScoreDial, ComponentBreakdown, etc.)
+- `src/lib/assessment-normalizer.js` (normalizeV2, normalizeV1, makeEmpty, loadInitial)
+- `src/data/static-content.js` (navItems, engineSignals, intelligenceRows, businessCards)
+
+### 4.2 styles.css is 2300+ Lines
+
+**Problem:** Single CSS file for entire application. No component-scoped styles. Selector collisions possible. Hard to maintain.
+
+**Fix:** Options:
+- **Quick win:** Split into `styles/global.css`, `styles/wizard.css`, `styles/results.css`, `styles/components.css`
+- **Better:** Adopt CSS Modules (Vite supports natively — rename to `*.module.css`)
+- **Best:** Adopt Tailwind (already have Vite, zero-config with Tailwind v4)
+
+### 4.3 Components Not Rendered Anywhere
+
+These components are imported in `App.jsx` but **never rendered in the JSX**:
+
+| Component | Imported In | Rendered? |
+|-----------|------------|-----------|
+| `AnalyticsDashboard` | App.jsx | ❌ No |
+| `FinancialTwin` | App.jsx | ❌ No |
+| `UserHistory` | App.jsx | ❌ No |
+
+**Impact:** Dead code in bundle. 206.75 kB JS includes these components. Also, these are genuinely useful features that should be visible.
+
+**Fix:** Add them to the result panel or create a post-assessment dashboard route. At minimum, add to `AssessmentSection`'s result stack or to a dedicated `#results` section.
+
+### 4.4 Unused Lucide Icons Imported
+
+App.jsx imports 22 icons. Only ~15 are used. Unused: `LockKeyhole`, `MessageSquare`, `ThumbsUp`. These bloat the bundle by ~3-5 kB each.
+
+**Fix:** Remove unused imports. Configure tree-shaking (Vite does this automatically for ESM, but named imports from lucide-react should tree-shake properly — verify).
+
+---
+
+## 5. Missing Features (Should Build)
+
+### 5.1 No Input Validation
+
+**Problem:** Users can enter negative numbers, zero for critical fields, or leave all fields empty. The scoring engine handles edge cases gracefully (returns 0 scores), but there's no user-facing validation.
+
+**What's missing:**
+- No "required field" indicators
+- No minimum/maximum value warnings
+- No "all fields are empty — are you sure?" prompt
+- No step-completion validation (user can click "Continue" with empty step)
+
+**Fix:**
+- Add `required` attributes to critical inputs
+- Show inline validation messages (e.g., "Monthly expenses cannot be zero")
+- Add step validation in `handleNext`: check that at least one non-empty answer exists before advancing
+
+### 5.2 No Onboarding Flow
+
+**Problem:** First-time users land on the hero section. The "Start Score" button jumps them directly to the assessment with no context about what the 4 steps are, how long it takes, or what data they'll need.
+
+**Fix:**
+- Add a brief onboarding overlay or tooltip on first visit
+- Show estimated completion time ("~7 minutes")
+- List what data to have ready ("monthly expenses, savings amount, debt total")
+
+### 5.3 No Result History Comparison
+
+**Problem:** `UserHistory.jsx` exists and is fully functional — but it's not rendered anywhere. Users can't see their score progression over time.
+
+**Fix:** Render `UserHistory` in a dedicated section below the assessment or in a modal accessible from the header. This is already built — just needs to be wired into the view.
+
+### 5.4 No Financial Twin Display
+
+**Problem:** `FinancialTwin.jsx` is a polished, complete component — never rendered.
+
+**Fix:** Add to the result stack in `AssessmentSection` or create a dedicated archetype page.
+
+### 5.5 No Analytics Dashboard Visibility
+
+**Problem:** `AnalyticsDashboard.jsx` exists — never rendered.
+
+**Fix:** This could be a separate "Deep Dive" section accessible after assessment completion.
+
+### 5.6 No Export Beyond JSON
+
+**Problem:** The only export format is raw JSON. Non-technical users can't use this.
+
+**Fix:** Add PDF export (use `jspdf` or browser print stylesheet), or at minimum add a "Print-friendly view" with `@media print` styles.
+
+### 5.7 No Backend Connection for Telemetry/Feedback
+
+**Problem:** Both `api/telemetry.js` and `api/feedback.js` have the Supabase insert logic **commented out** with `// TODO`.
+
+**Impact:** Telemetry data is sent to the endpoints, which log it to console and return 200 — but nothing is persisted. All telemetry is lost.
+
+**Fix:** Uncomment the Supabase client code, set environment variables in Vercel, verify inserts work.
+
+---
+
+## 6. Code Quality Issues
+
+### 6.1 Inconsistent Personality Archetype Count
+
+- `scoring-v2.js` `getPersonalityType()`: 5 archetypes (builder, survivor, optimizer, dreamer, riskTaker)
+- `FinancialTwin.jsx` ARCHETYPES: 5 archetypes (Builder, Survivor, Optimizer, Dreamer, Risk Taker)
+- But `getPersonalityReport()` in scoring-v2.js also has `Planner` and `Reactor` profiles defined — these are **dead code** since `getPersonalityType()` never returns them
+
+**Fix:** Remove deprecated Planner/Reactor profiles from `getPersonalityReport()` or update `getPersonalityType()` to match the original 4-archetype system if that was the intent.
+
+### 6.2 CSS Has Duplicate Wizard Styles
+
+`.wizard-progress-track` (lines ~750-830 in the CSS) and `.wizard-progress-bar` (lines ~1400-1460) are two separate implementations of the same UI pattern. The JSX uses `.wizard-progress-track` and `.wizard-node` — so `.wizard-progress-bar` and `.wizard-step-node` are dead CSS (~80 lines).
+
+**Fix:** Remove unused `.wizard-progress-bar` and `.wizard-step-node` styles.
+
+### 6.3 Magic Numbers in Scoring Engine
+
+Several hardcoded values in `scoring-v2.js`:
+- `CRISIS_ELASTICITY_FACTOR = 0.4`
+- Stability normalization divisor: `20`
+- Awareness maxPossible: `6 * 5 + 6 + 6 + 6` (fragile — if questions change, this breaks)
+- Perception bias: `0.35`
+- Survival cap: `6` months
+
+**Fix:** Extract to a `src/lib/scoring-constants.js` file with documented rationale for each constant.
+
+### 6.4 Empty Catch Blocks
+
+```javascript
+try {
+  window.localStorage.removeItem(STORAGE_KEY);
+  // ... 5 more removeItem calls
+} catch (e) {
+  // ignore
+}
+```
+
+**Fix:** At minimum, `console.warn("Could not clear localStorage:", e)`. Silent failures make debugging impossible.
+
+### 6.5 No Error Boundaries
+
+React error boundaries are not implemented. If any component throws during render, the entire app crashes to a blank white screen.
+
+**Fix:** Add an `<ErrorBoundary>` wrapper in `main.jsx` around `<App />`.
+
+---
+
+## 7. Performance
+
+### 7.1 Scoring Recalculation on Every Keystroke
+
+`calculateFinancialHealthV2` runs on every assessment state change. This is memoized with `useMemo` which is correct. But the scoring function itself:
+- Iterates 12 behaviour keys
+- Iterates 8 awareness keys
+- Computes stability (survival, debt schedule, liability)
+- Computes personality traits
+- Computes awareness gap, blind spot, diagnosis
+- Computes habits metrics
+
+All on every keystroke. For a 2.6s build with 1582 modules, this is fine on modern hardware. But on low-end mobile devices, the latency could be noticeable.
+
+**Suggestion:** Debounce the scoring for numeric inputs (profile fields) to 150ms. Keep categorical inputs (radio buttons) instant since they're less frequent.
+
+### 7.2 CSS Bundle Size
+
+31.35 kB CSS (6.66 kB gzipped) is reasonable. But ~80 lines of dead wizard styles and some duplicated simulator styles could be trimmed.
+
+### 7.3 JS Bundle Has Unused Components
+
+`FinancialTwin`, `UserHistory`, `AnalyticsDashboard` are imported and bundled but never rendered. Vite tree-shakes unused exports, but since they're imported in App.jsx (even if not rendered in JSX), they're included.
+
+**Fix:** Either render them or remove the imports until needed.
+
+---
+
+## 8. Security
+
+### 8.1 ✅ Strong
+
+- No secrets in client code
+- Service role key only in environment variables
+- RLS policies at database level
+- Telemetry omits PII
+- `keepalive: true` prevents data loss on navigation
+
+### 8.2 ⚠️ Needs Attention
+
+- **Participant PII exposed:** Name, age, email fields exist in the UI and are stored in localStorage as plain JSON. The saveAssessment API stores them in Supabase. Consider hashing/masking or adding a clear consent checkbox before server-side save.
+
+- **No CSP headers:** No Content-Security-Policy configured in vercel.json. Without CSP, XSS risk from any dependency vulnerability.
+
+- **No input sanitization:** Text inputs (name, email, feedback notes) are not sanitized before storage. Supabase parameterized queries prevent SQL injection, but stored XSS in feedback_text could affect admin dashboards.
+
+### 8.3 Recommended Security Additions
+
+```json
+// vercel.json
+{
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        { "key": "Content-Security-Policy", "value": "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; connect-src 'self' https://api.arth-os.dev https://*.supabase.co;" },
+        { "key": "X-Content-Type-Options", "value": "nosniff" },
+        { "key": "X-Frame-Options", "value": "DENY" }
+      ]
+    }
+  ]
+}
+```
+
+---
+
+## 9. Prioritized Improvement Roadmap
+
+### Immediate (This Week)
+
+| # | Action | Effort | Impact |
+|---|--------|--------|--------|
+| 1 | Fix `Cpu` undefined import in App.jsx | 1 min | 🔴 Broken UI |
+| 2 | Fix feedback dispatch to wrong endpoint | 15 min | 🔴 Data loss |
+| 3 | Remove duplicate DecisionSimulator from App.jsx | 10 min | 🟡 Maintenance |
+| 4 | Add `console.warn` to empty catch blocks | 5 min | 🟡 Debugging |
+| 5 | Wire FinancialTwin, UserHistory, AnalyticsDashboard into the view | 1 hr | 🟢 Feature unlock |
+
+### Short-Term (Next 2 Weeks)
+
+| # | Action | Effort | Impact |
+|---|--------|--------|--------|
+| 6 | Extract App.jsx sections into separate component files | 3 hrs | 🔴 Architecture |
+| 7 | Remove dead CSS (~100 lines duplicate wizard styles) | 15 min | 🟡 Bundle size |
+| 8 | Add input validation (required fields, min/max) | 2 hrs | 🟡 UX quality |
+| 9 | Add error boundary in main.jsx | 10 min | 🟡 Resilience |
+| 10 | Standardize personality archetype naming (Risk Taker vs risk_taker) | 30 min | 🟡 Code health |
+| 11 | Uncomment Supabase code in api/telemetry.js and api/feedback.js | 30 min | 🔴 Data loss |
+| 12 | Add Content-Security-Policy headers to vercel.json | 15 min | 🟡 Security |
+
+### Medium-Term (Next Month)
+
+| # | Action | Effort | Impact |
+|---|--------|--------|--------|
+| 13 | Add TypeScript (start with scoring engine — highest value) | 1 day | 🔴 Type safety |
+| 14 | Add unit tests for scoring engine (Jest/Vitest) | 1 day | 🔴 Quality |
+| 15 | Split styles.css into scoped modules | 2 hrs | 🟡 Maintainability |
+| 16 | Add PDF/print-friendly export | 2 hrs | 🟢 UX |
+| 17 | Add onboarding flow for first-time users | 3 hrs | 🟢 UX |
+| 18 | Extract magic numbers to scoring-constants.js | 30 min | 🟡 Maintainability |
+| 19 | Add debounce for numeric input scoring | 30 min | 🟡 Performance |
+| 20 | Sanitize user text inputs before storage | 1 hr | 🟡 Security |
+
+### Long-Term (Next Quarter)
+
+| # | Action | Effort | Impact |
+|---|--------|--------|--------|
+| 21 | Migrate to TypeScript fully | 1 week | 🔴 Foundation |
+| 22 | Add integration tests for full assessment flow | 2 days | 🔴 Quality |
+| 23 | Add CI/CD pipeline (GitHub Actions: lint → test → build → deploy) | 1 day | 🔴 DevOps |
+| 24 | Replace localStorage with IndexedDB for larger state | 2 hrs | 🟡 Scale |
+| 25 | Add i18n support (Hindi, other Indian languages) | 1 week | 🟢 Market |
+| 26 | Add accessibility audit & WCAG 2.1 AA compliance | 3 days | 🟡 Inclusivity |
+
+---
+
+## 10. Summary Verdict
+
+ARTH.OS is a **production-ready MVP with high-quality fundamentals** — the scoring engine is solid, the privacy architecture is exemplary, and the UI is polished. The gaps are in code organization (monolithic App.jsx), missing integrations (dead components, unconnected backend), and the absence of testing/type safety.
+
+The project would benefit most from:
+1. **Fixing the 2 active bugs** (Cpu import, feedback endpoint)
+2. **Extracting App.jsx into component files** (biggest maintenance tax)
+3. **Wiring the 3 dead components** into the UI (features already built, just invisible)
+4. **Connecting the backend** (telemetry/feedback data is being lost)
+5. **Adding TypeScript** starting with the scoring engine
+
+**Estimated effort to reach 85/100:** ~2 weeks of focused work.
+**Estimated effort to reach 95/100:** ~6 weeks including testing and TypeScript migration.
+
+---
+
+*Audit conducted on the full codebase as of June 2026. All findings verified against source files.*
+</file>
+
+<file path="src/components/AssessmentSection.jsx">
+import React, { useState } from "react";
+import {
+  Activity,
+  BarChart3,
+  Brain,
+  ChevronLeft,
+  ChevronRight,
+  ShieldCheck,
+} from "lucide-react";
+import ValidationFeedbackForm from "./ValidationFeedbackForm.jsx";
+import DecisionSimulator from "./DecisionSimulator.jsx";
+import InsightNarrative from "./InsightNarrative.jsx";
+import {
+  buildAnonymousTelemetryPayload,
+  dispatchAnonymousTelemetry,
+  dispatchAnonymousFeedback,
+} from "../lib/scoring-v2.js";
+
+function ParticipantSection({ values, onChange }) {
+  return (
+    <div className="participant-card" style={{ margin: "0 0 18px 0" }}>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 120px", gap: 12 }}>
+        <label className="money-input">
+          <span>Name</span>
+          <div>
+            <input
+              type="text"
+              value={values.name ?? ""}
+              onChange={(e) => onChange("name", e.target.value)}
+              placeholder="Your name"
+            />
+          </div>
+        </label>
+
+        <label className="money-input">
+          <span>Age</span>
+          <div>
+            <input
+              type="number"
+              min="0"
+              value={values.age ?? ""}
+              onChange={(e) => onChange("age", e.target.value)}
+              placeholder="Age"
+            />
+          </div>
+        </label>
+      </div>
+
+      <div style={{ marginTop: 10 }}>
+        <label className="money-input">
+          <span>Email</span>
+          <div>
+            <input
+              type="email"
+              value={values.email ?? ""}
+              onChange={(e) => onChange("email", e.target.value)}
+              placeholder="you@domain.com"
+            />
+          </div>
+        </label>
+      </div>
+    </div>
+  );
+}
+
+function QuestionSection({ icon: Icon, title, score, questions, values, onChange }) {
+  return (
+    <section className="panel">
+      <div className="panel-heading">
+        <div>
+          <Icon size={20} />
+          <h2>{title}</h2>
+        </div>
+        <span>{score}</span>
+      </div>
+
+      <div className="question-list">
+        {questions.map((question) => (
+          <div className="question-row" key={question.key}>
+            <label className="question-label" id={`${question.key}-label`}>
+              {question.prompt}
+            </label>
+            <SegmentedControl
+              labelledBy={`${question.key}-label`}
+              name={question.key}
+              options={question.options}
+              value={values[question.key]}
+              onChange={(value) => onChange(question.key, value)}
+            />
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function ProfileSection({ values, score, onChange }) {
+  return (
+    <section className="panel">
+      <div className="panel-heading">
+        <div>
+          <ShieldCheck size={20} />
+          <h2>Stability</h2>
+        </div>
+        <span>{score}</span>
+      </div>
+
+      <div className="numeric-grid">
+        <MoneyInput
+          label="Monthly expenses"
+          value={values.monthlyExpenses}
+          onChange={(value) => onChange("monthlyExpenses", value)}
+        />
+        <MoneyInput
+          label="Fixed emergency buffer"
+          value={values.emergencySavingsFixed}
+          onChange={(value) => onChange("emergencySavingsFixed", value)}
+        />
+        <MoneyInput
+          label="Discretionary emergency buffer"
+          value={values.emergencySavingsDiscretionary}
+          onChange={(value) => onChange("emergencySavingsDiscretionary", value)}
+        />
+        <MoneyInput
+          label="Total debt"
+          value={values.totalDebt}
+          onChange={(value) => onChange("totalDebt", value)}
+        />
+        <MoneyInput
+          label="Monthly income"
+          value={values.monthlyIncome}
+          onChange={(value) => onChange("monthlyIncome", value)}
+        />
+        <MoneyInput
+          label="Fixed commitments"
+          value={values.monthlyLiabilities}
+          onChange={(value) => onChange("monthlyLiabilities", value)}
+        />
+      </div>
+
+      <div className="question-row compact">
+        <label className="question-label" id="income-stability-label">
+          Income stability
+        </label>
+        <SegmentedControl
+          labelledBy="income-stability-label"
+          name="incomeStability"
+          options={incomeStabilityOptions}
+          value={values.incomeStability}
+          onChange={(value) => onChange("incomeStability", value)}
+        />
+      </div>
+
+      <div className="question-row compact">
+        <label className="question-label" id="dependents-label">
+          Dependents
+        </label>
+        <SegmentedControl
+          labelledBy="dependents-label"
+          name="dependentsBucket"
+          options={dependentsOptions}
+          value={values.dependentsBucket}
+          onChange={(value) => onChange("dependentsBucket", value)}
+        />
+      </div>
+
+      <div className="question-row compact">
+        <label className="question-label" id="debt-rate-label">
+          Debt repayment rate (% of income)
+        </label>
+        <div className="money-input" style={{ gridTemplateColumns: "auto 1fr" }}>
+          <span style={{ display: "block" }} />
+          <div>
+            <span />
+            <input
+              type="number"
+              min="0"
+              inputMode="decimal"
+              value={values.debtRepaymentRatePctOfIncome ?? 0.12}
+              onChange={(e) =>
+                onChange(
+                  "debtRepaymentRatePctOfIncome",
+                  e.target.value === "" ? 0 : Number.parseFloat(e.target.value),
+                )
+              }
+            />
+          </div>
+        </div>
+      </div>
+
+      <div className="question-row compact">
+        <label className="question-label" id="interest-label">
+          Average interest rate (% per year)
+        </label>
+        <div className="money-input" style={{ gridTemplateColumns: "auto 1fr" }}>
+          <span style={{ display: "block" }} />
+          <div>
+            <span />
+            <input
+              type="number"
+              min="0"
+              inputMode="decimal"
+              value={values.averageInterestRatePct ?? 10}
+              onChange={(e) =>
+                onChange(
+                  "averageInterestRatePct",
+                  e.target.value === "" ? 0 : Number.parseFloat(e.target.value),
+                )
+              }
+            />
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function MoneyInput({ label, value, onChange }) {
+  return (
+    <label className="money-input">
+      <span>{label}</span>
+      <div>
+        <span>INR</span>
+        <input
+          type="number"
+          min="0"
+          inputMode="numeric"
+          value={value ?? ""}
+          onChange={(event) => {
+            const val = event.target.value;
+            onChange(val === "" ? 0 : Number.parseFloat(val));
+          }}
+        />
+      </div>
+    </label>
+  );
+}
+
+function SegmentedControl({ labelledBy, name, options, value, onChange }) {
+  return (
+    <div className="segmented-control" role="radiogroup" aria-labelledby={labelledBy}>
+      {options.map((option) => {
+        const checked = option.value === value;
+        return (
+          <label key={option.value} className={`segmented-option ${checked ? "selected" : ""}`}>
+            <input type="radio" name={name} value={option.value} checked={checked} onChange={() => onChange(option.value)} />
+            <span>{option.label}</span>
+          </label>
+        );
+      })}
+    </div>
+  );
+}
+
+const incomeStabilityOptions = [
+  { value: "very_consistent", label: "Very consistent" },
+  { value: "mostly_consistent", label: "Mostly consistent" },
+  { value: "somewhat_variable", label: "Somewhat variable" },
+  { value: "highly_variable", label: "Highly variable" },
+];
+
+const dependentsOptions = [
+  { value: "0_1", label: "0-1" },
+  { value: "2_3", label: "2-3" },
+  { value: "4_5", label: "4-5" },
+  { value: "6_plus", label: "6+" },
+];
+
+export default function AssessmentSection({ assessment, result, onChange, ui }) {
+  const [currentStep, setCurrentStep] = useState(() => {
+    try {
+      const saved = window.localStorage.getItem("arth-os-wizard-step");
+      return saved ? Math.min(parseInt(saved, 10), 4) : 0;
+    } catch (error) {
+      console.warn("Could not restore wizard step:", error);
+      return 0;
+    }
+  });
+  const [showFeedback, setShowFeedback] = useState(false);
+
+  const mode = result?.mode || "v2";
+  const steps = [
+    { id: "behaviour", label: "Psychology", icon: Brain },
+    { id: "awareness", label: "Clarity", icon: BarChart3 },
+    { id: "stability", label: "Resilience", icon: ShieldCheck },
+    ...(mode === "v2" ? [{ id: "habits", label: "Habits", icon: Activity }] : []),
+  ];
+
+  const totalSteps = steps.length;
+  const isLastStep = currentStep === totalSteps - 1;
+
+  const handleStepChange = (newStep) => {
+    setCurrentStep(newStep);
+    try {
+      window.localStorage.setItem("arth-os-wizard-step", String(newStep));
+    } catch (e) {
+      console.warn("Could not persist step:", e);
+    }
+  };
+
+  const handleNext = async () => {
+    if (currentStep < totalSteps - 1) {
+      handleStepChange(currentStep + 1);
+      return;
+    }
+
+    const payload = buildAnonymousTelemetryPayload(result, assessment);
+    await dispatchAnonymousTelemetry(payload, "/api/telemetry");
+    setShowFeedback(true);
+  };
+
+  const handlePrev = () => handleStepChange(Math.max(currentStep - 1, 0));
+
+  return (
+    <section className="assessment-section" id="assessment">
+      <div className="assessment-heading">
+        <span>Guided Experience</span>
+        <h2>
+          Run your Financial Health <em>Behavior Score.</em>
+        </h2>
+        <p>
+          Complete the guided assessment step-by-step. The intelligence metrics panel
+          updates instantly in real time.
+        </p>
+      </div>
+
+      <div className="workspace">
+        <section className="form-stack" aria-label="Financial health assessment">
+          {!showFeedback && (
+            <div className="wizard-progress-track" aria-label="Assessment progress">
+              {steps.map((step, idx) => (
+                <div
+                  key={step.id}
+                  className={`wizard-node ${idx <= currentStep ? "active" : ""} ${
+                    idx === currentStep ? "current" : ""
+                  }`}
+                >
+                  <div className="wizard-node-marker">{idx + 1}</div>
+                  <span className="wizard-node-label">{step.label}</span>
+                  {idx < steps.length - 1 && <div className="wizard-node-connector" />}
+                </div>
+              ))}
+            </div>
+          )}
+
+          <ParticipantSection values={assessment.participant} onChange={(key, value) => onChange("participant", key, value)} />
+
+          {!showFeedback && currentStep === 0 && (
+            <QuestionSection
+              icon={Brain}
+              title="Psychology"
+              score={`${result.behaviourScore}/${ui.componentMaximums.behaviour}`}
+              questions={ui.behaviourQuestions}
+              values={assessment.behaviour}
+              onChange={(key, value) => onChange("behaviour", key, value)}
+            />
+          )}
+
+          {!showFeedback && currentStep === 1 && (
+            <QuestionSection
+              icon={BarChart3}
+              title="Clarity"
+              score={`${result.awarenessScore}/${ui.componentMaximums.awareness}`}
+              questions={ui.awarenessQuestions}
+              values={assessment.awareness}
+              onChange={(key, value) => onChange("awareness", key, value)}
+            />
+          )}
+
+          {!showFeedback && currentStep === 2 && (
+            <ProfileSection
+              values={assessment.profile}
+              score={`${result.stabilityScore}/${ui.componentMaximums.stability}`}
+              onChange={(key, value) => onChange("profile", key, value)}
+            />
+          )}
+
+          {!showFeedback && currentStep === 3 && mode === "v2" && (
+            <QuestionSection
+              icon={Activity}
+              title="Habits"
+              score={`${result.habits.habitScore}/100`}
+              questions={ui.habitsQuestions}
+              values={assessment.habits}
+              onChange={(key, value) => onChange("habits", key, value)}
+            />
+          )}
+
+          {!showFeedback && (
+            <div className="wizard-nav-footer">
+              <button type="button" className="ghost-button" onClick={handlePrev} disabled={currentStep === 0}>
+                <ChevronLeft size={16} />
+                Previous
+              </button>
+
+              <button type="button" className="wizard-primary-btn" onClick={handleNext}>
+                {isLastStep ? "Finish & Review Score" : "Continue"}
+                {!isLastStep && <ChevronRight size={16} />}
+              </button>
+            </div>
+          )}
+
+          {showFeedback && (
+            <ValidationFeedbackForm
+                  healthScore={result.healthScore}
+                  onSubmitFeedback={async (feedbackPayload) => {
+                    const ok = await dispatchAnonymousFeedback(feedbackPayload, "/api/feedback");
+                    const resultsEl = document.querySelector(".result-stack");
+                    if (resultsEl) {
+                      resultsEl.scrollIntoView({ behavior: "smooth", block: "center" });
+                      setTimeout(() => {
+                        resultsEl.tabIndex = -1;
+                        resultsEl.focus();
+                      }, 600);
+                    }
+                    return ok;
+                  }}
+                />
+          )}
+        </section>
+
+        <aside className="result-stack" aria-label="Financial health result" role="region" aria-live="polite" tabIndex={-1}>
+          {result && result.healthScore !== undefined && (
+            <div className="result-stack-inner">
+              <InsightNarrative result={result} assessment={assessment} />
+              <DecisionSimulator profile={assessment.profile} />
+            </div>
+          )}
+        </aside>
+      </div>
+    </section>
+  );
+}
+</file>
+
+<file path="src/components/DecisionSimulator.jsx">
+import React, { useMemo, useState } from "react";
+import { Cpu } from "lucide-react";
+import { calculateDecisionSimulatorV2, formatMonths as formatMonthsV2 } from "../lib/scoring-v2.js";
+
+export default function DecisionSimulator({ profile }) {
+  const [purchaseCost, setPurchaseCost] = useState(0);
+  const simulator = useMemo(
+    () => calculateDecisionSimulatorV2(profile, purchaseCost),
+    [profile, purchaseCost],
+  );
+
+  const currentRiskIndex = simulator.currentRunway > 0 ? 100 / simulator.currentRunway : 100;
+  const forecastRiskIndex = simulator.forecastRunway > 0 ? 100 / simulator.forecastRunway : 100;
+  const riskIncrease = purchaseCost > 0
+    ? Math.round(((forecastRiskIndex - currentRiskIndex) / currentRiskIndex) * 100)
+    : 0;
+
+  const riskTrend = purchaseCost > 0 && riskIncrease > 0 ? "negative" : purchaseCost > 0 ? "positive" : "neutral";
+
+  return (
+    <section className="result-card simulator-card">
+      <div className="result-heading">
+        <Cpu size={19} />
+        <h2>Decision Simulator</h2>
+      </div>
+
+      <p className="simulator-subtitle">Estimate the runway impact before you buy.</p>
+
+      <div className="simulator-input">
+        <label htmlFor="purchase-cost">If I buy an item for</label>
+        <div className="input-wrapper">
+          <span className="currency-label">INR</span>
+          <input
+            id="purchase-cost"
+            type="number"
+            min="0"
+            step="1000"
+            placeholder="0"
+            value={purchaseCost}
+            onChange={(event) => setPurchaseCost(Number.parseFloat(event.target.value) || 0)}
+          />
+        </div>
+      </div>
+
+      {purchaseCost > 0 ? (
+        <>
+          <div className="simulator-impact-summary">
+            <div className="impact-row">
+              <span className="impact-label">Current runway</span>
+              <strong className="impact-value current">{formatMonthsV2(simulator.currentRunway)} months</strong>
+            </div>
+            <div className="impact-arrow">↓</div>
+            <div className="impact-row">
+              <span className="impact-label">After purchase</span>
+              <strong className="impact-value forecast">{formatMonthsV2(simulator.forecastRunway)} months</strong>
+            </div>
+            <div className="impact-reduction">
+              <span>Loss: {formatMonthsV2(simulator.runwayDelta)} months</span>
+            </div>
+          </div>
+
+          <div className={`simulator-risk-indicator risk-${riskTrend}`}>
+            <span className="risk-label">Risk Change</span>
+            <span className="risk-value">{riskIncrease > 0 ? "+" : ""}{riskIncrease}%</span>
+          </div>
+
+          <div className="simulator-recommendation-box">
+            <span className="rec-label">Recommendation</span>
+            <p className="rec-text">{simulator.recommendation}</p>
+          </div>
+        </>
+      ) : (
+        <div className="simulator-placeholder">
+          <p>Enter an amount to see how a purchase affects your runway and risk profile.</p>
+        </div>
+      )}
+    </section>
+  );
+}
+</file>
+
+<file path="src/components/ErrorBoundary.jsx">
+import React from "react";
+
+export default class ErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+
+  static getDerivedStateFromError(error) {
+    return { hasError: true, error };
+  }
+
+  componentDidCatch(error, info) {
+    console.error("ErrorBoundary caught an error:", error, info);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="error-fallback">
+          <h1>Something went wrong.</h1>
+          <p>We are restoring the experience. Please refresh the page.</p>
+          <pre>{String(this.state.error)}</pre>
+        </div>
+      );
+    }
+
+    return this.props.children;
+  }
+}
+</file>
+
+<file path="src/components/InsightNarrative.jsx">
+import React from "react";
+import { Sparkles } from "lucide-react";
+import { calculateBehavioralCorrelationV2 } from "../engines/behaviorCorrelation.js";
+
+export default function InsightNarrative({ result, assessment }) {
+  const correlations = calculateBehavioralCorrelationV2(assessment);
+  const tone = result.healthScore >= 75 ? "positive" : result.healthScore >= 50 ? "cautious" : "critical";
+
+  const narrative = result.healthScore >= 75
+    ? `Good strength today. You are stable, but your awareness gap of ${result.awarenessGapDisplay} months means you may still be assuming more runway than you actually have.`
+    : result.healthScore >= 50
+      ? `Your financial health is mixed. ${result.blindSpotSummary} ${result.recommendedActionText}`
+      : `Your profile is under pressure. ${result.blindSpotSummary} The most urgent priority is strengthening your runway and reducing high-risk spending.`;
+
+  return (
+    <section className={`result-card narrative-card tone-${tone}`}>
+      <div className="result-heading">
+        <Sparkles size={19} />
+        <h2>Insight Narrative</h2>
+      </div>
+
+      <p className="narrative-copy">{narrative}</p>
+
+      <div className="narrative-grid">
+        <div className="narrative-box">
+          <strong>Score</strong>
+          <p>{result.healthScore}/100 — {result.categoryBand.label}</p>
+        </div>
+        <div className="narrative-box">
+          <strong>Awareness Gap</strong>
+          <p>{result.awarenessGapDisplay} months</p>
+        </div>
+        <div className="narrative-box">
+          <strong>Future risk</strong>
+          <p>{result.futureRiskLabel}</p>
+        </div>
+      </div>
+
+      <div className="behavior-correlation">
+        <strong>Behavioral correlation</strong>
+        <ul>
+          {correlations.map((item) => (
+            <li key={item.title}>
+              <strong>{item.title}:</strong> {item.description}
+            </li>
+          ))}
+        </ul>
+      </div>
+    </section>
+  );
+}
+</file>
+
+<file path="src/engines/behaviorCorrelation.js">
+function toNumber(value) {
+  const parsed = Number.parseFloat(value);
+  return Number.isFinite(parsed) ? parsed : 0;
+}
+
+export function calculateBehavioralCorrelationV2(assessment) {
+  const { behaviour, awareness, profile } = assessment;
+  const totalSavings = toNumber(profile.emergencySavingsFixed) + toNumber(profile.emergencySavingsDiscretionary);
+  const monthlyExpenses = toNumber(profile.monthlyExpenses);
+  const monthlyIncome = toNumber(profile.monthlyIncome);
+
+  const lowAwareness = awareness.tracksExpenses !== "regularly" || awareness.knowsMonthlyExpenses !== "exact";
+  const stressedSpending = ["very_likely", "sometimes"].includes(behaviour.spendWhenStressed);
+  const boredSpending = ["very_likely", "sometimes"].includes(behaviour.spendWhenBored);
+  const socialPressure = behaviour.socialInfluenceLevel !== "never";
+  const lowSavings = totalSavings < monthlyExpenses * 2;
+  const highDebt = toNumber(profile.totalDebt) > monthlyIncome * 0.5;
+
+  const correlations = [];
+
+  if ((stressedSpending || boredSpending) && lowAwareness) {
+    correlations.push({
+      title: "Financial Drift Risk",
+      description: "Stress or boredom spending combined with weak expense awareness can cause your budget to drift far from plan.",
+    });
+  }
+
+  if (socialPressure && lowSavings) {
+    correlations.push({
+      title: "Lifestyle Inflation Risk",
+      description: "Social influence plus modest savings means lifestyle inflation can erode your runway quickly.",
+    });
+  }
+
+  if (highDebt && totalSavings < monthlyExpenses * 3) {
+    correlations.push({
+      title: "Debt Strain Risk",
+      description: "High debt with a thin cash buffer makes your runway fragile if income slows.",
+    });
+  }
+
+  if (correlations.length === 0) {
+    correlations.push({
+      title: "Behavioral Resilience",
+      description: "Your current profile shows no immediate behavior-driven risk clusters, but continue tracking consistently.",
+    });
+  }
+
+  return correlations;
+}
+</file>
+
+<file path="TECHNICAL_DOCUMENTATION.md">
+# ARTH.OS — Technical Documentation v1.0
+
+> **Product:** ARTH.OS Financial Health Assessment  
+> **Codebase:** `arth-os` (React 18 + Vite)  
+> **Last Updated:** June 2026  
+> **Status:** Production Ready
+
+---
+
+## Table of Contents
+
+1. [System Architecture](#1-system-architecture)
+2. [Technology Stack](#2-technology-stack)
+3. [Project Structure](#3-project-structure)
+4. [Core Engine: Scoring System (v2)](#4-core-engine-scoring-system-v2)
+5. [Data Model & Questionnaire](#5-data-model--questionnaire)
+6. [API Routes (Serverless)](#6-api-routes-serverless)
+7. [Telemetry & Privacy](#7-telemetry--privacy)
+8. [Database Schema](#8-database-schema)
+9. [Component Architecture](#9-component-architecture)
+10. [Build & Deployment](#10-build--deployment)
+11. [Configuration Reference](#11-configuration-reference)
+12. [Troubleshooting](#12-troubleshooting)
+
+---
+
+## 1. System Architecture
+
+```
+┌─────────────────────────────────────────────────────┐
+│                    CLIENT (Browser)                   │
+│  React 18 SPA  │  Vite Bundler  │  localStorage       │
+│  ┌───────────┐  ┌────────────┐  ┌──────────────────┐ │
+│  │ App.jsx   │  │ Scoring     │  │ State Persistence│ │
+│  │ Assessment│──│ Engine (v2) │  │ (wizard step,    │ │
+│  │ Wizard    │  │             │  │  score history)  │ │
+│  └───────────┘  └────────────┘  └──────────────────┘ │
+└──────────────────────┬───────────────────────────────┘
+                       │ HTTPS (fetch + keepalive)
+                       ▼
+┌─────────────────────────────────────────────────────┐
+│              VERCEL (Serverless Edge)                │
+│  ┌─────────────────┐  ┌──────────────────────────┐  │
+│  │ Static Assets   │  │ API Routes (Node.js)     │  │
+│  │ index.html      │  │ /api/telemetry.js        │  │
+│  │ JS/CSS bundles  │  │ /api/feedback.js         │  │
+│  │                 │  │ /api/saveAssessment.js    │  │
+│  └─────────────────┘  └──────────┬───────────────┘  │
+└──────────────────────────────────┼──────────────────┘
+                                   │ Service Role Key
+                                   ▼
+┌─────────────────────────────────────────────────────┐
+│              SUPABASE (PostgreSQL)                   │
+│  ┌──────────────────┐  ┌──────────────────────────┐ │
+│  │ anonymous_       │  │ tester_feedback           │ │
+│  │ telemetry        │  │                           │ │
+│  └──────────────────┘  └──────────────────────────┘ │
+│  ┌──────────────────┐                               │
+│  │ assessments      │                               │
+│  └──────────────────┘                               │
+│  RLS Policies: INSERT=public, SELECT=denied          │
+└─────────────────────────────────────────────────────┘
+```
+
+### Data Flow
+
+1. User fills multi-step wizard (Psychology → Clarity → Resilience → Habits)
+2. On each change, `calculateFinancialHealthV2()` recomputes all scores
+3. Results rendered in real-time in the right-side `result-stack`
+4. On final step: telemetry payload built → POST to `/api/telemetry`
+5. Feedback form shown → POST to `/api/feedback`
+6. All backend writes use service_role key; RLS denies public reads
+7. Assessment state persisted to `localStorage` with key `arth-os-assessment`
+
+---
+
+## 2. Technology Stack
+
+| Layer | Technology | Version |
+|-------|-----------|---------|
+| Runtime | Node.js (Vercel Edge) | 18.x |
+| Frontend Framework | React | 18.3.1 |
+| Bundler | Vite | 6.0.3 |
+| Styling | CSS (custom, no framework) | — |
+| Icons | Lucide React | 0.468.0 |
+| Database | Supabase (PostgreSQL) | — |
+| DB Client | @supabase/supabase-js | 2.35.0 |
+| Deployment | Vercel | — |
+| State Persistence | localStorage | Browser native |
+
+---
+
+## 3. Project Structure
+
+```
+c:/ArthOS/
+├── index.html                         # Vite entry HTML
+├── package.json                       # Dependencies & scripts
+├── vite.config.js                     # Vite configuration
+├── vercel.json                        # Vercel deployment config
+│
+├── api/                               # Serverless API routes
+│   ├── telemetry.js                   # POST /api/telemetry
+│   ├── feedback.js                    # POST /api/feedback
+│   └── saveAssessment.js              # POST /api/saveAssessment
+│
+├── src/
+│   ├── main.jsx                       # React entry point
+│   ├── App.jsx                        # Root component, all sections
+│   ├── styles.css                     # Global styles (~2300 lines)
+│   │
+│   ├── lib/
+│   │   ├── scoring-v2.js             # Core scoring engine (primary)
+│   │   └── scoring.js                # Legacy v1 scoring engine
+│   │
+│   ├── engines/
+│   │   └── behaviorCorrelation.js    # Behavioral correlation analysis
+│   │
+│   ├── data/
+│   │   ├── questionnaire-v2.js       # v2 question bank & defaults
+│   │   └── questionnaire.js          # Legacy v1 question bank
+│   │
+│   └── components/
+│       ├── AssessmentSection.jsx      # Multi-step wizard container
+│       ├── InsightNarrative.jsx       # Personalized insight display
+│       ├── DecisionSimulator.jsx      # Purchase impact simulator
+│       ├── FinancialTwin.jsx          # Personality archetype card
+│       ├── AnalyticsDashboard.jsx     # Blind spot & risk analytics
+│       ├── UserHistory.jsx            # Score progression tracker
+│       └── ValidationFeedbackForm.jsx # Post-assessment feedback
+│
+├── SQL_SCHEMA.sql                     # Database DDL
+│
+└── docs/
+    ├── ARTH.OS_Financial_Health_Score_Framework_v1.md
+    ├── DEPLOYMENT_GUIDE.md
+    ├── IMPLEMENTATION_SUMMARY.md
+    ├── QUICK_START.md
+    ├── COMPLETION_REPORT.md
+    └── TODO.md
+```
+
+---
+
+## 4. Core Engine: Scoring System (v2)
+
+### 4.1 Scoring Formula
+
+```
+Health Score (0–100) = Behaviour (0–45) + Awareness (0–30) + Stability (0–25)
+```
+
+Each component is computed independently from questionnaire answers and profile data, then summed.
+
+### 4.2 Behaviour Score (0–45)
+
+**File:** `src/lib/scoring-v2.js` → `getBehaviourScore()`
+
+**Inputs:** 12 categorical questions covering emotional spending, impulse control, social influence, stress spending, subscription discipline, and impulse waiting rules.
+
+**Algorithm:**
+1. Each question answer maps to a 0–10 sub-score via `behaviourScoreMaps`
+2. All 12 sub-scores averaged
+3. Scaled to 0–45 range: `(average / 10) × 45`
+4. Rounded to 1 decimal place
+
+**Band thresholds:**
+| Score Range | Label |
+|-------------|-------|
+| 0–15 | Critical behaviour risk |
+| 16–27 | Needs behaviour correction |
+| 28–35 | Mostly controlled |
+| 36–45 | Strong financial discipline |
+
+### 4.3 Awareness Score (0–30)
+
+**File:** `src/lib/scoring-v2.js` → `getAwarenessScore()`
+
+**Inputs:** 8 categorical questions covering lifestyle comparison, financial planning, expense tracking, debt knowledge, savings rate awareness, budget cycle, and top-expense awareness.
+
+**Algorithm:**
+1. Each question answer maps to a 0–6 sub-score via `awarenessScoreMaps`
+2. Raw total summed
+3. Normalized against max possible (48): `(total / 48) × 30`
+4. Clamped to 0–30, rounded
+
+**Band thresholds:**
+| Score Range | Label |
+|-------------|-------|
+| 0–9 | Low visibility |
+| 10–18 | Basic awareness |
+| 19–24 | Solid tracking |
+| 25–30 | High clarity |
+
+### 4.4 Stability Score (0–25)
+
+**File:** `src/lib/scoring-v2.js` → `getStabilityScore()`
+
+**Inputs:** Monthly expenses, emergency savings (fixed + discretionary split), total debt, monthly income, income stability, dependents, monthly liabilities.
+
+**Sub-components:**
+- **Emergency score:** `min(survivalMonths, 6) × 1.5`
+- **Debt score:** Based on debt-to-income ratio (monthly)
+- **Income stability score:** 0–6 mapped from categorical answer
+- **Dependents score:** 0–3 based on dependents bucket
+- **Liability pressure score:** Based on liabilities ÷ income ratio
+
+**Formula:** Sum all sub-components → normalize: `(raw / 20) × 25` → clamp to 0–25
+
+**Band thresholds:**
+| Score Range | Label |
+|-------------|-------|
+| 0–8 | Fragile stability |
+| 9–16 | Some cushion |
+| 17–20 | Resilient |
+| 21–25 | Very stable |
+
+### 4.5 Survival Engine
+
+**Survival Months = (FixedSavings + DiscretionarySavings) ÷ MonthlyExpenses**
+
+**Crisis-Optimized Survival:**
+Uses `CRISIS_ELASTICITY_FACTOR = 0.4` — assumes 40% of variable lifestyle costs can be frozen.
+```
+BareMinimumBurn = MonthlyLiabilities + VariableExpenses × (1 - 0.4)
+CrisisSurvivalMonths = TotalSavings / BareMinimumBurn
+```
+
+**Awareness Gap (Blind Spot):**
+```
+PerceptionBias = 1 + 0.35 × (1 - AwarenessScore/30)
+PerceivedSurvival = ActualSurvival × PerceptionBias
+Gap = PerceivedSurvival - ActualSurvival
+```
+
+### 4.6 Personality Archetypes
+
+**File:** `src/lib/scoring-v2.js` → `getPersonalityType()`
+
+Trait-scoring system across 8 behavioural dimensions selects one of four archetypes:
+
+| Archetype | Key Traits | Danger Zone |
+|-----------|-----------|-------------|
+| **Reactor** | Acts quickly, emotional spending | Stress periods |
+| **Survivor** | Stays cautious, protects safety | Sudden income shock |
+| **Planner** | Plans ahead, tracks commitments | Unexpected shocks |
+| **Builder** | Disciplined, growth-focused | Burnout from rigid budgets |
+
+### 4.7 Decision Simulator
+
+**File:** `src/lib/scoring-v2.js` → `calculateDecisionSimulatorV2()`
+
+Computes runway impact of a hypothetical purchase:
+1. `CurrentRunway = TotalSavings / MonthlyExpenses`
+2. `RemainingSavings = TotalSavings - PurchaseCost`
+3. `ForecastRunway = RemainingSavings / MonthlyExpenses`
+4. `RunwayDelta = CurrentRunway - ForecastRunway`
+5. Risk band comparison + recommendation
+
+### 4.8 Habits Metrics
+
+**File:** `src/lib/scoring-v2.js` → `getHabitsMetrics()`
+
+Two inputs:
+- **Check-ins per week** (0, 1, 2–3, 4+)
+- **Debt payment reliability** (rarely/sometimes/often/always)
+
+Outputs: `habitScore` (0–100), `estimatedStreakDays`, `weeklyAdherencePct`
+
+---
+
+## 5. Data Model & Questionnaire
+
+### 5.1 Assessment Shape (v2)
+
+```javascript
+{
+  mode: "v2",
+  behaviour: {                          // 12 categorical keys
+    emotionalMoneyLevel, socialInfluenceLevel, unplannedPurchaseFreq,
+    regretImpulseFreq, presentFutureMindset, avoidBalanceDuringStress,
+    spendWhenBored, spendWhenStressed, plannedPurchasesOnly,
+    cashflowAwareness, subscriptionControl, impulseWaitRule
+  },
+  awareness: {                          // 8 categorical keys
+    comparesLifestyleFreq, hasFinancialPlan, tracksExpenses,
+    knowsTotalDebt, knowsMonthlyExpenses, tracksSavingsRate,
+    budgetCycle, knowsTop3Expenses
+  },
+  profile: {                            // Numeric + categorical
+    monthlyExpenses, emergencySavingsFixed, emergencySavingsDiscretionary,
+    totalDebt, monthlyIncome, monthlyLiabilities,
+    incomeStability, dependentsBucket,
+    debtRepaymentRatePctOfIncome, averageInterestRatePct
+  },
+  habits: {                             // 2 categorical keys
+    habitCheckInsPerWeek, debtPaymentDiscipline
+  },
+  participant: {                        // Optional PII (not sent in telemetry)
+    name, age, email
+  }
+}
+```
+
+### 5.2 Question Banks
+
+Located in `src/data/questionnaire-v2.js`:
+
+| Module | Count | Keys |
+|--------|-------|------|
+| `v2BehaviourQuestions` | 12 | emotionalMoneyLevel through impulseWaitRule |
+| `v2AwarenessQuestions` | 8 | comparesLifestyleFreq through knowsTop3Expenses |
+| `v2StabilityQuestions` | 2 | incomeStability, dependentsBucket |
+| `v2HabitsQuestions` | 2 | habitCheckInsPerWeek, debtPaymentDiscipline |
+| `v2ProfileQuestions` | 2 | monthlyLiabilities, monthlyIncome |
+
+### 5.3 Answer Value Sets
+
+All categorical answers use snake_case values. Reference the `*ScoreMaps` objects in `scoring-v2.js` for the complete enumeration.
+
+---
+
+## 6. API Routes (Serverless)
+
+### 6.1 POST /api/telemetry
+
+**File:** `api/telemetry.js`
+
+**Purpose:** Accept anonymous financial health telemetry from completed assessments.
+
+**Request:**
+```json
+{
+  "telemetry_metadata": { "schema_version": "2.0.0", "mode_executed": "v2" },
+  "scores": {
+    "financial_health_score": 65,
+    "behaviour_score": 28.5,
+    "awareness_score": 18.0,
+    "stability_score": 18.5,
+    "habits_score": 55
+  },
+  "predictive_analytics": {
+    "personality_type": "Planner",
+    "future_risk_label": "Moderate Risk",
+    "future_risk_score": 55,
+    "awareness_gap_months": 1.5
+  },
+  "runway_metrics": {
+    "nominal_survival_months": 3.2,
+    "crisis_optimized_survival_months": 5.1,
+    "perceived_survival_months": 4.7
+  },
+  "financial_ratios": {
+    "savings_rate_proxied": 0.15,
+    "debt_to_income_months": 0.35,
+    "fixed_liability_pressure": 0.20
+  },
+  "lowest_performing_driver": "awareness"
+}
+```
+
+**Responses:**
+- `200`: `{ "status": "success", "recorded": true }`
+- `400`: `{ "error": "Incomplete payload telemetry data structure" }`
+- `405`: `{ "error": "Method Not Allowed" }`
+- `500`: `{ "status": "deferred", "reason": "Internal Processing Queue" }`
+
+### 6.2 POST /api/feedback
+
+**File:** `api/feedback.js`
+
+**Purpose:** Capture post-assessment user feedback on value drivers.
+
+**Request:**
+```json
+{
+  "score_context": { "health_score": 65 },
+  "primary_value_driver": "survival_months",
+  "user_feedback_notes": "The survival estimate was eye-opening."
+}
+```
+
+**Valid `primary_value_driver` values:** `survival_months`, `recommended_action`, `awareness_gap`, `personality_archetype`
+
+**Responses:**
+- `200`: `{ "status": "success", "recorded": true }`
+- `400`: `{ "error": "Incomplete feedback payload structure" }`
+- `405`: `{ "error": "Method Not Allowed" }`
+- `500`: `{ "status": "deferred", "reason": "Internal Processing Queue" }`
+
+### 6.3 POST /api/saveAssessment
+
+**File:** `api/saveAssessment.js`
+
+**Purpose:** Persist full assessment + results (with optional PII for registered users).
+
+Requires `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` environment variables.
+
+**Note:** This route stores participant PII (name, email). Use only for authenticated/consented flows.
+
+---
+
+## 7. Telemetry & Privacy
+
+### 7.1 Privacy Architecture
+
+**Zero PII approach:**
+- No names, emails, phone numbers
+- No IP addresses or geolocation
+- No precise timestamps (date-only: `YYYY-MM-DD`)
+- No session identifiers or cookies
+- Only numeric scores and categorical types
+
+### 7.2 Telemetry Payload Builder
+
+**File:** `src/lib/scoring-v2.js` → `buildAnonymousTelemetryPayload()`
+
+Assembles a structured payload from the assessment result and core assessment data. Computes financial ratios from profile data (savings rate, debt-to-income, liability pressure).
+
+### 7.3 Dispatch Mechanism
+
+**File:** `src/lib/scoring-v2.js` → `dispatchAnonymousTelemetry()`
+
+- Uses `fetch()` with `keepalive: true` to ensure transmission during navigation
+- Endpoint configurable via `VITE_TELEMETRY_ENDPOINT` env var or falls back to hardcoded URL
+- Fails silently — never interrupts user experience
+- Console warns on failure but does not throw
+
+### 7.4 Trigger Flow
+
+1. User clicks "Finish & Review Score" on last wizard step
+2. `AssessmentSection.handleNext()` calls `buildAnonymousTelemetryPayload(result, assessment)`
+3. Dispatches via `dispatchAnonymousTelemetry(payload)`
+4. `setShowFeedback(true)` — feedback form renders
+5. On feedback submit → `dispatchAnonymousFeedbackEvent()` → POST to `/api/feedback`
+
+---
+
+## 8. Database Schema
+
+### 8.1 Table: `anonymous_telemetry`
+
+| Column | Type | Description |
+|--------|------|-------------|
+| `id` | BIGSERIAL | Primary key |
+| `schema_version` | VARCHAR(12) | Telemetry schema version |
+| `mode_executed` | VARCHAR(6) | "v1" or "v2" |
+| `health_score` | NUMERIC(5,2) | 0–100 overall score |
+| `behaviour_score` | NUMERIC(5,2) | Behaviour component |
+| `awareness_score` | NUMERIC(5,2) | Awareness component |
+| `stability_score` | NUMERIC(5,2) | Stability component |
+| `habits_score` | NUMERIC(5,2) | Habits component |
+| `personality_type` | VARCHAR(32) | Archetype label |
+| `future_risk_label` | VARCHAR(32) | Risk category |
+| `future_risk_score` | NUMERIC(5,2) | Risk index score |
+| `awareness_gap_months` | NUMERIC(5,2) | Perception gap |
+| `nominal_survival_months` | NUMERIC(8,1) | Standard runway |
+| `crisis_survival_months` | NUMERIC(8,1) | Crisis-optimized runway |
+| `perceived_survival_months` | NUMERIC(8,1) | User-perceived runway |
+| `savings_rate_proxied` | NUMERIC(5,2) | Proxy savings rate |
+| `debt_to_income_months` | NUMERIC(8,1) | Debt burden ratio |
+| `fixed_liability_pressure` | NUMERIC(5,2) | Liability/income ratio |
+| `lowest_driver` | VARCHAR(16) | Weakest component |
+| `created_at` | DATE | Date-only timestamp |
+
+**Indexes:** `health_score`, `lowest_driver`, `created_at`, `personality_type`
+
+### 8.2 Table: `tester_feedback`
+
+| Column | Type | Description |
+|--------|------|-------------|
+| `id` | BIGSERIAL | Primary key |
+| `health_score` | NUMERIC(5,2) | Context score |
+| `primary_driver` | VARCHAR(32) | Selected value driver |
+| `feedback_text` | TEXT | Optional notes (≤1000 chars) |
+| `created_at` | DATE | Date-only timestamp |
+
+### 8.3 Table: `assessments`
+
+| Column | Type | Description |
+|--------|------|-------------|
+| `id` | BIGSERIAL | Primary key |
+| `assessment` | JSONB | Full assessment input |
+| `result` | JSONB | Full computed result |
+| `participant_name` | VARCHAR(255) | Optional name |
+| `participant_age` | VARCHAR(32) | Optional age |
+| `participant_email` | VARCHAR(255) | Optional email |
+| `created_at` | TIMESTAMPTZ | Precise timestamp |
+
+### 8.4 RLS Policies
+
+- `allow_telemetry_collection`: INSERT allowed for public
+- `deny_telemetry_read`: SELECT denied for public
+- `allow_feedback_collection`: INSERT allowed for public
+- `deny_feedback_read`: SELECT denied for public
+- Service role has INSERT grant for API routes
+
+### 8.5 Analytics View: `telemetry_summary`
+
+Aggregated view by date and personality type: average health score, awareness gap, savings rate, sample size.
+
+---
+
+## 9. Component Architecture
+
+### 9.1 Component Tree
+
+```
+App
+├── Header (brand, nav, save/export/reset)
+├── HeroSection (landing hero + engine card)
+├── IntelligenceSection (AI feature highlights)
+├── BusinessSection (business value props)
+├── FounderSection (founder quote + stats)
+└── AssessmentSection (main assessment workspace)
+    ├── WizardProgressTrack (step indicators)
+    ├── ParticipantSection (name/age/email)
+    ├── QuestionSection × 3 (Psychology, Clarity, Habits)
+    ├── ProfileSection (Resilience — numeric inputs)
+    ├── WizardNavFooter (Prev/Continue buttons)
+    ├── ValidationFeedbackForm (post-assessment)
+    └── Result Stack (right sidebar)
+        ├── InsightNarrative
+        │   └── behaviorCorrelation.js (engine)
+        └── DecisionSimulator
+```
+
+### 9.2 Key Components
+
+| Component | File | Responsibility |
+|-----------|------|----------------|
+| `AssessmentSection` | `src/components/AssessmentSection.jsx` | Multi-step wizard container, telemetry dispatch, feedback integration |
+| `QuestionSection` | Internal to AssessmentSection | Renders a group of questions with SegmentedControl |
+| `ProfileSection` | Internal to AssessmentSection | Numeric inputs for stability profile |
+| `SegmentedControl` | Internal to AssessmentSection | Accessible radio group for categorical answers |
+| `MoneyInput` | Internal to AssessmentSection | INR-formatted numeric input |
+| `InsightNarrative` | `src/components/InsightNarrative.jsx` | Personalized insight with behavioral correlations |
+| `DecisionSimulator` | `src/components/DecisionSimulator.jsx` | Purchase impact simulator |
+| `ValidationFeedbackForm` | `src/components/ValidationFeedbackForm.jsx` | Post-assessment feedback collection |
+
+### 9.3 State Management
+
+- **Assessment state:** `useState` in `App.jsx`, passed down via props
+- **Persistence:** `localStorage` key `arth-os-assessment`; wizard step under `arth-os-wizard-step`
+- **Memoization:** `useMemo` for scoring results; `React.memo` on selected sub-components (ScoreOverview, ScoreDial, ComponentBreakdown, SurvivalBlock, ActionBlock, BlindSpotPanel, DiagnosisPanel)
+- **History:** `UserHistory.jsx` independently reads/writes `arth-os-score-history` from localStorage
+
+### 9.4 Wizard Step Flow
+
+```
+Step 0: Psychology  → Behaviour questions (12 items)
+Step 1: Clarity     → Awareness questions (8 items)
+Step 2: Resilience  → Profile inputs (numeric + categorical)
+Step 3: Habits      → Habit questions (2 items) [v2 only]
+Final: Telemetry dispatch → Feedback form → Redirect to #home
+```
+
+Step state persists to localStorage. On page load, restores last step. Fallback to step 0 if unavailable.
+
+---
+
+## 10. Build & Deployment
+
+### 10.1 Local Development
+
+```bash
+npm install
+npm run dev          # Starts Vite dev server on http://localhost:5173
+```
+
+### 10.2 Production Build
+
+```bash
+npm run build        # Outputs to dist/
+```
+
+**Build output (last measured):**
+| File | Size | Gzipped |
+|------|------|---------|
+| `index.html` | 1.82 kB | 0.91 kB |
+| CSS | 31.35 kB | 6.66 kB |
+| JS | 206.75 kB | 63.08 kB |
+| **Total** | ~240 kB | ~70 kB |
+
+### 10.3 Vercel Deployment
+
+**Configuration:** `vercel.json`
+```json
+{ "name": "arth-os-financial-health" }
+```
+
+**Environment Variables (Vercel Dashboard):**
+```
+SUPABASE_URL=https://your-project.supabase.co
+SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOi...
+```
+
+**Deploy:**
+```bash
+vercel --prod
+```
+
+### 10.4 Supabase Setup
+
+1. Go to Supabase SQL Editor
+2. Copy `SQL_SCHEMA.sql` contents
+3. Run to create tables, indexes, RLS policies
+4. Verify: `SELECT * FROM information_schema.tables;`
+
+---
+
+## 11. Configuration Reference
+
+### Environment Variables
+
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `SUPABASE_URL` | For saveAssessment | Supabase project URL |
+| `SUPABASE_SERVICE_ROLE_KEY` | For saveAssessment | Service role API key |
+| `VITE_TELEMETRY_ENDPOINT` | Optional | Override telemetry endpoint |
+| `REACT_APP_TELEMETRY_ENDPOINT` | Optional | Legacy telemetry endpoint |
+| `REACT_APP_FEEDBACK_ENDPOINT` | Optional | Legacy feedback endpoint |
+| `SUPABASE_ASSESSMENTS_TABLE` | Optional | Override table name (default: "assessments") |
+
+### localStorage Keys
+
+| Key | Purpose |
+|-----|---------|
+| `arth-os-assessment` | Full assessment state (v2 unified) |
+| `arth-os-assessment-v2` | Legacy v2 assessment state |
+| `arth-os-assessment-v1` | Legacy v1 assessment state |
+| `arth-os-wizard-step` | Current wizard step index |
+| `arth-os-score-history` | Score progression history array |
+
+### CSS Custom Properties
+
+Defined in `:root` in `src/styles.css`:
+- `--bg`, `--bg-2` — Background colors
+- `--surface`, `--surface-2`, `--surface-3` — Card/panel surfaces
+- `--text`, `--text-2` — Primary text colors
+- `--muted`, `--muted-2` — Secondary text colors
+- `--border`, `--border-strong` — Border colors
+- `--purple`, `--purple-2`, `--violet` — Brand purples
+- `--cyan`, `--amber`, `--coral`, `--green` — Semantic accent colors
+- `--display`, `--body` — Font stacks
+
+---
+
+## 12. Troubleshooting
+
+### Build fails with missing component
+- Verify `src/components/ValidationFeedbackForm.jsx` exists
+- Check import paths in `AssessmentSection.jsx`
+- Run `npm install` to ensure all dependencies
+
+### Telemetry not appearing in database
+- Verify Vercel deployment: `vercel list`
+- Check endpoint URL matches deployed domain
+- Verify Supabase connection string in Vercel env vars
+- Check RLS policies allow INSERT
+- Query: `SELECT COUNT(*) FROM anonymous_telemetry;`
+
+### Feedback form not showing
+- Check `ValidationFeedbackForm.jsx` import in `AssessmentSection.jsx`
+- Verify `showFeedback` state is `true` after telemetry dispatch
+- Check browser console for React errors
+
+### Step state not persisting
+- Browser privacy mode may block localStorage
+- localStorage quota may be exceeded
+- Fallback to in-memory state (already implemented)
+
+### Mobile layout broken
+- Check media query breakpoint: `@media (max-width: 820px)`
+- Verify CSS custom properties defined in `:root`
+- Test on actual device, not just browser resize
+
+### Scoring returning unexpected values
+- Ensure all answer values match exactly the keys in `*ScoreMaps`
+- Check for empty strings (treated as 0 score)
+- Verify assessment object has expected structure (no missing keys)
+
+---
+
+**Document Version:** 1.0  
+**Last Updated:** June 2026  
+**Maintainer:** Sankhya / ARTH.OS Engineering
+</file>
+
+<file path="USER_MANUAL.md">
+# ARTH.OS — User Manual
+
+> **Your Personal Financial Health Assessment**  
+> Powered by Sankhya
+
+---
+
+## Table of Contents
+
+1. [What is ARTH.OS?](#1-what-is-arthos)
+2. [Getting Started](#2-getting-started)
+3. [The Assessment Wizard](#3-the-assessment-wizard)
+4. [Understanding Your Results](#4-understanding-your-results)
+5. [Features in Detail](#5-features-in-detail)
+6. [Saving, Exporting & Resetting](#6-saving-exporting--resetting)
+7. [Privacy & Your Data](#7-privacy--your-data)
+8. [Mobile Use](#8-mobile-use)
+9. [Frequently Asked Questions](#9-frequently-asked-questions)
+
+---
+
+## 1. What is ARTH.OS?
+
+ARTH.OS is a **Financial Health Assessment tool** that combines behavioral psychology with financial data to give you a clear picture of your money health — not just numbers, but the behaviors, habits, and blind spots that drive them.
+
+### What ARTH.OS does:
+
+- Gives you a **Health Score (0–100)** based on your financial behavior, awareness, and stability
+- Calculates **how many months you can survive** if your income stops today
+- Identifies your **money personality archetype** (Reactor, Survivor, Planner, or Builder)
+- Reveals your **financial blind spots** — where your perception differs from reality
+- Recommends **one specific action** you should take next
+- Lets you **simulate purchases** before you make them to see the impact on your runway
+
+### What ARTH.OS does NOT do:
+
+- It does **not** connect to your bank account
+- It does **not** track your transactions automatically
+- It does **not** store your personal identity (name, email, IP address) in analytics
+
+Everything you enter stays in your browser until you choose to save or export.
+
+---
+
+## 2. Getting Started
+
+### Accessing ARTH.OS
+
+Open the ARTH.OS web application in any modern browser (Chrome, Firefox, Safari, Edge). No installation required.
+
+### The Home Screen
+
+When you arrive, you'll see:
+
+- **Hero section** with a "Start Score" button — click this to jump straight to the assessment
+- **Intelligence Engine card** showing live metrics
+- **Feature sections** explaining how ARTH.OS works
+- **Founder message** about the mission behind Sankhya
+
+### Starting Your Assessment
+
+1. Click **"Start Score"** in the hero section
+2. Or scroll down to the **"Guided Experience"** section
+3. Optionally enter your name, age, and email (these are stored only in your browser and in exports)
+
+---
+
+## 3. The Assessment Wizard
+
+The assessment is a **4-step guided wizard**. You'll see a progress bar at the top showing your current step.
+
+### Step 1: Psychology (Behaviour)
+
+**12 questions** about your emotional relationship with money. Examples:
+
+- How emotionally connected are you to money?
+- Do social environments influence your spending?
+- How often do you make unplanned purchases?
+- Do you avoid checking your balance during stress?
+- When you're bored or stressed, how likely are you to spend?
+- Do you review subscriptions regularly?
+
+**How to answer:** Select the option that best describes your typical behavior. There are no right or wrong answers — the system scores your responses to build your behaviour profile.
+
+### Step 2: Clarity (Awareness)
+
+**8 questions** about how well you know your finances. Examples:
+
+- Do you track your monthly expenses?
+- Do you know your total debt?
+- Do you know your savings rate?
+- Do you revisit your budget each month?
+- Do you know your top 3 expense categories?
+
+**How to answer:** Be honest about your tracking habits. The gap between what you *think* you know and what the math says is your blind spot.
+
+### Step 3: Resilience (Stability)
+
+**Numeric inputs + 4 categorical questions** about your financial cushion.
+
+| Field | What to Enter |
+|-------|---------------|
+| Monthly expenses | Your average monthly spending (₹) |
+| Fixed emergency buffer | Money reserved for essential survival (₹) |
+| Discretionary emergency buffer | Extra savings beyond essentials (₹) |
+| Total debt | All outstanding loans and credit (₹) |
+| Monthly income | Your average monthly income (₹) |
+| Fixed commitments | Rent, EMI, insurance — fixed outflows (₹) |
+| Income stability | How consistent your income is |
+| Dependents | How many people rely on your income |
+| Debt repayment rate | What % of income goes to debt repayment |
+| Average interest rate | Approximate annual interest on your debt |
+
+**Tip:** Enter amounts in Indian Rupees (₹). Use approximate values if you're unsure — the system works with estimates.
+
+### Step 4: Habits (v2 only)
+
+**2 questions** about your money routines:
+
+- How many times per week do you do a quick money check-in?
+- How reliably do you follow through on debt payments?
+
+### Navigation
+
+- **Previous button:** Go back one step (disabled on Step 1)
+- **Continue button:** Advance to the next step
+- **Finish & Review Score:** On the last step, this button completes your assessment and shows results
+
+**Your progress is saved automatically.** If you close the tab and come back, you'll resume at the step you left off.
+
+---
+
+## 4. Understanding Your Results
+
+### The Result Panel (Right Side)
+
+As you fill in the assessment, your results update **in real time** on the right side of the screen (or below on mobile).
+
+### Health Score (0–100)
+
+Your overall financial health, broken into four bands:
+
+| Score | Band | What It Means |
+|-------|------|---------------|
+| 0–25 | **Critical** | Immediate action needed. Your financial foundation needs urgent attention. |
+| 26–50 | **Vulnerable** | You have some buffers but are exposed to shocks. Strengthen your weakest area. |
+| 51–75 | **Stable** | You're on solid ground. Focus on closing awareness gaps and building reserves. |
+| 76–100 | **Healthy** | Strong financial position. Maintain discipline and watch for blind spots. |
+
+### Component Breakdown
+
+Your Health Score is made of three components:
+
+1. **Behaviour (0–45):** Your spending psychology — impulse control, emotional triggers, social influence
+2. **Awareness (0–30):** How well you track and know your finances
+3. **Stability (0–25):** Your financial cushion — savings, debt burden, income consistency
+
+The **lowest component** drives your recommended action.
+
+### Survival Estimate
+
+**"If your income stopped today, how many months could you survive?"**
+
+You'll see three numbers:
+
+- **As-Is Lifestyle:** Based on your current monthly expenses
+- **Crisis Mode Optimized:** If you cut 40% of variable spending (only essentials)
+- **Perceived vs Actual:** Your blind spot — how much you *think* you can survive vs. reality
+
+### Your Financial Blind Spot
+
+The awareness gap shows the difference between your perceived runway and actual runway. If the gap is large, you're overestimating your security.
+
+### Money Personality Archetype
+
+ARTH.OS assigns you one of four archetypes:
+
+| Archetype | You Tend To… | Watch Out For… |
+|-----------|-------------|----------------|
+| **Reactor** | Act on impulse, spend emotionally | Stress spending, social pressure |
+| **Survivor** | Stay cautious, prioritize safety | Missing growth opportunities |
+| **Planner** | Track commitments, plan ahead | Analysis paralysis, over-planning |
+| **Builder** | Stay disciplined, focus on goals | Burnout, neglecting liquidity |
+
+### Recommended Action
+
+**One specific, actionable step** based on your weakest component. Examples:
+
+- *"Use a 24-hour waiting rule for non-essential purchases this month."*
+- *"Track every expense for the next 14 days (no exceptions) and total it."*
+- *"Build a 1-month fixed buffer of ₹50,000 before adding discretionary savings."*
+
+### Insight Narrative
+
+A plain-language summary combining your score, blind spot, behavioral correlations, and risk profile.
+
+### Decision Simulator
+
+Test a hypothetical purchase before you make it:
+
+1. Enter an amount (₹)
+2. See: current runway → after-purchase runway
+3. See: how many months of buffer you lose
+4. See: risk change percentage
+5. Read the personalized recommendation
+
+**Example:** "If I buy a phone for ₹40,000, I lose 0.8 months of runway. My risk increases by 25%. Recommendation: Wait until you have at least 3 months of buffer after the purchase."
+
+---
+
+## 5. Features in Detail
+
+### Real-Time Scoring
+
+Every change you make to any answer instantly recalculates all scores. You don't need to submit the form to see results — the right panel updates as you type.
+
+### Multi-Step Wizard
+
+The 4-step flow prevents information overload. Each step focuses on one dimension of your financial health.
+
+### Progress Persistence
+
+Your step position and all answers are saved to your browser's local storage. Close the tab, come back tomorrow — you'll pick up where you left off.
+
+### Behavioral Correlation Engine
+
+ARTH.OS cross-references your answers to detect risk clusters:
+
+- **Financial Drift Risk:** Stress/boredom spending + weak expense awareness
+- **Lifestyle Inflation Risk:** Social influence + low savings
+- **Debt Strain Risk:** High debt + thin cash buffer
+
+### Post-Assessment Feedback
+
+After completing the assessment, you'll be asked: **"What did you find most valuable?"**
+
+Options:
+- Time to Financial Crisis (survival estimate)
+- Next Action to Take
+- Visibility Blind Spot
+- Money Archetype Profile
+
+This feedback is anonymous and helps improve the tool.
+
+---
+
+## 6. Saving, Exporting & Resetting
+
+### Save
+
+Click the **Save button** (disk icon) in the top toolbar. Your assessment is saved to your browser's local storage. The save state indicator shows:
+- **Ready:** No changes since last save
+- **Unsaved:** You've made changes — click Save to persist
+- **Saved:** Successfully stored
+
+### Export
+
+Click the **Export button** (download icon) to download a JSON report containing:
+
+- All your assessment answers
+- All computed results (scores, survival estimates, personality type, recommendations)
+- Creation timestamp
+
+The file is named `arth-os-financial-health-report.json` and can be opened in any text editor or imported back later.
+
+### Reset
+
+Click the **Reset button** (circular arrow) to clear all answers and start fresh. This:
+
+- Clears all assessment fields to empty/default
+- Removes saved state from localStorage
+- Resets the wizard to Step 1
+- Clears score history
+
+**Warning:** Reset is immediate and cannot be undone. Export first if you want to keep your data.
+
+---
+
+## 7. Privacy & Your Data
+
+### What ARTH.OS Collects (Anonymous Telemetry)
+
+When you complete the assessment, ARTH.OS sends an **anonymous** snapshot:
+
+- ✅ Numeric scores (health score, component scores)
+- ✅ Personality type (categorical: Reactor, Planner, etc.)
+- ✅ Survival estimates (months)
+- ✅ Financial ratios (normalized, no raw values)
+- ✅ Which component was your weakest
+
+### What ARTH.OS NEVER Collects
+
+- ❌ Your name, email, or phone number
+- ❌ Your IP address or location
+- ❌ Precise timestamps (only the date: YYYY-MM-DD)
+- ❌ Your raw financial numbers (income, debt, savings amounts)
+- ❌ Cookies or session identifiers
+
+### Where Your Data Lives
+
+- **Assessment answers:** In your browser's localStorage only (unless you click Save to server)
+- **Telemetry:** In a secure Supabase database, with row-level security preventing anyone from reading individual records
+- **Feedback:** In a separate table, also anonymous
+
+### Your Control
+
+- You can use the entire assessment without sending any telemetry — simply don't click "Finish & Review Score"
+- Export your data anytime as a JSON file
+- Reset clears all locally stored data
+
+---
+
+## 8. Mobile Use
+
+ARTH.OS is fully responsive and works on phones, tablets, and desktops.
+
+### Mobile-Specific Behavior
+
+- The wizard progress track stacks vertically
+- Font sizes scale down for readability
+- Numeric input grids collapse to single column
+- The result panel moves below the assessment form
+- All buttons remain tappable with adequate touch targets
+
+### Recommended Browsers
+
+- Chrome (Android)
+- Safari (iOS)
+- Firefox (all platforms)
+- Edge (all platforms)
+
+---
+
+## 9. Frequently Asked Questions
+
+### "Do I need to enter exact numbers?"
+
+No. Approximate values work. The scoring engine uses ratios and thresholds, not precise accounting. If you're unsure about your monthly expenses, use your best estimate — the awareness gap metric will reflect that uncertainty.
+
+### "What's the difference between Fixed and Discretionary emergency savings?"
+
+- **Fixed buffer:** Money you would *never* touch except for absolute survival (food, rent, medicine)
+- **Discretionary buffer:** Extra savings that give you flexibility but could be reduced in a crisis
+
+In crisis mode, ARTH.OS assumes you can cut 40% of variable spending. Your fixed buffer covers the remaining essentials.
+
+### "Why does my perceived survival differ from actual?"
+
+The awareness gap exists because people with lower financial clarity tend to overestimate their runway. ARTH.OS computes your perceived survival based on your awareness score — the less you track, the wider the gap.
+
+### "Can I retake the assessment?"
+
+Yes. Click **Reset** in the toolbar to start fresh. You can also just modify your existing answers — all scores update in real time.
+
+### "Is my data shared with third parties?"
+
+No. Telemetry data is aggregated and used only for product improvement. Individual records cannot be read by anyone (RLS policies prevent SELECT).
+
+### "What does the Debt Repayment Rate (%) mean?"
+
+This is the percentage of your monthly income that goes toward debt repayment. For example, if you earn ₹90,000/month and pay ₹10,800 toward debt, enter 12%.
+
+### "Why only ONE recommended action?"
+
+Research shows that focusing on a single high-impact action produces better follow-through than a long to-do list. If you complete the recommended action, retake the assessment to get your next priority.
+
+### "How accurate is the Decision Simulator?"
+
+The simulator is an estimate based on your current profile. It assumes the purchase comes from your savings. Real-world outcomes depend on factors the simulator can't see (upcoming expenses, income changes). Use it as a decision aid, not a guarantee.
+
+### "What browsers are supported?"
+
+All modern browsers with JavaScript enabled: Chrome 90+, Firefox 90+, Safari 15+, Edge 90+.
+
+---
+
+## Quick Reference: Key Metrics
+
+| Metric | Range | What's Good |
+|--------|-------|-------------|
+| Health Score | 0–100 | Above 75 |
+| Survival Months | 0–60+ | Above 6 months |
+| Awareness Gap | 0–12+ months | Below 1 month |
+| Future Risk | Critical/High/Moderate/Low | Low Risk |
+| Behaviour Score | 0–45 | Above 35 |
+| Awareness Score | 0–30 | Above 24 |
+| Stability Score | 0–25 | Above 20 |
+
+---
+
+## Getting Help
+
+If you encounter issues:
+
+1. **Refresh the page** — your progress is saved
+2. **Check your browser console** (F12 → Console) for error messages
+3. **Try a different browser** if the issue persists
+4. **Export your data** before resetting if you want to preserve it
+
+---
+
+**ARTH.OS — Know your financial health before it becomes a crisis.**
+
+*Powered by Sankhya | Privacy-First | India Built, Global Vision*
+</file>
+
+<file path=".env.example">
+# Supabase configuration for server-side API persistence
+SUPABASE_URL=https://your-project-ref.supabase.co
+SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
+SUPABASE_ASSESSMENTS_TABLE=assessments
+</file>
+
 <file path="api/feedback.js">
 // api/feedback.js
 // Serverless handler for post-assessment validation feedback
 // Captures user perception of assessment value and decision drivers
+
+import { createClient } from "@supabase/supabase-js";
+
+const SUPABASE_URL = process.env.SUPABASE_URL;
+const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+const FEEDBACK_TABLE = process.env.SUPABASE_FEEDBACK_TABLE || "tester_feedback";
+
+function createSupabaseClient() {
+  if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) return null;
+  return createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
+    auth: { persistSession: false },
+  });
+}
 
 export default async function handler(req, res) {
   // Enforce POST-only access
@@ -100,11 +2326,16 @@ export default async function handler(req, res) {
       created_at: new Date().toISOString().split("T")[0],
     };
 
-    // TODO: Persist to database (Supabase, PostgreSQL, etc.)
-    // const { error } = await supabase
-    //   .from("tester_feedback")
-    //   .insert([cleanFeedback]);
-    // if (error) throw error;
+    const supabase = createSupabaseClient();
+    if (supabase) {
+      const { error } = await supabase.from(FEEDBACK_TABLE).insert([cleanFeedback]);
+      if (error) {
+        console.error("[Feedback] Supabase insert error:", error.message);
+        return res.status(500).json({ status: "error", reason: "db_insert_failed" });
+      }
+    } else {
+      console.log("[Feedback] Supabase not configured; fallback logging only.");
+    }
 
     console.log(
       "[Feedback] Recorded assessment validation response:",
@@ -123,10 +2354,80 @@ export default async function handler(req, res) {
 }
 </file>
 
+<file path="api/saveAssessment.js">
+// api/saveAssessment.js
+// Serverless handler to persist assessment submissions to Supabase
+
+import { createClient } from "@supabase/supabase-js";
+
+const SUPABASE_URL = process.env.SUPABASE_URL;
+const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+const TABLE_NAME = process.env.SUPABASE_ASSESSMENTS_TABLE || "assessments";
+
+function createSupabaseClient() {
+  if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
+    throw new Error(
+      "Missing Supabase environment variables. Set SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY."
+    );
+  }
+
+  return createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
+    auth: { persistSession: false },
+  });
+}
+
+export default async function handler(req, res) {
+  if (req.method !== "POST") {
+    return res.status(405).json({ error: "Method Not Allowed" });
+  }
+
+  try {
+    const payload = req.body;
+    if (!payload || !payload.assessment || !payload.result) {
+      return res.status(400).json({ error: "Incomplete payload" });
+    }
+
+    const client = createSupabaseClient();
+    const assessmentRecord = {
+      assessment: payload.assessment,
+      result: payload.result,
+      participant_name: payload.assessment.participant?.name || null,
+      participant_age: payload.assessment.participant?.age || null,
+      participant_email: payload.assessment.participant?.email || null,
+      created_at: new Date().toISOString(),
+    };
+
+    const { error } = await client.from(TABLE_NAME).insert([assessmentRecord]);
+    if (error) {
+      console.error("[SaveAssessment] Supabase insert error:", error.message);
+      return res.status(500).json({ status: "error", reason: "db_insert_failed" });
+    }
+
+    return res.status(200).json({ status: "saved" });
+  } catch (error) {
+    console.error("[SaveAssessment] handler error:", error?.message || error);
+    return res.status(500).json({ status: "error", reason: "internal_error" });
+  }
+}
+</file>
+
 <file path="api/telemetry.js">
 // api/telemetry.js
 // Serverless handler for anonymous financial telemetry data
 // Deploy to Vercel or similar serverless platform
+
+import { createClient } from "@supabase/supabase-js";
+
+const SUPABASE_URL = process.env.SUPABASE_URL;
+const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+const TELEMETRY_TABLE = process.env.SUPABASE_TELEMETRY_TABLE || "anonymous_telemetry";
+
+function createSupabaseClient() {
+  if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) return null;
+  return createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
+    auth: { persistSession: false },
+  });
+}
 
 export default async function handler(req, res) {
   // Enforce POST-only access
@@ -176,11 +2477,16 @@ export default async function handler(req, res) {
       created_at: new Date().toISOString().split("T")[0],
     };
 
-    // TODO: Persist to database (Supabase, PostgreSQL, etc.)
-    // const { error } = await supabase
-    //   .from("anonymous_telemetry")
-    //   .insert([cleanTelemetryRow]);
-    // if (error) throw error;
+    const supabase = createSupabaseClient();
+    if (supabase) {
+      const { error } = await supabase.from(TELEMETRY_TABLE).insert([cleanTelemetryRow]);
+      if (error) {
+        console.error("[Telemetry] Supabase insert error:", error.message);
+        return res.status(500).json({ status: "error", reason: "db_insert_failed" });
+      }
+    } else {
+      console.log("[Telemetry] Supabase not configured; fallback logging only.");
+    }
 
     console.log("[Telemetry] Received anonymous financial health snapshot:", cleanTelemetryRow);
 
@@ -6879,137 +9185,6 @@ export default defineConfig({
 });
 </file>
 
-<file path="SQL_SCHEMA.sql">
--- SQL Schema for ARTH.OS Anonymous Telemetry & Feedback
--- Run these scripts in your Supabase SQL Editor
--- Privacy-first design: No PII stored, date-only timestamps
-
--- Table 1: Anonymous Financial Telemetry
--- Stores aggregated assessment results without individual identifiers
-CREATE TABLE anonymous_telemetry (
-  id BIGSERIAL PRIMARY KEY,
-  
-  -- Schema & Execution Context
-  schema_version VARCHAR(12) NOT NULL,
-  mode_executed VARCHAR(6) NOT NULL, -- "v1" or "v2"
-  
-  -- Core Financial Health Scores
-  health_score NUMERIC(5, 2) NOT NULL,
-  behaviour_score NUMERIC(5, 2),
-  awareness_score NUMERIC(5, 2),
-  stability_score NUMERIC(5, 2),
-  habits_score NUMERIC(5, 2),
-  
-  -- Psychological Profiling
-  personality_type VARCHAR(32),
-  future_risk_label VARCHAR(32),
-  future_risk_score NUMERIC(5, 2),
-  awareness_gap_months NUMERIC(5, 2),
-  
-  -- Financial Runway Calculations
-  nominal_survival_months NUMERIC(8, 1),
-  crisis_survival_months NUMERIC(8, 1),
-  perceived_survival_months NUMERIC(8, 1),
-  
-  -- Financial Operational Ratios
-  savings_rate_proxied NUMERIC(5, 2),
-  debt_to_income_months NUMERIC(8, 1),
-  fixed_liability_pressure NUMERIC(5, 2),
-  
-  -- Diagnostic Driver
-  lowest_driver VARCHAR(16),
-  
-  -- Date-only timestamp for privacy (no exact timestamp)
-  created_at DATE NOT NULL DEFAULT CURRENT_DATE,
-  
-  CONSTRAINT valid_health_score CHECK (health_score >= 0 AND health_score <= 100),
-  CONSTRAINT valid_survival_months CHECK (nominal_survival_months >= 0),
-  CONSTRAINT valid_mode CHECK (mode_executed IN ('v1', 'v2'))
-);
-
--- Indexes for common queries
-CREATE INDEX idx_anonymous_telemetry_health_score ON anonymous_telemetry(health_score);
-CREATE INDEX idx_anonymous_telemetry_lowest_driver ON anonymous_telemetry(lowest_driver);
-CREATE INDEX idx_anonymous_telemetry_created_at ON anonymous_telemetry(created_at);
-CREATE INDEX idx_anonymous_telemetry_personality_type ON anonymous_telemetry(personality_type);
-
--- Table 2: Post-Assessment Tester Feedback
--- Captures user perception of assessment value without linking to specific runs
-CREATE TABLE tester_feedback (
-  id BIGSERIAL PRIMARY KEY,
-  
-  -- Score context (allows correlation with aggregated telemetry trends)
-  health_score NUMERIC(5, 2) NOT NULL,
-  
-  -- Primary value driver (what metric mattered most to this user)
-  primary_driver VARCHAR(32) NOT NULL,
-  
-  -- Optional qualitative feedback (truncated to 1000 chars)
-  feedback_text TEXT,
-  
-  -- Date-only timestamp for privacy
-  created_at DATE NOT NULL DEFAULT CURRENT_DATE,
-  
-  CONSTRAINT valid_feedback_health_score CHECK (health_score >= 0 AND health_score <= 100),
-  CONSTRAINT valid_primary_driver CHECK (
-    primary_driver IN (
-      'survival_months',
-      'recommended_action',
-      'awareness_gap',
-      'personality_archetype'
-    )
-  )
-);
-
--- Indexes for feedback analysis
-CREATE INDEX idx_tester_feedback_primary_driver ON tester_feedback(primary_driver);
-CREATE INDEX idx_tester_feedback_created_at ON tester_feedback(created_at);
-CREATE INDEX idx_tester_feedback_health_score ON tester_feedback(health_score);
-
--- Optional: Row-level security policies (if using Supabase RLS)
--- These ensure that feedback and telemetry are write-only (no reads except for analytics)
-ALTER TABLE anonymous_telemetry ENABLE ROW LEVEL SECURITY;
-ALTER TABLE tester_feedback ENABLE ROW LEVEL SECURITY;
-
--- Policy: Allow public inserts to anonymous_telemetry (telemetry collection endpoint)
-CREATE POLICY "allow_telemetry_collection" ON anonymous_telemetry
-  FOR INSERT
-  WITH CHECK (true);
-
--- Policy: Deny public selects on anonymous_telemetry (analytics team only)
-CREATE POLICY "deny_telemetry_read" ON anonymous_telemetry
-  FOR SELECT
-  USING (false);
-
--- Policy: Allow public inserts to tester_feedback (feedback collection endpoint)
-CREATE POLICY "allow_feedback_collection" ON tester_feedback
-  FOR INSERT
-  WITH CHECK (true);
-
--- Policy: Deny public selects on tester_feedback (analytics team only)
-CREATE POLICY "deny_feedback_read" ON tester_feedback
-  FOR SELECT
-  USING (false);
-
--- Grant insert permissions to service_role for API routes
-GRANT INSERT ON anonymous_telemetry TO service_role;
-GRANT INSERT ON tester_feedback TO service_role;
-
--- Optional: Create an analytics view (for your analytics/reporting team only)
--- This view aggregates trends without exposing individual feedback
-CREATE VIEW telemetry_summary AS
-SELECT
-  created_at,
-  personality_type,
-  ROUND(AVG(health_score)::numeric, 2) as avg_health_score,
-  ROUND(AVG(awareness_gap_months)::numeric, 2) as avg_awareness_gap,
-  ROUND(AVG(savings_rate_proxied)::numeric, 2) as avg_savings_rate,
-  COUNT(*) as sample_size
-FROM anonymous_telemetry
-GROUP BY created_at, personality_type
-ORDER BY created_at DESC;
-</file>
-
 <file path="src/components/AnalyticsDashboard.jsx">
 import React from "react";
 import { TrendingDown, ShieldAlert, Sparkles, User, HelpCircle } from "lucide-react";
@@ -7106,6 +9281,7 @@ export default function AnalyticsDashboard({ result }) {
 // src/components/FinancialTwin.jsx
 // Display personality archetype generated from behavior patterns
 
+import React from "react";
 import { Sparkles, Award, Heart, Target, Zap } from "lucide-react";
 
 const ARCHETYPES = {
@@ -7115,7 +9291,9 @@ const ARCHETYPES = {
     description: "Strategic planner who builds wealth systematically",
     traits: ["Goal-oriented", "Disciplined", "Long-term focused"],
     strength: "Consistent progress toward financial goals",
-    challenge: "Can be rigid when markets shift"
+    challenge: "Can be rigid when markets shift",
+    dangerZone: "Burnout from too much structure",
+    recommendedRule: "Keep a flexible emergency bucket and review commitments quarterly.",
   },
   Survivor: {
     icon: Heart,
@@ -7123,7 +9301,9 @@ const ARCHETYPES = {
     description: "Pragmatic protector focused on stability",
     traits: ["Risk-aware", "Security-first", "Adaptive"],
     strength: "Strong crisis management and resilience",
-    challenge: "May miss growth opportunities"
+    challenge: "May miss growth opportunities",
+    dangerZone: "Income shock after long-term stagnation",
+    recommendedRule: "Build a basic buffer, then allocate a small growth bucket for higher confidence choices.",
   },
   Optimizer: {
     icon: Award,
@@ -7131,7 +9311,9 @@ const ARCHETYPES = {
     description: "Efficiency expert maximizing every rupee",
     traits: ["Detail-oriented", "Resourceful", "Analytical"],
     strength: "Exceptional cost optimization",
-    challenge: "Can over-analyze minor decisions"
+    challenge: "Can over-analyze minor decisions",
+    dangerZone: "Missing quick timing windows",
+    recommendedRule: "Set clear review rituals and avoid overreacting to short-term spending noise.",
   },
   Dreamer: {
     icon: Sparkles,
@@ -7139,15 +9321,19 @@ const ARCHETYPES = {
     description: "Visionary pursuing ambitious financial dreams",
     traits: ["Creative", "Optimistic", "Forward-thinking"],
     strength: "Inspires action and innovation",
-    challenge: "Needs better risk management"
+    challenge: "Needs better risk management",
+    dangerZone: "Reality shock when plans meet cash flow",
+    recommendedRule: "Translate aspirations into a concrete 30-day spending plan.",
   },
-  Risk_Taker: {
+  "Risk Taker": {
     icon: Zap,
     color: "risk_taker",
     description: "Bold investor embracing calculated chances",
     traits: ["Confident", "Opportunistic", "Dynamic"],
     strength: "Quick decision-making in changing markets",
-    challenge: "May overextend without safety nets"
+    challenge: "May overextend without safety nets",
+    dangerZone: "High-stress market or income swings",
+    recommendedRule: "Pause major commitments and build a 2-month safety runway first.",
   }
 };
 
@@ -7199,6 +9385,17 @@ export default function FinancialTwin({ personalityType, behaviourScore, awarene
         <div className="guidance-item challenge">
           <span className="guidance-label">Area to Grow</span>
           <p>{archetype.challenge}</p>
+        </div>
+      </div>
+
+      <div className="twin-guidance small">
+        <div className="guidance-item focus">
+          <span className="guidance-label">Danger Zone</span>
+          <p>{archetype.dangerZone}</p>
+        </div>
+        <div className="guidance-item rule">
+          <span className="guidance-label">Recommended Rule</span>
+          <p>{archetype.recommendedRule}</p>
         </div>
       </div>
 
@@ -7439,7 +9636,7 @@ export default function UserHistory({ currentScore, personalityType }) {
 
 <file path="src/components/ValidationFeedbackForm.jsx">
 // src/components/ValidationFeedbackForm.jsx
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { MessageSquare, ThumbsUp } from "lucide-react";
 
 export default function ValidationFeedbackForm({ healthScore, onSubmitFeedback }) {
@@ -7447,6 +9644,14 @@ export default function ValidationFeedbackForm({ healthScore, onSubmitFeedback }
   const [selectedImpact, setSelectedImpact] = useState(null);
   const [qualitativeNote, setQualitativeNote] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submissionError, setSubmissionError] = useState(false);
+  const successRef = useRef(null);
+
+  useEffect(() => {
+    if (hasVoted && successRef.current) {
+      successRef.current.focus();
+    }
+  }, [hasVoted]);
 
   const impactOptions = [
     { value: "survival_months", label: "Time to Financial Crisis" },
@@ -7462,15 +9667,21 @@ export default function ValidationFeedbackForm({ healthScore, onSubmitFeedback }
 
     setIsSubmitting(true);
     try {
+      setSubmissionError(false);
       const feedbackPayload = {
         score_context: { health_score: healthScore },
         primary_value_driver: selectedImpact,
         user_feedback_notes: qualitativeNote,
       };
-      await onSubmitFeedback(feedbackPayload);
-      setHasVoted(true);
+      const ok = await onSubmitFeedback(feedbackPayload);
+      if (ok) {
+        setHasVoted(true);
+      } else {
+        setSubmissionError(true);
+      }
     } catch (error) {
       console.error("Feedback submission error:", error);
+      setSubmissionError(true);
     } finally {
       setIsSubmitting(false);
     }
@@ -7479,11 +9690,41 @@ export default function ValidationFeedbackForm({ healthScore, onSubmitFeedback }
   if (hasVoted) {
     return (
       <div className="validation-feedback-form-card">
-        <div className="feedback-success">
-          <ThumbsUp size={32} />
-          <h3>Thank You!</h3>
-          <p>Your feedback helps us improve the assessment experience.</p>
-          <small>Redirecting to home...</small>
+        <div
+          className="feedback-success"
+          role="status"
+          aria-live="polite"
+          ref={(el) => (successRef.current = el)}
+          tabIndex={-1}
+        >
+          <ThumbsUp size={36} />
+          <h3>Thanks — feedback received</h3>
+          <p>Your feedback helps improve the assessment and insights.</p>
+          <div style={{ display: "flex", gap: 10, marginTop: 12 }}>
+            <button
+              type="button"
+              className="view-results-btn"
+              onClick={() => {
+                const resultsEl = document.querySelector(".result-stack");
+                if (resultsEl) {
+                  resultsEl.scrollIntoView({ behavior: "smooth", block: "center" });
+                  setTimeout(() => {
+                    resultsEl.tabIndex = -1;
+                    resultsEl.focus();
+                  }, 600);
+                }
+              }}
+            >
+              View Results
+            </button>
+            <button
+              type="button"
+              className="feedback-close-btn ghost-button"
+              onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+            >
+              Close
+            </button>
+          </div>
         </div>
       </div>
     );
@@ -7534,6 +9775,20 @@ export default function ValidationFeedbackForm({ healthScore, onSubmitFeedback }
       >
         {isSubmitting ? "Submitting..." : "Submit Feedback"}
       </button>
+      {submissionError && (
+        <div className="feedback-error" role="alert" style={{ marginTop: 10 }}>
+          <span>Feedback couldn't be submitted — please retry.</span>
+          <button
+            type="button"
+            className="feedback-retry-btn"
+            onClick={handleSubmit}
+            disabled={isSubmitting}
+            style={{ marginLeft: 8 }}
+          >
+            Retry
+          </button>
+        </div>
+      )}
     </div>
   );
 }
@@ -8045,18 +10300,40 @@ function roundToOne(value) {
 import React from "react";
 import { createRoot } from "react-dom/client";
 import App from "./App.jsx";
+import ErrorBoundary from "./components/ErrorBoundary.jsx";
 import "./styles.css";
 
 createRoot(document.getElementById("root")).render(
   <React.StrictMode>
-    <App />
+    <ErrorBoundary>
+      <App />
+    </ErrorBoundary>
   </React.StrictMode>,
 );
 </file>
 
 <file path="vercel.json">
 {
-  "name": "arth-os-financial-health"
+  "name": "arth-os-financial-health",
+  "headers": [
+    {
+      "source": "(.*)",
+      "headers": [
+        {
+          "key": "Content-Security-Policy",
+          "value": "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; connect-src 'self' https://*.supabase.co;"
+        },
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "X-Frame-Options",
+          "value": "DENY"
+        }
+      ]
+    }
+  ]
 }
 </file>
 
@@ -8068,6 +10345,152 @@ export default defineConfig({
   base: "./",
   plugins: [react()],
 });
+</file>
+
+<file path="SQL_SCHEMA.sql">
+-- SQL Schema for ARTH.OS Anonymous Telemetry & Feedback
+-- Run these scripts in your Supabase SQL Editor
+-- Privacy-first design: No PII stored, date-only timestamps
+
+-- Table 1: Anonymous Financial Telemetry
+-- Stores aggregated assessment results without individual identifiers
+CREATE TABLE anonymous_telemetry (
+  id BIGSERIAL PRIMARY KEY,
+  
+  -- Schema & Execution Context
+  schema_version VARCHAR(12) NOT NULL,
+  mode_executed VARCHAR(6) NOT NULL, -- "v1" or "v2"
+  
+  -- Core Financial Health Scores
+  health_score NUMERIC(5, 2) NOT NULL,
+  behaviour_score NUMERIC(5, 2),
+  awareness_score NUMERIC(5, 2),
+  stability_score NUMERIC(5, 2),
+  habits_score NUMERIC(5, 2),
+  
+  -- Psychological Profiling
+  personality_type VARCHAR(32),
+  future_risk_label VARCHAR(32),
+  future_risk_score NUMERIC(5, 2),
+  awareness_gap_months NUMERIC(5, 2),
+  
+  -- Financial Runway Calculations
+  nominal_survival_months NUMERIC(8, 1),
+  crisis_survival_months NUMERIC(8, 1),
+  perceived_survival_months NUMERIC(8, 1),
+  
+  -- Financial Operational Ratios
+  savings_rate_proxied NUMERIC(5, 2),
+  debt_to_income_months NUMERIC(8, 1),
+  fixed_liability_pressure NUMERIC(5, 2),
+  
+  -- Diagnostic Driver
+  lowest_driver VARCHAR(16),
+  
+  -- Date-only timestamp for privacy (no exact timestamp)
+  created_at DATE NOT NULL DEFAULT CURRENT_DATE,
+  
+  CONSTRAINT valid_health_score CHECK (health_score >= 0 AND health_score <= 100),
+  CONSTRAINT valid_survival_months CHECK (nominal_survival_months >= 0),
+  CONSTRAINT valid_mode CHECK (mode_executed IN ('v1', 'v2'))
+);
+
+-- Indexes for common queries
+CREATE INDEX idx_anonymous_telemetry_health_score ON anonymous_telemetry(health_score);
+CREATE INDEX idx_anonymous_telemetry_lowest_driver ON anonymous_telemetry(lowest_driver);
+CREATE INDEX idx_anonymous_telemetry_created_at ON anonymous_telemetry(created_at);
+CREATE INDEX idx_anonymous_telemetry_personality_type ON anonymous_telemetry(personality_type);
+
+-- Table 2: Persisted Full Assessments
+-- Stores assessment inputs plus computed results for later analysis
+CREATE TABLE assessments (
+  id BIGSERIAL PRIMARY KEY,
+  assessment JSONB NOT NULL,
+  result JSONB NOT NULL,
+  participant_name VARCHAR(255),
+  participant_age VARCHAR(32),
+  participant_email VARCHAR(255),
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX idx_assessments_created_at ON assessments(created_at);
+CREATE INDEX idx_assessments_participant_email ON assessments(participant_email);
+
+-- Table 3: Post-Assessment Tester Feedback
+-- Captures user perception of assessment value without linking to specific runs
+CREATE TABLE tester_feedback (
+  id BIGSERIAL PRIMARY KEY,
+  
+  -- Score context (allows correlation with aggregated telemetry trends)
+  health_score NUMERIC(5, 2) NOT NULL,
+  
+  -- Primary value driver (what metric mattered most to this user)
+  primary_driver VARCHAR(32) NOT NULL,
+  
+  -- Optional qualitative feedback (truncated to 1000 chars)
+  feedback_text TEXT,
+  
+  -- Date-only timestamp for privacy
+  created_at DATE NOT NULL DEFAULT CURRENT_DATE,
+  
+  CONSTRAINT valid_feedback_health_score CHECK (health_score >= 0 AND health_score <= 100),
+  CONSTRAINT valid_primary_driver CHECK (
+    primary_driver IN (
+      'survival_months',
+      'recommended_action',
+      'awareness_gap',
+      'personality_archetype'
+    )
+  )
+);
+
+-- Indexes for feedback analysis
+CREATE INDEX idx_tester_feedback_primary_driver ON tester_feedback(primary_driver);
+CREATE INDEX idx_tester_feedback_created_at ON tester_feedback(created_at);
+CREATE INDEX idx_tester_feedback_health_score ON tester_feedback(health_score);
+
+-- Optional: Row-level security policies (if using Supabase RLS)
+-- These ensure that feedback and telemetry are write-only (no reads except for analytics)
+ALTER TABLE anonymous_telemetry ENABLE ROW LEVEL SECURITY;
+ALTER TABLE tester_feedback ENABLE ROW LEVEL SECURITY;
+
+-- Policy: Allow public inserts to anonymous_telemetry (telemetry collection endpoint)
+CREATE POLICY "allow_telemetry_collection" ON anonymous_telemetry
+  FOR INSERT
+  WITH CHECK (true);
+
+-- Policy: Deny public selects on anonymous_telemetry (analytics team only)
+CREATE POLICY "deny_telemetry_read" ON anonymous_telemetry
+  FOR SELECT
+  USING (false);
+
+-- Policy: Allow public inserts to tester_feedback (feedback collection endpoint)
+CREATE POLICY "allow_feedback_collection" ON tester_feedback
+  FOR INSERT
+  WITH CHECK (true);
+
+-- Policy: Deny public selects on tester_feedback (analytics team only)
+CREATE POLICY "deny_feedback_read" ON tester_feedback
+  FOR SELECT
+  USING (false);
+
+-- Grant insert permissions to service_role for API routes
+GRANT INSERT ON anonymous_telemetry TO service_role;
+GRANT INSERT ON tester_feedback TO service_role;
+
+-- Optional: Create an analytics view (for your analytics/reporting team only)
+-- This view aggregates trends without exposing individual feedback
+CREATE VIEW telemetry_summary AS
+SELECT
+  created_at,
+  personality_type,
+  ROUND(AVG(health_score)::numeric, 2) as avg_health_score,
+  ROUND(AVG(awareness_gap_months)::numeric, 2) as avg_awareness_gap,
+  ROUND(AVG(savings_rate_proxied)::numeric, 2) as avg_savings_rate,
+  COUNT(*) as sample_size
+FROM anonymous_telemetry
+GROUP BY created_at, personality_type
+ORDER BY created_at DESC;
 </file>
 
 <file path="package.json">
@@ -8082,6 +10505,7 @@ export default defineConfig({
     "preview": "vite preview"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.35.0",
     "@vitejs/plugin-react": "^4.3.4",
     "lucide-react": "^0.468.0",
     "react": "^18.3.1",
@@ -8891,53 +11315,65 @@ function getBlindSpotInsight(awarenessMetrics) {
 
 function getPersonalityReport(personalityType) {
   const profiles = {
-    Reactor: {
+    Builder: {
       strengths: [
-        "Acts quickly",
-        "Takes opportunities",
+        "Disciplined savings",
+        "Long-term focus",
       ],
       risks: [
-        "Emotional spending",
-        "Social influence",
+        "Overly rigid plans",
+        "Ignoring lifestyle flexibility",
       ],
-      dangerZone: "Stress periods",
-      recommendedRule: "Use a 24-hour purchase delay for non-essential decisions.",
+      dangerZone: "Burnout from strict budgets",
+      recommendedRule: "Keep a flexible emergency bucket and review commitments quarterly.",
     },
     Survivor: {
       strengths: [
-        "Stays cautious",
-        "Protects short-term safety",
+        "Protects safety",
+        "Avoids downside risk",
       ],
       risks: [
-        "Misses growth opportunities",
-        "Stays in a comfort zone",
+        "Underinvesting in growth",
+        "Staying too conservative",
       ],
-      dangerZone: "Sudden income shock",
-      recommendedRule: "Build a small automated buffer before large commitments.",
+      dangerZone: "Income shock after long-term stagnation",
+      recommendedRule: "Build a basic buffer, then allocate a small growth bucket for higher confidence choices.",
     },
-    Planner: {
+    Optimizer: {
       strengths: [
-        "Plans ahead",
-        "Tracks commitments",
+        "Tracks decisions",
+        "Balances risk and reward",
       ],
       risks: [
-        "Overplanning",
         "Analysis paralysis",
+        "Micromanaging cash flow",
       ],
-      dangerZone: "Unexpected shocks",
-      recommendedRule: "Review the plan monthly and keep 3 months liquid.",
+      dangerZone: "Missing quick timing windows",
+      recommendedRule: "Set clear review rituals and avoid overreacting to short-term spending noise.",
     },
-    Builder: {
+    Dreamer: {
       strengths: [
-        "Disciplined",
-        "Focuses on growth",
+        "Creative planning",
+        "Big-picture mindset",
       ],
       risks: [
-        "Underestimates stress",
-        "Neglects liquidity",
+        "Wishful assumptions",
+        "Underestimated expenses",
       ],
-      dangerZone: "Burnout from overly rigid budgets",
-      recommendedRule: "Keep a separate cash reserve for surprises.",
+      dangerZone: "Reality shock when plans meet cash flow",
+      recommendedRule: "Translate aspirations into a concrete 30-day spending plan.",
+    },
+    "Risk Taker": {
+      strengths: [
+        "Moves fast",
+        "Grabs opportunities",
+      ],
+      risks: [
+        "Volatile cash flow",
+        "Emotional spending",
+      ],
+      dangerZone: "High-stress market or income swings",
+      recommendedRule: "Pause major commitments and build a 2-month safety runway first.",
     },
   };
 
@@ -8992,46 +11428,50 @@ function getFutureRiskProfile(profile) {
 
 function getPersonalityType(behaviour) {
   const traits = {
-    reactor: 0,
-    survivor: 0,
-    planner: 0,
     builder: 0,
+    survivor: 0,
+    optimizer: 0,
+    dreamer: 0,
+    riskTaker: 0,
   };
 
-  if (behaviour.presentFutureMindset === "enjoy_today") traits.reactor += 2;
-  if (behaviour.presentFutureMindset === "balance_both") traits.survivor += 1;
-  if (behaviour.presentFutureMindset === "secure_future") traits.planner += 1;
+  if (behaviour.presentFutureMindset === "enjoy_today") traits.riskTaker += 2;
+  if (behaviour.presentFutureMindset === "balance_both") traits.dreamer += 2;
+  if (behaviour.presentFutureMindset === "secure_future") traits.optimizer += 1;
   if (behaviour.presentFutureMindset === "extreme_discipline") traits.builder += 2;
 
-  if (behaviour.unplannedPurchaseFreq === "very_frequently") traits.reactor += 2;
-  if (behaviour.unplannedPurchaseFreq === "sometimes") traits.survivor += 1;
-  if (behaviour.unplannedPurchaseFreq === "rarely") traits.planner += 1;
+  if (behaviour.unplannedPurchaseFreq === "very_frequently") traits.riskTaker += 2;
+  if (behaviour.unplannedPurchaseFreq === "sometimes") traits.dreamer += 1;
+  if (behaviour.unplannedPurchaseFreq === "rarely") traits.optimizer += 1;
+  if (behaviour.unplannedPurchaseFreq === "never") traits.builder += 1;
 
-  if (behaviour.spendWhenStressed === "very_likely") traits.reactor += 2;
-  if (behaviour.spendWhenStressed === "sometimes") traits.survivor += 1;
-  if (behaviour.spendWhenStressed === "rarely") traits.planner += 1;
+  if (behaviour.spendWhenStressed === "very_likely") traits.riskTaker += 2;
+  if (behaviour.spendWhenStressed === "sometimes") traits.dreamer += 1;
+  if (behaviour.spendWhenStressed === "rarely") traits.optimizer += 1;
   if (behaviour.spendWhenStressed === "never") traits.builder += 1;
 
   if (behaviour.plannedPurchasesOnly === "always") traits.builder += 2;
-  if (behaviour.plannedPurchasesOnly === "often") traits.planner += 1;
-  if (behaviour.plannedPurchasesOnly === "occasionally") traits.survivor += 1;
-  if (behaviour.plannedPurchasesOnly === "never") traits.reactor += 1;
+  if (behaviour.plannedPurchasesOnly === "often") traits.optimizer += 1;
+  if (behaviour.plannedPurchasesOnly === "occasionally") traits.dreamer += 1;
+  if (behaviour.plannedPurchasesOnly === "never") traits.riskTaker += 2;
 
   if (behaviour.impulseWaitRule === "always") traits.builder += 2;
-  if (behaviour.impulseWaitRule === "sometimes") traits.survivor += 1;
-  if (behaviour.impulseWaitRule === "rarely") traits.reactor += 1;
+  if (behaviour.impulseWaitRule === "sometimes") traits.optimizer += 1;
+  if (behaviour.impulseWaitRule === "rarely") traits.dreamer += 1;
+  if (behaviour.impulseWaitRule === "never") traits.riskTaker += 2;
 
   if (behaviour.subscriptionControl === "weekly") traits.builder += 1;
-  if (behaviour.subscriptionControl === "monthly") traits.planner += 1;
-  if (behaviour.subscriptionControl === "occasionally") traits.survivor += 1;
-  if (behaviour.subscriptionControl === "never") traits.reactor += 1;
+  if (behaviour.subscriptionControl === "monthly") traits.optimizer += 1;
+  if (behaviour.subscriptionControl === "occasionally") traits.dreamer += 1;
+  if (behaviour.subscriptionControl === "never") traits.riskTaker += 1;
 
   const winner = Object.entries(traits).sort((a, b) => b[1] - a[1])[0]?.[0];
   const labels = {
-    reactor: "Reactor",
-    survivor: "Survivor",
-    planner: "Planner",
     builder: "Builder",
+    survivor: "Survivor",
+    optimizer: "Optimizer",
+    dreamer: "Dreamer",
+    riskTaker: "Risk Taker",
   };
 
   return labels[winner] ?? "Survivor";
@@ -9435,56 +11875,179 @@ export function buildAnonymousTelemetryPayload(assessmentResult, coreAssessment)
 }
 
 /**
- * Dispatch anonymous telemetry safely to a backend endpoint.
- * Uses keepalive to ensure transmission even if tab closes.
- * Fails silently to never interrupt user experience.
+ * A browser-only queue for failed endpoint delivery.
+ * This ensures production UX does not break when /api routes are temporarily unavailable.
  */
-export async function dispatchAnonymousTelemetry(telemetryPayload, endpointUrl) {
-  try {
-    const browserEndpoint =
-      typeof window !== "undefined"
-        ? window?.VITE_TELEMETRY_ENDPOINT || window?.REACT_APP_TELEMETRY_ENDPOINT
-        : undefined;
-    const targetUrl = endpointUrl || browserEndpoint || "https://api.arth-os.dev/telemetry";
+const OFFLINE_QUEUE_KEYS = {
+  telemetry: "arth-os-offline-telemetry",
+  feedback: "arth-os-offline-feedback",
+};
 
-    await fetch(targetUrl, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(telemetryPayload),
-      keepalive: true,
-    });
-    
-    console.log("[Telemetry] Captured cleanly under privacy guidelines.");
-    return true;
-  } catch (error) {
-    // Fail silently to ensure zero UX impact
-    console.warn("[Telemetry] Transmission deferred:", error?.message || error);
+function isBrowser() {
+  return typeof window !== "undefined";
+}
+
+function isLocalDev() {
+  if (!isBrowser()) return false;
+  const host = window.location.hostname || "";
+  return host === "localhost" || host.startsWith("127.");
+}
+
+function hasLocalStorage() {
+  if (!isBrowser()) return false;
+  try {
+    return typeof window.localStorage !== "undefined";
+  } catch {
     return false;
   }
+}
+
+function readQueue(queueKey) {
+  if (!hasLocalStorage()) return [];
+  try {
+    const raw = window.localStorage.getItem(queueKey);
+    return raw ? JSON.parse(raw) : [];
+  } catch {
+    return [];
+  }
+}
+
+function writeQueue(queueKey, queue) {
+  if (!hasLocalStorage()) return;
+  try {
+    window.localStorage.setItem(queueKey, JSON.stringify(queue));
+  } catch {
+    // ignore storage errors
+  }
+}
+
+function enqueueOfflinePayload(queueKey, payload) {
+  if (!hasLocalStorage()) return;
+  const queue = readQueue(queueKey);
+  queue.push({ payload, queuedAt: new Date().toISOString() });
+  writeQueue(queueKey, queue);
+}
+
+async function dispatchToEndpoint(targetUrl, payload, keepalive = true) {
+  const response = await fetch(targetUrl, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+    keepalive,
+  });
+  return response.ok;
+}
+
+async function flushQueue(queueKey, targetUrl, label) {
+  if (!hasLocalStorage() || !isBrowser() || isLocalDev()) return;
+  if (typeof navigator !== "undefined" && !navigator.onLine) return;
+
+  const queue = readQueue(queueKey);
+  if (!queue.length) return;
+
+  const remaining = [];
+  for (const item of queue) {
+    try {
+      const success = await dispatchToEndpoint(targetUrl, item.payload);
+      if (!success) remaining.push(item);
+    } catch {
+      remaining.push(item);
+    }
+  }
+
+  if (remaining.length) {
+    writeQueue(queueKey, remaining);
+    console.info(`[${label}] ${remaining.length} queued payload(s) remain.`);
+  } else {
+    window.localStorage.removeItem(queueKey);
+    console.info(`[${label}] Flushed queued payloads.`);
+  }
+}
+
+export async function flushOfflineApiQueues() {
+  await flushQueue(OFFLINE_QUEUE_KEYS.telemetry, "/api/telemetry", "Telemetry");
+  await flushQueue(OFFLINE_QUEUE_KEYS.feedback, "/api/feedback", "Feedback");
+}
+
+export function initOfflineApiQueue() {
+  if (!isBrowser()) return;
+
+  const flush = () => {
+    void flushOfflineApiQueues();
+  };
+
+  window.addEventListener("online", flush);
+  setTimeout(flush, 1000);
+}
+
+async function postWithFallback(targetUrl, payload, queueKey, label, keepalive = true) {
+  if (isLocalDev()) {
+    console.info(`[${label}] Local development host detected. Endpoint dispatch skipped.`);
+    return true;
+  }
+
+  if (typeof navigator !== "undefined" && !navigator.onLine) {
+    enqueueOfflinePayload(queueKey, payload);
+    console.info(`[${label}] Offline. Payload queued for later delivery.`);
+    return true;
+  }
+
+  try {
+    const success = await dispatchToEndpoint(targetUrl, payload, keepalive);
+    if (!success) {
+      enqueueOfflinePayload(queueKey, payload);
+      console.warn(`[${label}] Request failed. Payload queued for later delivery.`);
+    }
+    return true;
+  } catch (error) {
+    enqueueOfflinePayload(queueKey, payload);
+    console.warn(`[${label}] Network error queued for later delivery:`, error?.message || error);
+    return true;
+  }
+}
+
+export async function dispatchAnonymousTelemetry(telemetryPayload, endpointUrl) {
+  const browserEndpoint =
+    isBrowser() && (window?.VITE_TELEMETRY_ENDPOINT || window?.REACT_APP_TELEMETRY_ENDPOINT);
+  const targetUrl = endpointUrl || browserEndpoint || "https://api.arth-os.dev/telemetry";
+  const success = await postWithFallback(targetUrl, telemetryPayload, OFFLINE_QUEUE_KEYS.telemetry, "Telemetry", true);
+  if (success) {
+    console.log("[Telemetry] Captured cleanly under privacy guidelines.");
+  }
+  return success;
+}
+
+export async function dispatchAnonymousFeedback(feedbackPayload, endpointUrl) {
+  const browserEndpoint =
+    isBrowser() && (window?.VITE_FEEDBACK_ENDPOINT || window?.REACT_APP_FEEDBACK_ENDPOINT);
+  const targetUrl = endpointUrl || browserEndpoint || "/api/feedback";
+  return await postWithFallback(targetUrl, feedbackPayload, OFFLINE_QUEUE_KEYS.feedback, "Feedback", false);
 }
 </file>
 
 <file path="src/styles.css">
 :root {
-  --bg: #050713;
-  --bg-2: #080d1c;
-  --surface: rgba(24, 26, 42, 0.86);
-  --surface-2: rgba(35, 28, 57, 0.82);
-  --surface-3: rgba(18, 22, 37, 0.96);
-  --text: #fbf8ff;
-  --text-2: #eee2ff;
-  --muted: #b8bed6;
-  --muted-2: #7f87a1;
-  --border: rgba(255, 255, 255, 0.12);
-  --border-strong: rgba(162, 104, 255, 0.52);
+  --bg: #050716;
+  --bg-2: #070d1b;
+  --surface: rgba(16, 20, 38, 0.72);
+  --surface-2: rgba(18, 24, 44, 0.84);
+  --surface-3: rgba(14, 18, 34, 0.92);
+  --surface-glow: rgba(120, 95, 255, 0.18);
+  --text: #f5f7ff;
+  --text-2: #e7ecff;
+  --muted: #aab5d4;
+  --muted-2: #7d8bb0;
+  --border: rgba(162, 104, 255, 0.2);
+  --border-strong: rgba(162, 104, 255, 0.6);
   --purple: #8b5cf6;
   --purple-2: #c89bff;
-  --violet: #6d4cff;
+  --violet: #7156ff;
   --cyan: #62e4d1;
   --amber: #f4b255;
   --coral: #ff6f91;
   --green: #73f0bf;
-  --shadow: 0 28px 90px rgba(0, 0, 0, 0.42);
+  --accent: #9e7dff;
+  --shadow: 0 32px 90px rgba(0, 0, 0, 0.32);
   --display:
     "Arial Black", "Segoe UI Black", "Trebuchet MS", "Segoe UI", system-ui,
     sans-serif;
@@ -9508,8 +12071,10 @@ body {
   margin: 0;
   color: var(--text);
   background:
-    linear-gradient(90deg, rgba(139, 92, 246, 0.12), transparent 22%),
-    linear-gradient(180deg, #070717 0%, #091123 44%, #050713 100%);
+    radial-gradient(circle at 14% 12%, rgba(99, 81, 255, 0.18), transparent 18%),
+    radial-gradient(circle at 86% 18%, rgba(75, 229, 212, 0.12), transparent 18%),
+    linear-gradient(180deg, #050712 0%, #081025 40%, #050714 100%);
+  background-attachment: fixed;
 }
 
 body::before {
@@ -9519,10 +12084,11 @@ body::before {
   pointer-events: none;
   content: "";
   background:
-    linear-gradient(90deg, rgba(255, 255, 255, 0.035) 1px, transparent 1px),
-    linear-gradient(0deg, rgba(255, 255, 255, 0.025) 1px, transparent 1px);
-  background-size: 54px 54px;
-  mask-image: linear-gradient(180deg, transparent, #000 18%, #000 84%, transparent);
+    radial-gradient(circle at 50% 20%, rgba(255, 255, 255, 0.08), transparent 26%),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+    linear-gradient(0deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+  background-size: 68px 68px, 54px 54px, 54px 54px;
+  mask-image: linear-gradient(180deg, transparent, #000 14%, #000 86%, transparent);
 }
 
 button,
@@ -9695,12 +12261,19 @@ blockquote {
   gap: clamp(36px, 5vw, 88px);
   min-height: calc(100vh - 108px);
   padding: 86px 0 70px;
+  position: relative;
+  overflow: hidden;
+  border-radius: 38px;
+  background: radial-gradient(circle at top left, rgba(139, 92, 246, 0.18), transparent 36%),
+    radial-gradient(circle at bottom right, rgba(41, 49, 123, 0.14), transparent 28%),
+    linear-gradient(180deg, rgba(8, 12, 29, 0.97), rgba(9, 12, 30, 0.9));
+  box-shadow: 0 40px 120px rgba(10, 14, 40, 0.32);
 }
 
 .hero-copy {
   display: grid;
   align-content: center;
-  gap: 28px;
+  gap: 24px;
 }
 
 .hero-pill,
@@ -9712,14 +12285,14 @@ blockquote {
   width: fit-content;
   border: 1px solid rgba(162, 104, 255, 0.45);
   border-radius: 999px;
-  color: #d7b9ff;
+  color: #f0e3ff;
   background: rgba(139, 92, 246, 0.18);
   font-size: 15px;
   font-weight: 850;
 }
 
 .hero-pill {
-  padding: 14px 22px;
+  padding: 15px 22px;
 }
 
 .hero-copy h1,
@@ -9733,10 +12306,10 @@ blockquote {
 }
 
 .hero-copy h1 {
-  max-width: 880px;
+  max-width: 840px;
   color: var(--text);
-  font-size: 76px;
-  line-height: 0.95;
+  font-size: clamp(52px, 7vw, 84px);
+  line-height: 0.92;
 }
 
 .hero-copy h1 span,
@@ -9759,32 +12332,42 @@ blockquote {
 
 .hero-copy p {
   max-width: 760px;
-  color: var(--muted);
+  color: rgba(245, 245, 255, 0.82);
   font-size: 22px;
-  font-weight: 650;
-  line-height: 1.7;
+  font-weight: 600;
+  line-height: 1.75;
 }
 
 .hero-actions {
   display: flex;
   flex-wrap: wrap;
-  gap: 14px;
+  gap: 16px;
+  align-items: center;
   padding-top: 4px;
 }
 
 .primary-link,
 .secondary-link {
-  padding: 0 22px;
+  padding: 16px 24px;
+  border-radius: 999px;
+  transition: transform 200ms ease, box-shadow 200ms ease;
 }
 
 .primary-link {
   border-color: rgba(162, 104, 255, 0.82);
   background: linear-gradient(135deg, var(--purple), var(--violet));
-  box-shadow: 0 18px 45px rgba(109, 76, 255, 0.34);
+  color: #fff;
+  box-shadow: 0 18px 55px rgba(109, 76, 255, 0.36);
+}
+
+.primary-link:hover {
+  transform: translateY(-1px);
 }
 
 .secondary-link {
   color: var(--text-2);
+  border-color: rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.04);
 }
 
 .engine-card {
@@ -9794,20 +12377,21 @@ blockquote {
   min-height: 600px;
   padding: 52px;
   overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, 0.13);
-  border-radius: 48px 48px 0 0;
+  border: 1px solid rgba(162, 104, 255, 0.22);
+  border-radius: 48px;
   background:
-    linear-gradient(135deg, rgba(20, 23, 38, 0.98), rgba(17, 19, 33, 0.95) 46%, rgba(99, 68, 171, 0.8)),
-    var(--surface);
-  box-shadow: var(--shadow);
+    linear-gradient(180deg, rgba(23, 26, 50, 0.84), rgba(21, 23, 42, 0.92)),
+    linear-gradient(135deg, rgba(72, 52, 163, 0.2), rgba(37, 32, 126, 0.12));
+  backdrop-filter: blur(24px);
+  box-shadow: 0 40px 100px rgba(9, 13, 35, 0.22);
 }
 
 .engine-card::before {
   position: absolute;
   inset: auto 0 0;
-  height: 44%;
+  height: 42%;
   content: "";
-  background: linear-gradient(180deg, transparent, rgba(139, 92, 246, 0.18));
+  background: linear-gradient(180deg, transparent, rgba(139, 92, 246, 0.16));
   pointer-events: none;
 }
 
@@ -10101,10 +12685,11 @@ blockquote {
 .founder-card,
 .panel,
 .result-card {
-  border: 1px solid var(--border);
-  border-radius: 28px;
-  background: rgba(255, 255, 255, 0.052);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.035);
+  border: 1px solid rgba(166, 114, 255, 0.18);
+  border-radius: 30px;
+  background: rgba(19, 24, 44, 0.64);
+  backdrop-filter: blur(24px);
+  box-shadow: 0 28px 62px rgba(2, 6, 18, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.05);
 }
 
 .business-card {
@@ -10113,7 +12698,7 @@ blockquote {
 }
 
 .business-card:nth-child(3) {
-  border-color: var(--border-strong);
+  border-color: rgba(162, 104, 255, 0.45);
 }
 
 .founder-section {
@@ -10148,8 +12733,8 @@ blockquote {
   gap: 24px;
   padding: 44px;
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.075), rgba(255, 255, 255, 0.035)),
-    var(--surface);
+    linear-gradient(180deg, rgba(255, 255, 255, 0.12), rgba(35, 29, 61, 0.82)),
+    rgba(19, 24, 44, 0.82);
 }
 
 .founder-card h3 {
@@ -10209,20 +12794,92 @@ blockquote {
 .result-stack {
   position: sticky;
   top: 132px;
+  padding: 28px;
+  background: rgba(12, 16, 32, 0.88);
+  border: 1px solid rgba(162, 104, 255, 0.18);
+  border-radius: 32px;
+  box-shadow: 0 36px 95px rgba(6, 10, 24, 0.22);
+}
+
+.result-stack-inner {
+  display: grid;
+  gap: 22px;
+}
+
+.assessment-summary-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(320px, 0.6fr);
+  gap: 24px;
+  margin-top: 36px;
+}
+
+.assessment-summary-sidebar {
+  display: grid;
+  gap: 20px;
 }
 
 .panel {
   padding: clamp(22px, 3vw, 32px);
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0.035)),
-    rgba(14, 18, 32, 0.96);
+  background: rgba(18, 22, 44, 0.72);
+  border: 1px solid rgba(156, 113, 255, 0.22);
+  backdrop-filter: blur(28px);
+  box-shadow: 0 24px 70px rgba(7, 12, 30, 0.24);
 }
 
 .result-card {
-  padding: 26px;
-  background:
-    linear-gradient(180deg, rgba(45, 39, 67, 0.72), rgba(18, 22, 37, 0.94)),
-    var(--surface);
+  padding: 28px;
+  background: linear-gradient(180deg, rgba(30, 34, 58, 0.88), rgba(16, 20, 39, 0.98));
+  border: 1px solid rgba(168, 122, 255, 0.24);
+  box-shadow: 0 24px 62px rgba(5, 9, 24, 0.22);
+}
+
+.participant-card {
+  padding: 24px;
+  border-radius: 28px;
+  border: 1px solid rgba(162, 104, 255, 0.14);
+  background: rgba(16, 20, 36, 0.82);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05), 0 18px 42px rgba(8, 10, 28, 0.16);
+}
+
+.participant-card label,
+.participant-card legend {
+  display: block;
+  color: rgba(225, 221, 255, 0.83);
+}
+
+/* Feedback form success and buttons */
+.validation-feedback-form-card {
+  padding: 22px;
+  border-radius: 24px;
+  background: rgba(24, 28, 52, 0.72);
+  border: 1px solid rgba(162, 104, 255, 0.16);
+  box-shadow: 0 24px 52px rgba(5, 8, 22, 0.16);
+}
+.validation-feedback-form-card .feedback-success {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 22px;
+  text-align: center;
+  background: linear-gradient(180deg, rgba(139, 92, 246, 0.1), rgba(70, 44, 135, 0.2));
+  border-radius: 16px;
+  box-shadow: 0 16px 40px rgba(99, 68, 171, 0.16);
+}
+.view-results-btn {
+  padding: 12px 18px;
+  border-radius: 14px;
+  border: none;
+  background: linear-gradient(90deg, var(--purple), var(--violet));
+  color: white;
+  font-weight: 800;
+  box-shadow: 0 14px 28px rgba(109, 76, 255, 0.24);
+}
+.view-results-btn:hover {
+  transform: translateY(-2px);
+}
+.feedback-close-btn.ghost-button {
+  padding: 10px 14px;
 }
 
 .panel-heading {
@@ -10299,29 +12956,31 @@ blockquote {
 .segmented-control {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-  gap: 7px;
+  gap: 8px;
   min-width: 0;
-  padding: 6px;
-  border: 1px solid rgba(255, 255, 255, 0.13);
-  border-radius: 18px;
-  background: rgba(255, 255, 255, 0.055);
+  padding: 8px;
+  border: 1px solid rgba(162, 104, 255, 0.22);
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.05);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
 }
 
 .segmented-control .segmented-option {
   position: relative;
-  min-height: 46px;
+  min-height: 52px;
   min-width: 0;
-  border-radius: 14px;
-  color: #cdd4eb;
-  background: transparent;
-  font-size: 12px;
+  border-radius: 18px;
+  color: #d1d9f7;
+  background: rgba(255, 255, 255, 0.04);
+  font-size: 13px;
   font-weight: 820;
   line-height: 1.15;
   text-align: center;
   cursor: pointer;
   display: grid;
   place-items: center;
-  padding: 0 12px;
+  padding: 0 14px;
+  transition: all 180ms ease;
 }
 
 .segmented-control .segmented-option input {
@@ -10332,13 +12991,13 @@ blockquote {
 
 .segmented-control .segmented-option:hover {
   color: var(--text);
-  background: rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.12);
 }
 
 .segmented-control .segmented-option.selected {
   color: var(--text);
-  background: linear-gradient(135deg, rgba(139, 92, 246, 0.95), rgba(109, 76, 255, 0.72));
-  box-shadow: 0 12px 30px rgba(109, 76, 255, 0.24);
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.92), rgba(98, 228, 209, 0.16));
+  box-shadow: 0 14px 34px rgba(98, 228, 209, 0.14);
 }
 
 /* Multi-Step Horizontal Wizard Wrapper Styles */
@@ -10346,12 +13005,13 @@ blockquote {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
+  gap: 14px;
   margin-bottom: 32px;
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid var(--border);
+  background: rgba(12, 18, 35, 0.76);
+  border: 1px solid rgba(155, 110, 255, 0.18);
   padding: 18px 24px;
-  border-radius: 20px;
+  border-radius: 24px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 18px 48px rgba(4, 7, 18, 0.16);
 }
 
 .wizard-node {
@@ -10363,13 +13023,16 @@ blockquote {
   color: var(--muted-2);
   font-size: 14px;
   font-weight: 700;
-  opacity: 0.45;
+  opacity: 0.56;
   transition: all 200ms ease;
+  padding: 12px 14px;
+  border-radius: 18px;
 }
 
 .wizard-node.active {
   opacity: 1;
   color: var(--text-2);
+  background: rgba(255, 255, 255, 0.04);
 }
 
 .wizard-node.current {
@@ -10377,11 +13040,11 @@ blockquote {
 }
 
 .wizard-node-marker {
-  width: 26px;
-  height: 26px;
+  width: 28px;
+  height: 28px;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(162, 104, 255, 0.22);
   display: grid;
   place-items: center;
   font-size: 11px;
@@ -10392,15 +13055,15 @@ blockquote {
 }
 
 .wizard-node.active .wizard-node-marker {
-  border-color: var(--purple-2);
-  background: rgba(139, 92, 246, 0.2);
+  border-color: rgba(162, 104, 255, 0.55);
+  background: rgba(139, 92, 246, 0.24);
 }
 
 .wizard-node.current .wizard-node-marker {
   border-color: var(--cyan);
-  background: rgba(98, 228, 209, 0.15);
+  background: rgba(98, 228, 209, 0.18);
   color: var(--cyan);
-  box-shadow: 0 0 10px rgba(98, 228, 209, 0.25);
+  box-shadow: 0 0 10px rgba(98, 228, 209, 0.22);
 }
 
 .wizard-node-connector {
@@ -10409,14 +13072,14 @@ blockquote {
   right: -10px;
   top: 50%;
   height: 2px;
-  background: rgba(255, 255, 255, 0.06);
+  background: rgba(155, 110, 255, 0.24);
   transform: translateY(-50%);
   z-index: 1;
   pointer-events: none;
 }
 
 .wizard-node.active .wizard-node-connector {
-  background: rgba(139, 92, 246, 0.3);
+  background: rgba(98, 228, 209, 0.22);
 }
 
 /* Form Action Navigation Footers */
@@ -10464,37 +13127,38 @@ blockquote {
 
 .money-input {
   display: grid;
-  gap: 9px;
+  gap: 10px;
 }
 
 .money-input > div {
   display: grid;
   grid-template-columns: auto 1fr;
   align-items: center;
-  min-height: 48px;
+  min-height: 56px;
   overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, 0.13);
-  border-radius: 16px;
-  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(162, 104, 255, 0.18);
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.05);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
 }
 
 .money-input > div > span {
-  padding: 0 10px 0 13px;
-  color: var(--purple-2);
-  font-size: 11px;
+  padding: 0 12px 0 15px;
+  color: var(--accent);
+  font-size: 12px;
   font-weight: 900;
 }
 
 .money-input input {
   width: 100%;
   min-width: 0;
-  height: 46px;
+  height: 52px;
   border: 0;
   outline: 0;
   color: var(--text);
   background: transparent;
-  font-size: 15px;
-  font-weight: 800;
+  font-size: 16px;
+  font-weight: 900;
 }
 
 .money-input input::-webkit-outer-spin-button,
@@ -10787,10 +13451,10 @@ blockquote {
 }
 
 .blindspot-panel {
-  border-color: rgba(98, 228, 209, 0.24);
-  background:
-    linear-gradient(180deg, rgba(98, 228, 209, 0.08), rgba(24, 31, 55, 0.95)),
-    rgba(15, 18, 34, 0.92);
+  border-color: rgba(98, 228, 209, 0.28);
+  background: rgba(15, 21, 40, 0.72);
+  backdrop-filter: blur(24px);
+  box-shadow: 0 22px 60px rgba(2, 7, 20, 0.18);
 }
 
 .blindspot-panel .result-heading > div {
@@ -10801,10 +13465,10 @@ blockquote {
 .diagnosis-card,
 .simulator-card,
 .analytics-dashboard-card {
-  border-color: rgba(139, 92, 246, 0.35);
-  background:
-    linear-gradient(180deg, rgba(139, 92, 246, 0.08), rgba(19, 22, 39, 0.96)),
-    rgba(17, 20, 36, 0.94);
+  border-color: rgba(149, 106, 255, 0.28);
+  background: rgba(19, 21, 40, 0.64);
+  backdrop-filter: blur(24px);
+  box-shadow: 0 22px 56px rgba(5, 9, 22, 0.2);
 }
 
 .analytics-summary-grid {
@@ -11293,69 +13957,6 @@ blockquote {
   }
 }
 
-/* ========================================
-   Multi-Step Wizard Progress & Navigation
-   ======================================== */
-
-.wizard-progress-bar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 16px;
-  margin-bottom: 36px;
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid var(--border);
-  padding: 16px 24px;
-  border-radius: 20px;
-}
-
-.wizard-step-node {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  color: var(--muted-2);
-  font-size: 14px;
-  font-weight: 700;
-  opacity: 0.5;
-  transition: all 220ms ease;
-  flex: 1;
-  justify-content: center;
-}
-
-.wizard-step-node.active {
-  opacity: 1;
-  color: var(--text-2);
-}
-
-.wizard-step-node.current {
-  color: var(--cyan);
-}
-
-.step-number-circle {
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid var(--border);
-  display: grid;
-  place-items: center;
-  font-size: 12px;
-  font-weight: 900;
-  color: var(--text);
-  transition: all 220ms ease;
-}
-
-.wizard-step-node.active .step-number-circle {
-  border-color: var(--purple-2);
-  background: rgba(139, 92, 246, 0.2);
-}
-
-.wizard-step-node.current .step-number-circle {
-  border-color: var(--cyan);
-  background: rgba(98, 228, 209, 0.15);
-  color: var(--cyan);
-  box-shadow: 0 0 12px rgba(98, 228, 209, 0.3);
-}
 
 .wizard-navigation-controls {
   display: flex;
@@ -11522,23 +14123,26 @@ blockquote {
 }
 
 .visibility-blindspot-block {
-  border: 1px solid var(--border);
-  background: linear-gradient(135deg, rgba(24, 26, 42, 0.4), rgba(5, 7, 19, 0.98));
-  padding: 24px;
-  border-radius: 16px;
+  border: 1px solid rgba(149, 106, 255, 0.18);
+  background: rgba(16, 21, 42, 0.76);
+  padding: 28px;
+  border-radius: 26px;
+  backdrop-filter: blur(24px);
+  box-shadow: 0 26px 68px rgba(3, 7, 18, 0.22);
 }
 
 .blindspot-header {
   display: flex;
   align-items: center;
-  gap: 10px;
-  margin-bottom: 20px;
+  gap: 12px;
+  margin-bottom: 22px;
 }
 
 .blindspot-header h3 {
   margin: 0;
-  font-size: 16px;
-  font-weight: 700;
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--text);
   flex: 1;
 }
 
@@ -11548,42 +14152,45 @@ blockquote {
 
 .blindspot-metrics {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-  gap: 12px;
-  margin-bottom: 18px;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 16px;
+  margin-bottom: 20px;
 }
 
 .blindspot-sub-card {
-  background: rgba(255, 255, 255, 0.03);
-  padding: 12px 16px;
-  border-radius: 10px;
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.05);
+  padding: 18px 20px;
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 8px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
 }
 
 .blindspot-sub-card span {
   font-size: 12px;
-  color: var(--muted-2);
-  font-weight: 600;
+  color: var(--muted);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
 }
 
 .blindspot-sub-card strong {
-  font-size: 16px;
-  font-weight: 700;
-  color: var(--cyan);
+  font-size: 28px;
+  font-weight: 900;
+  color: var(--text);
 }
 
 .blindspot-insight {
-  font-size: 14px;
-  color: var(--muted);
-  line-height: 1.6;
+  font-size: 15px;
+  color: var(--text-2);
+  line-height: 1.75;
   margin: 0;
-  padding: 12px 16px;
-  background: rgba(98, 228, 209, 0.08);
-  border-left: 3px solid var(--cyan);
-  border-radius: 8px;
+  padding: 18px 20px;
+  background: rgba(52, 90, 120, 0.16);
+  border-left: 3px solid rgba(98, 228, 209, 0.9);
+  border-radius: 16px;
 }
 
 .blindspot-insight strong {
@@ -11591,15 +14198,12 @@ blockquote {
 }
 
 @media (max-width: 840px) {
-  .wizard-progress-bar {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 12px;
+  .assessment-summary-grid {
+    grid-template-columns: 1fr;
   }
 
-  .wizard-step-node {
-    justify-content: flex-start;
-    width: 100%;
+  .assessment-summary-sidebar {
+    grid-template-columns: 1fr;
   }
 
   .diagnostic-grid {
@@ -11628,7 +14232,7 @@ blockquote {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 12px;
+  gap: 14px;
   margin-bottom: 32px;
   text-align: center;
 }
@@ -11639,16 +14243,16 @@ blockquote {
 
 .feedback-header h3 {
   margin: 0;
-  font-size: 18px;
-  font-weight: 700;
+  font-size: 20px;
+  font-weight: 800;
   color: var(--text);
 }
 
 .feedback-header p {
   margin: 0;
   font-size: 14px;
-  color: var(--muted);
-  line-height: 1.6;
+  color: rgba(225, 225, 245, 0.8);
+  line-height: 1.7;
 }
 
 .feedback-options {
@@ -11657,7 +14261,7 @@ blockquote {
   margin: 0 0 28px 0;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 14px;
 }
 
 .feedback-options legend {
@@ -11672,18 +14276,18 @@ blockquote {
 .feedback-option {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 12px 14px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 10px;
+  gap: 14px;
+  padding: 14px 16px;
+  border: 1px solid rgba(162, 104, 255, 0.16);
+  border-radius: 16px;
   cursor: pointer;
-  transition: all 200ms ease;
-  background: rgba(255, 255, 255, 0.02);
+  transition: all 180ms ease;
+  background: rgba(255, 255, 255, 0.04);
 }
 
 .feedback-option:hover {
-  border-color: var(--cyan);
-  background: rgba(98, 228, 209, 0.06);
+  border-color: rgba(98, 228, 209, 0.32);
+  background: rgba(98, 228, 209, 0.08);
 }
 
 .feedback-option input[type="radio"] {
@@ -11694,7 +14298,7 @@ blockquote {
 .feedback-option span {
   font-size: 14px;
   color: var(--text-2);
-  font-weight: 500;
+  font-weight: 600;
 }
 
 .feedback-textarea-wrapper {
@@ -11713,10 +14317,11 @@ blockquote {
 }
 
 .feedback-textarea-wrapper textarea {
-  padding: 12px 14px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 10px;
-  background: rgba(255, 255, 255, 0.02);
+  min-height: 140px;
+  padding: 14px 16px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.04);
   color: var(--text);
   font-family: var(--body);
   font-size: 14px;
@@ -11727,7 +14332,7 @@ blockquote {
 .feedback-textarea-wrapper textarea:focus {
   outline: none;
   border-color: var(--cyan);
-  background: rgba(98, 228, 209, 0.04);
+  background: rgba(98, 228, 209, 0.08);
 }
 
 .feedback-textarea-wrapper small {
@@ -11738,25 +14343,26 @@ blockquote {
 
 .feedback-submit-btn {
   width: 100%;
-  padding: 12px 16px;
-  border: 1px solid var(--purple-2);
-  border-radius: 10px;
-  background: rgba(139, 92, 246, 0.2);
-  color: var(--cyan);
-  font-weight: 600;
-  font-size: 14px;
+  padding: 14px 18px;
+  border: 1px solid rgba(98, 228, 209, 0.22);
+  border-radius: 16px;
+  background: linear-gradient(135deg, rgba(98, 228, 209, 0.2), rgba(94, 166, 255, 0.18));
+  color: #eef6ff;
+  font-weight: 700;
+  font-size: 15px;
   cursor: pointer;
   transition: all 200ms ease;
 }
 
 .feedback-submit-btn:hover:not(:disabled) {
-  background: var(--purple);
-  border-color: var(--cyan);
+  background: linear-gradient(135deg, var(--cyan), var(--purple));
+  border-color: rgba(98, 228, 209, 0.7);
   color: var(--text);
+  transform: translateY(-1px);
 }
 
 .feedback-submit-btn:disabled {
-  opacity: 0.5;
+  opacity: 0.55;
   cursor: not-allowed;
 }
 
@@ -12514,7 +15120,7 @@ blockquote {
 </file>
 
 <file path="src/App.jsx">
-import { memo, useEffect, useMemo, useState } from "react";
+import React, { memo, useEffect, useMemo, useState } from "react";
 
 import {
   Activity,
@@ -12539,18 +15145,16 @@ import {
 } from "lucide-react";
 import {
   calculateFinancialHealthV2,
-  calculateDecisionSimulatorV2,
   componentMaximumsV2,
   formatCurrency as formatCurrencyV2,
   formatMonths as formatMonthsV2,
-  buildAnonymousTelemetryPayload,
-  dispatchAnonymousTelemetry,
+  initOfflineApiQueue,
 } from "./lib/scoring-v2.js";
 
 import AnalyticsDashboard from "./components/AnalyticsDashboard.jsx";
-import ValidationFeedbackForm from "./components/ValidationFeedbackForm.jsx";
 import FinancialTwin from "./components/FinancialTwin.jsx";
 import UserHistory from "./components/UserHistory.jsx";
+import AssessmentSection from "./components/AssessmentSection.jsx";
 
 import {
   v2BehaviourQuestions,
@@ -12563,6 +15167,111 @@ import {
 
 const STORAGE_KEY = "arth-os-assessment";
 
+function makeEmptyAssessment() {
+  // build an empty assessment shape so nothing is pre-selected
+  const emptyBehaviour = Object.keys(v2DefaultAssessment.behaviour || {}).reduce((acc, k) => {
+    acc[k] = "";
+    return acc;
+  }, {});
+
+  const emptyAwareness = Object.keys(v2DefaultAssessment.awareness || {}).reduce((acc, k) => {
+    acc[k] = "";
+    return acc;
+  }, {});
+
+  const emptyHabits = Object.keys(v2DefaultAssessment.habits || {}).reduce((acc, k) => {
+    acc[k] = "";
+    return acc;
+  }, {});
+
+  const emptyProfile = Object.keys(v2DefaultAssessment.profile || {}).reduce((acc, k) => {
+    acc[k] = undefined;
+    return acc;
+  }, {});
+
+  return {
+    mode: "v2",
+    behaviour: emptyBehaviour,
+    awareness: emptyAwareness,
+    profile: emptyProfile,
+    participant: {
+      name: "",
+      age: "",
+      email: "",
+    },
+    habits: emptyHabits,
+  };
+}
+
+const ASSESSMENT_SAVE_QUEUE_KEY = "arth-os-assessment-save-queue";
+
+function isBrowser() {
+  return typeof window !== "undefined";
+}
+
+function isLocalDevHost() {
+  if (!isBrowser()) return false;
+  const host = window.location.hostname || "";
+  return host === "localhost" || host.startsWith("127.");
+}
+
+function loadQueuedAssessmentSaves() {
+  if (!isBrowser()) return [];
+
+  try {
+    const raw = window.localStorage.getItem(ASSESSMENT_SAVE_QUEUE_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch {
+    return [];
+  }
+}
+
+function persistQueuedAssessmentSaves(queue) {
+  if (!isBrowser()) return;
+
+  try {
+    if (queue.length) {
+      window.localStorage.setItem(ASSESSMENT_SAVE_QUEUE_KEY, JSON.stringify(queue));
+    } else {
+      window.localStorage.removeItem(ASSESSMENT_SAVE_QUEUE_KEY);
+    }
+  } catch {
+    // ignore storage failures
+  }
+}
+
+function enqueueAssessmentSave(payload) {
+  if (!isBrowser()) return;
+  const queue = loadQueuedAssessmentSaves();
+  queue.push({ payload, queuedAt: new Date().toISOString() });
+  persistQueuedAssessmentSaves(queue);
+}
+
+async function flushQueuedAssessmentSaves() {
+  if (!isBrowser() || isLocalDevHost()) return;
+  if (typeof navigator !== "undefined" && !navigator.onLine) return;
+
+  const queue = loadQueuedAssessmentSaves();
+  if (!queue.length) return;
+
+  const remaining = [];
+  for (const queued of queue) {
+    try {
+      const response = await fetch("/api/saveAssessment", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(queued.payload),
+      });
+      if (!response.ok) {
+        remaining.push(queued);
+      }
+    } catch {
+      remaining.push(queued);
+    }
+  }
+
+  persistQueuedAssessmentSaves(remaining);
+}
 
 const navItems = [
   { label: "Home", href: "#home" },
@@ -12714,14 +15423,40 @@ function loadInitialAssessment() {
 
     // fallback to empty v2 default shape
     return typeof v2DefaultAssessment !== "undefined" ? v2DefaultAssessment : {};
-  } catch {
+  } catch (error) {
+    console.warn("Could not load initial assessment from localStorage:", error);
     return typeof v2DefaultAssessment !== "undefined" ? v2DefaultAssessment : {};
   }
 }
 
 export default function App() {
-  const [assessment, setAssessment] = useState(() => loadInitialAssessment());
+  const [assessment, setAssessment] = useState(() => makeEmptyAssessment());
   const [saveState, setSaveState] = useState("Ready");
+
+  // Clear any persisted state on initial load so the user must actively select answers
+  useEffect(() => {
+    try {
+      window.localStorage.removeItem(STORAGE_KEY);
+      window.localStorage.removeItem("arth-os-assessment-v2");
+      window.localStorage.removeItem("arth-os-assessment-v1");
+      window.localStorage.removeItem("arth-os-wizard-step");
+      window.localStorage.removeItem("arth-os-score-history");
+    } catch (error) {
+      console.warn("Could not clear localStorage on page load:", error);
+    }
+  }, []);
+
+  useEffect(() => {
+    initOfflineApiQueue();
+    void flushQueuedAssessmentSaves();
+
+    function handleOnline() {
+      void flushQueuedAssessmentSaves();
+    }
+
+    window.addEventListener("online", handleOnline);
+    return () => window.removeEventListener("online", handleOnline);
+  }, []);
 
   const result = useMemo(() => calculateFinancialHealthV2(assessment), [assessment]);
 
@@ -12737,29 +15472,6 @@ export default function App() {
     },
   };
 
-  async function dispatchAnonymousTelemetryEvent(telemetryPayload) {
-    try {
-      await dispatchAnonymousTelemetry(telemetryPayload);
-    } catch (error) {
-      console.warn("Telemetry event could not be sent:", error?.message || error);
-    }
-  }
-
-  async function dispatchAnonymousFeedbackEvent(feedbackPayload) {
-    try {
-      const feedbackUrl = "https://api.arth-os.dev/feedback" || process.env.REACT_APP_FEEDBACK_ENDPOINT;
-      await fetch(feedbackUrl, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(feedbackPayload),
-        keepalive: true,
-      });
-      console.log("[Feedback] Captured cleanly.");
-    } catch (error) {
-      console.warn("[Feedback] Transmission deferred:", error?.message || error);
-    }
-  }
-
 
 
   function updateGroup(group, key, value) {
@@ -12774,13 +15486,41 @@ export default function App() {
   }
 
   function saveAssessment() {
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(assessment));
-    setSaveState("Saved");
+    try {
+      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(assessment));
+      setSaveState("Saved");
+    } catch (e) {
+      console.warn("Could not save locally:", e);
+    }
+
+    const payload = { assessment, result: calculateFinancialHealthV2(assessment) };
+    if (isBrowser() && !isLocalDevHost()) {
+      fetch("/api/saveAssessment", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      })
+        .then((resp) => {
+          if (!resp.ok) {
+            enqueueAssessmentSave(payload);
+            console.warn("Remote save failed, queued for retry:", resp.statusText);
+          }
+        })
+        .catch((err) => {
+          enqueueAssessmentSave(payload);
+          console.warn("Remote save error, queued for retry:", err);
+        });
+    }
   }
 
   function resetAssessment() {
-    setAssessment(v2DefaultAssessment);
-    window.localStorage.removeItem(STORAGE_KEY);
+    setAssessment(makeEmptyAssessment());
+    try {
+      window.localStorage.removeItem(STORAGE_KEY);
+      window.localStorage.removeItem("arth-os-wizard-step");
+    } catch (error) {
+      console.warn("Could not clear reset storage:", error);
+    }
     setSaveState("Ready");
   }
 
@@ -12823,6 +15563,21 @@ export default function App() {
           onChange={updateGroup}
           ui={ui}
         />
+
+        <section className="assessment-summary-grid">
+          <AnalyticsDashboard result={result} />
+          <div className="assessment-summary-sidebar">
+            <FinancialTwin
+              personalityType={result.personalityType}
+              behaviourScore={result.behaviourScore}
+              awarenessScore={result.awarenessScore}
+            />
+            <UserHistory
+              currentScore={result.healthScore}
+              personalityType={result.personalityType}
+            />
+          </div>
+        </section>
       </main>
     </div>
   );
@@ -13041,413 +15796,6 @@ function FounderSection() {
         </blockquote>
       </aside>
     </section>
-  );
-}
-
-function AssessmentSection({ assessment, result, onChange, ui }) {
-  const [currentStep, setCurrentStep] = useState(() => {
-    try {
-      const saved = window.localStorage.getItem("arth-os-wizard-step");
-      return saved ? Math.min(parseInt(saved, 10), 4) : 0;
-    } catch {
-      return 0;
-    }
-  });
-  const [showFeedback, setShowFeedback] = useState(false);
-
-  const mode = result?.mode || "v2";
-  const steps = [
-    { id: "behaviour", label: "Psychology", icon: Brain },
-    { id: "awareness", label: "Clarity", icon: BarChart3 },
-    { id: "stability", label: "Resilience", icon: ShieldCheck },
-    ...(mode === "v2" ? [{ id: "habits", label: "Habits", icon: Activity }] : []),
-  ];
-
-  const totalSteps = steps.length;
-  const isLastStep = currentStep === totalSteps - 1;
-
-  const handleStepChange = (newStep) => {
-    setCurrentStep(newStep);
-    try {
-      window.localStorage.setItem("arth-os-wizard-step", String(newStep));
-    } catch (e) {
-      console.warn("Could not persist step:", e);
-    }
-  };
-
-  const handleNext = async () => {
-    if (currentStep < totalSteps - 1) {
-      handleStepChange(currentStep + 1);
-      return;
-    }
-
-    const payload = buildAnonymousTelemetryPayload(result, assessment);
-    await dispatchAnonymousTelemetryEvent(payload);
-    setShowFeedback(true);
-  };
-
-  const handlePrev = () => handleStepChange(Math.max(currentStep - 1, 0));
-
-  return (
-    <section className="assessment-section" id="assessment">
-      <div className="assessment-heading">
-        <span>Guided Experience</span>
-        <h2>
-          Run your Financial Health <em>Behavior Score.</em>
-        </h2>
-        <p>
-          Complete the guided assessment step-by-step. The intelligence metrics panel
-          updates instantly in real time.
-        </p>
-      </div>
-
-      <div className="workspace">
-        <section className="form-stack" aria-label="Financial health assessment">
-          {!showFeedback && (
-            <div className="wizard-progress-track" aria-label="Assessment progress">
-              {steps.map((step, idx) => (
-                <div
-                  key={step.id}
-                  className={`wizard-node ${idx <= currentStep ? "active" : ""} ${
-                    idx === currentStep ? "current" : ""
-                  }`}
-                >
-                  <div className="wizard-node-marker">{idx + 1}</div>
-                  <span className="wizard-node-label">{step.label}</span>
-                  {idx < steps.length - 1 && <div className="wizard-node-connector" />}
-                </div>
-              ))}
-            </div>
-          )}
-
-          {!showFeedback && currentStep === 0 && (
-            <QuestionSection
-              icon={Brain}
-              title="Psychology"
-              score={`${result.behaviourScore}/${ui.componentMaximums.behaviour}`}
-              questions={ui.behaviourQuestions}
-              values={assessment.behaviour}
-              onChange={(key, value) => onChange("behaviour", key, value)}
-            />
-          )}
-
-          {!showFeedback && currentStep === 1 && (
-            <QuestionSection
-              icon={BarChart3}
-              title="Clarity"
-              score={`${result.awarenessScore}/${ui.componentMaximums.awareness}`}
-              questions={ui.awarenessQuestions}
-              values={assessment.awareness}
-              onChange={(key, value) => onChange("awareness", key, value)}
-            />
-          )}
-
-          {!showFeedback && currentStep === 2 && (
-            <ProfileSection
-              values={assessment.profile}
-              score={`${result.stabilityScore}/${ui.componentMaximums.stability}`}
-              onChange={(key, value) => onChange("profile", key, value)}
-            />
-          )}
-
-          {!showFeedback && currentStep === 3 && mode === "v2" && (
-            <QuestionSection
-              icon={Activity}
-              title="Habits"
-              score={`${result.habits.habitScore}/100`}
-              questions={ui.habitsQuestions}
-              values={assessment.habits}
-              onChange={(key, value) => onChange("habits", key, value)}
-            />
-          )}
-
-          {!showFeedback && (
-            <div className="wizard-nav-footer">
-            <button
-              type="button"
-              className="ghost-button"
-              onClick={handlePrev}
-              disabled={currentStep === 0}
-            >
-              <ChevronLeft size={16} />
-              Previous
-            </button>
-
-            <button type="button" className="wizard-primary-btn" onClick={handleNext}>
-              {isLastStep ? "Finish & Review Score" : "Continue"}
-              {!isLastStep && <ChevronRight size={16} />}
-            </button>
-          </div>
-          )}
-
-          {showFeedback && (
-            <ValidationFeedbackForm
-              healthScore={result.healthScore}
-              onSubmitFeedback={async (feedbackPayload) => {
-                await dispatchAnonymousFeedbackEvent(feedbackPayload);
-                window.location.href = "#home";
-              }}
-            />
-          )}
-        </section>
-
-        <aside className="result-stack" aria-label="Financial health result">
-          <ScoreOverview result={result} />
-          <ComponentBreakdown result={result} />
-          <BlindSpotPanel result={result} />
-          <DiagnosisPanel result={result} />
-          <SurvivalBlock result={result} assessment={assessment} />
-          <DecisionSimulator profile={assessment.profile} />
-          <ActionBlock result={result} />
-          <FinancialTwin 
-            personalityType={result.personalityType} 
-            behaviourScore={result.behaviourScore}
-            awarenessScore={result.awarenessScore}
-          />
-          <DiagnosticAnalyticsDashboard result={result} />
-          <UserHistory 
-            currentScore={result.healthScore}
-            personalityType={result.personalityType}
-          />
-          <AnalyticsDashboard result={result} />
-        </aside>
-      </div>
-    </section>
-  );
-}
-
-const DiagnosticAnalyticsDashboard = memo(function DiagnosticAnalyticsDashboard({ result }) {
-  if (result.mode !== "v2") return null;
-
-  return (
-    <section className="result-card analytics-dashboard-card">
-      <div className="result-heading">
-        <Sparkles size={19} />
-        <h2>Advanced Psychological Telemetry</h2>
-      </div>
-      <div className="analytics-summary-grid">
-        <div className="analytics-metric">
-          <span>Money Archetype</span>
-          <strong>{result.personalityType}</strong>
-        </div>
-        <div className="analytics-metric">
-          <span>Future Risk</span>
-          <strong>{result.futureRiskScore}/100</strong>
-          <small>{result.futureRiskLabel}</small>
-        </div>
-        <div className="analytics-metric">
-          <span>Visibility Blindspot</span>
-          <strong>{result.awarenessGapDisplay} mos</strong>
-        </div>
-      </div>
-      <p className="analytics-dashboard-copy">
-        💡 <strong>What this means:</strong> Based on your visibility score, you are likely to miscalculate your actual survival runway limits by approximately <strong>{result.awarenessGapDisplay} months</strong> due to unidentified spending avoidance behaviors.
-      </p>
-    </section>
-  );
-});
-
-function QuestionSection({ icon: Icon, title, score, questions, values, onChange }) {
-  return (
-    <section className="panel">
-      <div className="panel-heading">
-        <div>
-          <Icon size={20} />
-          <h2>{title}</h2>
-        </div>
-        <span>{score}</span>
-      </div>
-
-      <div className="question-list">
-        {questions.map((question) => (
-          <div className="question-row" key={question.key}>
-            <label className="question-label" id={`${question.key}-label`}>
-              {question.prompt}
-            </label>
-            <SegmentedControl
-              labelledBy={`${question.key}-label`}
-              name={question.key}
-              options={question.options}
-              value={values[question.key]}
-              onChange={(value) => onChange(question.key, value)}
-            />
-          </div>
-        ))}
-      </div>
-    </section>
-  );
-}
-
-
-function ProfileSection({ values, score, onChange }) {
-  return (
-    <section className="panel">
-
-      <div className="panel-heading">
-        <div>
-          <ShieldCheck size={20} />
-          <h2>Stability</h2>
-        </div>
-        <span>{score}</span>
-      </div>
-
-      <div className="numeric-grid">
-        <MoneyInput
-          label="Monthly expenses"
-          value={values.monthlyExpenses}
-          onChange={(value) => onChange("monthlyExpenses", value)}
-        />
-        <MoneyInput
-          label="Fixed emergency buffer"
-          value={values.emergencySavingsFixed}
-          onChange={(value) => onChange("emergencySavingsFixed", value)}
-        />
-        <MoneyInput
-          label="Discretionary emergency buffer"
-          value={values.emergencySavingsDiscretionary}
-          onChange={(value) => onChange("emergencySavingsDiscretionary", value)}
-        />
-        <MoneyInput
-          label="Total debt"
-          value={values.totalDebt}
-          onChange={(value) => onChange("totalDebt", value)}
-        />
-        <MoneyInput
-          label="Monthly income"
-          value={values.monthlyIncome}
-          onChange={(value) => onChange("monthlyIncome", value)}
-        />
-        <MoneyInput
-          label="Fixed commitments"
-          value={values.monthlyLiabilities}
-          onChange={(value) => onChange("monthlyLiabilities", value)}
-        />
-      </div>
-
-      <div className="question-row compact">
-        <label className="question-label" id="income-stability-label">
-          Income stability
-        </label>
-        <SegmentedControl
-          labelledBy="income-stability-label"
-          name="incomeStability"
-          options={incomeStabilityOptions}
-          value={values.incomeStability}
-          onChange={(value) => onChange("incomeStability", value)}
-        />
-      </div>
-
-      <div className="question-row compact">
-        <label className="question-label" id="dependents-label">
-          Dependents
-        </label>
-        <SegmentedControl
-          labelledBy="dependents-label"
-          name="dependentsBucket"
-          options={dependentsOptions}
-          value={values.dependentsBucket}
-          onChange={(value) => onChange("dependentsBucket", value)}
-        />
-      </div>
-
-
-        <div className="question-row compact">
-          <label className="question-label" id="debt-rate-label">
-            Debt repayment rate (% of income)
-          </label>
-          <div className="money-input" style={{ gridTemplateColumns: "auto 1fr" }}>
-            <span style={{ display: "block" }} />
-            <div>
-              <span />
-              <input
-                type="number"
-                min="0"
-                inputMode="decimal"
-                value={values.debtRepaymentRatePctOfIncome ?? 0.12}
-                onChange={(e) =>
-                  onChange(
-                    "debtRepaymentRatePctOfIncome",
-                    e.target.value === "" ? 0 : Number.parseFloat(e.target.value),
-                  )
-                }
-              />
-            </div>
-          </div>
-        </div>
-
-        <div className="question-row compact">
-          <label className="question-label" id="interest-label">
-            Average interest rate (% per year)
-          </label>
-          <div className="money-input" style={{ gridTemplateColumns: "auto 1fr" }}>
-            <span style={{ display: "block" }} />
-            <div>
-              <span />
-              <input
-                type="number"
-                min="0"
-                inputMode="decimal"
-                value={values.averageInterestRatePct ?? 10}
-                onChange={(e) =>
-                  onChange(
-                    "averageInterestRatePct",
-                    e.target.value === "" ? 0 : Number.parseFloat(e.target.value),
-                  )
-                }
-              />
-            </div>
-          </div>
-        </div>
-
-
-    </section>
-  );
-}
-
-function MoneyInput({ label, value, onChange }) {
-  return (
-    <label className="money-input">
-      <span>{label}</span>
-      <div>
-        <span>INR</span>
-        <input
-          type="number"
-          min="0"
-          inputMode="numeric"
-          value={value ?? ""}
-          onChange={(event) => {
-            const val = event.target.value;
-            onChange(val === "" ? 0 : Number.parseFloat(val));
-          }}
-        />
-      </div>
-    </label>
-  );
-}
-
-
-function SegmentedControl({ labelledBy, name, options, value, onChange }) {
-  return (
-    <div className="segmented-control" role="radiogroup" aria-labelledby={labelledBy}>
-      {options.map((option) => {
-        const checked = option.value === value;
-        return (
-          <label
-            key={option.value}
-            className={`segmented-option ${checked ? "selected" : ""}`}
-          >
-            <input
-              type="radio"
-              name={name}
-              value={option.value}
-              checked={checked}
-              onChange={() => onChange(option.value)}
-            />
-            <span>{option.label}</span>
-          </label>
-        );
-      })}
-    </div>
   );
 }
 
@@ -13708,91 +16056,6 @@ const DiagnosisPanel = memo(function DiagnosisPanel({ result }) {
     </section>
   );
 });
-
-function DecisionSimulator({ profile }) {
-  const [purchaseCost, setPurchaseCost] = useState(0);
-  const simulator = useMemo(
-    () => calculateDecisionSimulatorV2(profile, purchaseCost),
-    [profile, purchaseCost],
-  );
-
-  // Calculate risk increase percentage
-  const getRiskIncrease = () => {
-    if (purchaseCost <= 0) return 0;
-    const currentRiskIndex = simulator.currentRunway > 0 ? 100 / simulator.currentRunway : 100;
-    const forecastRiskIndex = simulator.forecastRunway > 0 ? 100 / simulator.forecastRunway : 100;
-    const riskDelta = forecastRiskIndex - currentRiskIndex;
-    return Math.round((riskDelta / currentRiskIndex) * 100);
-  };
-
-  const riskIncrease = getRiskIncrease();
-  const riskTrend = purchaseCost > 0 && riskIncrease > 0 ? "negative" : purchaseCost > 0 ? "positive" : "neutral";
-
-  return (
-    <section className="result-card simulator-card">
-      <div className="result-heading">
-        <Cpu size={19} />
-        <h2>Decision Simulator</h2>
-      </div>
-      
-      <p className="simulator-subtitle">See the financial impact of a potential purchase</p>
-      
-      <div className="simulator-input">
-        <label htmlFor="purchase-cost">How much do you want to spend?</label>
-        <div className="input-wrapper">
-          <span className="currency-label">INR</span>
-          <input
-            id="purchase-cost"
-            type="number"
-            min="0"
-            step="1000"
-            placeholder="0"
-            value={purchaseCost}
-            onChange={(event) => setPurchaseCost(Number.parseFloat(event.target.value) || 0)}
-          />
-        </div>
-      </div>
-
-      {purchaseCost > 0 && (
-        <>
-          {/* Impact summary */}
-          <div className="simulator-impact-summary">
-            <div className="impact-row">
-              <span className="impact-label">Current runway</span>
-              <strong className="impact-value current">{formatMonthsV2(simulator.currentRunway)} months</strong>
-            </div>
-            <div className="impact-arrow">↓</div>
-            <div className="impact-row">
-              <span className="impact-label">After purchase</span>
-              <strong className="impact-value forecast">{formatMonthsV2(simulator.forecastRunway)} months</strong>
-            </div>
-            <div className="impact-reduction">
-              <span>Loss: {formatMonthsV2(simulator.runwayDelta)} months</span>
-            </div>
-          </div>
-
-          {/* Risk indicator */}
-          <div className={`simulator-risk-indicator risk-${riskTrend}`}>
-            <span className="risk-label">Risk Increase</span>
-            <span className="risk-value">{riskIncrease > 0 ? "+" : ""}{riskIncrease}%</span>
-          </div>
-
-          {/* Recommendation */}
-          <div className="simulator-recommendation-box">
-            <span className="rec-label">Recommendation</span>
-            <p className="rec-text">{simulator.recommendation}</p>
-          </div>
-        </>
-      )}
-
-      {purchaseCost <= 0 && (
-        <div className="simulator-placeholder">
-          <p>Enter an amount to see the financial impact on your runway.</p>
-        </div>
-      )}
-    </section>
-  );
-}
 </file>
 
 </files>

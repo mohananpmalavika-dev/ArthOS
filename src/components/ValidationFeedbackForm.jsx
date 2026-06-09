@@ -1,5 +1,5 @@
 // src/components/ValidationFeedbackForm.jsx
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { MessageSquare, ThumbsUp } from "lucide-react";
 
 export default function ValidationFeedbackForm({ healthScore, onSubmitFeedback }) {
@@ -7,6 +7,14 @@ export default function ValidationFeedbackForm({ healthScore, onSubmitFeedback }
   const [selectedImpact, setSelectedImpact] = useState(null);
   const [qualitativeNote, setQualitativeNote] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submissionError, setSubmissionError] = useState(false);
+  const successRef = useRef(null);
+
+  useEffect(() => {
+    if (hasVoted && successRef.current) {
+      successRef.current.focus();
+    }
+  }, [hasVoted]);
 
   const impactOptions = [
     { value: "survival_months", label: "Time to Financial Crisis" },
@@ -22,15 +30,21 @@ export default function ValidationFeedbackForm({ healthScore, onSubmitFeedback }
 
     setIsSubmitting(true);
     try {
+      setSubmissionError(false);
       const feedbackPayload = {
         score_context: { health_score: healthScore },
         primary_value_driver: selectedImpact,
         user_feedback_notes: qualitativeNote,
       };
-      await onSubmitFeedback(feedbackPayload);
-      setHasVoted(true);
+      const ok = await onSubmitFeedback(feedbackPayload);
+      if (ok) {
+        setHasVoted(true);
+      } else {
+        setSubmissionError(true);
+      }
     } catch (error) {
       console.error("Feedback submission error:", error);
+      setSubmissionError(true);
     } finally {
       setIsSubmitting(false);
     }
@@ -39,11 +53,41 @@ export default function ValidationFeedbackForm({ healthScore, onSubmitFeedback }
   if (hasVoted) {
     return (
       <div className="validation-feedback-form-card">
-        <div className="feedback-success">
-          <ThumbsUp size={32} />
-          <h3>Thank You!</h3>
-          <p>Your feedback helps us improve the assessment experience.</p>
-          <small>Redirecting to home...</small>
+        <div
+          className="feedback-success"
+          role="status"
+          aria-live="polite"
+          ref={(el) => (successRef.current = el)}
+          tabIndex={-1}
+        >
+          <ThumbsUp size={36} />
+          <h3>Thanks — feedback received</h3>
+          <p>Your feedback helps improve the assessment and insights.</p>
+          <div style={{ display: "flex", gap: 10, marginTop: 12 }}>
+            <button
+              type="button"
+              className="view-results-btn"
+              onClick={() => {
+                const resultsEl = document.querySelector(".result-stack");
+                if (resultsEl) {
+                  resultsEl.scrollIntoView({ behavior: "smooth", block: "center" });
+                  setTimeout(() => {
+                    resultsEl.tabIndex = -1;
+                    resultsEl.focus();
+                  }, 600);
+                }
+              }}
+            >
+              View Results
+            </button>
+            <button
+              type="button"
+              className="feedback-close-btn ghost-button"
+              onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+            >
+              Close
+            </button>
+          </div>
         </div>
       </div>
     );
@@ -94,6 +138,20 @@ export default function ValidationFeedbackForm({ healthScore, onSubmitFeedback }
       >
         {isSubmitting ? "Submitting..." : "Submit Feedback"}
       </button>
+      {submissionError && (
+        <div className="feedback-error" role="alert" style={{ marginTop: 10 }}>
+          <span>Feedback couldn't be submitted — please retry.</span>
+          <button
+            type="button"
+            className="feedback-retry-btn"
+            onClick={handleSubmit}
+            disabled={isSubmitting}
+            style={{ marginLeft: 8 }}
+          >
+            Retry
+          </button>
+        </div>
+      )}
     </div>
   );
 }

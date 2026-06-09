@@ -445,53 +445,65 @@ function getBlindSpotInsight(awarenessMetrics) {
 
 function getPersonalityReport(personalityType) {
   const profiles = {
-    Reactor: {
+    Builder: {
       strengths: [
-        "Acts quickly",
-        "Takes opportunities",
+        "Disciplined savings",
+        "Long-term focus",
       ],
       risks: [
-        "Emotional spending",
-        "Social influence",
+        "Overly rigid plans",
+        "Ignoring lifestyle flexibility",
       ],
-      dangerZone: "Stress periods",
-      recommendedRule: "Use a 24-hour purchase delay for non-essential decisions.",
+      dangerZone: "Burnout from strict budgets",
+      recommendedRule: "Keep a flexible emergency bucket and review commitments quarterly.",
     },
     Survivor: {
       strengths: [
-        "Stays cautious",
-        "Protects short-term safety",
+        "Protects safety",
+        "Avoids downside risk",
       ],
       risks: [
-        "Misses growth opportunities",
-        "Stays in a comfort zone",
+        "Underinvesting in growth",
+        "Staying too conservative",
       ],
-      dangerZone: "Sudden income shock",
-      recommendedRule: "Build a small automated buffer before large commitments.",
+      dangerZone: "Income shock after long-term stagnation",
+      recommendedRule: "Build a basic buffer, then allocate a small growth bucket for higher confidence choices.",
     },
-    Planner: {
+    Optimizer: {
       strengths: [
-        "Plans ahead",
-        "Tracks commitments",
+        "Tracks decisions",
+        "Balances risk and reward",
       ],
       risks: [
-        "Overplanning",
         "Analysis paralysis",
+        "Micromanaging cash flow",
       ],
-      dangerZone: "Unexpected shocks",
-      recommendedRule: "Review the plan monthly and keep 3 months liquid.",
+      dangerZone: "Missing quick timing windows",
+      recommendedRule: "Set clear review rituals and avoid overreacting to short-term spending noise.",
     },
-    Builder: {
+    Dreamer: {
       strengths: [
-        "Disciplined",
-        "Focuses on growth",
+        "Creative planning",
+        "Big-picture mindset",
       ],
       risks: [
-        "Underestimates stress",
-        "Neglects liquidity",
+        "Wishful assumptions",
+        "Underestimated expenses",
       ],
-      dangerZone: "Burnout from overly rigid budgets",
-      recommendedRule: "Keep a separate cash reserve for surprises.",
+      dangerZone: "Reality shock when plans meet cash flow",
+      recommendedRule: "Translate aspirations into a concrete 30-day spending plan.",
+    },
+    "Risk Taker": {
+      strengths: [
+        "Moves fast",
+        "Grabs opportunities",
+      ],
+      risks: [
+        "Volatile cash flow",
+        "Emotional spending",
+      ],
+      dangerZone: "High-stress market or income swings",
+      recommendedRule: "Pause major commitments and build a 2-month safety runway first.",
     },
   };
 
@@ -546,46 +558,50 @@ function getFutureRiskProfile(profile) {
 
 function getPersonalityType(behaviour) {
   const traits = {
-    reactor: 0,
-    survivor: 0,
-    planner: 0,
     builder: 0,
+    survivor: 0,
+    optimizer: 0,
+    dreamer: 0,
+    riskTaker: 0,
   };
 
-  if (behaviour.presentFutureMindset === "enjoy_today") traits.reactor += 2;
-  if (behaviour.presentFutureMindset === "balance_both") traits.survivor += 1;
-  if (behaviour.presentFutureMindset === "secure_future") traits.planner += 1;
+  if (behaviour.presentFutureMindset === "enjoy_today") traits.riskTaker += 2;
+  if (behaviour.presentFutureMindset === "balance_both") traits.dreamer += 2;
+  if (behaviour.presentFutureMindset === "secure_future") traits.optimizer += 1;
   if (behaviour.presentFutureMindset === "extreme_discipline") traits.builder += 2;
 
-  if (behaviour.unplannedPurchaseFreq === "very_frequently") traits.reactor += 2;
-  if (behaviour.unplannedPurchaseFreq === "sometimes") traits.survivor += 1;
-  if (behaviour.unplannedPurchaseFreq === "rarely") traits.planner += 1;
+  if (behaviour.unplannedPurchaseFreq === "very_frequently") traits.riskTaker += 2;
+  if (behaviour.unplannedPurchaseFreq === "sometimes") traits.dreamer += 1;
+  if (behaviour.unplannedPurchaseFreq === "rarely") traits.optimizer += 1;
+  if (behaviour.unplannedPurchaseFreq === "never") traits.builder += 1;
 
-  if (behaviour.spendWhenStressed === "very_likely") traits.reactor += 2;
-  if (behaviour.spendWhenStressed === "sometimes") traits.survivor += 1;
-  if (behaviour.spendWhenStressed === "rarely") traits.planner += 1;
+  if (behaviour.spendWhenStressed === "very_likely") traits.riskTaker += 2;
+  if (behaviour.spendWhenStressed === "sometimes") traits.dreamer += 1;
+  if (behaviour.spendWhenStressed === "rarely") traits.optimizer += 1;
   if (behaviour.spendWhenStressed === "never") traits.builder += 1;
 
   if (behaviour.plannedPurchasesOnly === "always") traits.builder += 2;
-  if (behaviour.plannedPurchasesOnly === "often") traits.planner += 1;
-  if (behaviour.plannedPurchasesOnly === "occasionally") traits.survivor += 1;
-  if (behaviour.plannedPurchasesOnly === "never") traits.reactor += 1;
+  if (behaviour.plannedPurchasesOnly === "often") traits.optimizer += 1;
+  if (behaviour.plannedPurchasesOnly === "occasionally") traits.dreamer += 1;
+  if (behaviour.plannedPurchasesOnly === "never") traits.riskTaker += 2;
 
   if (behaviour.impulseWaitRule === "always") traits.builder += 2;
-  if (behaviour.impulseWaitRule === "sometimes") traits.survivor += 1;
-  if (behaviour.impulseWaitRule === "rarely") traits.reactor += 1;
+  if (behaviour.impulseWaitRule === "sometimes") traits.optimizer += 1;
+  if (behaviour.impulseWaitRule === "rarely") traits.dreamer += 1;
+  if (behaviour.impulseWaitRule === "never") traits.riskTaker += 2;
 
   if (behaviour.subscriptionControl === "weekly") traits.builder += 1;
-  if (behaviour.subscriptionControl === "monthly") traits.planner += 1;
-  if (behaviour.subscriptionControl === "occasionally") traits.survivor += 1;
-  if (behaviour.subscriptionControl === "never") traits.reactor += 1;
+  if (behaviour.subscriptionControl === "monthly") traits.optimizer += 1;
+  if (behaviour.subscriptionControl === "occasionally") traits.dreamer += 1;
+  if (behaviour.subscriptionControl === "never") traits.riskTaker += 1;
 
   const winner = Object.entries(traits).sort((a, b) => b[1] - a[1])[0]?.[0];
   const labels = {
-    reactor: "Reactor",
-    survivor: "Survivor",
-    planner: "Planner",
     builder: "Builder",
+    survivor: "Survivor",
+    optimizer: "Optimizer",
+    dreamer: "Dreamer",
+    riskTaker: "Risk Taker",
   };
 
   return labels[winner] ?? "Survivor";
@@ -989,31 +1005,152 @@ export function buildAnonymousTelemetryPayload(assessmentResult, coreAssessment)
 }
 
 /**
- * Dispatch anonymous telemetry safely to a backend endpoint.
- * Uses keepalive to ensure transmission even if tab closes.
- * Fails silently to never interrupt user experience.
+ * A browser-only queue for failed endpoint delivery.
+ * This ensures production UX does not break when /api routes are temporarily unavailable.
  */
-export async function dispatchAnonymousTelemetry(telemetryPayload, endpointUrl) {
-  try {
-    const browserEndpoint =
-      typeof window !== "undefined"
-        ? window?.VITE_TELEMETRY_ENDPOINT || window?.REACT_APP_TELEMETRY_ENDPOINT
-        : undefined;
-    const targetUrl = endpointUrl || browserEndpoint || "https://api.arth-os.dev/telemetry";
+const OFFLINE_QUEUE_KEYS = {
+  telemetry: "arth-os-offline-telemetry",
+  feedback: "arth-os-offline-feedback",
+};
 
-    await fetch(targetUrl, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(telemetryPayload),
-      keepalive: true,
-    });
-    
-    console.log("[Telemetry] Captured cleanly under privacy guidelines.");
-    return true;
-  } catch (error) {
-    // Fail silently to ensure zero UX impact
-    console.warn("[Telemetry] Transmission deferred:", error?.message || error);
+function isBrowser() {
+  return typeof window !== "undefined";
+}
+
+function isLocalDev() {
+  if (!isBrowser()) return false;
+  const host = window.location.hostname || "";
+  return host === "localhost" || host.startsWith("127.");
+}
+
+function hasLocalStorage() {
+  if (!isBrowser()) return false;
+  try {
+    return typeof window.localStorage !== "undefined";
+  } catch {
     return false;
   }
+}
+
+function readQueue(queueKey) {
+  if (!hasLocalStorage()) return [];
+  try {
+    const raw = window.localStorage.getItem(queueKey);
+    return raw ? JSON.parse(raw) : [];
+  } catch {
+    return [];
+  }
+}
+
+function writeQueue(queueKey, queue) {
+  if (!hasLocalStorage()) return;
+  try {
+    window.localStorage.setItem(queueKey, JSON.stringify(queue));
+  } catch {
+    // ignore storage errors
+  }
+}
+
+function enqueueOfflinePayload(queueKey, payload) {
+  if (!hasLocalStorage()) return;
+  const queue = readQueue(queueKey);
+  queue.push({ payload, queuedAt: new Date().toISOString() });
+  writeQueue(queueKey, queue);
+}
+
+async function dispatchToEndpoint(targetUrl, payload, keepalive = true) {
+  const response = await fetch(targetUrl, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+    keepalive,
+  });
+  return response.ok;
+}
+
+async function flushQueue(queueKey, targetUrl, label) {
+  if (!hasLocalStorage() || !isBrowser() || isLocalDev()) return;
+  if (typeof navigator !== "undefined" && !navigator.onLine) return;
+
+  const queue = readQueue(queueKey);
+  if (!queue.length) return;
+
+  const remaining = [];
+  for (const item of queue) {
+    try {
+      const success = await dispatchToEndpoint(targetUrl, item.payload);
+      if (!success) remaining.push(item);
+    } catch {
+      remaining.push(item);
+    }
+  }
+
+  if (remaining.length) {
+    writeQueue(queueKey, remaining);
+    console.info(`[${label}] ${remaining.length} queued payload(s) remain.`);
+  } else {
+    window.localStorage.removeItem(queueKey);
+    console.info(`[${label}] Flushed queued payloads.`);
+  }
+}
+
+export async function flushOfflineApiQueues() {
+  await flushQueue(OFFLINE_QUEUE_KEYS.telemetry, "/api/telemetry", "Telemetry");
+  await flushQueue(OFFLINE_QUEUE_KEYS.feedback, "/api/feedback", "Feedback");
+}
+
+export function initOfflineApiQueue() {
+  if (!isBrowser()) return;
+
+  const flush = () => {
+    void flushOfflineApiQueues();
+  };
+
+  window.addEventListener("online", flush);
+  setTimeout(flush, 1000);
+}
+
+async function postWithFallback(targetUrl, payload, queueKey, label, keepalive = true) {
+  if (isLocalDev()) {
+    console.info(`[${label}] Local development host detected. Endpoint dispatch skipped.`);
+    return true;
+  }
+
+  if (typeof navigator !== "undefined" && !navigator.onLine) {
+    enqueueOfflinePayload(queueKey, payload);
+    console.info(`[${label}] Offline. Payload queued for later delivery.`);
+    return true;
+  }
+
+  try {
+    const success = await dispatchToEndpoint(targetUrl, payload, keepalive);
+    if (!success) {
+      enqueueOfflinePayload(queueKey, payload);
+      console.warn(`[${label}] Request failed. Payload queued for later delivery.`);
+    }
+    return true;
+  } catch (error) {
+    enqueueOfflinePayload(queueKey, payload);
+    console.warn(`[${label}] Network error queued for later delivery:`, error?.message || error);
+    return true;
+  }
+}
+
+export async function dispatchAnonymousTelemetry(telemetryPayload, endpointUrl) {
+  const browserEndpoint =
+    isBrowser() && (window?.VITE_TELEMETRY_ENDPOINT || window?.REACT_APP_TELEMETRY_ENDPOINT);
+  const targetUrl = endpointUrl || browserEndpoint || "https://api.arth-os.dev/telemetry";
+  const success = await postWithFallback(targetUrl, telemetryPayload, OFFLINE_QUEUE_KEYS.telemetry, "Telemetry", true);
+  if (success) {
+    console.log("[Telemetry] Captured cleanly under privacy guidelines.");
+  }
+  return success;
+}
+
+export async function dispatchAnonymousFeedback(feedbackPayload, endpointUrl) {
+  const browserEndpoint =
+    isBrowser() && (window?.VITE_FEEDBACK_ENDPOINT || window?.REACT_APP_FEEDBACK_ENDPOINT);
+  const targetUrl = endpointUrl || browserEndpoint || "/api/feedback";
+  return await postWithFallback(targetUrl, feedbackPayload, OFFLINE_QUEUE_KEYS.feedback, "Feedback", false);
 }
 

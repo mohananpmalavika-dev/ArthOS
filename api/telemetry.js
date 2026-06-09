@@ -2,6 +2,19 @@
 // Serverless handler for anonymous financial telemetry data
 // Deploy to Vercel or similar serverless platform
 
+import { createClient } from "@supabase/supabase-js";
+
+const SUPABASE_URL = process.env.SUPABASE_URL;
+const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+const TELEMETRY_TABLE = process.env.SUPABASE_TELEMETRY_TABLE || "anonymous_telemetry";
+
+function createSupabaseClient() {
+  if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) return null;
+  return createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
+    auth: { persistSession: false },
+  });
+}
+
 export default async function handler(req, res) {
   // Enforce POST-only access
   if (req.method !== "POST") {
@@ -50,11 +63,16 @@ export default async function handler(req, res) {
       created_at: new Date().toISOString().split("T")[0],
     };
 
-    // TODO: Persist to database (Supabase, PostgreSQL, etc.)
-    // const { error } = await supabase
-    //   .from("anonymous_telemetry")
-    //   .insert([cleanTelemetryRow]);
-    // if (error) throw error;
+    const supabase = createSupabaseClient();
+    if (supabase) {
+      const { error } = await supabase.from(TELEMETRY_TABLE).insert([cleanTelemetryRow]);
+      if (error) {
+        console.error("[Telemetry] Supabase insert error:", error.message);
+        return res.status(500).json({ status: "error", reason: "db_insert_failed" });
+      }
+    } else {
+      console.log("[Telemetry] Supabase not configured; fallback logging only.");
+    }
 
     console.log("[Telemetry] Received anonymous financial health snapshot:", cleanTelemetryRow);
 
