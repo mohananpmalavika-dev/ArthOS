@@ -1,9 +1,7 @@
-# ARTH.OS v2 — Implementation TODO
+# TODO
+- [x] Update `package.json` build script to bypass `node_modules/.bin/vite` wrapper by using `node node_modules/vite/bin/vite.js build`.
 
-- [x] Create v2 data model + question bank (`src/data/questionnaire-v2.js`)
-- [x] Create v2 scoring engine (`src/lib/scoring-v2.js`)
-- [ ] Update UI to support v2 mode (new questions + debt schedule + habit tracking)
-- [ ] Extend CSS for v2 cards (debt schedule + habit progress)
-- [ ] Ensure build succeeds (`npm run build`) and no runtime errors
+- [x] Run `npm run build` locally to confirm dist is generated.
 
+- [ ] (If needed) also update `dev`/`preview` scripts similarly, but focus on `build` first.
 
