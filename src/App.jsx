@@ -47,6 +47,42 @@ import {
 
 const STORAGE_KEY = "arth-os-assessment";
 
+function makeEmptyAssessment() {
+  // build an empty assessment shape so nothing is pre-selected
+  const emptyBehaviour = Object.keys(v2DefaultAssessment.behaviour || {}).reduce((acc, k) => {
+    acc[k] = "";
+    return acc;
+  }, {});
+
+  const emptyAwareness = Object.keys(v2DefaultAssessment.awareness || {}).reduce((acc, k) => {
+    acc[k] = "";
+    return acc;
+  }, {});
+
+  const emptyHabits = Object.keys(v2DefaultAssessment.habits || {}).reduce((acc, k) => {
+    acc[k] = "";
+    return acc;
+  }, {});
+
+  const emptyProfile = Object.keys(v2DefaultAssessment.profile || {}).reduce((acc, k) => {
+    acc[k] = undefined;
+    return acc;
+  }, {});
+
+  return {
+    mode: "v2",
+    behaviour: emptyBehaviour,
+    awareness: emptyAwareness,
+    profile: emptyProfile,
+    participant: {
+      name: "",
+      age: "",
+      email: "",
+    },
+    habits: emptyHabits,
+  };
+}
+
 
 const navItems = [
   { label: "Home", href: "#home" },
@@ -204,8 +240,21 @@ function loadInitialAssessment() {
 }
 
 export default function App() {
-  const [assessment, setAssessment] = useState(() => loadInitialAssessment());
+  const [assessment, setAssessment] = useState(() => makeEmptyAssessment());
   const [saveState, setSaveState] = useState("Ready");
+
+  // Clear any persisted state on initial load so the user must actively select answers
+  useEffect(() => {
+    try {
+      window.localStorage.removeItem(STORAGE_KEY);
+      window.localStorage.removeItem("arth-os-assessment-v2");
+      window.localStorage.removeItem("arth-os-assessment-v1");
+      window.localStorage.removeItem("arth-os-wizard-step");
+      window.localStorage.removeItem("arth-os-score-history");
+    } catch (e) {
+      // ignore
+    }
+  }, []);
 
   const result = useMemo(() => calculateFinancialHealthV2(assessment), [assessment]);
 
@@ -258,13 +307,33 @@ export default function App() {
   }
 
   function saveAssessment() {
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(assessment));
-    setSaveState("Saved");
+    try {
+      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(assessment));
+      setSaveState("Saved");
+    } catch (e) {
+      console.warn("Could not save locally:", e);
+    }
+
+    // Also attempt to persist to server-side storage (development API)
+    try {
+      fetch("/api/saveAssessment", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ assessment, result: calculateFinancialHealthV2(assessment) }),
+      }).then((resp) => {
+        if (!resp.ok) console.warn("Remote save failed", resp.statusText);
+      }).catch((err) => console.warn("Remote save error", err));
+    } catch (err) {
+      console.warn("Could not dispatch remote save:", err);
+    }
   }
 
   function resetAssessment() {
-    setAssessment(v2DefaultAssessment);
-    window.localStorage.removeItem(STORAGE_KEY);
+    setAssessment(makeEmptyAssessment());
+    try {
+      window.localStorage.removeItem(STORAGE_KEY);
+      window.localStorage.removeItem("arth-os-wizard-step");
+    } catch (e) {}
     setSaveState("Ready");
   }
 
@@ -574,6 +643,10 @@ function AssessmentSection({ assessment, result, onChange, ui }) {
 
   return (
     <section className="assessment-section" id="assessment">
+      <ParticipantSection
+        values={assessment.participant}
+        onChange={(key, value) => onChange("participant", key, value)}
+      />
       <div className="assessment-heading">
         <span>Guided Experience</span>
         <h2>
@@ -697,6 +770,53 @@ function AssessmentSection({ assessment, result, onChange, ui }) {
         </aside>
       </div>
     </section>
+  );
+}
+
+function ParticipantSection({ values = {}, onChange }) {
+  return (
+    <div className="participant-card" style={{ margin: "0 0 18px 0" }}>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 120px", gap: 12 }}>
+        <label className="money-input">
+          <span>Name</span>
+          <div>
+            <input
+              type="text"
+              value={values.name ?? ""}
+              onChange={(e) => onChange("name", e.target.value)}
+              placeholder="Your name"
+            />
+          </div>
+        </label>
+
+        <label className="money-input">
+          <span>Age</span>
+          <div>
+            <input
+              type="number"
+              min="0"
+              value={values.age ?? ""}
+              onChange={(e) => onChange("age", e.target.value)}
+              placeholder="Age"
+            />
+          </div>
+        </label>
+      </div>
+
+      <div style={{ marginTop: 10 }}>
+        <label className="money-input">
+          <span>Email</span>
+          <div>
+            <input
+              type="email"
+              value={values.email ?? ""}
+              onChange={(e) => onChange("email", e.target.value)}
+              placeholder="you@domain.com"
+            />
+          </div>
+        </label>
+      </div>
+    </div>
   );
 }
 

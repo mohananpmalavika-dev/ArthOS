@@ -51,7 +51,22 @@ CREATE INDEX idx_anonymous_telemetry_lowest_driver ON anonymous_telemetry(lowest
 CREATE INDEX idx_anonymous_telemetry_created_at ON anonymous_telemetry(created_at);
 CREATE INDEX idx_anonymous_telemetry_personality_type ON anonymous_telemetry(personality_type);
 
--- Table 2: Post-Assessment Tester Feedback
+-- Table 2: Persisted Full Assessments
+-- Stores assessment inputs plus computed results for later analysis
+CREATE TABLE assessments (
+  id BIGSERIAL PRIMARY KEY,
+  assessment JSONB NOT NULL,
+  result JSONB NOT NULL,
+  participant_name VARCHAR(255),
+  participant_age VARCHAR(32),
+  participant_email VARCHAR(255),
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX idx_assessments_created_at ON assessments(created_at);
+CREATE INDEX idx_assessments_participant_email ON assessments(participant_email);
+
+-- Table 3: Post-Assessment Tester Feedback
 -- Captures user perception of assessment value without linking to specific runs
 CREATE TABLE tester_feedback (
   id BIGSERIAL PRIMARY KEY,
