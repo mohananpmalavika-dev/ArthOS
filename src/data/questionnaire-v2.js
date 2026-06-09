@@ -300,7 +300,8 @@ export const v2DefaultAssessment = {
   },
   profile: {
     monthlyExpenses: 50000,
-    emergencySavings: 90000,
+    emergencySavingsFixed: 50000,
+    emergencySavingsDiscretionary: 40000,
     totalDebt: 160000,
     monthlyIncome: 90000,
     incomeStability: "mostly_consistent",

@@ -1,8 +1,4 @@
-import {
-  v2BehaviourQuestions,
-  v2AwarenessQuestions,
-  v2DefaultAssessment,
-} from "../data/questionnaire-v2.js";
+import { v2DefaultAssessment } from "../data/questionnaire-v2.js";
 
 export const componentMaximumsV2 = {
   behaviour: 45,
@@ -247,7 +243,32 @@ function getDebtScheduleEstimate(profile) {
     };
   }
 
-  const months = Math.log((P * r) / (P * r - B * r)) / Math.log(1 + r);
+  // Correct amortization estimate (months to payoff):
+  // n = ln(P / (P - B*r)) / ln(1+r)
+  const denom = P - B * r;
+  if (denom <= 0) {
+    return {
+      payoffMonths: Infinity,
+      payoffMonthsDisplay: "∞",
+      monthlyDebtRepaymentEstimate: payment,
+      interestEffectiveMonthlyRate: monthlyRate,
+      payoffConfidence: "Low",
+    };
+  }
+
+  const ratio = P / denom;
+  const months = Math.log(ratio) / Math.log(1 + r);
+
+  if (!Number.isFinite(months) || months <= 0) {
+    return {
+      payoffMonths: Infinity,
+      payoffMonthsDisplay: "∞",
+      monthlyDebtRepaymentEstimate: payment,
+      interestEffectiveMonthlyRate: monthlyRate,
+      payoffConfidence: "Low",
+    };
+  }
+
   return {
     payoffMonths: months,
     payoffMonthsDisplay: formatMonths(months),
@@ -258,31 +279,70 @@ function getDebtScheduleEstimate(profile) {
 }
 
 function getBehaviourScore(behaviour) {
-  const keys = Object.keys(behaviourScoreMaps);
-  const values = keys.map((k) => behaviourScoreMaps[k][behaviour[k]] ?? 0);
+  // Iterate explicit schema keys to avoid skew if an assessment object is
+  // missing/extra properties (e.g., loading partially from storage).
+  const keys = [
+    "emotionalMoneyLevel",
+    "socialInfluenceLevel",
+    "unplannedPurchaseFreq",
+    "regretImpulseFreq",
+    "presentFutureMindset",
+    "avoidBalanceDuringStress",
+    // v2 additions
+    "spendWhenBored",
+    "spendWhenStressed",
+    "plannedPurchasesOnly",
+    "cashflowAwareness",
+    "subscriptionControl",
+    "impulseWaitRule",
+  ];
+
+  const values = keys.map(
+    (k) => behaviourScoreMaps[k]?.[behaviour?.[k]] ?? 0,
+  );
   const average = values.reduce((t, v) => t + v, 0) / Math.max(1, values.length);
   return roundToOne((average / 10) * componentMaximumsV2.behaviour);
 }
 
 function getAwarenessScore(awareness) {
-  const keys = Object.keys(awarenessScoreMaps);
-  const total = keys.reduce((sum, k) => sum + (awarenessScoreMaps[k][awareness[k]] ?? 0), 0);
+  // Iterate explicit schema keys to avoid skew if an assessment object is
+  // missing/extra properties.
+  const keys = [
+    "comparesLifestyleFreq",
+    "hasFinancialPlan",
+    "tracksExpenses",
+    "knowsTotalDebt",
+    "knowsMonthlyExpenses",
+    // v2 additions
+    "tracksSavingsRate",
+    "budgetCycle",
+    "knowsTop3Expenses",
+  ];
+
+  const total = keys.reduce(
+    (sum, k) => sum + (awarenessScoreMaps[k]?.[awareness?.[k]] ?? 0),
+    0,
+  );
   // normalize: max roughly equals 6*5 + a few additions; clamp to 30
-  // empirically: map by scaling to 30.
   const maxPossible = 6 * 5 + 6 + 6 + 6; // 5 legacy *6 + 3 additions *6
   const score = (total / maxPossible) * componentMaximumsV2.awareness;
   return roundToOne(clamp(score, 0, componentMaximumsV2.awareness));
 }
 
+
 function getStabilityScore(profile) {
   const monthlyExpenses = toNumber(profile.monthlyExpenses);
-  const emergencySavings = toNumber(profile.emergencySavings);
+  const fixedSavings = toNumber(profile.emergencySavingsFixed);
+  const discretionarySavings = toNumber(profile.emergencySavingsDiscretionary);
   const totalDebt = toNumber(profile.totalDebt);
   const monthlyIncome = toNumber(profile.monthlyIncome);
   const monthlyLiabilities = toNumber(profile.monthlyLiabilities);
 
+  const totalSavings = fixedSavings + discretionarySavings;
   const survivalMonthsRaw =
-    monthlyExpenses > 0 && emergencySavings > 0 ? emergencySavings / monthlyExpenses : 0;
+    monthlyExpenses > 0 && totalSavings > 0 ? totalSavings / monthlyExpenses : 0;
+  const fixedBufferMonths = monthlyExpenses > 0 ? fixedSavings / monthlyExpenses : 0;
+  const discretionaryBufferMonths = monthlyExpenses > 0 ? discretionarySavings / monthlyExpenses : 0;
 
   const emergencyScore = Math.min(survivalMonthsRaw, 6) * 1.5; // smaller weight in v2
 
@@ -298,6 +358,11 @@ function getStabilityScore(profile) {
   return {
     score: roundToOne(normalized),
     survivalMonthsRaw,
+    fixedBufferMonths,
+    discretionaryBufferMonths,
+    fixedEmergencySavings: fixedSavings,
+    discretionaryEmergencySavings: discretionarySavings,
+    totalEmergencySavings: totalSavings,
   };
 }
 
@@ -342,6 +407,13 @@ function getRecommendedAction(assessment, components) {
   }
 
   // stability driver
+  const fixedSavings = toNumber(assessment.profile.emergencySavingsFixed);
+  const fixedBufferMonths = monthlyExpenses > 0 ? fixedSavings / monthlyExpenses : 0;
+
+  if (fixedBufferMonths < 1) {
+    return `Build a 1-month fixed buffer of ${formatCurrency(monthlyExpenses)} before adding discretionary savings.`;
+  }
+
   if (survivalMonths < 2) {
     const target = monthlyExpenses * 0.85;
     return `Build emergency savings of ${formatCurrency(target)} within 60 days.`;
@@ -364,14 +436,36 @@ function toNumber(value) {
   return Number.isFinite(numeric) ? numeric : 0;
 }
 
+export function calculateBehaviourScoreV2(behaviour) {
+  return getBehaviourScore(behaviour);
+}
+
+export function calculateAwarenessScoreV2(awareness) {
+  return getAwarenessScore(awareness);
+}
+
+export function calculateStabilityScoreV2(profile) {
+  return getStabilityScore(profile);
+}
+
+export function calculateDebtScheduleEstimateV2(profile) {
+  return getDebtScheduleEstimate(profile);
+}
+
+export function calculateHabitsMetricsV2(habits) {
+  return getHabitsMetrics(habits);
+}
+
 export function calculateFinancialHealthV2(assessment) {
   const safe = assessment || v2DefaultAssessment;
 
-  const behaviourScore = getBehaviourScore(safe.behaviour);
-  const awarenessScore = getAwarenessScore(safe.awareness);
-  const stability = getStabilityScore(safe.profile);
+  const behaviourScore = calculateBehaviourScoreV2(safe.behaviour);
+  const awarenessScore = calculateAwarenessScoreV2(safe.awareness);
+  const stability = calculateStabilityScoreV2(safe.profile);
 
-  const healthScore = Math.round(behaviourScore + awarenessScore + stability.score);
+  const healthScore = Math.round(
+    behaviourScore + awarenessScore + stability.score,
+  );
   const categoryBand = getHealthBand(healthScore);
 
   const componentRows = [
@@ -405,15 +499,22 @@ export function calculateFinancialHealthV2(assessment) {
   const lowest = componentRows[0];
   const highest = [...componentRows].sort((a, b) => b.percent - a.percent)[0];
 
-  const debtSchedule = getDebtScheduleEstimate(safe.profile);
-  const habits = getHabitsMetrics(safe.habits);
+  const debtSchedule = calculateDebtScheduleEstimateV2(safe.profile);
+  const habits = calculateHabitsMetricsV2(safe.habits);
 
   const componentsForAction = [
     { key: "behaviour", score: behaviourScore },
     { key: "awareness", score: awarenessScore },
-    { key: "stability", score: stability.score, survivalMonthsRaw: stability.survivalMonthsRaw },
+    {
+      key: "stability",
+      score: stability.score,
+      survivalMonthsRaw: stability.survivalMonthsRaw,
+    },
   ];
-  const recommendedActionText = getRecommendedAction(safe, componentsForAction);
+  const recommendedActionText = getRecommendedAction(
+    safe,
+    componentsForAction,
+  );
 
   const survivalBand = getSurvivalBand(stability.survivalMonthsRaw);
 
@@ -427,6 +528,13 @@ export function calculateFinancialHealthV2(assessment) {
     survivalMonthsRaw: stability.survivalMonthsRaw,
     survivalMonthsDisplay: formatMonths(stability.survivalMonthsRaw),
     survivalBand,
+    fixedBufferMonths: stability.fixedBufferMonths,
+    discretionaryBufferMonths: stability.discretionaryBufferMonths,
+    fixedBufferMonthsDisplay: formatMonths(stability.fixedBufferMonths),
+    discretionaryBufferMonthsDisplay: formatMonths(stability.discretionaryBufferMonths),
+    fixedBufferAmount: stability.fixedEmergencySavings,
+    discretionaryBufferAmount: stability.discretionaryEmergencySavings,
+    totalEmergencySavings: stability.totalEmergencySavings,
 
     componentRows,
     lowestComponent: lowest,
@@ -440,6 +548,7 @@ export function calculateFinancialHealthV2(assessment) {
     summary: `${categoryBand.label} financial health with ${survivalBand.label.toLowerCase()}.`,
   };
 }
+
 
 function getBehaviourBand(score) {
   if (score <= 15) return "Critical behaviour risk";

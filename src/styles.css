@@ -831,7 +831,7 @@ blockquote {
 
 .segmented-control {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
   gap: 7px;
   min-width: 0;
   padding: 6px;
@@ -840,9 +840,10 @@ blockquote {
   background: rgba(255, 255, 255, 0.055);
 }
 
-.segmented-control button {
+.segmented-control .segmented-option {
+  position: relative;
   min-height: 46px;
-  border: 0;
+  min-width: 0;
   border-radius: 14px;
   color: #cdd4eb;
   background: transparent;
@@ -850,14 +851,24 @@ blockquote {
   font-weight: 820;
   line-height: 1.15;
   text-align: center;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  padding: 0 12px;
 }
 
-.segmented-control button:hover {
+.segmented-control .segmented-option input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.segmented-control .segmented-option:hover {
   color: var(--text);
   background: rgba(255, 255, 255, 0.08);
 }
 
-.segmented-control button.selected {
+.segmented-control .segmented-option.selected {
   color: var(--text);
   background: linear-gradient(135deg, rgba(139, 92, 246, 0.95), rgba(109, 76, 255, 0.72));
   box-shadow: 0 12px 30px rgba(109, 76, 255, 0.24);
@@ -865,10 +876,11 @@ blockquote {
 
 .numeric-grid {
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 12px;
   padding-top: 24px;
 }
+
 
 .money-input {
   display: grid;

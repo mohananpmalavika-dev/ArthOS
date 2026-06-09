@@ -1,4 +1,5 @@
-import { useMemo, useState } from "react";
+import { memo, useEffect, useMemo, useState } from "react";
+
 import {
   Activity,
   AlertTriangle,
@@ -36,7 +37,17 @@ import {
 } from "./data/questionnaire-v2.js";
 
 
-import { calculateFinancialHealthV2, componentMaximumsV2, formatCurrency as formatCurrencyV2 } from "./lib/scoring-v2.js";
+import {
+  calculateFinancialHealthV2,
+  calculateBehaviourScoreV2,
+  calculateAwarenessScoreV2,
+  calculateStabilityScoreV2,
+  calculateDebtScheduleEstimateV2,
+  calculateHabitsMetricsV2,
+  componentMaximumsV2,
+  formatCurrency as formatCurrencyV2,
+} from "./lib/scoring-v2.js";
+
 
 
 const STORAGE_KEY = "arth-os-assessment-v1";
@@ -113,6 +124,36 @@ const dependentsOptions = [
 ];
 
 
+function normalizeV2Assessment(assessment) {
+  const profile = assessment?.profile ?? {};
+  if (
+    profile.emergencySavingsFixed !== undefined ||
+    profile.emergencySavingsDiscretionary !== undefined
+  ) {
+    return {
+      ...assessment,
+      profile: {
+        ...v2DefaultAssessment.profile,
+        ...profile,
+      },
+    };
+  }
+
+  const emergencySavings = Number.parseFloat(profile.emergencySavings) || 0;
+  const fixed = Math.min(emergencySavings, 50000);
+  const discretionary = Math.max(0, emergencySavings - fixed);
+
+  return {
+    ...assessment,
+    profile: {
+      ...v2DefaultAssessment.profile,
+      ...profile,
+      emergencySavingsFixed: fixed,
+      emergencySavingsDiscretionary: discretionary,
+    },
+  };
+}
+
 function loadInitialAssessmentV1() {
   try {
     const saved = window.localStorage.getItem(STORAGE_KEY);
@@ -122,10 +163,35 @@ function loadInitialAssessmentV1() {
   }
 }
 
+function normalizeV1Assessment(assessment) {
+  const profile = assessment?.profile ?? {};
+  const legacySavings = Number.parseFloat(profile.emergencySavings) || 0;
+  const fixed = Number.parseFloat(profile.emergencySavingsFixed) || 0;
+  const discretionary = Number.parseFloat(profile.emergencySavingsDiscretionary) || 0;
+
+  return {
+    ...defaultAssessment,
+    ...assessment,
+    behaviour: {
+      ...defaultAssessment.behaviour,
+      ...assessment?.behaviour,
+    },
+    awareness: {
+      ...defaultAssessment.awareness,
+      ...assessment?.awareness,
+    },
+    profile: {
+      ...defaultAssessment.profile,
+      ...profile,
+      emergencySavings: legacySavings || fixed + discretionary,
+    },
+  };
+}
+
 function loadInitialAssessmentV2() {
   try {
     const saved = window.localStorage.getItem(STORAGE_KEY_V2);
-    return saved ? JSON.parse(saved) : v2DefaultAssessment;
+    return saved ? normalizeV2Assessment(JSON.parse(saved)) : v2DefaultAssessment;
   } catch {
     return v2DefaultAssessment;
   }
@@ -136,12 +202,239 @@ export default function App() {
   const [assessment, setAssessment] = useState(() => loadInitialAssessmentV2());
   const [saveState, setSaveState] = useState("Ready");
 
+  useEffect(() => {
+    setAssessment((current) => {
+      const isV2Shape = current?.profile?.emergencySavingsFixed !== undefined;
+      const isV1Shape = current?.profile?.emergencySavings !== undefined;
+
+      if (mode === "v2" && isV2Shape) {
+        return current;
+      }
+
+      if (mode === "v1" && isV1Shape) {
+        return current;
+      }
+
+      return mode === "v2"
+        ? normalizeV2Assessment(current)
+        : normalizeV1Assessment(current);
+    });
+  }, [mode]);
+
+  const v2BehaviourResult = useMemo(() => {
+    if (mode !== "v2") return null;
+    return calculateBehaviourScoreV2(assessment.behaviour);
+  }, [mode, assessment.behaviour]);
+
+  const v2AwarenessResult = useMemo(() => {
+    if (mode !== "v2") return null;
+    return calculateAwarenessScoreV2(assessment.awareness);
+  }, [mode, assessment.awareness]);
+
+  const v2StabilityResult = useMemo(() => {
+    if (mode !== "v2") return null;
+    return calculateStabilityScoreV2(assessment.profile);
+  }, [mode, assessment.profile]);
+
+  const v2DebtSchedule = useMemo(() => {
+    if (mode !== "v2") return null;
+    return calculateDebtScheduleEstimateV2(assessment.profile);
+  }, [mode, assessment.profile]);
+
+  const v2Habits = useMemo(() => {
+    if (mode !== "v2") return null;
+    return calculateHabitsMetricsV2(assessment.habits);
+  }, [mode, assessment.habits]);
 
   const result = useMemo(() => {
-    return mode === "v2"
-      ? calculateFinancialHealthV2(assessment)
-      : calculateFinancialHealth(assessment);
-  }, [assessment, mode]);
+    if (mode === "v2") {
+      const behaviourScore = v2BehaviourResult ?? 0;
+      const awarenessScore = v2AwarenessResult ?? 0;
+      const stability = v2StabilityResult ?? { score: 0, survivalMonthsRaw: 0 };
+      const componentRows = [
+        {
+          key: "behaviour",
+          label: "Behaviour",
+          score: behaviourScore,
+          max: componentMaximumsV2.behaviour,
+        },
+        {
+          key: "awareness",
+          label: "Awareness",
+          score: awarenessScore,
+          max: componentMaximumsV2.awareness,
+        },
+        {
+          key: "stability",
+          label: "Stability",
+          score: stability.score,
+          max: componentMaximumsV2.stability,
+        },
+      ].map((row) => ({
+        ...row,
+        percent: Math.round((row.score / row.max) * 100),
+      }));
+
+      // Preserve existing ordering logic in score-v2 engine
+      componentRows.sort((a, b) => a.percent - b.percent);
+      const lowestComponent = componentRows[0];
+      const strongestComponent = [...componentRows].sort(
+        (a, b) => b.percent - a.percent,
+      )[0];
+
+      const healthScore = Math.round(
+        behaviourScore + awarenessScore + stability.score,
+      );
+      const categoryBand = (() => {
+        if (healthScore <= 25) return { label: "Critical", tone: "critical" };
+        if (healthScore <= 50) return { label: "Vulnerable", tone: "warning" };
+        if (healthScore <= 75) return { label: "Stable", tone: "steady" };
+        return { label: "Healthy", tone: "strong" };
+      })();
+
+      const survivalBand = (() => {
+        const months = stability.survivalMonthsRaw;
+        if (months <= 1)
+          return { label: "Immediate risk", tone: "critical" };
+        if (months <= 3)
+          return { label: "Fragile cushion", tone: "warning" };
+        if (months <= 6)
+          return { label: "Improving stability", tone: "steady" };
+        if (months <= 12)
+          return { label: "Strong buffer", tone: "strong" };
+        return { label: "Highly resilient", tone: "strong" };
+      })();
+
+      const survivalMonthsDisplay =
+        stability.survivalMonthsRaw <= 0 || !Number.isFinite(stability.survivalMonthsRaw)
+          ? "0"
+          : stability.survivalMonthsRaw >= 60
+            ? "60+"
+            : Number.isInteger(stability.survivalMonthsRaw)
+              ? String(stability.survivalMonthsRaw)
+              : stability.survivalMonthsRaw.toFixed(1);
+
+      const componentsForAction = [
+        { key: "behaviour", score: behaviourScore },
+        { key: "awareness", score: awarenessScore },
+        {
+          key: "stability",
+          score: stability.score,
+          survivalMonthsRaw: stability.survivalMonthsRaw,
+        },
+      ];
+
+      const recommendedActionText = (() => {
+        // ONE primary action: target the lowest component; if stability is lowest and survival is low -> emergency savings.
+        const lowestKey = componentsForAction
+          .slice()
+          .sort((a, b) => a.score - b.score)[0].key;
+
+        const monthlyExpenses = Number.parseFloat(
+          assessment.profile.monthlyExpenses,
+        );
+        const monthlyExpensesSafe = Number.isFinite(monthlyExpenses)
+          ? monthlyExpenses
+          : 0;
+
+        const survivalMonths = componentsForAction.find(
+          (c) => c.key === "stability",
+        ).survivalMonthsRaw;
+
+        if (lowestKey === "behaviour") {
+          if (assessment.behaviour.unplannedPurchaseFreq !== "never") {
+            return "Use a 24-hour waiting rule for non-essential purchases this month.";
+          }
+          return "Cut one trigger: remove one social-spend pathway (e.g., shopping places) this week.";
+        }
+
+        if (lowestKey === "awareness") {
+          if (assessment.awareness.tracksExpenses !== "regularly") {
+            return "Track every expense for the next 14 days (no exceptions) and total it.";
+          }
+          return "Write a 1-page monthly money plan (income → expenses → savings → debt).";
+        }
+
+        // stability driver
+        if (survivalMonths < 2) {
+          const target = monthlyExpensesSafe * 0.85;
+          return `Build emergency savings of ${formatCurrencyV2(target)} within 60 days.`;
+        }
+
+        const debtSchedule = v2DebtSchedule;
+        if (
+          debtSchedule.payoffMonths === Infinity ||
+          debtSchedule.payoffMonths > 18
+        ) {
+          return "Increase debt repayment by 1 step this month (even +₹2,000 counts).";
+        }
+
+        return "Maintain your current emergency + debt plan for the next 30 days.";
+      })();
+
+
+      const summary = `${categoryBand.label} financial health with ${survivalBand.label.toLowerCase()}.`;
+
+      return {
+        mode: "v2",
+        behaviourScore,
+        awarenessScore,
+        stabilityScore: stability.score,
+        healthScore,
+        categoryBand,
+        survivalMonthsRaw: stability.survivalMonthsRaw,
+        survivalMonthsDisplay,
+        survivalBand,
+        componentRows: componentRows.map((row) => {
+          const band =
+            row.key === "behaviour"
+              ? (() => {
+                  if (row.score <= 15)
+                    return "Critical behaviour risk";
+                  if (row.score <= 27)
+                    return "Needs behaviour correction";
+                  if (row.score <= 35) return "Mostly controlled";
+                  return "Strong financial discipline";
+                })()
+              : row.key === "awareness"
+                ? (() => {
+                    if (row.score <= 9) return "Low visibility";
+                    if (row.score <= 18) return "Basic awareness";
+                    if (row.score <= 24) return "Solid tracking";
+                    return "High clarity";
+                  })()
+                : (() => {
+                    if (row.score <= 8) return "Fragile stability";
+                    if (row.score <= 16) return "Some cushion";
+                    if (row.score <= 20) return "Resilient";
+                    return "Very stable";
+                  })();
+          return { ...row, band };
+        }),
+        lowestComponent,
+        strongestComponent,
+        recommendedActionText,
+        debtSchedule: v2DebtSchedule,
+        habits: v2Habits,
+        summary,
+      };
+    }
+
+    return calculateFinancialHealth(assessment);
+  }, [
+    mode,
+    assessment.behaviour,
+    assessment.awareness,
+    assessment.profile,
+    assessment.habits,
+
+    v2BehaviourResult,
+    v2AwarenessResult,
+    v2StabilityResult,
+    v2DebtSchedule,
+    v2Habits,
+  ]);
+
 
   const ui =
     mode === "v2"
@@ -246,6 +539,7 @@ export default function App() {
 }
 
 function Header({
+
   saveState,
   onExport,
   onReset,
@@ -253,6 +547,7 @@ function Header({
   mode,
   onModeChange,
 }) {
+
   return (
     <header className="topbar">
       <a className="brand" href="#home" aria-label="ARTH.OS home">
@@ -581,11 +876,26 @@ function ProfileSection({ values, score, onChange, mode }) {
           value={values.monthlyExpenses}
           onChange={(value) => onChange("monthlyExpenses", value)}
         />
-        <MoneyInput
-          label="Emergency savings"
-          value={values.emergencySavings}
-          onChange={(value) => onChange("emergencySavings", value)}
-        />
+        {mode === "v2" ? (
+          <>
+            <MoneyInput
+              label="Fixed emergency buffer"
+              value={values.emergencySavingsFixed}
+              onChange={(value) => onChange("emergencySavingsFixed", value)}
+            />
+            <MoneyInput
+              label="Discretionary emergency buffer"
+              value={values.emergencySavingsDiscretionary}
+              onChange={(value) => onChange("emergencySavingsDiscretionary", value)}
+            />
+          </>
+        ) : (
+          <MoneyInput
+            label="Emergency savings"
+            value={values.emergencySavings}
+            onChange={(value) => onChange("emergencySavings", value)}
+          />
+        )}
         <MoneyInput
           label="Total debt"
           value={values.totalDebt}
@@ -644,7 +954,12 @@ function ProfileSection({ values, score, onChange, mode }) {
                   min="0"
                   inputMode="decimal"
                   value={values.debtRepaymentRatePctOfIncome ?? 0.12}
-                  onChange={(e) => onChange("debtRepaymentRatePctOfIncome", e.target.value)}
+                  onChange={(e) =>
+                    onChange(
+                      "debtRepaymentRatePctOfIncome",
+                      e.target.value === "" ? 0 : Number.parseFloat(e.target.value),
+                    )
+                  }
                 />
               </div>
             </div>
@@ -663,7 +978,12 @@ function ProfileSection({ values, score, onChange, mode }) {
                   min="0"
                   inputMode="decimal"
                   value={values.averageInterestRatePct ?? 10}
-                  onChange={(e) => onChange("averageInterestRatePct", e.target.value)}
+                  onChange={(e) =>
+                    onChange(
+                      "averageInterestRatePct",
+                      e.target.value === "" ? 0 : Number.parseFloat(e.target.value),
+                    )
+                  }
                 />
               </div>
             </div>
@@ -685,36 +1005,46 @@ function MoneyInput({ label, value, onChange }) {
           type="number"
           min="0"
           inputMode="numeric"
-          value={value}
-          onChange={(event) => onChange(event.target.value)}
+          value={value ?? ""}
+          onChange={(event) => {
+            const val = event.target.value;
+            onChange(val === "" ? 0 : Number.parseFloat(val));
+          }}
         />
       </div>
     </label>
   );
 }
 
+
 function SegmentedControl({ labelledBy, name, options, value, onChange }) {
   return (
     <div className="segmented-control" role="radiogroup" aria-labelledby={labelledBy}>
-      {options.map((option) => (
-        <button
-          className={option.value === value ? "selected" : ""}
-          key={option.value}
-          type="button"
-          role="radio"
-          aria-checked={option.value === value}
-          name={name}
-          onClick={() => onChange(option.value)}
-        >
-          {option.label}
-        </button>
-      ))}
+      {options.map((option) => {
+        const checked = option.value === value;
+        return (
+          <label
+            key={option.value}
+            className={`segmented-option ${checked ? "selected" : ""}`}
+          >
+            <input
+              type="radio"
+              name={name}
+              value={option.value}
+              checked={checked}
+              onChange={() => onChange(option.value)}
+            />
+            <span>{option.label}</span>
+          </label>
+        );
+      })}
     </div>
   );
 }
 
-function ScoreOverview({ result }) {
+const ScoreOverview = memo(function ScoreOverview({ result }) {
   return (
+
     <section className={`result-card score-card tone-${result.categoryBand.tone}`}>
       <div className="score-copy">
         <span className="metric-label">Health Score</span>
@@ -725,9 +1055,10 @@ function ScoreOverview({ result }) {
       <ScoreDial score={result.healthScore} tone={result.categoryBand.tone} />
     </section>
   );
-}
+});
 
-function ScoreDial({ score, tone }) {
+const ScoreDial = memo(function ScoreDial({ score, tone }) {
+
   const radius = 63;
   const circumference = 2 * Math.PI * radius;
   const progress = (score / 100) * circumference;
@@ -747,9 +1078,10 @@ function ScoreDial({ score, tone }) {
       <span>{score}</span>
     </div>
   );
-}
+});
 
-function ComponentBreakdown({ result }) {
+const ComponentBreakdown = memo(function ComponentBreakdown({ result }) {
+
   const orderedRows = [...result.componentRows].sort((a, b) => {
     const order = { behaviour: 0, awareness: 1, stability: 2 };
     return order[a.key] - order[b.key];
@@ -783,16 +1115,17 @@ function ComponentBreakdown({ result }) {
       </div>
     </section>
   );
-}
+});
 
-function SurvivalBlock({ result, assessment, mode }) {
+const SurvivalBlock = memo(function SurvivalBlock({ result, assessment, mode }) {
+
   const expenseValue = Number.parseFloat(assessment.profile.monthlyExpenses) || 0;
+  const fixedValue = Number.parseFloat(assessment.profile.emergencySavingsFixed) || 0;
+  const discretionaryValue = Number.parseFloat(assessment.profile.emergencySavingsDiscretionary) || 0;
   const savingsValue = Number.parseFloat(assessment.profile.emergencySavings) || 0;
+  const totalSavingsValue = fixedValue + discretionaryValue;
 
   const milestones = [1, 3, 6, 12];
-
-  const showCurrency = true;
-
 
   return (
     <section className="result-card">
@@ -807,6 +1140,11 @@ function SurvivalBlock({ result, assessment, mode }) {
       <p className={`status-line tone-text-${result.survivalBand.tone}`}>
         {result.survivalBand.label}
       </p>
+      {mode === "v2" ? (
+        <p className="buffer-summary">
+          Fixed: {result.fixedBufferMonthsDisplay} · Discretionary: {result.discretionaryBufferMonthsDisplay}
+        </p>
+      ) : null}
       <div className="survival-rail" aria-hidden="true">
         {milestones.map((month) => (
           <span
@@ -815,15 +1153,29 @@ function SurvivalBlock({ result, assessment, mode }) {
           />
         ))}
       </div>
-      <div className="money-pair">
-        <span>{formatCurrency(savingsValue)} saved</span>
-        <span>{formatCurrency(expenseValue)} monthly burn</span>
-      </div>
+      {mode === "v2" ? (
+        <>
+          <div className="money-pair">
+            <span>Fixed buffer: {formatCurrency(fixedValue)}</span>
+            <span>Discretionary buffer: {formatCurrency(discretionaryValue)}</span>
+          </div>
+          <div className="money-pair">
+            <span>Total: {formatCurrency(totalSavingsValue)}</span>
+            <span>{formatCurrency(expenseValue)} monthly burn</span>
+          </div>
+        </>
+      ) : (
+        <div className="money-pair">
+          <span>{formatCurrency(savingsValue)} saved</span>
+          <span>{formatCurrency(expenseValue)} monthly burn</span>
+        </div>
+      )}
     </section>
   );
-}
+});
 
-function ActionBlock({ result, mode }) {
+const ActionBlock = memo(function ActionBlock({ result, mode }) {
+
   return (
     <section className="result-card action-card">
 
@@ -856,7 +1208,6 @@ function ActionBlock({ result, mode }) {
           </div>
         </div>
       )}
-
     </section>
   );
-}
+});
