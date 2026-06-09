@@ -1,0 +1,2 @@
+Notes: scoring-v2 uses heuristic scaling and simple amortization for estimates.
+

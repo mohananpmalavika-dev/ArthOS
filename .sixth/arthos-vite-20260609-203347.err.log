@@ -1,0 +1,1026 @@
+[2m9:28:59 pm[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m Pre-transform error: Transform failed with 2 errors:
+C:/ArthOS/src/App.jsx:37:2: ERROR: The symbol "dependentsOptions" has already been declared
+C:/ArthOS/src/App.jsx:38:2: ERROR: The symbol "incomeStabilityOptions" has already been declared
+  Plugin: [35mvite:esbuild[39m
+  File: [36mC:/ArthOS/src/App.jsx[39m:37:2
+[33m  
+  [33mThe symbol "dependentsOptions" has already been declared[33m
+  35 |    v2AwarenessQuestions,
+  36 |    v2DefaultAssessment,
+  37 |    dependentsOptions,
+     |    ^
+  38 |    incomeStabilityOptions,
+  39 |  } from "./data/questionnaire-v2.js";
+  
+  [33mThe symbol "incomeStabilityOptions" has already been declared[33m
+  36 |    v2DefaultAssessment,
+  37 |    dependentsOptions,
+  38 |    incomeStabilityOptions,
+     |    ^
+  39 |  } from "./data/questionnaire-v2.js";
+  40 |  
+  [39m
+[2m9:29:00 pm[22m [31m[1m[vite][22m[39m [31mInternal server error: Transform failed with 2 errors:
+C:/ArthOS/src/App.jsx:37:2: ERROR: The symbol "dependentsOptions" has already been declared
+C:/ArthOS/src/App.jsx:38:2: ERROR: The symbol "incomeStabilityOptions" has already been declared[39m
+  Plugin: [35mvite:esbuild[39m
+  File: [36mC:/ArthOS/src/App.jsx[39m:37:2
+[33m  
+  [33mThe symbol "dependentsOptions" has already been declared[33m
+  35 |    v2AwarenessQuestions,
+  36 |    v2DefaultAssessment,
+  37 |    dependentsOptions,
+     |    ^
+  38 |    incomeStabilityOptions,
+  39 |  } from "./data/questionnaire-v2.js";
+  
+  [33mThe symbol "incomeStabilityOptions" has already been declared[33m
+  36 |    v2DefaultAssessment,
+  37 |    dependentsOptions,
+  38 |    incomeStabilityOptions,
+     |    ^
+  39 |  } from "./data/questionnaire-v2.js";
+  40 |  
+  [39m
+      at failureErrorWithLog (C:\ArthOS\node_modules\esbuild\lib\main.js:1467:15)
+      at C:\ArthOS\node_modules\esbuild\lib\main.js:736:50
+      at responseCallbacks.<computed> (C:\ArthOS\node_modules\esbuild\lib\main.js:603:9)
+      at handleIncomingPacket (C:\ArthOS\node_modules\esbuild\lib\main.js:658:12)
+      at Socket.readFromStdout (C:\ArthOS\node_modules\esbuild\lib\main.js:581:7)
+      at Socket.emit (node:events:509:28)
+      at addChunk (node:internal/streams/readable:563:12)
+      at readableAddChunkPushByteMode (node:internal/streams/readable:514:3)
+      at Readable.push (node:internal/streams/readable:394:5)
+      at Pipe.onStreamRead (node:internal/stream_base_commons:189:23)
+[2m9:29:11 pm[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m Pre-transform error: Transform failed with 2 errors:
+C:/ArthOS/src/App.jsx:37:2: ERROR: The symbol "dependentsOptions" has already been declared
+C:/ArthOS/src/App.jsx:38:2: ERROR: The symbol "incomeStabilityOptions" has already been declared
+  Plugin: [35mvite:esbuild[39m
+  File: [36mC:/ArthOS/src/App.jsx[39m:37:2
+[33m  
+  [33mThe symbol "dependentsOptions" has already been declared[33m
+  35 |    v2AwarenessQuestions,
+  36 |    v2DefaultAssessment,
+  37 |    dependentsOptions,
+     |    ^
+  38 |    incomeStabilityOptions,
+  39 |  } from "./data/questionnaire-v2.js";
+  
+  [33mThe symbol "incomeStabilityOptions" has already been declared[33m
+  36 |    v2DefaultAssessment,
+  37 |    dependentsOptions,
+  38 |    incomeStabilityOptions,
+     |    ^
+  39 |  } from "./data/questionnaire-v2.js";
+  40 |  
+  [39m
+[2m9:29:11 pm[22m [31m[1m[vite][22m[39m [31mInternal server error: Transform failed with 2 errors:
+C:/ArthOS/src/App.jsx:37:2: ERROR: The symbol "dependentsOptions" has already been declared
+C:/ArthOS/src/App.jsx:38:2: ERROR: The symbol "incomeStabilityOptions" has already been declared[39m
+  Plugin: [35mvite:esbuild[39m
+  File: [36mC:/ArthOS/src/App.jsx[39m:37:2
+[33m  
+  [33mThe symbol "dependentsOptions" has already been declared[33m
+  35 |    v2AwarenessQuestions,
+  36 |    v2DefaultAssessment,
+  37 |    dependentsOptions,
+     |    ^
+  38 |    incomeStabilityOptions,
+  39 |  } from "./data/questionnaire-v2.js";
+  
+  [33mThe symbol "incomeStabilityOptions" has already been declared[33m
+  36 |    v2DefaultAssessment,
+  37 |    dependentsOptions,
+  38 |    incomeStabilityOptions,
+     |    ^
+  39 |  } from "./data/questionnaire-v2.js";
+  40 |  
+  [39m
+      at failureErrorWithLog (C:\ArthOS\node_modules\esbuild\lib\main.js:1467:15)
+      at C:\ArthOS\node_modules\esbuild\lib\main.js:736:50
+      at responseCallbacks.<computed> (C:\ArthOS\node_modules\esbuild\lib\main.js:603:9)
+      at handleIncomingPacket (C:\ArthOS\node_modules\esbuild\lib\main.js:658:12)
+      at Socket.readFromStdout (C:\ArthOS\node_modules\esbuild\lib\main.js:581:7)
+      at Socket.emit (node:events:509:28)
+      at addChunk (node:internal/streams/readable:563:12)
+      at readableAddChunkPushByteMode (node:internal/streams/readable:514:3)
+      at Readable.push (node:internal/streams/readable:394:5)
+      at Pipe.onStreamRead (node:internal/stream_base_commons:189:23)
+[2m9:29:38 pm[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m Pre-transform error: Transform failed with 2 errors:
+C:/ArthOS/src/App.jsx:37:2: ERROR: The symbol "dependentsOptions" has already been declared
+C:/ArthOS/src/App.jsx:38:2: ERROR: The symbol "incomeStabilityOptions" has already been declared
+  Plugin: [35mvite:esbuild[39m
+  File: [36mC:/ArthOS/src/App.jsx[39m:37:2
+[33m  
+  [33mThe symbol "dependentsOptions" has already been declared[33m
+  35 |    v2AwarenessQuestions,
+  36 |    v2DefaultAssessment,
+  37 |    dependentsOptions,
+     |    ^
+  38 |    incomeStabilityOptions,
+  39 |  } from "./data/questionnaire-v2.js";
+  
+  [33mThe symbol "incomeStabilityOptions" has already been declared[33m
+  36 |    v2DefaultAssessment,
+  37 |    dependentsOptions,
+  38 |    incomeStabilityOptions,
+     |    ^
+  39 |  } from "./data/questionnaire-v2.js";
+  40 |  
+  [39m
+[2m9:29:38 pm[22m [31m[1m[vite][22m[39m [31mInternal server error: Transform failed with 2 errors:
+C:/ArthOS/src/App.jsx:37:2: ERROR: The symbol "dependentsOptions" has already been declared
+C:/ArthOS/src/App.jsx:38:2: ERROR: The symbol "incomeStabilityOptions" has already been declared[39m
+  Plugin: [35mvite:esbuild[39m
+  File: [36mC:/ArthOS/src/App.jsx[39m:37:2
+[33m  
+  [33mThe symbol "dependentsOptions" has already been declared[33m
+  35 |    v2AwarenessQuestions,
+  36 |    v2DefaultAssessment,
+  37 |    dependentsOptions,
+     |    ^
+  38 |    incomeStabilityOptions,
+  39 |  } from "./data/questionnaire-v2.js";
+  
+  [33mThe symbol "incomeStabilityOptions" has already been declared[33m
+  36 |    v2DefaultAssessment,
+  37 |    dependentsOptions,
+  38 |    incomeStabilityOptions,
+     |    ^
+  39 |  } from "./data/questionnaire-v2.js";
+  40 |  
+  [39m
+      at failureErrorWithLog (C:\ArthOS\node_modules\esbuild\lib\main.js:1467:15)
+      at C:\ArthOS\node_modules\esbuild\lib\main.js:736:50
+      at responseCallbacks.<computed> (C:\ArthOS\node_modules\esbuild\lib\main.js:603:9)
+      at handleIncomingPacket (C:\ArthOS\node_modules\esbuild\lib\main.js:658:12)
+      at Socket.readFromStdout (C:\ArthOS\node_modules\esbuild\lib\main.js:581:7)
+      at Socket.emit (node:events:509:28)
+      at addChunk (node:internal/streams/readable:563:12)
+      at readableAddChunkPushByteMode (node:internal/streams/readable:514:3)
+      at Readable.push (node:internal/streams/readable:394:5)
+      at Pipe.onStreamRead (node:internal/stream_base_commons:189:23)
+[2m9:29:54 pm[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m Pre-transform error: Transform failed with 2 errors:
+C:/ArthOS/src/App.jsx:37:2: ERROR: The symbol "dependentsOptions" has already been declared
+C:/ArthOS/src/App.jsx:38:2: ERROR: The symbol "incomeStabilityOptions" has already been declared
+  Plugin: [35mvite:esbuild[39m
+  File: [36mC:/ArthOS/src/App.jsx[39m:37:2
+[33m  
+  [33mThe symbol "dependentsOptions" has already been declared[33m
+  35 |    v2AwarenessQuestions,
+  36 |    v2DefaultAssessment,
+  37 |    dependentsOptions,
+     |    ^
+  38 |    incomeStabilityOptions,
+  39 |  } from "./data/questionnaire-v2.js";
+  
+  [33mThe symbol "incomeStabilityOptions" has already been declared[33m
+  36 |    v2DefaultAssessment,
+  37 |    dependentsOptions,
+  38 |    incomeStabilityOptions,
+     |    ^
+  39 |  } from "./data/questionnaire-v2.js";
+  40 |  
+  [39m
+[2m9:29:54 pm[22m [31m[1m[vite][22m[39m [31mInternal server error: Transform failed with 2 errors:
+C:/ArthOS/src/App.jsx:37:2: ERROR: The symbol "dependentsOptions" has already been declared
+C:/ArthOS/src/App.jsx:38:2: ERROR: The symbol "incomeStabilityOptions" has already been declared[39m
+  Plugin: [35mvite:esbuild[39m
+  File: [36mC:/ArthOS/src/App.jsx[39m:37:2
+[33m  
+  [33mThe symbol "dependentsOptions" has already been declared[33m
+  35 |    v2AwarenessQuestions,
+  36 |    v2DefaultAssessment,
+  37 |    dependentsOptions,
+     |    ^
+  38 |    incomeStabilityOptions,
+  39 |  } from "./data/questionnaire-v2.js";
+  
+  [33mThe symbol "incomeStabilityOptions" has already been declared[33m
+  36 |    v2DefaultAssessment,
+  37 |    dependentsOptions,
+  38 |    incomeStabilityOptions,
+     |    ^
+  39 |  } from "./data/questionnaire-v2.js";
+  40 |  
+  [39m
+      at failureErrorWithLog (C:\ArthOS\node_modules\esbuild\lib\main.js:1467:15)
+      at C:\ArthOS\node_modules\esbuild\lib\main.js:736:50
+      at responseCallbacks.<computed> (C:\ArthOS\node_modules\esbuild\lib\main.js:603:9)
+      at handleIncomingPacket (C:\ArthOS\node_modules\esbuild\lib\main.js:658:12)
+      at Socket.readFromStdout (C:\ArthOS\node_modules\esbuild\lib\main.js:581:7)
+      at Socket.emit (node:events:509:28)
+      at addChunk (node:internal/streams/readable:563:12)
+      at readableAddChunkPushByteMode (node:internal/streams/readable:514:3)
+      at Readable.push (node:internal/streams/readable:394:5)
+      at Pipe.onStreamRead (node:internal/stream_base_commons:189:23)
+[2m9:30:35 pm[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m Pre-transform error: Transform failed with 2 errors:
+C:/ArthOS/src/App.jsx:37:2: ERROR: The symbol "dependentsOptions" has already been declared
+C:/ArthOS/src/App.jsx:38:2: ERROR: The symbol "incomeStabilityOptions" has already been declared
+  Plugin: [35mvite:esbuild[39m
+  File: [36mC:/ArthOS/src/App.jsx[39m:37:2
+[33m  
+  [33mThe symbol "dependentsOptions" has already been declared[33m
+  35 |    v2AwarenessQuestions,
+  36 |    v2DefaultAssessment,
+  37 |    dependentsOptions,
+     |    ^
+  38 |    incomeStabilityOptions,
+  39 |  } from "./data/questionnaire-v2.js";
+  
+  [33mThe symbol "incomeStabilityOptions" has already been declared[33m
+  36 |    v2DefaultAssessment,
+  37 |    dependentsOptions,
+  38 |    incomeStabilityOptions,
+     |    ^
+  39 |  } from "./data/questionnaire-v2.js";
+  40 |  
+  [39m
+[2m9:30:35 pm[22m [31m[1m[vite][22m[39m [31mInternal server error: Transform failed with 2 errors:
+C:/ArthOS/src/App.jsx:37:2: ERROR: The symbol "dependentsOptions" has already been declared
+C:/ArthOS/src/App.jsx:38:2: ERROR: The symbol "incomeStabilityOptions" has already been declared[39m
+  Plugin: [35mvite:esbuild[39m
+  File: [36mC:/ArthOS/src/App.jsx[39m:37:2
+[33m  
+  [33mThe symbol "dependentsOptions" has already been declared[33m
+  35 |    v2AwarenessQuestions,
+  36 |    v2DefaultAssessment,
+  37 |    dependentsOptions,
+     |    ^
+  38 |    incomeStabilityOptions,
+  39 |  } from "./data/questionnaire-v2.js";
+  
+  [33mThe symbol "incomeStabilityOptions" has already been declared[33m
+  36 |    v2DefaultAssessment,
+  37 |    dependentsOptions,
+  38 |    incomeStabilityOptions,
+     |    ^
+  39 |  } from "./data/questionnaire-v2.js";
+  40 |  
+  [39m
+      at failureErrorWithLog (C:\ArthOS\node_modules\esbuild\lib\main.js:1467:15)
+      at C:\ArthOS\node_modules\esbuild\lib\main.js:736:50
+      at responseCallbacks.<computed> (C:\ArthOS\node_modules\esbuild\lib\main.js:603:9)
+      at handleIncomingPacket (C:\ArthOS\node_modules\esbuild\lib\main.js:658:12)
+      at Socket.readFromStdout (C:\ArthOS\node_modules\esbuild\lib\main.js:581:7)
+      at Socket.emit (node:events:509:28)
+      at addChunk (node:internal/streams/readable:563:12)
+      at readableAddChunkPushByteMode (node:internal/streams/readable:514:3)
+      at Readable.push (node:internal/streams/readable:394:5)
+      at Pipe.onStreamRead (node:internal/stream_base_commons:189:23)
+[2m9:30:46 pm[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m Pre-transform error: Transform failed with 2 errors:
+C:/ArthOS/src/App.jsx:37:2: ERROR: The symbol "dependentsOptions" has already been declared
+C:/ArthOS/src/App.jsx:38:2: ERROR: The symbol "incomeStabilityOptions" has already been declared
+  Plugin: [35mvite:esbuild[39m
+  File: [36mC:/ArthOS/src/App.jsx[39m:37:2
+[33m  
+  [33mThe symbol "dependentsOptions" has already been declared[33m
+  35 |    v2AwarenessQuestions,
+  36 |    v2DefaultAssessment,
+  37 |    dependentsOptions,
+     |    ^
+  38 |    incomeStabilityOptions,
+  39 |  } from "./data/questionnaire-v2.js";
+  
+  [33mThe symbol "incomeStabilityOptions" has already been declared[33m
+  36 |    v2DefaultAssessment,
+  37 |    dependentsOptions,
+  38 |    incomeStabilityOptions,
+     |    ^
+  39 |  } from "./data/questionnaire-v2.js";
+  40 |  
+  [39m
+[2m9:30:46 pm[22m [31m[1m[vite][22m[39m [31mInternal server error: Transform failed with 2 errors:
+C:/ArthOS/src/App.jsx:37:2: ERROR: The symbol "dependentsOptions" has already been declared
+C:/ArthOS/src/App.jsx:38:2: ERROR: The symbol "incomeStabilityOptions" has already been declared[39m
+  Plugin: [35mvite:esbuild[39m
+  File: [36mC:/ArthOS/src/App.jsx[39m:37:2
+[33m  
+  [33mThe symbol "dependentsOptions" has already been declared[33m
+  35 |    v2AwarenessQuestions,
+  36 |    v2DefaultAssessment,
+  37 |    dependentsOptions,
+     |    ^
+  38 |    incomeStabilityOptions,
+  39 |  } from "./data/questionnaire-v2.js";
+  
+  [33mThe symbol "incomeStabilityOptions" has already been declared[33m
+  36 |    v2DefaultAssessment,
+  37 |    dependentsOptions,
+  38 |    incomeStabilityOptions,
+     |    ^
+  39 |  } from "./data/questionnaire-v2.js";
+  40 |  
+  [39m
+      at failureErrorWithLog (C:\ArthOS\node_modules\esbuild\lib\main.js:1467:15)
+      at C:\ArthOS\node_modules\esbuild\lib\main.js:736:50
+      at responseCallbacks.<computed> (C:\ArthOS\node_modules\esbuild\lib\main.js:603:9)
+      at handleIncomingPacket (C:\ArthOS\node_modules\esbuild\lib\main.js:658:12)
+      at Socket.readFromStdout (C:\ArthOS\node_modules\esbuild\lib\main.js:581:7)
+      at Socket.emit (node:events:509:28)
+      at addChunk (node:internal/streams/readable:563:12)
+      at readableAddChunkPushByteMode (node:internal/streams/readable:514:3)
+      at Readable.push (node:internal/streams/readable:394:5)
+      at Pipe.onStreamRead (node:internal/stream_base_commons:189:23)
+[2m9:31:06 pm[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m Pre-transform error: Transform failed with 2 errors:
+C:/ArthOS/src/App.jsx:37:2: ERROR: The symbol "dependentsOptions" has already been declared
+C:/ArthOS/src/App.jsx:38:2: ERROR: The symbol "incomeStabilityOptions" has already been declared
+  Plugin: [35mvite:esbuild[39m
+  File: [36mC:/ArthOS/src/App.jsx[39m:37:2
+[33m  
+  [33mThe symbol "dependentsOptions" has already been declared[33m
+  35 |    v2AwarenessQuestions,
+  36 |    v2DefaultAssessment,
+  37 |    dependentsOptions,
+     |    ^
+  38 |    incomeStabilityOptions,
+  39 |  } from "./data/questionnaire-v2.js";
+  
+  [33mThe symbol "incomeStabilityOptions" has already been declared[33m
+  36 |    v2DefaultAssessment,
+  37 |    dependentsOptions,
+  38 |    incomeStabilityOptions,
+     |    ^
+  39 |  } from "./data/questionnaire-v2.js";
+  40 |  
+  [39m
+[2m9:31:06 pm[22m [31m[1m[vite][22m[39m [31mInternal server error: Transform failed with 2 errors:
+C:/ArthOS/src/App.jsx:37:2: ERROR: The symbol "dependentsOptions" has already been declared
+C:/ArthOS/src/App.jsx:38:2: ERROR: The symbol "incomeStabilityOptions" has already been declared[39m
+  Plugin: [35mvite:esbuild[39m
+  File: [36mC:/ArthOS/src/App.jsx[39m:37:2
+[33m  
+  [33mThe symbol "dependentsOptions" has already been declared[33m
+  35 |    v2AwarenessQuestions,
+  36 |    v2DefaultAssessment,
+  37 |    dependentsOptions,
+     |    ^
+  38 |    incomeStabilityOptions,
+  39 |  } from "./data/questionnaire-v2.js";
+  
+  [33mThe symbol "incomeStabilityOptions" has already been declared[33m
+  36 |    v2DefaultAssessment,
+  37 |    dependentsOptions,
+  38 |    incomeStabilityOptions,
+     |    ^
+  39 |  } from "./data/questionnaire-v2.js";
+  40 |  
+  [39m
+      at failureErrorWithLog (C:\ArthOS\node_modules\esbuild\lib\main.js:1467:15)
+      at C:\ArthOS\node_modules\esbuild\lib\main.js:736:50
+      at responseCallbacks.<computed> (C:\ArthOS\node_modules\esbuild\lib\main.js:603:9)
+      at handleIncomingPacket (C:\ArthOS\node_modules\esbuild\lib\main.js:658:12)
+      at Socket.readFromStdout (C:\ArthOS\node_modules\esbuild\lib\main.js:581:7)
+      at Socket.emit (node:events:509:28)
+      at addChunk (node:internal/streams/readable:563:12)
+      at readableAddChunkPushByteMode (node:internal/streams/readable:514:3)
+      at Readable.push (node:internal/streams/readable:394:5)
+      at Pipe.onStreamRead (node:internal/stream_base_commons:189:23)
+[2m9:31:16 pm[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m Pre-transform error: Transform failed with 2 errors:
+C:/ArthOS/src/App.jsx:37:2: ERROR: The symbol "dependentsOptions" has already been declared
+C:/ArthOS/src/App.jsx:38:2: ERROR: The symbol "incomeStabilityOptions" has already been declared
+  Plugin: [35mvite:esbuild[39m
+  File: [36mC:/ArthOS/src/App.jsx[39m:37:2
+[33m  
+  [33mThe symbol "dependentsOptions" has already been declared[33m
+  35 |    v2AwarenessQuestions,
+  36 |    v2DefaultAssessment,
+  37 |    dependentsOptions,
+     |    ^
+  38 |    incomeStabilityOptions,
+  39 |  } from "./data/questionnaire-v2.js";
+  
+  [33mThe symbol "incomeStabilityOptions" has already been declared[33m
+  36 |    v2DefaultAssessment,
+  37 |    dependentsOptions,
+  38 |    incomeStabilityOptions,
+     |    ^
+  39 |  } from "./data/questionnaire-v2.js";
+  40 |  
+  [39m
+[2m9:31:16 pm[22m [31m[1m[vite][22m[39m [31mInternal server error: Transform failed with 2 errors:
+C:/ArthOS/src/App.jsx:37:2: ERROR: The symbol "dependentsOptions" has already been declared
+C:/ArthOS/src/App.jsx:38:2: ERROR: The symbol "incomeStabilityOptions" has already been declared[39m
+  Plugin: [35mvite:esbuild[39m
+  File: [36mC:/ArthOS/src/App.jsx[39m:37:2
+[33m  
+  [33mThe symbol "dependentsOptions" has already been declared[33m
+  35 |    v2AwarenessQuestions,
+  36 |    v2DefaultAssessment,
+  37 |    dependentsOptions,
+     |    ^
+  38 |    incomeStabilityOptions,
+  39 |  } from "./data/questionnaire-v2.js";
+  
+  [33mThe symbol "incomeStabilityOptions" has already been declared[33m
+  36 |    v2DefaultAssessment,
+  37 |    dependentsOptions,
+  38 |    incomeStabilityOptions,
+     |    ^
+  39 |  } from "./data/questionnaire-v2.js";
+  40 |  
+  [39m
+      at failureErrorWithLog (C:\ArthOS\node_modules\esbuild\lib\main.js:1467:15)
+      at C:\ArthOS\node_modules\esbuild\lib\main.js:736:50
+      at responseCallbacks.<computed> (C:\ArthOS\node_modules\esbuild\lib\main.js:603:9)
+      at handleIncomingPacket (C:\ArthOS\node_modules\esbuild\lib\main.js:658:12)
+      at Socket.readFromStdout (C:\ArthOS\node_modules\esbuild\lib\main.js:581:7)
+      at Socket.emit (node:events:509:28)
+      at addChunk (node:internal/streams/readable:563:12)
+      at readableAddChunkPushByteMode (node:internal/streams/readable:514:3)
+      at Readable.push (node:internal/streams/readable:394:5)
+      at Pipe.onStreamRead (node:internal/stream_base_commons:189:23)
+[2m9:31:24 pm[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m Pre-transform error: Transform failed with 2 errors:
+C:/ArthOS/src/App.jsx:37:2: ERROR: The symbol "dependentsOptions" has already been declared
+C:/ArthOS/src/App.jsx:38:2: ERROR: The symbol "incomeStabilityOptions" has already been declared
+  Plugin: [35mvite:esbuild[39m
+  File: [36mC:/ArthOS/src/App.jsx[39m:37:2
+[33m  
+  [33mThe symbol "dependentsOptions" has already been declared[33m
+  35 |    v2AwarenessQuestions,
+  36 |    v2DefaultAssessment,
+  37 |    dependentsOptions,
+     |    ^
+  38 |    incomeStabilityOptions,
+  39 |  } from "./data/questionnaire-v2.js";
+  
+  [33mThe symbol "incomeStabilityOptions" has already been declared[33m
+  36 |    v2DefaultAssessment,
+  37 |    dependentsOptions,
+  38 |    incomeStabilityOptions,
+     |    ^
+  39 |  } from "./data/questionnaire-v2.js";
+  40 |  
+  [39m
+[2m9:31:24 pm[22m [31m[1m[vite][22m[39m [31mInternal server error: Transform failed with 2 errors:
+C:/ArthOS/src/App.jsx:37:2: ERROR: The symbol "dependentsOptions" has already been declared
+C:/ArthOS/src/App.jsx:38:2: ERROR: The symbol "incomeStabilityOptions" has already been declared[39m
+  Plugin: [35mvite:esbuild[39m
+  File: [36mC:/ArthOS/src/App.jsx[39m:37:2
+[33m  
+  [33mThe symbol "dependentsOptions" has already been declared[33m
+  35 |    v2AwarenessQuestions,
+  36 |    v2DefaultAssessment,
+  37 |    dependentsOptions,
+     |    ^
+  38 |    incomeStabilityOptions,
+  39 |  } from "./data/questionnaire-v2.js";
+  
+  [33mThe symbol "incomeStabilityOptions" has already been declared[33m
+  36 |    v2DefaultAssessment,
+  37 |    dependentsOptions,
+  38 |    incomeStabilityOptions,
+     |    ^
+  39 |  } from "./data/questionnaire-v2.js";
+  40 |  
+  [39m
+      at failureErrorWithLog (C:\ArthOS\node_modules\esbuild\lib\main.js:1467:15)
+      at C:\ArthOS\node_modules\esbuild\lib\main.js:736:50
+      at responseCallbacks.<computed> (C:\ArthOS\node_modules\esbuild\lib\main.js:603:9)
+      at handleIncomingPacket (C:\ArthOS\node_modules\esbuild\lib\main.js:658:12)
+      at Socket.readFromStdout (C:\ArthOS\node_modules\esbuild\lib\main.js:581:7)
+      at Socket.emit (node:events:509:28)
+      at addChunk (node:internal/streams/readable:563:12)
+      at readableAddChunkPushByteMode (node:internal/streams/readable:514:3)
+      at Readable.push (node:internal/streams/readable:394:5)
+      at Pipe.onStreamRead (node:internal/stream_base_commons:189:23)
+[2m9:31:37 pm[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m Pre-transform error: Transform failed with 2 errors:
+C:/ArthOS/src/App.jsx:37:2: ERROR: The symbol "dependentsOptions" has already been declared
+C:/ArthOS/src/App.jsx:38:2: ERROR: The symbol "incomeStabilityOptions" has already been declared
+  Plugin: [35mvite:esbuild[39m
+  File: [36mC:/ArthOS/src/App.jsx[39m:37:2
+[33m  
+  [33mThe symbol "dependentsOptions" has already been declared[33m
+  35 |    v2AwarenessQuestions,
+  36 |    v2DefaultAssessment,
+  37 |    dependentsOptions,
+     |    ^
+  38 |    incomeStabilityOptions,
+  39 |  } from "./data/questionnaire-v2.js";
+  
+  [33mThe symbol "incomeStabilityOptions" has already been declared[33m
+  36 |    v2DefaultAssessment,
+  37 |    dependentsOptions,
+  38 |    incomeStabilityOptions,
+     |    ^
+  39 |  } from "./data/questionnaire-v2.js";
+  40 |  
+  [39m
+[2m9:31:37 pm[22m [31m[1m[vite][22m[39m [31mInternal server error: Transform failed with 2 errors:
+C:/ArthOS/src/App.jsx:37:2: ERROR: The symbol "dependentsOptions" has already been declared
+C:/ArthOS/src/App.jsx:38:2: ERROR: The symbol "incomeStabilityOptions" has already been declared[39m
+  Plugin: [35mvite:esbuild[39m
+  File: [36mC:/ArthOS/src/App.jsx[39m:37:2
+[33m  
+  [33mThe symbol "dependentsOptions" has already been declared[33m
+  35 |    v2AwarenessQuestions,
+  36 |    v2DefaultAssessment,
+  37 |    dependentsOptions,
+     |    ^
+  38 |    incomeStabilityOptions,
+  39 |  } from "./data/questionnaire-v2.js";
+  
+  [33mThe symbol "incomeStabilityOptions" has already been declared[33m
+  36 |    v2DefaultAssessment,
+  37 |    dependentsOptions,
+  38 |    incomeStabilityOptions,
+     |    ^
+  39 |  } from "./data/questionnaire-v2.js";
+  40 |  
+  [39m
+      at failureErrorWithLog (C:\ArthOS\node_modules\esbuild\lib\main.js:1467:15)
+      at C:\ArthOS\node_modules\esbuild\lib\main.js:736:50
+      at responseCallbacks.<computed> (C:\ArthOS\node_modules\esbuild\lib\main.js:603:9)
+      at handleIncomingPacket (C:\ArthOS\node_modules\esbuild\lib\main.js:658:12)
+      at Socket.readFromStdout (C:\ArthOS\node_modules\esbuild\lib\main.js:581:7)
+      at Socket.emit (node:events:509:28)
+      at addChunk (node:internal/streams/readable:563:12)
+      at readableAddChunkPushByteMode (node:internal/streams/readable:514:3)
+      at Readable.push (node:internal/streams/readable:394:5)
+      at Pipe.onStreamRead (node:internal/stream_base_commons:189:23)
+[2m9:31:59 pm[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m Pre-transform error: Transform failed with 2 errors:
+C:/ArthOS/src/App.jsx:37:2: ERROR: The symbol "dependentsOptions" has already been declared
+C:/ArthOS/src/App.jsx:38:2: ERROR: The symbol "incomeStabilityOptions" has already been declared
+  Plugin: [35mvite:esbuild[39m
+  File: [36mC:/ArthOS/src/App.jsx[39m:37:2
+[33m  
+  [33mThe symbol "dependentsOptions" has already been declared[33m
+  35 |    v2AwarenessQuestions,
+  36 |    v2DefaultAssessment,
+  37 |    dependentsOptions,
+     |    ^
+  38 |    incomeStabilityOptions,
+  39 |  } from "./data/questionnaire-v2.js";
+  
+  [33mThe symbol "incomeStabilityOptions" has already been declared[33m
+  36 |    v2DefaultAssessment,
+  37 |    dependentsOptions,
+  38 |    incomeStabilityOptions,
+     |    ^
+  39 |  } from "./data/questionnaire-v2.js";
+  40 |  
+  [39m
+[2m9:31:59 pm[22m [31m[1m[vite][22m[39m [31mInternal server error: Transform failed with 2 errors:
+C:/ArthOS/src/App.jsx:37:2: ERROR: The symbol "dependentsOptions" has already been declared
+C:/ArthOS/src/App.jsx:38:2: ERROR: The symbol "incomeStabilityOptions" has already been declared[39m
+  Plugin: [35mvite:esbuild[39m
+  File: [36mC:/ArthOS/src/App.jsx[39m:37:2
+[33m  
+  [33mThe symbol "dependentsOptions" has already been declared[33m
+  35 |    v2AwarenessQuestions,
+  36 |    v2DefaultAssessment,
+  37 |    dependentsOptions,
+     |    ^
+  38 |    incomeStabilityOptions,
+  39 |  } from "./data/questionnaire-v2.js";
+  
+  [33mThe symbol "incomeStabilityOptions" has already been declared[33m
+  36 |    v2DefaultAssessment,
+  37 |    dependentsOptions,
+  38 |    incomeStabilityOptions,
+     |    ^
+  39 |  } from "./data/questionnaire-v2.js";
+  40 |  
+  [39m
+      at failureErrorWithLog (C:\ArthOS\node_modules\esbuild\lib\main.js:1467:15)
+      at C:\ArthOS\node_modules\esbuild\lib\main.js:736:50
+      at responseCallbacks.<computed> (C:\ArthOS\node_modules\esbuild\lib\main.js:603:9)
+      at handleIncomingPacket (C:\ArthOS\node_modules\esbuild\lib\main.js:658:12)
+      at Socket.readFromStdout (C:\ArthOS\node_modules\esbuild\lib\main.js:581:7)
+      at Socket.emit (node:events:509:28)
+      at addChunk (node:internal/streams/readable:563:12)
+      at readableAddChunkPushByteMode (node:internal/streams/readable:514:3)
+      at Readable.push (node:internal/streams/readable:394:5)
+      at Pipe.onStreamRead (node:internal/stream_base_commons:189:23)
+[2m9:32:07 pm[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m Pre-transform error: Transform failed with 2 errors:
+C:/ArthOS/src/App.jsx:37:2: ERROR: The symbol "dependentsOptions" has already been declared
+C:/ArthOS/src/App.jsx:38:2: ERROR: The symbol "incomeStabilityOptions" has already been declared
+  Plugin: [35mvite:esbuild[39m
+  File: [36mC:/ArthOS/src/App.jsx[39m:37:2
+[33m  
+  [33mThe symbol "dependentsOptions" has already been declared[33m
+  35 |    v2AwarenessQuestions,
+  36 |    v2DefaultAssessment,
+  37 |    dependentsOptions,
+     |    ^
+  38 |    incomeStabilityOptions,
+  39 |  } from "./data/questionnaire-v2.js";
+  
+  [33mThe symbol "incomeStabilityOptions" has already been declared[33m
+  36 |    v2DefaultAssessment,
+  37 |    dependentsOptions,
+  38 |    incomeStabilityOptions,
+     |    ^
+  39 |  } from "./data/questionnaire-v2.js";
+  40 |  
+  [39m
+[2m9:32:07 pm[22m [31m[1m[vite][22m[39m [31mInternal server error: Transform failed with 2 errors:
+C:/ArthOS/src/App.jsx:37:2: ERROR: The symbol "dependentsOptions" has already been declared
+C:/ArthOS/src/App.jsx:38:2: ERROR: The symbol "incomeStabilityOptions" has already been declared[39m
+  Plugin: [35mvite:esbuild[39m
+  File: [36mC:/ArthOS/src/App.jsx[39m:37:2
+[33m  
+  [33mThe symbol "dependentsOptions" has already been declared[33m
+  35 |    v2AwarenessQuestions,
+  36 |    v2DefaultAssessment,
+  37 |    dependentsOptions,
+     |    ^
+  38 |    incomeStabilityOptions,
+  39 |  } from "./data/questionnaire-v2.js";
+  
+  [33mThe symbol "incomeStabilityOptions" has already been declared[33m
+  36 |    v2DefaultAssessment,
+  37 |    dependentsOptions,
+  38 |    incomeStabilityOptions,
+     |    ^
+  39 |  } from "./data/questionnaire-v2.js";
+  40 |  
+  [39m
+      at failureErrorWithLog (C:\ArthOS\node_modules\esbuild\lib\main.js:1467:15)
+      at C:\ArthOS\node_modules\esbuild\lib\main.js:736:50
+      at responseCallbacks.<computed> (C:\ArthOS\node_modules\esbuild\lib\main.js:603:9)
+      at handleIncomingPacket (C:\ArthOS\node_modules\esbuild\lib\main.js:658:12)
+      at Socket.readFromStdout (C:\ArthOS\node_modules\esbuild\lib\main.js:581:7)
+      at Socket.emit (node:events:509:28)
+      at addChunk (node:internal/streams/readable:563:12)
+      at readableAddChunkPushByteMode (node:internal/streams/readable:514:3)
+      at Readable.push (node:internal/streams/readable:394:5)
+      at Pipe.onStreamRead (node:internal/stream_base_commons:189:23)
+[2m9:32:17 pm[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m Pre-transform error: Transform failed with 2 errors:
+C:/ArthOS/src/App.jsx:37:2: ERROR: The symbol "dependentsOptions" has already been declared
+C:/ArthOS/src/App.jsx:38:2: ERROR: The symbol "incomeStabilityOptions" has already been declared
+  Plugin: [35mvite:esbuild[39m
+  File: [36mC:/ArthOS/src/App.jsx[39m:37:2
+[33m  
+  [33mThe symbol "dependentsOptions" has already been declared[33m
+  35 |    v2AwarenessQuestions,
+  36 |    v2DefaultAssessment,
+  37 |    dependentsOptions,
+     |    ^
+  38 |    incomeStabilityOptions,
+  39 |  } from "./data/questionnaire-v2.js";
+  
+  [33mThe symbol "incomeStabilityOptions" has already been declared[33m
+  36 |    v2DefaultAssessment,
+  37 |    dependentsOptions,
+  38 |    incomeStabilityOptions,
+     |    ^
+  39 |  } from "./data/questionnaire-v2.js";
+  40 |  
+  [39m
+[2m9:32:17 pm[22m [31m[1m[vite][22m[39m [31mInternal server error: Transform failed with 2 errors:
+C:/ArthOS/src/App.jsx:37:2: ERROR: The symbol "dependentsOptions" has already been declared
+C:/ArthOS/src/App.jsx:38:2: ERROR: The symbol "incomeStabilityOptions" has already been declared[39m
+  Plugin: [35mvite:esbuild[39m
+  File: [36mC:/ArthOS/src/App.jsx[39m:37:2
+[33m  
+  [33mThe symbol "dependentsOptions" has already been declared[33m
+  35 |    v2AwarenessQuestions,
+  36 |    v2DefaultAssessment,
+  37 |    dependentsOptions,
+     |    ^
+  38 |    incomeStabilityOptions,
+  39 |  } from "./data/questionnaire-v2.js";
+  
+  [33mThe symbol "incomeStabilityOptions" has already been declared[33m
+  36 |    v2DefaultAssessment,
+  37 |    dependentsOptions,
+  38 |    incomeStabilityOptions,
+     |    ^
+  39 |  } from "./data/questionnaire-v2.js";
+  40 |  
+  [39m
+      at failureErrorWithLog (C:\ArthOS\node_modules\esbuild\lib\main.js:1467:15)
+      at C:\ArthOS\node_modules\esbuild\lib\main.js:736:50
+      at responseCallbacks.<computed> (C:\ArthOS\node_modules\esbuild\lib\main.js:603:9)
+      at handleIncomingPacket (C:\ArthOS\node_modules\esbuild\lib\main.js:658:12)
+      at Socket.readFromStdout (C:\ArthOS\node_modules\esbuild\lib\main.js:581:7)
+      at Socket.emit (node:events:509:28)
+      at addChunk (node:internal/streams/readable:563:12)
+      at readableAddChunkPushByteMode (node:internal/streams/readable:514:3)
+      at Readable.push (node:internal/streams/readable:394:5)
+      at Pipe.onStreamRead (node:internal/stream_base_commons:189:23)
+[2m9:32:41 pm[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m Pre-transform error: Transform failed with 2 errors:
+C:/ArthOS/src/App.jsx:37:2: ERROR: The symbol "dependentsOptions" has already been declared
+C:/ArthOS/src/App.jsx:38:2: ERROR: The symbol "incomeStabilityOptions" has already been declared
+  Plugin: [35mvite:esbuild[39m
+  File: [36mC:/ArthOS/src/App.jsx[39m:37:2
+[33m  
+  [33mThe symbol "dependentsOptions" has already been declared[33m
+  35 |    v2AwarenessQuestions,
+  36 |    v2DefaultAssessment,
+  37 |    dependentsOptions,
+     |    ^
+  38 |    incomeStabilityOptions,
+  39 |  } from "./data/questionnaire-v2.js";
+  
+  [33mThe symbol "incomeStabilityOptions" has already been declared[33m
+  36 |    v2DefaultAssessment,
+  37 |    dependentsOptions,
+  38 |    incomeStabilityOptions,
+     |    ^
+  39 |  } from "./data/questionnaire-v2.js";
+  40 |  
+  [39m
+[2m9:32:41 pm[22m [31m[1m[vite][22m[39m [31mInternal server error: Transform failed with 2 errors:
+C:/ArthOS/src/App.jsx:37:2: ERROR: The symbol "dependentsOptions" has already been declared
+C:/ArthOS/src/App.jsx:38:2: ERROR: The symbol "incomeStabilityOptions" has already been declared[39m
+  Plugin: [35mvite:esbuild[39m
+  File: [36mC:/ArthOS/src/App.jsx[39m:37:2
+[33m  
+  [33mThe symbol "dependentsOptions" has already been declared[33m
+  35 |    v2AwarenessQuestions,
+  36 |    v2DefaultAssessment,
+  37 |    dependentsOptions,
+     |    ^
+  38 |    incomeStabilityOptions,
+  39 |  } from "./data/questionnaire-v2.js";
+  
+  [33mThe symbol "incomeStabilityOptions" has already been declared[33m
+  36 |    v2DefaultAssessment,
+  37 |    dependentsOptions,
+  38 |    incomeStabilityOptions,
+     |    ^
+  39 |  } from "./data/questionnaire-v2.js";
+  40 |  
+  [39m
+      at failureErrorWithLog (C:\ArthOS\node_modules\esbuild\lib\main.js:1467:15)
+      at C:\ArthOS\node_modules\esbuild\lib\main.js:736:50
+      at responseCallbacks.<computed> (C:\ArthOS\node_modules\esbuild\lib\main.js:603:9)
+      at handleIncomingPacket (C:\ArthOS\node_modules\esbuild\lib\main.js:658:12)
+      at Socket.readFromStdout (C:\ArthOS\node_modules\esbuild\lib\main.js:581:7)
+      at Socket.emit (node:events:509:28)
+      at addChunk (node:internal/streams/readable:563:12)
+      at readableAddChunkPushByteMode (node:internal/streams/readable:514:3)
+      at Readable.push (node:internal/streams/readable:394:5)
+      at Pipe.onStreamRead (node:internal/stream_base_commons:189:23)
+[2m9:32:53 pm[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m Pre-transform error: Transform failed with 2 errors:
+C:/ArthOS/src/App.jsx:37:2: ERROR: The symbol "dependentsOptions" has already been declared
+C:/ArthOS/src/App.jsx:38:2: ERROR: The symbol "incomeStabilityOptions" has already been declared
+  Plugin: [35mvite:esbuild[39m
+  File: [36mC:/ArthOS/src/App.jsx[39m:37:2
+[33m  
+  [33mThe symbol "dependentsOptions" has already been declared[33m
+  35 |    v2AwarenessQuestions,
+  36 |    v2DefaultAssessment,
+  37 |    dependentsOptions,
+     |    ^
+  38 |    incomeStabilityOptions,
+  39 |  } from "./data/questionnaire-v2.js";
+  
+  [33mThe symbol "incomeStabilityOptions" has already been declared[33m
+  36 |    v2DefaultAssessment,
+  37 |    dependentsOptions,
+  38 |    incomeStabilityOptions,
+     |    ^
+  39 |  } from "./data/questionnaire-v2.js";
+  40 |  
+  [39m
+[2m9:32:53 pm[22m [31m[1m[vite][22m[39m [31mInternal server error: Transform failed with 2 errors:
+C:/ArthOS/src/App.jsx:37:2: ERROR: The symbol "dependentsOptions" has already been declared
+C:/ArthOS/src/App.jsx:38:2: ERROR: The symbol "incomeStabilityOptions" has already been declared[39m
+  Plugin: [35mvite:esbuild[39m
+  File: [36mC:/ArthOS/src/App.jsx[39m:37:2
+[33m  
+  [33mThe symbol "dependentsOptions" has already been declared[33m
+  35 |    v2AwarenessQuestions,
+  36 |    v2DefaultAssessment,
+  37 |    dependentsOptions,
+     |    ^
+  38 |    incomeStabilityOptions,
+  39 |  } from "./data/questionnaire-v2.js";
+  
+  [33mThe symbol "incomeStabilityOptions" has already been declared[33m
+  36 |    v2DefaultAssessment,
+  37 |    dependentsOptions,
+  38 |    incomeStabilityOptions,
+     |    ^
+  39 |  } from "./data/questionnaire-v2.js";
+  40 |  
+  [39m
+      at failureErrorWithLog (C:\ArthOS\node_modules\esbuild\lib\main.js:1467:15)
+      at C:\ArthOS\node_modules\esbuild\lib\main.js:736:50
+      at responseCallbacks.<computed> (C:\ArthOS\node_modules\esbuild\lib\main.js:603:9)
+      at handleIncomingPacket (C:\ArthOS\node_modules\esbuild\lib\main.js:658:12)
+      at Socket.readFromStdout (C:\ArthOS\node_modules\esbuild\lib\main.js:581:7)
+      at Socket.emit (node:events:509:28)
+      at addChunk (node:internal/streams/readable:563:12)
+      at readableAddChunkPushByteMode (node:internal/streams/readable:514:3)
+      at Readable.push (node:internal/streams/readable:394:5)
+      at Pipe.onStreamRead (node:internal/stream_base_commons:189:23)
+[2m9:33:02 pm[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m Pre-transform error: Transform failed with 2 errors:
+C:/ArthOS/src/App.jsx:37:2: ERROR: The symbol "dependentsOptions" has already been declared
+C:/ArthOS/src/App.jsx:38:2: ERROR: The symbol "incomeStabilityOptions" has already been declared
+  Plugin: [35mvite:esbuild[39m
+  File: [36mC:/ArthOS/src/App.jsx[39m:37:2
+[33m  
+  [33mThe symbol "dependentsOptions" has already been declared[33m
+  35 |    v2AwarenessQuestions,
+  36 |    v2DefaultAssessment,
+  37 |    dependentsOptions,
+     |    ^
+  38 |    incomeStabilityOptions,
+  39 |  } from "./data/questionnaire-v2.js";
+  
+  [33mThe symbol "incomeStabilityOptions" has already been declared[33m
+  36 |    v2DefaultAssessment,
+  37 |    dependentsOptions,
+  38 |    incomeStabilityOptions,
+     |    ^
+  39 |  } from "./data/questionnaire-v2.js";
+  40 |  
+  [39m
+[2m9:33:02 pm[22m [31m[1m[vite][22m[39m [31mInternal server error: Transform failed with 2 errors:
+C:/ArthOS/src/App.jsx:37:2: ERROR: The symbol "dependentsOptions" has already been declared
+C:/ArthOS/src/App.jsx:38:2: ERROR: The symbol "incomeStabilityOptions" has already been declared[39m
+  Plugin: [35mvite:esbuild[39m
+  File: [36mC:/ArthOS/src/App.jsx[39m:37:2
+[33m  
+  [33mThe symbol "dependentsOptions" has already been declared[33m
+  35 |    v2AwarenessQuestions,
+  36 |    v2DefaultAssessment,
+  37 |    dependentsOptions,
+     |    ^
+  38 |    incomeStabilityOptions,
+  39 |  } from "./data/questionnaire-v2.js";
+  
+  [33mThe symbol "incomeStabilityOptions" has already been declared[33m
+  36 |    v2DefaultAssessment,
+  37 |    dependentsOptions,
+  38 |    incomeStabilityOptions,
+     |    ^
+  39 |  } from "./data/questionnaire-v2.js";
+  40 |  
+  [39m
+      at failureErrorWithLog (C:\ArthOS\node_modules\esbuild\lib\main.js:1467:15)
+      at C:\ArthOS\node_modules\esbuild\lib\main.js:736:50
+      at responseCallbacks.<computed> (C:\ArthOS\node_modules\esbuild\lib\main.js:603:9)
+      at handleIncomingPacket (C:\ArthOS\node_modules\esbuild\lib\main.js:658:12)
+      at Socket.readFromStdout (C:\ArthOS\node_modules\esbuild\lib\main.js:581:7)
+      at Socket.emit (node:events:509:28)
+      at addChunk (node:internal/streams/readable:563:12)
+      at readableAddChunkPushByteMode (node:internal/streams/readable:514:3)
+      at Readable.push (node:internal/streams/readable:394:5)
+      at Pipe.onStreamRead (node:internal/stream_base_commons:189:23)
+[2m9:33:11 pm[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m Pre-transform error: Transform failed with 2 errors:
+C:/ArthOS/src/App.jsx:37:2: ERROR: The symbol "dependentsOptions" has already been declared
+C:/ArthOS/src/App.jsx:38:2: ERROR: The symbol "incomeStabilityOptions" has already been declared
+  Plugin: [35mvite:esbuild[39m
+  File: [36mC:/ArthOS/src/App.jsx[39m:37:2
+[33m  
+  [33mThe symbol "dependentsOptions" has already been declared[33m
+  35 |    v2AwarenessQuestions,
+  36 |    v2DefaultAssessment,
+  37 |    dependentsOptions,
+     |    ^
+  38 |    incomeStabilityOptions,
+  39 |  } from "./data/questionnaire-v2.js";
+  
+  [33mThe symbol "incomeStabilityOptions" has already been declared[33m
+  36 |    v2DefaultAssessment,
+  37 |    dependentsOptions,
+  38 |    incomeStabilityOptions,
+     |    ^
+  39 |  } from "./data/questionnaire-v2.js";
+  40 |  
+  [39m
+[2m9:33:11 pm[22m [31m[1m[vite][22m[39m [31mInternal server error: Transform failed with 2 errors:
+C:/ArthOS/src/App.jsx:37:2: ERROR: The symbol "dependentsOptions" has already been declared
+C:/ArthOS/src/App.jsx:38:2: ERROR: The symbol "incomeStabilityOptions" has already been declared[39m
+  Plugin: [35mvite:esbuild[39m
+  File: [36mC:/ArthOS/src/App.jsx[39m:37:2
+[33m  
+  [33mThe symbol "dependentsOptions" has already been declared[33m
+  35 |    v2AwarenessQuestions,
+  36 |    v2DefaultAssessment,
+  37 |    dependentsOptions,
+     |    ^
+  38 |    incomeStabilityOptions,
+  39 |  } from "./data/questionnaire-v2.js";
+  
+  [33mThe symbol "incomeStabilityOptions" has already been declared[33m
+  36 |    v2DefaultAssessment,
+  37 |    dependentsOptions,
+  38 |    incomeStabilityOptions,
+     |    ^
+  39 |  } from "./data/questionnaire-v2.js";
+  40 |  
+  [39m
+      at failureErrorWithLog (C:\ArthOS\node_modules\esbuild\lib\main.js:1467:15)
+      at C:\ArthOS\node_modules\esbuild\lib\main.js:736:50
+      at responseCallbacks.<computed> (C:\ArthOS\node_modules\esbuild\lib\main.js:603:9)
+      at handleIncomingPacket (C:\ArthOS\node_modules\esbuild\lib\main.js:658:12)
+      at Socket.readFromStdout (C:\ArthOS\node_modules\esbuild\lib\main.js:581:7)
+      at Socket.emit (node:events:509:28)
+      at addChunk (node:internal/streams/readable:563:12)
+      at readableAddChunkPushByteMode (node:internal/streams/readable:514:3)
+      at Readable.push (node:internal/streams/readable:394:5)
+      at Pipe.onStreamRead (node:internal/stream_base_commons:189:23)
+[2m9:33:31 pm[22m [31m[1m[vite][22m[39m [31mInternal server error: Transform failed with 2 errors:
+C:/ArthOS/src/App.jsx:37:2: ERROR: The symbol "dependentsOptions" has already been declared
+C:/ArthOS/src/App.jsx:38:2: ERROR: The symbol "incomeStabilityOptions" has already been declared[39m
+  Plugin: [35mvite:esbuild[39m
+  File: [36mC:/ArthOS/src/App.jsx[39m:37:2
+[33m  
+  [33mThe symbol "dependentsOptions" has already been declared[33m
+  35 |    v2AwarenessQuestions,
+  36 |    v2DefaultAssessment,
+  37 |    dependentsOptions,
+     |    ^
+  38 |    incomeStabilityOptions,
+  39 |  } from "./data/questionnaire-v2.js";
+  
+  [33mThe symbol "incomeStabilityOptions" has already been declared[33m
+  36 |    v2DefaultAssessment,
+  37 |    dependentsOptions,
+  38 |    incomeStabilityOptions,
+     |    ^
+  39 |  } from "./data/questionnaire-v2.js";
+  40 |  
+  [39m
+      at failureErrorWithLog (C:\ArthOS\node_modules\esbuild\lib\main.js:1467:15)
+      at C:\ArthOS\node_modules\esbuild\lib\main.js:736:50
+      at responseCallbacks.<computed> (C:\ArthOS\node_modules\esbuild\lib\main.js:603:9)
+      at handleIncomingPacket (C:\ArthOS\node_modules\esbuild\lib\main.js:658:12)
+      at Socket.readFromStdout (C:\ArthOS\node_modules\esbuild\lib\main.js:581:7)
+      at Socket.emit (node:events:509:28)
+      at addChunk (node:internal/streams/readable:563:12)
+      at readableAddChunkPushByteMode (node:internal/streams/readable:514:3)
+      at Readable.push (node:internal/streams/readable:394:5)
+      at Pipe.onStreamRead (node:internal/stream_base_commons:189:23)
+[2m9:33:31 pm[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m Pre-transform error: Transform failed with 2 errors:
+C:/ArthOS/src/App.jsx:37:2: ERROR: The symbol "dependentsOptions" has already been declared
+C:/ArthOS/src/App.jsx:38:2: ERROR: The symbol "incomeStabilityOptions" has already been declared
+  Plugin: [35mvite:esbuild[39m
+  File: [36mC:/ArthOS/src/App.jsx[39m:37:2
+[33m  
+  [33mThe symbol "dependentsOptions" has already been declared[33m
+  35 |    v2AwarenessQuestions,
+  36 |    v2DefaultAssessment,
+  37 |    dependentsOptions,
+     |    ^
+  38 |    incomeStabilityOptions,
+  39 |  } from "./data/questionnaire-v2.js";
+  
+  [33mThe symbol "incomeStabilityOptions" has already been declared[33m
+  36 |    v2DefaultAssessment,
+  37 |    dependentsOptions,
+  38 |    incomeStabilityOptions,
+     |    ^
+  39 |  } from "./data/questionnaire-v2.js";
+  40 |  
+  [39m
+[2m9:33:47 pm[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m Pre-transform error: Transform failed with 2 errors:
+C:/ArthOS/src/App.jsx:37:2: ERROR: The symbol "dependentsOptions" has already been declared
+C:/ArthOS/src/App.jsx:38:2: ERROR: The symbol "incomeStabilityOptions" has already been declared
+  Plugin: [35mvite:esbuild[39m
+  File: [36mC:/ArthOS/src/App.jsx[39m:37:2
+[33m  
+  [33mThe symbol "dependentsOptions" has already been declared[33m
+  35 |    v2AwarenessQuestions,
+  36 |    v2DefaultAssessment,
+  37 |    dependentsOptions,
+     |    ^
+  38 |    incomeStabilityOptions,
+  39 |  } from "./data/questionnaire-v2.js";
+  
+  [33mThe symbol "incomeStabilityOptions" has already been declared[33m
+  36 |    v2DefaultAssessment,
+  37 |    dependentsOptions,
+  38 |    incomeStabilityOptions,
+     |    ^
+  39 |  } from "./data/questionnaire-v2.js";
+  40 |  
+  [39m
+[2m9:33:47 pm[22m [31m[1m[vite][22m[39m [31mInternal server error: Transform failed with 2 errors:
+C:/ArthOS/src/App.jsx:37:2: ERROR: The symbol "dependentsOptions" has already been declared
+C:/ArthOS/src/App.jsx:38:2: ERROR: The symbol "incomeStabilityOptions" has already been declared[39m
+  Plugin: [35mvite:esbuild[39m
+  File: [36mC:/ArthOS/src/App.jsx[39m:37:2
+[33m  
+  [33mThe symbol "dependentsOptions" has already been declared[33m
+  35 |    v2AwarenessQuestions,
+  36 |    v2DefaultAssessment,
+  37 |    dependentsOptions,
+     |    ^
+  38 |    incomeStabilityOptions,
+  39 |  } from "./data/questionnaire-v2.js";
+  
+  [33mThe symbol "incomeStabilityOptions" has already been declared[33m
+  36 |    v2DefaultAssessment,
+  37 |    dependentsOptions,
+  38 |    incomeStabilityOptions,
+     |    ^
+  39 |  } from "./data/questionnaire-v2.js";
+  40 |  
+  [39m
+      at failureErrorWithLog (C:\ArthOS\node_modules\esbuild\lib\main.js:1467:15)
+      at C:\ArthOS\node_modules\esbuild\lib\main.js:736:50
+      at responseCallbacks.<computed> (C:\ArthOS\node_modules\esbuild\lib\main.js:603:9)
+      at handleIncomingPacket (C:\ArthOS\node_modules\esbuild\lib\main.js:658:12)
+      at Socket.readFromStdout (C:\ArthOS\node_modules\esbuild\lib\main.js:581:7)
+      at Socket.emit (node:events:509:28)
+      at addChunk (node:internal/streams/readable:563:12)
+      at readableAddChunkPushByteMode (node:internal/streams/readable:514:3)
+      at Readable.push (node:internal/streams/readable:394:5)
+      at Pipe.onStreamRead (node:internal/stream_base_commons:189:23)
