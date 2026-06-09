@@ -33,6 +33,8 @@ import {
 
 import AnalyticsDashboard from "./components/AnalyticsDashboard.jsx";
 import ValidationFeedbackForm from "./components/ValidationFeedbackForm.jsx";
+import FinancialTwin from "./components/FinancialTwin.jsx";
+import UserHistory from "./components/UserHistory.jsx";
 
 import {
   v2BehaviourQuestions,
@@ -681,7 +683,16 @@ function AssessmentSection({ assessment, result, onChange, ui }) {
           <SurvivalBlock result={result} assessment={assessment} />
           <DecisionSimulator profile={assessment.profile} />
           <ActionBlock result={result} />
+          <FinancialTwin 
+            personalityType={result.personalityType} 
+            behaviourScore={result.behaviourScore}
+            awarenessScore={result.awarenessScore}
+          />
           <DiagnosticAnalyticsDashboard result={result} />
+          <UserHistory 
+            currentScore={result.healthScore}
+            personalityType={result.personalityType}
+          />
           <AnalyticsDashboard result={result} />
         </aside>
       </div>
@@ -1189,44 +1200,80 @@ function DecisionSimulator({ profile }) {
     [profile, purchaseCost],
   );
 
+  // Calculate risk increase percentage
+  const getRiskIncrease = () => {
+    if (purchaseCost <= 0) return 0;
+    const currentRiskIndex = simulator.currentRunway > 0 ? 100 / simulator.currentRunway : 100;
+    const forecastRiskIndex = simulator.forecastRunway > 0 ? 100 / simulator.forecastRunway : 100;
+    const riskDelta = forecastRiskIndex - currentRiskIndex;
+    return Math.round((riskDelta / currentRiskIndex) * 100);
+  };
+
+  const riskIncrease = getRiskIncrease();
+  const riskTrend = purchaseCost > 0 && riskIncrease > 0 ? "negative" : purchaseCost > 0 ? "positive" : "neutral";
+
   return (
     <section className="result-card simulator-card">
       <div className="result-heading">
         <Cpu size={19} />
         <h2>Decision Simulator</h2>
       </div>
+      
+      <p className="simulator-subtitle">See the financial impact of a potential purchase</p>
+      
       <div className="simulator-input">
-        <label htmlFor="purchase-cost">Purchase cost</label>
-        <div>
-          <span>INR</span>
+        <label htmlFor="purchase-cost">How much do you want to spend?</label>
+        <div className="input-wrapper">
+          <span className="currency-label">INR</span>
           <input
             id="purchase-cost"
             type="number"
             min="0"
+            step="1000"
+            placeholder="0"
             value={purchaseCost}
             onChange={(event) => setPurchaseCost(Number.parseFloat(event.target.value) || 0)}
           />
         </div>
       </div>
-      <div className="simulator-grid">
-        <div>
-          <span>Current runway</span>
-          <strong>{formatMonthsV2(simulator.currentRunway)} mos</strong>
+
+      {purchaseCost > 0 && (
+        <>
+          {/* Impact summary */}
+          <div className="simulator-impact-summary">
+            <div className="impact-row">
+              <span className="impact-label">Current runway</span>
+              <strong className="impact-value current">{formatMonthsV2(simulator.currentRunway)} months</strong>
+            </div>
+            <div className="impact-arrow">↓</div>
+            <div className="impact-row">
+              <span className="impact-label">After purchase</span>
+              <strong className="impact-value forecast">{formatMonthsV2(simulator.forecastRunway)} months</strong>
+            </div>
+            <div className="impact-reduction">
+              <span>Loss: {formatMonthsV2(simulator.runwayDelta)} months</span>
+            </div>
+          </div>
+
+          {/* Risk indicator */}
+          <div className={`simulator-risk-indicator risk-${riskTrend}`}>
+            <span className="risk-label">Risk Increase</span>
+            <span className="risk-value">{riskIncrease > 0 ? "+" : ""}{riskIncrease}%</span>
+          </div>
+
+          {/* Recommendation */}
+          <div className="simulator-recommendation-box">
+            <span className="rec-label">Recommendation</span>
+            <p className="rec-text">{simulator.recommendation}</p>
+          </div>
+        </>
+      )}
+
+      {purchaseCost <= 0 && (
+        <div className="simulator-placeholder">
+          <p>Enter an amount to see the financial impact on your runway.</p>
         </div>
-        <div>
-          <span>Forecast runway</span>
-          <strong>{formatMonthsV2(simulator.forecastRunway)} mos</strong>
-        </div>
-        <div>
-          <span>Runway delta</span>
-          <strong>{formatMonthsV2(simulator.runwayDelta)} mos</strong>
-        </div>
-        <div>
-          <span>Signal</span>
-          <strong>{simulator.forecastRisk}</strong>
-        </div>
-      </div>
-      <p className="simulator-recommendation">{simulator.recommendation}</p>
+      )}
     </section>
   );
 }
