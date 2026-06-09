@@ -44,8 +44,12 @@ import {
   calculateStabilityScoreV2,
   calculateDebtScheduleEstimateV2,
   calculateHabitsMetricsV2,
+  calculateFutureRiskV2,
+  calculatePersonalityTypeV2,
+  calculateAwarenessGapV2,
   componentMaximumsV2,
   formatCurrency as formatCurrencyV2,
+  formatMonths as formatMonthsV2,
 } from "./lib/scoring-v2.js";
 
 
@@ -246,6 +250,24 @@ export default function App() {
     return calculateHabitsMetricsV2(assessment.habits);
   }, [mode, assessment.habits]);
 
+  const v2FutureRisk = useMemo(() => {
+    if (mode !== "v2") return null;
+    return calculateFutureRiskV2(assessment.profile);
+  }, [mode, assessment.profile]);
+
+  const v2PersonalityType = useMemo(() => {
+    if (mode !== "v2") return null;
+    return calculatePersonalityTypeV2(assessment.behaviour);
+  }, [mode, assessment.behaviour]);
+
+  const v2AwarenessGap = useMemo(() => {
+    if (mode !== "v2") return null;
+    return calculateAwarenessGapV2(
+      v2AwarenessResult ?? 0,
+      v2StabilityResult?.survivalMonthsRaw ?? 0,
+    );
+  }, [mode, v2AwarenessResult, v2StabilityResult?.survivalMonthsRaw]);
+
   const result = useMemo(() => {
     if (mode === "v2") {
       const behaviourScore = v2BehaviourResult ?? 0;
@@ -313,6 +335,35 @@ export default function App() {
             : Number.isInteger(stability.survivalMonthsRaw)
               ? String(stability.survivalMonthsRaw)
               : stability.survivalMonthsRaw.toFixed(1);
+
+      const awarenessGapMetrics = v2AwarenessGap ?? {
+        perceivedSurvivalMonths: stability.survivalMonthsRaw,
+        actualSurvivalMonths: stability.survivalMonthsRaw,
+        awarenessGap: 0,
+      };
+
+      const futureRisk = v2FutureRisk ?? { score: 0, label: "Unknown" };
+      const personalityType = v2PersonalityType ?? "Survivor";
+
+      const perceivedSurvivalMonthsDisplay =
+        awarenessGapMetrics.perceivedSurvivalMonths <= 0 ||
+        !Number.isFinite(awarenessGapMetrics.perceivedSurvivalMonths)
+          ? "0"
+          : awarenessGapMetrics.perceivedSurvivalMonths >= 60
+            ? "60+"
+            : Number.isInteger(awarenessGapMetrics.perceivedSurvivalMonths)
+              ? String(awarenessGapMetrics.perceivedSurvivalMonths)
+              : awarenessGapMetrics.perceivedSurvivalMonths.toFixed(1);
+
+      const awarenessGapDisplay =
+        awarenessGapMetrics.awarenessGap <= 0 ||
+        !Number.isFinite(awarenessGapMetrics.awarenessGap)
+          ? "0"
+          : awarenessGapMetrics.awarenessGap >= 60
+            ? "60+"
+            : Number.isInteger(awarenessGapMetrics.awarenessGap)
+              ? String(awarenessGapMetrics.awarenessGap)
+              : awarenessGapMetrics.awarenessGap.toFixed(1);
 
       const componentsForAction = [
         { key: "behaviour", score: behaviourScore },
@@ -395,6 +446,14 @@ export default function App() {
             : Number.isInteger(stability.bareMinimumSurvivalMonthsRaw)
             ? String(stability.bareMinimumSurvivalMonthsRaw)
             : stability.bareMinimumSurvivalMonthsRaw.toFixed(1),
+        perceivedSurvivalMonths: awarenessGapMetrics.perceivedSurvivalMonths,
+        perceivedSurvivalMonthsDisplay,
+        actualSurvivalMonths: awarenessGapMetrics.actualSurvivalMonths,
+        awarenessGap: awarenessGapMetrics.awarenessGap,
+        awarenessGapDisplay,
+        futureRiskScore: futureRisk.score,
+        futureRiskLabel: futureRisk.label,
+        personalityType,
         survivalBand,
         componentRows: componentRows.map((row) => {
           const band =
@@ -444,6 +503,9 @@ export default function App() {
     v2StabilityResult,
     v2DebtSchedule,
     v2Habits,
+    v2FutureRisk,
+    v2PersonalityType,
+    v2AwarenessGap,
   ]);
 
 
@@ -829,6 +891,7 @@ function AssessmentSection({ assessment, result, onChange, ui, mode }) {
         <aside className="result-stack" aria-label="Financial health result">
           <ScoreOverview result={result} />
           <ComponentBreakdown result={result} />
+          {mode === "v2" ? <ResiliencePanel result={result} /> : null}
           <SurvivalBlock result={result} assessment={assessment} mode={mode} />
           <ActionBlock result={result} mode={mode} />
 
@@ -1128,6 +1191,50 @@ const ComponentBreakdown = memo(function ComponentBreakdown({ result }) {
   );
 });
 
+const ResiliencePanel = memo(function ResiliencePanel({ result }) {
+  const gapAlert =
+    result.awarenessGap > 2
+      ? "Awareness gap is widening. Track actual runway monthly."
+      : "Runway awareness is well aligned with your stability profile.";
+
+  return (
+    <section className="result-card insight-panel">
+      <div className="result-heading">
+        <Activity size={19} />
+        <div>
+          <h2>Resilience Snapshot</h2>
+          <span>Dual survival and behavioral risk view</span>
+        </div>
+      </div>
+      <div className="insight-grid">
+        <div className="insight-stat">
+          <span>Current runway</span>
+          <strong>{result.survivalMonthsDisplay} mos</strong>
+        </div>
+        <div className="insight-stat">
+          <span>Crisis runway</span>
+          <strong>{result.bareMinimumSurvivalMonthsDisplay} mos</strong>
+        </div>
+        <div className="insight-stat">
+          <span>Awareness gap</span>
+          <strong>{result.awarenessGapDisplay} mos</strong>
+        </div>
+        <div className="insight-stat">
+          <span>Future risk</span>
+          <strong>{result.futureRiskLabel}</strong>
+        </div>
+      </div>
+      <div className="insight-meta">
+        <div>
+          <span>Persona</span>
+          <strong>{result.personalityType}</strong>
+        </div>
+        <p>{gapAlert}</p>
+      </div>
+    </section>
+  );
+});
+
 const SurvivalBlock = memo(function SurvivalBlock({ result, assessment, mode }) {
 
   const expenseValue = Number.parseFloat(assessment.profile.monthlyExpenses) || 0;
@@ -1162,6 +1269,23 @@ const SurvivalBlock = memo(function SurvivalBlock({ result, assessment, mode }) 
               <span>Crisis Mode Optimized</span>
               <strong>{result.bareMinimumSurvivalMonthsDisplay} mos</strong>
             </div>
+          </div>
+          <div className="survival-insight-grid">
+            <div>
+              <span>Perceived runway</span>
+              <strong>{result.perceivedSurvivalMonthsDisplay} mos</strong>
+            </div>
+            <div>
+              <span>Awareness gap</span>
+              <strong>{result.awarenessGapDisplay} mos</strong>
+            </div>
+          </div>
+          <div className="emergency-goal">
+            <span>Emergency fund target</span>
+            <strong>6 months</strong>
+            <span>
+              Need: {formatCurrencyV2(Math.max(0, expenseValue * 6 - totalSavingsValue))}
+            </span>
           </div>
           <p className="buffer-summary">
             Fixed: {result.fixedBufferMonthsDisplay} · Discretionary: {result.discretionaryBufferMonthsDisplay}
@@ -1209,16 +1333,28 @@ const ActionBlock = memo(function ActionBlock({ result, mode }) {
       <p>{result.recommendedActionText}</p>
 
       {mode === "v2" ? (
-        <div className="driver-grid">
-          <div>
-            <span>Strength</span>
-            <strong>{result.strongestComponent?.label ?? "-"}</strong>
+        <>
+          <div className="driver-grid">
+            <div>
+              <span>Strength</span>
+              <strong>{result.strongestComponent?.label ?? "-"}</strong>
+            </div>
+            <div>
+              <span>Risk</span>
+              <strong>{result.lowestComponent?.label ?? "-"}</strong>
+            </div>
           </div>
-          <div>
-            <span>Risk</span>
-            <strong>{result.lowestComponent?.label ?? "-"}</strong>
+          <div className="future-risk-grid">
+            <div>
+              <span>Future risk</span>
+              <strong>{result.futureRiskLabel}</strong>
+            </div>
+            <div>
+              <span>Personality</span>
+              <strong>{result.personalityType}</strong>
+            </div>
           </div>
-        </div>
+        </>
       ) : (
         <div className="driver-grid">
           <div>

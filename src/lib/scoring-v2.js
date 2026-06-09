@@ -385,6 +385,118 @@ function getDebtScore(totalDebt, monthlyIncome) {
   return 0.2;
 }
 
+function getPerceivedSurvivalMonths(actualSurvivalMonths, awarenessScore) {
+  const awarenessFactor = clamp(
+    awarenessScore / componentMaximumsV2.awareness,
+    0,
+    1,
+  );
+  const perceptionBias = 1 + (0.35 * (1 - awarenessFactor));
+  return actualSurvivalMonths * perceptionBias;
+}
+
+function getAwarenessGap(awarenessScore, survivalMonthsRaw) {
+  const perceivedSurvivalMonths = getPerceivedSurvivalMonths(
+    survivalMonthsRaw,
+    awarenessScore,
+  );
+  return {
+    perceivedSurvivalMonths,
+    actualSurvivalMonths: survivalMonthsRaw,
+    awarenessGap: Math.abs(perceivedSurvivalMonths - survivalMonthsRaw),
+  };
+}
+
+function getFutureRiskProfile(profile) {
+  const monthlyIncome = toNumber(profile.monthlyIncome);
+  const monthlyExpenses = toNumber(profile.monthlyExpenses);
+  const totalDebt = toNumber(profile.totalDebt);
+  const monthlyLiabilities = toNumber(profile.monthlyLiabilities);
+
+  const savingsRate = monthlyIncome > 0
+    ? clamp((monthlyIncome - monthlyExpenses) / monthlyIncome, 0, 1)
+    : 0;
+  const debtBurden = monthlyIncome > 0
+    ? clamp(totalDebt / (monthlyIncome * 12), 0, 1)
+    : 1;
+  const liabilityPressure = monthlyIncome > 0
+    ? clamp(monthlyLiabilities / monthlyIncome, 0, 1)
+    : 1;
+  const stabilityFactor = clamp(
+    (incomeStabilityScores[profile.incomeStability] ?? 0) / 6,
+    0,
+    1,
+  );
+
+  const score = Math.round(
+    clamp(
+      savingsRate * 0.35 +
+        (1 - debtBurden) * 0.25 +
+        (1 - liabilityPressure) * 0.2 +
+        stabilityFactor * 0.2,
+      0,
+      1,
+    ) * 100,
+  );
+
+  const label = score >= 70
+    ? "Low Risk"
+    : score >= 50
+    ? "Moderate Risk"
+    : score >= 30
+    ? "High Risk"
+    : "Critical Risk";
+
+  return { score, label };
+}
+
+function getPersonalityType(behaviour) {
+  const traits = {
+    reactor: 0,
+    survivor: 0,
+    planner: 0,
+    builder: 0,
+  };
+
+  if (behaviour.presentFutureMindset === "enjoy_today") traits.reactor += 2;
+  if (behaviour.presentFutureMindset === "balance_both") traits.survivor += 1;
+  if (behaviour.presentFutureMindset === "secure_future") traits.planner += 1;
+  if (behaviour.presentFutureMindset === "extreme_discipline") traits.builder += 2;
+
+  if (behaviour.unplannedPurchaseFreq === "very_frequently") traits.reactor += 2;
+  if (behaviour.unplannedPurchaseFreq === "sometimes") traits.survivor += 1;
+  if (behaviour.unplannedPurchaseFreq === "rarely") traits.planner += 1;
+
+  if (behaviour.spendWhenStressed === "very_likely") traits.reactor += 2;
+  if (behaviour.spendWhenStressed === "sometimes") traits.survivor += 1;
+  if (behaviour.spendWhenStressed === "rarely") traits.planner += 1;
+  if (behaviour.spendWhenStressed === "never") traits.builder += 1;
+
+  if (behaviour.plannedPurchasesOnly === "always") traits.builder += 2;
+  if (behaviour.plannedPurchasesOnly === "often") traits.planner += 1;
+  if (behaviour.plannedPurchasesOnly === "occasionally") traits.survivor += 1;
+  if (behaviour.plannedPurchasesOnly === "never") traits.reactor += 1;
+
+  if (behaviour.impulseWaitRule === "always") traits.builder += 2;
+  if (behaviour.impulseWaitRule === "sometimes") traits.survivor += 1;
+  if (behaviour.impulseWaitRule === "rarely") traits.reactor += 1;
+
+  if (behaviour.subscriptionControl === "weekly") traits.builder += 1;
+  if (behaviour.subscriptionControl === "monthly") traits.planner += 1;
+  if (behaviour.subscriptionControl === "occasionally") traits.survivor += 1;
+  if (behaviour.subscriptionControl === "never") traits.reactor += 1;
+
+  const winner = Object.entries(traits).sort((a, b) => b[1] - a[1])[0]?.[0];
+  const labels = {
+    reactor: "Reactor",
+    survivor: "Survivor",
+    planner: "Planner",
+    builder: "Builder",
+  };
+
+  return labels[winner] ?? "Survivor";
+}
+
 function getHealthBand(score) {
   if (score <= 25) return { label: "Critical", tone: "critical" };
   if (score <= 50) return { label: "Vulnerable", tone: "warning" };
@@ -461,6 +573,18 @@ export function calculateDebtScheduleEstimateV2(profile) {
 
 export function calculateHabitsMetricsV2(habits) {
   return getHabitsMetrics(habits);
+}
+
+export function calculateFutureRiskV2(profile) {
+  return getFutureRiskProfile(profile);
+}
+
+export function calculatePersonalityTypeV2(behaviour) {
+  return getPersonalityType(behaviour);
+}
+
+export function calculateAwarenessGapV2(awarenessScore, survivalMonthsRaw) {
+  return getAwarenessGap(awarenessScore, survivalMonthsRaw);
 }
 
 export function calculateFinancialHealthV2(assessment) {

@@ -1189,6 +1189,120 @@ blockquote {
   font-weight: 780;
 }
 
+.survival-insight-grid,
+.future-risk-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.survival-insight-grid > div,
+.future-risk-grid > div,
+.emergency-goal,
+.insight-stat {
+  padding: 16px;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.insight-panel {
+  border-color: rgba(98, 228, 209, 0.24);
+  background:
+    linear-gradient(180deg, rgba(98, 228, 209, 0.08), rgba(24, 31, 55, 0.95)),
+    rgba(15, 18, 34, 0.92);
+}
+
+.insight-panel .result-heading > div {
+  display: grid;
+  gap: 4px;
+}
+
+.insight-panel .result-heading span {
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.insight-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 18px;
+}
+
+.insight-stat span {
+  display: block;
+  color: var(--muted);
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.insight-stat strong {
+  color: var(--text);
+  font-size: 24px;
+  line-height: 1.05;
+}
+
+.insight-meta {
+  display: grid;
+  gap: 10px;
+  margin-top: 18px;
+  padding: 18px;
+  border-radius: 22px;
+  border: 1px solid rgba(98, 228, 209, 0.14);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.insight-meta > div {
+  display: grid;
+  gap: 4px;
+}
+
+.insight-meta span {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.insight-meta strong {
+  color: var(--text);
+  font-size: 16px;
+}
+
+.insight-meta p {
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.6;
+  margin: 0;
+}
+
+.survival-insight-grid span,
+.future-risk-grid span,
+.emergency-goal span {
+  display: block;
+  color: var(--muted);
+  font-size: 13px;
+  margin-bottom: 8px;
+}
+
+.survival-insight-grid strong,
+.future-risk-grid strong,
+.emergency-goal strong {
+  color: var(--text);
+  font-size: 22px;
+  line-height: 1.1;
+}
+
+.emergency-goal {
+  display: grid;
+  gap: 6px;
+  margin-top: 12px;
+}
+
 .action-card p {
   color: var(--text);
   font-size: 20px;
