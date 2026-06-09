@@ -18,26 +18,6 @@ import {
   WalletCards,
 } from "lucide-react";
 import {
-  awarenessQuestions,
-  behaviourQuestions,
-  defaultAssessment,
-} from "./data/questionnaire.js";
-
-
-import {
-  calculateFinancialHealth,
-  componentMaximums,
-  formatCurrency,
-} from "./lib/scoring.js";
-
-import {
-  v2BehaviourQuestions,
-  v2AwarenessQuestions,
-  v2DefaultAssessment,
-} from "./data/questionnaire-v2.js";
-
-
-import {
   calculateFinancialHealthV2,
   calculateBehaviourScoreV2,
   calculateAwarenessScoreV2,
@@ -54,11 +34,15 @@ import {
   formatMonths as formatMonthsV2,
 } from "./lib/scoring-v2.js";
 
+import {
+  v2BehaviourQuestions,
+  v2AwarenessQuestions,
+  v2DefaultAssessment,
+} from "./data/questionnaire-v2.js";
 
 
-const STORAGE_KEY = "arth-os-assessment-v1";
 
-const STORAGE_KEY_V2 = "arth-os-assessment-v2";
+const STORAGE_KEY = "arth-os-assessment";
 
 
 const navItems = [
@@ -160,15 +144,6 @@ function normalizeV2Assessment(assessment) {
   };
 }
 
-function loadInitialAssessmentV1() {
-  try {
-    const saved = window.localStorage.getItem(STORAGE_KEY);
-    return saved ? JSON.parse(saved) : defaultAssessment;
-  } catch {
-    return defaultAssessment;
-  }
-}
-
 function normalizeV1Assessment(assessment) {
   const profile = assessment?.profile ?? {};
   const legacySavings = Number.parseFloat(profile.emergencySavings) || 0;
@@ -194,94 +169,50 @@ function normalizeV1Assessment(assessment) {
   };
 }
 
-function loadInitialAssessmentV2() {
+function loadInitialAssessment() {
   try {
-    const saved = window.localStorage.getItem(STORAGE_KEY_V2);
-    return saved ? normalizeV2Assessment(JSON.parse(saved)) : v2DefaultAssessment;
+    // Prefer unified key, but also support legacy v2 key
+    const unified = window.localStorage.getItem(STORAGE_KEY);
+    if (unified) return normalizeV2Assessment(JSON.parse(unified));
+
+    const legacyV2 = window.localStorage.getItem("arth-os-assessment-v2");
+    if (legacyV2) return normalizeV2Assessment(JSON.parse(legacyV2));
+
+    const legacyV1 = window.localStorage.getItem("arth-os-assessment-v1");
+    if (legacyV1) return normalizeV2Assessment(normalizeV1Assessment(JSON.parse(legacyV1)));
+
+    // fallback to empty v2 default shape
+    return typeof v2DefaultAssessment !== "undefined" ? v2DefaultAssessment : {};
   } catch {
-    return v2DefaultAssessment;
+    return typeof v2DefaultAssessment !== "undefined" ? v2DefaultAssessment : {};
   }
 }
 
 export default function App() {
-  const [mode, setMode] = useState("v2");
-  const [assessment, setAssessment] = useState(() => loadInitialAssessmentV2());
+  const [assessment, setAssessment] = useState(() => loadInitialAssessment());
   const [saveState, setSaveState] = useState("Ready");
 
-  useEffect(() => {
-    setAssessment((current) => {
-      const isV2Shape = current?.profile?.emergencySavingsFixed !== undefined;
-      const isV1Shape = current?.profile?.emergencySavings !== undefined;
+  const v2BehaviourResult = useMemo(() => calculateBehaviourScoreV2(assessment.behaviour), [assessment.behaviour]);
 
-      if (mode === "v2" && isV2Shape) {
-        return current;
-      }
+  const v2AwarenessResult = useMemo(() => calculateAwarenessScoreV2(assessment.awareness), [assessment.awareness]);
 
-      if (mode === "v1" && isV1Shape) {
-        return current;
-      }
+  const v2StabilityResult = useMemo(() => calculateStabilityScoreV2(assessment.profile), [assessment.profile]);
 
-      return mode === "v2"
-        ? normalizeV2Assessment(current)
-        : normalizeV1Assessment(current);
-    });
-  }, [mode]);
+  const v2DebtSchedule = useMemo(() => calculateDebtScheduleEstimateV2(assessment.profile), [assessment.profile]);
 
-  const v2BehaviourResult = useMemo(() => {
-    if (mode !== "v2") return null;
-    return calculateBehaviourScoreV2(assessment.behaviour);
-  }, [mode, assessment.behaviour]);
+  const v2Habits = useMemo(() => calculateHabitsMetricsV2(assessment.habits), [assessment.habits]);
 
-  const v2AwarenessResult = useMemo(() => {
-    if (mode !== "v2") return null;
-    return calculateAwarenessScoreV2(assessment.awareness);
-  }, [mode, assessment.awareness]);
+  const v2FutureRisk = useMemo(() => calculateFutureRiskV2(assessment.profile), [assessment.profile]);
 
-  const v2StabilityResult = useMemo(() => {
-    if (mode !== "v2") return null;
-    return calculateStabilityScoreV2(assessment.profile);
-  }, [mode, assessment.profile]);
+  const v2PersonalityType = useMemo(() => calculatePersonalityTypeV2(assessment.behaviour), [assessment.behaviour]);
 
-  const v2DebtSchedule = useMemo(() => {
-    if (mode !== "v2") return null;
-    return calculateDebtScheduleEstimateV2(assessment.profile);
-  }, [mode, assessment.profile]);
+  const v2AwarenessGap = useMemo(() => calculateAwarenessGapV2(v2AwarenessResult ?? 0, v2StabilityResult?.survivalMonthsRaw ?? 0), [v2AwarenessResult, v2StabilityResult?.survivalMonthsRaw]);
 
-  const v2Habits = useMemo(() => {
-    if (mode !== "v2") return null;
-    return calculateHabitsMetricsV2(assessment.habits);
-  }, [mode, assessment.habits]);
+  const v2BlindSpot = useMemo(() => (v2AwarenessGap ? calculateBlindSpotV2(v2AwarenessGap) : null), [v2AwarenessGap]);
 
-  const v2FutureRisk = useMemo(() => {
-    if (mode !== "v2") return null;
-    return calculateFutureRiskV2(assessment.profile);
-  }, [mode, assessment.profile]);
-
-  const v2PersonalityType = useMemo(() => {
-    if (mode !== "v2") return null;
-    return calculatePersonalityTypeV2(assessment.behaviour);
-  }, [mode, assessment.behaviour]);
-
-  const v2AwarenessGap = useMemo(() => {
-    if (mode !== "v2") return null;
-    return calculateAwarenessGapV2(
-      v2AwarenessResult ?? 0,
-      v2StabilityResult?.survivalMonthsRaw ?? 0,
-    );
-  }, [mode, v2AwarenessResult, v2StabilityResult?.survivalMonthsRaw]);
-
-  const v2BlindSpot = useMemo(() => {
-    if (mode !== "v2" || !v2AwarenessGap) return null;
-    return calculateBlindSpotV2(v2AwarenessGap);
-  }, [mode, v2AwarenessGap]);
-
-  const v2PersonalityReport = useMemo(() => {
-    if (mode !== "v2") return null;
-    return calculatePersonalityReportV2(v2PersonalityType ?? "Survivor");
-  }, [mode, v2PersonalityType]);
+  const v2PersonalityReport = useMemo(() => calculatePersonalityReportV2(v2PersonalityType ?? "Survivor"), [v2PersonalityType]);
 
   const result = useMemo(() => {
-    if (mode === "v2") {
       const behaviourScore = v2BehaviourResult ?? 0;
       const awarenessScore = v2AwarenessResult ?? 0;
       const stability = v2StabilityResult ?? { score: 0, survivalMonthsRaw: 0 };
@@ -456,7 +387,6 @@ export default function App() {
       const summary = `${categoryBand.label} financial health with ${survivalBand.label.toLowerCase()}.`;
 
       return {
-        mode: "v2",
         behaviourScore,
         awarenessScore,
         stabilityScore: stability.score,
@@ -522,12 +452,12 @@ export default function App() {
         debtSchedule: v2DebtSchedule,
         habits: v2Habits,
         summary,
+        personalityReport,
+        blindSpot,
       };
-    }
 
-    return calculateFinancialHealth(assessment);
   }, [
-    mode,
+
     assessment.behaviour,
     assessment.awareness,
     assessment.profile,
@@ -544,28 +474,16 @@ export default function App() {
   ]);
 
 
-  const ui =
-    mode === "v2"
-      ? {
-          behaviourQuestions: v2BehaviourQuestions,
-          awarenessQuestions: v2AwarenessQuestions,
-          componentMaximums: componentMaximumsV2,
-          formatCurrency: formatCurrencyV2,
-          extraCards: {
-            debtSchedule: true,
-            habits: true,
-          },
-        }
-      : {
-          behaviourQuestions,
-          awarenessQuestions,
-          componentMaximums,
-          formatCurrency,
-          extraCards: {
-            debtSchedule: false,
-            habits: false,
-          },
-        };
+  const ui = {
+    behaviourQuestions: v2BehaviourQuestions,
+    awarenessQuestions: v2AwarenessQuestions,
+    componentMaximums: componentMaximumsV2,
+    formatCurrency: formatCurrencyV2,
+    extraCards: {
+      debtSchedule: true,
+      habits: true,
+    },
+  };
 
 
 
@@ -580,23 +498,15 @@ export default function App() {
     setSaveState("Unsaved");
   }
 
-  function resetAssessmentToCurrentMode() {
-    const nextAssessment = mode === "v2" ? v2DefaultAssessment : defaultAssessment;
-    setAssessment(nextAssessment);
-    window.localStorage.removeItem(mode === "v2" ? STORAGE_KEY_V2 : STORAGE_KEY);
-    setSaveState("Ready");
-  }
-
-
   function saveAssessment() {
-    const key = mode === "v2" ? STORAGE_KEY_V2 : STORAGE_KEY;
-    window.localStorage.setItem(key, JSON.stringify(assessment));
+    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(assessment));
     setSaveState("Saved");
   }
 
-
   function resetAssessment() {
-    resetAssessmentToCurrentMode();
+    setAssessment(v2DefaultAssessment);
+    window.localStorage.removeItem(STORAGE_KEY);
+    setSaveState("Ready");
   }
 
 
@@ -624,8 +534,6 @@ export default function App() {
         onExport={exportReport}
         onReset={resetAssessment}
         onSave={saveAssessment}
-        mode={mode}
-        onModeChange={setMode}
       />
 
 
@@ -639,7 +547,6 @@ export default function App() {
           result={result}
           onChange={updateGroup}
           ui={ui}
-          mode={mode}
         />
       </main>
     </div>
@@ -652,8 +559,6 @@ function Header({
   onExport,
   onReset,
   onSave,
-  mode,
-  onModeChange,
 }) {
 
   return (
@@ -679,22 +584,6 @@ function Header({
           {saveState}
         </span>
 
-        <div className="mode-toggle" role="group" aria-label="Assessment mode">
-          <button
-            type="button"
-            className={mode === "v1" ? "selected" : ""}
-            onClick={() => onModeChange("v1")}
-          >
-            v1
-          </button>
-          <button
-            type="button"
-            className={mode === "v2" ? "selected" : ""}
-            onClick={() => onModeChange("v2")}
-          >
-            v2
-          </button>
-        </div>
 
         <button type="button" className="icon-button" onClick={onSave} title="Save">
           <Save size={18} />
@@ -880,7 +769,7 @@ function FounderSection() {
   );
 }
 
-function AssessmentSection({ assessment, result, onChange, ui, mode }) {
+function AssessmentSection({ assessment, result, onChange, ui }) {
   return (
     <section className="assessment-section" id="assessment">
       <div className="assessment-heading">
@@ -918,7 +807,6 @@ function AssessmentSection({ assessment, result, onChange, ui, mode }) {
             values={assessment.profile}
             score={`${result.stabilityScore}/${ui.componentMaximums.stability}`}
             onChange={(key, value) => onChange("profile", key, value)}
-            mode={mode}
           />
 
         </section>
@@ -926,9 +814,9 @@ function AssessmentSection({ assessment, result, onChange, ui, mode }) {
         <aside className="result-stack" aria-label="Financial health result">
           <ScoreOverview result={result} />
           <ComponentBreakdown result={result} />
-          {mode === "v2" ? <BlindSpotPanel result={result} /> : null}
-          <SurvivalBlock result={result} assessment={assessment} mode={mode} />
-          <ActionBlock result={result} mode={mode} />
+          <BlindSpotPanel result={result} />
+          <SurvivalBlock result={result} assessment={assessment} />
+          <ActionBlock result={result} />
 
         </aside>
       </div>
@@ -967,7 +855,7 @@ function QuestionSection({ icon: Icon, title, score, questions, values, onChange
   );
 }
 
-function ProfileSection({ values, score, onChange, mode }) {
+function ProfileSection({ values, score, onChange }) {
   return (
     <section className="panel">
 
@@ -985,26 +873,16 @@ function ProfileSection({ values, score, onChange, mode }) {
           value={values.monthlyExpenses}
           onChange={(value) => onChange("monthlyExpenses", value)}
         />
-        {mode === "v2" ? (
-          <>
-            <MoneyInput
-              label="Fixed emergency buffer"
-              value={values.emergencySavingsFixed}
-              onChange={(value) => onChange("emergencySavingsFixed", value)}
-            />
-            <MoneyInput
-              label="Discretionary emergency buffer"
-              value={values.emergencySavingsDiscretionary}
-              onChange={(value) => onChange("emergencySavingsDiscretionary", value)}
-            />
-          </>
-        ) : (
-          <MoneyInput
-            label="Emergency savings"
-            value={values.emergencySavings}
-            onChange={(value) => onChange("emergencySavings", value)}
-          />
-        )}
+        <MoneyInput
+          label="Fixed emergency buffer"
+          value={values.emergencySavingsFixed}
+          onChange={(value) => onChange("emergencySavingsFixed", value)}
+        />
+        <MoneyInput
+          label="Discretionary emergency buffer"
+          value={values.emergencySavingsDiscretionary}
+          onChange={(value) => onChange("emergencySavingsDiscretionary", value)}
+        />
         <MoneyInput
           label="Total debt"
           value={values.totalDebt}
@@ -1048,57 +926,55 @@ function ProfileSection({ values, score, onChange, mode }) {
         />
       </div>
 
-      {mode === "v2" ? (
-        <>
-          <div className="question-row compact">
-            <label className="question-label" id="debt-rate-label">
-              Debt repayment rate (% of income)
-            </label>
-            <div className="money-input" style={{ gridTemplateColumns: "auto 1fr" }}>
-              <span style={{ display: "block" }} />
-              <div>
-                <span />
-                <input
-                  type="number"
-                  min="0"
-                  inputMode="decimal"
-                  value={values.debtRepaymentRatePctOfIncome ?? 0.12}
-                  onChange={(e) =>
-                    onChange(
-                      "debtRepaymentRatePctOfIncome",
-                      e.target.value === "" ? 0 : Number.parseFloat(e.target.value),
-                    )
-                  }
-                />
-              </div>
-            </div>
-          </div>
 
-          <div className="question-row compact">
-            <label className="question-label" id="interest-label">
-              Average interest rate (% per year)
-            </label>
-            <div className="money-input" style={{ gridTemplateColumns: "auto 1fr" }}>
-              <span style={{ display: "block" }} />
-              <div>
-                <span />
-                <input
-                  type="number"
-                  min="0"
-                  inputMode="decimal"
-                  value={values.averageInterestRatePct ?? 10}
-                  onChange={(e) =>
-                    onChange(
-                      "averageInterestRatePct",
-                      e.target.value === "" ? 0 : Number.parseFloat(e.target.value),
-                    )
-                  }
-                />
-              </div>
+        <div className="question-row compact">
+          <label className="question-label" id="debt-rate-label">
+            Debt repayment rate (% of income)
+          </label>
+          <div className="money-input" style={{ gridTemplateColumns: "auto 1fr" }}>
+            <span style={{ display: "block" }} />
+            <div>
+              <span />
+              <input
+                type="number"
+                min="0"
+                inputMode="decimal"
+                value={values.debtRepaymentRatePctOfIncome ?? 0.12}
+                onChange={(e) =>
+                  onChange(
+                    "debtRepaymentRatePctOfIncome",
+                    e.target.value === "" ? 0 : Number.parseFloat(e.target.value),
+                  )
+                }
+              />
             </div>
           </div>
-        </>
-      ) : null}
+        </div>
+
+        <div className="question-row compact">
+          <label className="question-label" id="interest-label">
+            Average interest rate (% per year)
+          </label>
+          <div className="money-input" style={{ gridTemplateColumns: "auto 1fr" }}>
+            <span style={{ display: "block" }} />
+            <div>
+              <span />
+              <input
+                type="number"
+                min="0"
+                inputMode="decimal"
+                value={values.averageInterestRatePct ?? 10}
+                onChange={(e) =>
+                  onChange(
+                    "averageInterestRatePct",
+                    e.target.value === "" ? 0 : Number.parseFloat(e.target.value),
+                  )
+                }
+              />
+            </div>
+          </div>
+        </div>
+
 
     </section>
   );
@@ -1276,7 +1152,7 @@ const BlindSpotPanel = memo(function BlindSpotPanel({ result }) {
   );
 });
 
-const SurvivalBlock = memo(function SurvivalBlock({ result, assessment, mode }) {
+const SurvivalBlock = memo(function SurvivalBlock({ result, assessment }) {
 
   const expenseValue = Number.parseFloat(assessment.profile.monthlyExpenses) || 0;
   const fixedValue = Number.parseFloat(assessment.profile.emergencySavingsFixed) || 0;
@@ -1299,8 +1175,7 @@ const SurvivalBlock = memo(function SurvivalBlock({ result, assessment, mode }) 
       <p className={`status-line tone-text-${result.survivalBand.tone}`}>
         {result.survivalBand.label}
       </p>
-      {mode === "v2" ? (
-        <>
+
           <div className="dual-survival-grid">
             <div>
               <span>As-Is Lifestyle</span>
@@ -1331,8 +1206,7 @@ const SurvivalBlock = memo(function SurvivalBlock({ result, assessment, mode }) 
           <p className="buffer-summary">
             Fixed: {result.fixedBufferMonthsDisplay} · Discretionary: {result.discretionaryBufferMonthsDisplay}
           </p>
-        </>
-      ) : null}
+
       <div className="survival-rail" aria-hidden="true">
         {milestones.map((month) => (
           <span
@@ -1341,8 +1215,7 @@ const SurvivalBlock = memo(function SurvivalBlock({ result, assessment, mode }) 
           />
         ))}
       </div>
-      {mode === "v2" ? (
-        <>
+
           <div className="money-pair">
             <span>Fixed buffer: {formatCurrencyV2(fixedValue)}</span>
             <span>Discretionary buffer: {formatCurrencyV2(discretionaryValue)}</span>
@@ -1351,18 +1224,12 @@ const SurvivalBlock = memo(function SurvivalBlock({ result, assessment, mode }) 
             <span>Total: {formatCurrencyV2(totalSavingsValue)}</span>
             <span>{formatCurrencyV2(expenseValue)} monthly burn</span>
           </div>
-        </>
-      ) : (
-        <div className="money-pair">
-          <span>{formatCurrency(savingsValue)} saved</span>
-          <span>{formatCurrency(expenseValue)} monthly burn</span>
-        </div>
-      )}
+
     </section>
   );
 });
 
-const ActionBlock = memo(function ActionBlock({ result, mode }) {
+const ActionBlock = memo(function ActionBlock({ result }) {
 
   return (
     <section className="result-card action-card">
@@ -1373,8 +1240,7 @@ const ActionBlock = memo(function ActionBlock({ result, mode }) {
       </div>
       <p>{result.recommendedActionText}</p>
 
-      {mode === "v2" ? (
-        <>
+
           <div className="driver-grid">
             <div>
               <span>Strength</span>
@@ -1395,19 +1261,7 @@ const ActionBlock = memo(function ActionBlock({ result, mode }) {
               <strong>{result.personalityType}</strong>
             </div>
           </div>
-        </>
-      ) : (
-        <div className="driver-grid">
-          <div>
-            <span>Strength</span>
-            <strong>{result.strongestComponent.label}</strong>
-          </div>
-          <div>
-            <span>Risk</span>
-            <strong>{result.lowestComponent.label}</strong>
-          </div>
-        </div>
-      )}
+
     </section>
   );
 });
