@@ -334,7 +334,7 @@ export default function App() {
 
     window.requestAnimationFrame(() => {
       const topbar = document.querySelector(".topbar");
-      const headerOffset = (topbar?.getBoundingClientRect().height ?? 0) + 24;
+      const headerOffset = (topbar?.getBoundingClientRect().height ?? 0) + 12;
       const targetTop = target.getBoundingClientRect().top + window.scrollY - headerOffset;
       window.scrollTo({ top: Math.max(targetTop, 0), behavior: "smooth" });
     });

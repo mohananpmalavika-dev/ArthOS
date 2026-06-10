@@ -5,6 +5,7 @@ import {
   Brain,
   ChevronLeft,
   ChevronRight,
+  Gauge,
   ShieldCheck,
 } from "lucide-react";
 import ValidationFeedbackForm from "./ValidationFeedbackForm.jsx";
@@ -242,6 +243,55 @@ function SegmentedControl({ labelledBy, name, options, value, onChange }) {
   );
 }
 
+function LiveResultSnapshot({ result }) {
+  const score = Math.max(0, Math.min(100, Math.round(result.healthScore ?? 0)));
+  const scoreLabel = result.categoryBand?.label ?? "Live profile";
+  const componentRows = result.componentRows ?? [];
+
+  return (
+    <section className={`result-card live-score-card tone-${result.categoryBand?.tone ?? "steady"}`}>
+      <div className="live-score-header">
+        <div>
+          <span className="metric-label">Live Health Score</span>
+          <strong>{score}/100</strong>
+          <p>{scoreLabel}</p>
+        </div>
+        <div className="live-score-orbit" style={{ "--score-progress": `${score}%` }}>
+          <Gauge size={18} />
+          <span>{score}</span>
+        </div>
+      </div>
+
+      <div className="live-score-meta">
+        <div>
+          <span>Personality</span>
+          <strong>{result.personalityType}</strong>
+        </div>
+        <div>
+          <span>Risk</span>
+          <strong>{result.futureRiskLabel}</strong>
+        </div>
+      </div>
+
+      <div className="live-breakdown-bars" aria-label="Live component breakdown">
+        {componentRows.map((row) => (
+          <div className="live-breakdown-row" key={row.key}>
+            <div>
+              <span>{row.label}</span>
+              <strong>
+                {row.score}/{row.max}
+              </strong>
+            </div>
+            <div className="bar-track" aria-hidden="true">
+              <span style={{ width: `${row.percent}%` }} />
+            </div>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
 const incomeStabilityOptions = [
   { value: "very_consistent", label: "Very consistent" },
   { value: "mostly_consistent", label: "Mostly consistent" },
@@ -326,16 +376,14 @@ export default function AssessmentSection({ assessment, result, onChange, ui, re
           {!showFeedback && (
             <div className="wizard-progress-track" aria-label="Assessment progress">
               {steps.map((step, idx) => (
-                <div
+                <WizardStep
                   key={step.id}
-                  className={`wizard-node ${idx <= currentStep ? "active" : ""} ${
-                    idx === currentStep ? "current" : ""
-                  }`}
-                >
-                  <div className="wizard-node-marker">{idx + 1}</div>
-                  <span className="wizard-node-label">{step.label}</span>
-                  {idx < steps.length - 1 && <div className="wizard-node-connector" />}
-                </div>
+                  step={step}
+                  index={idx}
+                  isActive={idx <= currentStep}
+                  isCurrent={idx === currentStep}
+                  isLast={idx === steps.length - 1}
+                />
               ))}
             </div>
           )}
@@ -419,6 +467,7 @@ export default function AssessmentSection({ assessment, result, onChange, ui, re
         <aside className="result-stack" aria-label="Financial health result" role="region" aria-live="polite" tabIndex={-1}>
           {result && result.healthScore !== undefined && (
             <div className="result-stack-inner">
+              <LiveResultSnapshot result={result} />
               <InsightNarrative result={result} assessment={assessment} />
               <DecisionSimulator profile={assessment.profile} />
             </div>
@@ -426,5 +475,22 @@ export default function AssessmentSection({ assessment, result, onChange, ui, re
         </aside>
       </div>
     </section>
+  );
+}
+
+function WizardStep({ step, index, isActive, isCurrent, isLast }) {
+  const StepIcon = step.icon;
+
+  return (
+    <div
+      className={`wizard-node ${isActive ? "active" : ""} ${isCurrent ? "current" : ""}`}
+    >
+      <div className="wizard-node-marker">
+        <StepIcon size={13} />
+        <span>{index + 1}</span>
+      </div>
+      <span className="wizard-node-label">{step.label}</span>
+      {!isLast && <div className="wizard-node-connector" />}
+    </div>
   );
 }

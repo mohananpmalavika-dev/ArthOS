@@ -328,3 +328,23 @@ Port 5173 is in use, trying another one...
 [2m6:08:15 am[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mpage reload [39m[2msrc/App.jsx[22m
 [2m6:08:41 am[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mpage reload [39m[2msrc/App.jsx[22m
 [2m6:09:36 am[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mpage reload [39m[2msrc/App.jsx[22m
+[2m6:28:00 am[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mpage reload [39m[2msrc/App.jsx[22m
+[2m6:28:05 am[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mpage reload [39m[2msrc/App.jsx[22m
+[2m6:30:53 am[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mpage reload [39m[2msrc/App.jsx[22m
+[2m6:33:23 am[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css[22m
+[2m6:36:41 am[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mpage reload [39m[2msrc/App.jsx[22m
+[2m6:36:41 am[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css[22m
+[2m7:09:20 am[22m [36m[1m[vite][22m[39m [32m.env changed, restarting server...[39m
+[2m7:09:21 am[22m [36m[1m[vite][22m[39m [32m.env changed, restarting server...[39m
+[2m7:09:22 am[22m [36m[1m[vite][22m[39m server restarted.
+[2m7:09:22 am[22m [36m[1m[vite][22m[39m [32m.env changed, restarting server...[39m
+[2m7:09:23 am[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m Re-optimizing dependencies because vite config has changed
+[2m7:09:23 am[22m [36m[1m[vite][22m[39m server restarted.
+[2m7:09:47 am[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css[22m
+[2m7:12:01 am[22m [36m[1m[vite][22m[39m [32m.env changed, restarting server...[39m
+[2m7:12:01 am[22m [36m[1m[vite][22m[39m [32m.env changed, restarting server...[39m
+[2m7:12:02 am[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m Re-optimizing dependencies because vite config has changed
+[2m7:12:02 am[22m [36m[1m[vite][22m[39m server restarted.
+[2m7:12:40 am[22m [36m[1m[vite][22m[39m [32m.env changed, restarting server...[39m
+[2m7:12:40 am[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m Re-optimizing dependencies because vite config has changed
+[2m7:12:40 am[22m [36m[1m[vite][22m[39m server restarted.
