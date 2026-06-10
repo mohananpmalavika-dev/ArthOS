@@ -61,7 +61,7 @@ export default function ValidationFeedbackForm({ healthScore, onSubmitFeedback }
           tabIndex={-1}
         >
           <ThumbsUp size={36} />
-          <h3>Thanks — feedback received</h3>
+          <h3>Thanks - feedback received</h3>
           <p>Your feedback helps improve the assessment and insights.</p>
           <div style={{ display: "flex", gap: 10, marginTop: 12 }}>
             <button
@@ -140,7 +140,7 @@ export default function ValidationFeedbackForm({ healthScore, onSubmitFeedback }
       </button>
       {submissionError && (
         <div className="feedback-error" role="alert" style={{ marginTop: 10 }}>
-          <span>Feedback couldn't be submitted — please retry.</span>
+          <span>Feedback couldn't be submitted - please retry.</span>
           <button
             type="button"
             className="feedback-retry-btn"

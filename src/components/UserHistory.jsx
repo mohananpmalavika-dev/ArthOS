@@ -4,7 +4,7 @@
 import { useState, useEffect } from "react";
 import { TrendingUp, Calendar, Award } from "lucide-react";
 
-export default function UserHistory({ currentScore, personalityType }) {
+export default function UserHistory({ currentScore, personalityType, className }) {
   const [history, setHistory] = useState([]);
   const [timespan, setTimespan] = useState("all");
 
@@ -95,7 +95,7 @@ export default function UserHistory({ currentScore, personalityType }) {
   const hasTrend = stats.trend !== 0;
 
   return (
-    <section className="result-card user-history-card">
+    <section className={`result-card user-history-card ${className || ""}`}>
       <div className="result-heading">
         <Calendar size={19} />
         <h2>Your Progress Journey</h2>

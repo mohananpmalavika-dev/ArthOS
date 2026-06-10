@@ -1,23 +1,9 @@
 // api/saveAssessment.js
-// Serverless handler to persist assessment submissions to Supabase
+// Serverless handler to persist assessment submissions to Supabase or local PostgreSQL
 
-import { createClient } from "@supabase/supabase-js";
+import { insertIntoTable } from "./dbClient.js";
 
-const SUPABASE_URL = process.env.SUPABASE_URL;
-const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const TABLE_NAME = process.env.SUPABASE_ASSESSMENTS_TABLE || "assessments";
-
-function createSupabaseClient() {
-  if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
-    throw new Error(
-      "Missing Supabase environment variables. Set SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY."
-    );
-  }
-
-  return createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
-    auth: { persistSession: false },
-  });
-}
 
 export default async function handler(req, res) {
   if (req.method !== "POST") {
@@ -30,7 +16,6 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: "Incomplete payload" });
     }
 
-    const client = createSupabaseClient();
     const assessmentRecord = {
       assessment: payload.assessment,
       result: payload.result,
@@ -40,9 +25,9 @@ export default async function handler(req, res) {
       created_at: new Date().toISOString(),
     };
 
-    const { error } = await client.from(TABLE_NAME).insert([assessmentRecord]);
+    const { error } = await insertIntoTable(TABLE_NAME, assessmentRecord);
     if (error) {
-      console.error("[SaveAssessment] Supabase insert error:", error.message);
+      console.error("[SaveAssessment] DB insert error:", error.message || error);
       return res.status(500).json({ status: "error", reason: "db_insert_failed" });
     }
 

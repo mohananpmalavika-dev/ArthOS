@@ -24,7 +24,7 @@ export default function InsightNarrative({ result, assessment }) {
       <div className="narrative-grid">
         <div className="narrative-box">
           <strong>Score</strong>
-          <p>{result.healthScore}/100 — {result.categoryBand.label}</p>
+          <p>{result.healthScore}/100 - {result.categoryBand.label}</p>
         </div>
         <div className="narrative-box">
           <strong>Awareness Gap</strong>

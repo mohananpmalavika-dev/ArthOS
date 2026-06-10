@@ -18,45 +18,37 @@ import {
 
 function ParticipantSection({ values, onChange }) {
   return (
-    <div className="participant-card" style={{ margin: "0 0 18px 0" }}>
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 120px", gap: 12 }}>
-        <label className="money-input">
+    <div className="participant-card">
+      <div className="participant-grid">
+        <label className="field-input">
           <span>Name</span>
-          <div>
-            <input
-              type="text"
-              value={values.name ?? ""}
-              onChange={(e) => onChange("name", e.target.value)}
-              placeholder="Your name"
-            />
-          </div>
+          <input
+            type="text"
+            value={values.name ?? ""}
+            onChange={(e) => onChange("name", e.target.value)}
+            placeholder="Your name"
+          />
         </label>
 
-        <label className="money-input">
+        <label className="field-input">
           <span>Age</span>
-          <div>
-            <input
-              type="number"
-              min="0"
-              value={values.age ?? ""}
-              onChange={(e) => onChange("age", e.target.value)}
-              placeholder="Age"
-            />
-          </div>
+          <input
+            type="number"
+            min="0"
+            value={values.age ?? ""}
+            onChange={(e) => onChange("age", e.target.value)}
+            placeholder="Age"
+          />
         </label>
-      </div>
 
-      <div style={{ marginTop: 10 }}>
-        <label className="money-input">
+        <label className="field-input participant-email">
           <span>Email</span>
-          <div>
-            <input
-              type="email"
-              value={values.email ?? ""}
-              onChange={(e) => onChange("email", e.target.value)}
-              placeholder="you@domain.com"
-            />
-          </div>
+          <input
+            type="email"
+            value={values.email ?? ""}
+            onChange={(e) => onChange("email", e.target.value)}
+            placeholder="you@domain.com"
+          />
         </label>
       </div>
     </div>
@@ -168,10 +160,9 @@ function ProfileSection({ values, score, onChange }) {
         <label className="question-label" id="debt-rate-label">
           Debt repayment rate (% of income)
         </label>
-        <div className="money-input" style={{ gridTemplateColumns: "auto 1fr" }}>
-          <span style={{ display: "block" }} />
+        <div className="money-input rate-input">
           <div>
-            <span />
+            <span>%</span>
             <input
               type="number"
               min="0"
@@ -192,10 +183,9 @@ function ProfileSection({ values, score, onChange }) {
         <label className="question-label" id="interest-label">
           Average interest rate (% per year)
         </label>
-        <div className="money-input" style={{ gridTemplateColumns: "auto 1fr" }}>
-          <span style={{ display: "block" }} />
+        <div className="money-input rate-input">
           <div>
-            <span />
+            <span>%</span>
             <input
               type="number"
               min="0"

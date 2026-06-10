@@ -126,7 +126,7 @@ function enqueueAssessmentSave(payload) {
 }
 
 async function flushQueuedAssessmentSaves() {
-  if (!isBrowser() || isLocalDevHost()) return;
+  if (!isBrowser()) return;
   if (typeof navigator !== "undefined" && !navigator.onLine) return;
 
   const queue = loadQueuedAssessmentSaves();
@@ -387,7 +387,7 @@ export default function App() {
     }
 
     const payload = { assessment, result: calculateFinancialHealthV2(assessment) };
-    if (isBrowser() && !isLocalDevHost()) {
+    if (isBrowser()) {
       fetch("/api/saveAssessment", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -467,6 +467,7 @@ export default function App() {
   return (
     <div className="app-shell">
       <Header
+        activeHash={activeHash}
         saveState={saveState}
         onExport={exportReport}
         onReset={resetAssessment}
@@ -502,18 +503,24 @@ export default function App() {
             />
 
             <section className="assessment-summary-grid">
-              <AnalyticsDashboard result={result} />
+              <div className="summary-main-column">
+                <AnalyticsDashboard result={result} />
+              </div>
+
               <div className="assessment-summary-sidebar">
                 <FinancialTwin
                   personalityType={result.personalityType}
                   behaviourScore={result.behaviourScore}
                   awarenessScore={result.awarenessScore}
                 />
-                <UserHistory
-                  currentScore={result.healthScore}
-                  personalityType={result.personalityType}
-                />
               </div>
+
+              {/* Full-width centered UserHistory spanning both columns */}
+              <UserHistory
+                className="summary-span"
+                currentScore={result.healthScore}
+                personalityType={result.personalityType}
+              />
             </section>
           </>
         )}
@@ -627,7 +634,7 @@ function AdminSection({
 }
 
 function Header({
-
+  activeHash,
   saveState,
   onExport,
   onReset,
@@ -646,7 +653,12 @@ function Header({
 
       <nav className="nav-links" aria-label="Primary navigation">
         {navItems.map((item) => (
-          <a href={item.href} key={item.label}>
+          <a
+            href={item.href}
+            key={item.label}
+            className={activeHash === item.href ? "active" : ""}
+            aria-current={activeHash === item.href ? "page" : undefined}
+          >
             {item.label}
           </a>
         ))}
@@ -1019,7 +1031,7 @@ const SurvivalBlock = memo(function SurvivalBlock({ result, assessment }) {
             </span>
           </div>
           <p className="buffer-summary">
-            Fixed: {result.fixedBufferMonthsDisplay} · Discretionary: {result.discretionaryBufferMonthsDisplay}
+            Fixed: {result.fixedBufferMonthsDisplay} / Discretionary: {result.discretionaryBufferMonthsDisplay}
           </p>
 
       <div className="survival-rail" aria-hidden="true">

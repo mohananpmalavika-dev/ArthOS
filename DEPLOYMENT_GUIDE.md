@@ -116,6 +116,31 @@
 
 ---
 
+### Step 1: Create a Supabase Project
+
+1. **Create the project:**
+   - Go to https://supabase.com and sign in.
+   - Click **New Project** and follow the prompts.
+   - Choose a project name, database password, and region.
+
+2. **Collect credentials:**
+   - In Supabase Dashboard, go to **Project Settings → API**.
+   - Copy **Project URL** to `SUPABASE_URL`.
+   - Copy **Service Role Key** to `SUPABASE_SERVICE_ROLE_KEY`.
+
+3. **Configure Vercel environment variables:**
+   - In Vercel Dashboard for your project, add:
+     - `SUPABASE_URL`
+     - `SUPABASE_SERVICE_ROLE_KEY`
+     - `SUPABASE_ASSESSMENTS_TABLE=assessments` (optional)
+
+4. **If you prefer CLI:**
+   - Install the Supabase CLI locally with `npm install -g supabase`.
+   - Authenticate with `supabase login`.
+   - Create the project with `supabase projects create --name "arth-os" --org "<your-org>" --db-password "<password>"`.
+
+---
+
 ### Step 2: Set Up Supabase Database
 
 1. **Log into Supabase Dashboard** → Your Project → SQL Editor
@@ -129,6 +154,24 @@
    - Go to Authentication → Policies
    - Enable Row-Level Security (RLS) for both tables
    - Verify policies allow INSERT (via api service_role) but deny SELECT from public
+
+---
+
+### Optional Local PostgreSQL Setup
+
+If you want to test API persistence locally without Supabase, use a local Postgres database and set `DATABASE_URL`.
+
+1. Start a local Postgres container or instance.
+
+2. Set your environment variables in `.env.local` or your shell:
+   ```bash
+   DATABASE_URL=postgres://username:password@localhost:5432/arthos
+   PG_SSL=false
+   ```
+
+3. Run the same schema from `SQL_SCHEMA.sql` against your local database.
+
+4. The API routes now support local Postgres with `DATABASE_URL` and also still support Supabase when `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` are configured.
 
 4. **Generate service role API key:**
    - Settings → API → Service Role Key

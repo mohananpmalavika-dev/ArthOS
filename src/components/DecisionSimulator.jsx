@@ -49,7 +49,7 @@ export default function DecisionSimulator({ profile }) {
               <span className="impact-label">Current runway</span>
               <strong className="impact-value current">{formatMonthsV2(simulator.currentRunway)} months</strong>
             </div>
-            <div className="impact-arrow">↓</div>
+            <div className="impact-arrow">to</div>
             <div className="impact-row">
               <span className="impact-label">After purchase</span>
               <strong className="impact-value forecast">{formatMonthsV2(simulator.forecastRunway)} months</strong>

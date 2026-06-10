@@ -2,18 +2,9 @@
 // Serverless handler for post-assessment validation feedback
 // Captures user perception of assessment value and decision drivers
 
-import { createClient } from "@supabase/supabase-js";
+import { insertIntoTable, hasDatabaseConfig } from "./dbClient.js";
 
-const SUPABASE_URL = process.env.SUPABASE_URL;
-const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const FEEDBACK_TABLE = process.env.SUPABASE_FEEDBACK_TABLE || "tester_feedback";
-
-function createSupabaseClient() {
-  if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) return null;
-  return createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
-    auth: { persistSession: false },
-  });
-}
 
 export default async function handler(req, res) {
   // Enforce POST-only access
@@ -37,15 +28,14 @@ export default async function handler(req, res) {
       created_at: new Date().toISOString().split("T")[0],
     };
 
-    const supabase = createSupabaseClient();
-    if (supabase) {
-      const { error } = await supabase.from(FEEDBACK_TABLE).insert([cleanFeedback]);
+    if (hasDatabaseConfig()) {
+      const { error } = await insertIntoTable(FEEDBACK_TABLE, cleanFeedback);
       if (error) {
-        console.error("[Feedback] Supabase insert error:", error.message);
+        console.error("[Feedback] DB insert error:", error.message || error);
         return res.status(500).json({ status: "error", reason: "db_insert_failed" });
       }
     } else {
-      console.log("[Feedback] Supabase not configured; fallback logging only.");
+      console.log("[Feedback] No database configured; fallback logging only.");
     }
 
     console.log(

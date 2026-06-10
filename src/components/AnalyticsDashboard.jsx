@@ -44,7 +44,7 @@ export default function AnalyticsDashboard({ result }) {
           </div>
           <div className="card-content">
             <p className="label">Risk Index Level: {futureRiskScore}/100</p>
-            <strong className={`risk-badge ${futureRiskLabel.toLowerCase().replace(" ", "-")}`}>
+            <strong className={`risk-badge ${futureRiskLabel.toLowerCase().replace(/\s+/g, "-")}`}>
               {futureRiskLabel}
             </strong>
           </div>
@@ -77,7 +77,7 @@ export default function AnalyticsDashboard({ result }) {
         </div>
 
         <p className="blindspot-insight">
-          💡 <strong>What this reveals:</strong> Your financial tracking clarity profile indicates
+          <strong>Insight:</strong> Your financial tracking clarity profile indicates
           you may run out of liquid cash funds roughly <strong>{awarenessGapDisplay} months</strong>
           {awarenessGapDisplay !== "0"
             ? " sooner than your mental baseline currently expects."
