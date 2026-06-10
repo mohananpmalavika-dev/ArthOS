@@ -306,7 +306,7 @@ const dependentsOptions = [
   { value: "6_plus", label: "6+" },
 ];
 
-export default function AssessmentSection({ assessment, result, onChange, ui, resetTrigger }) {
+export default function AssessmentSection({ assessment, result, onChange, onSaveAssessment, ui, resetTrigger }) {
   const [currentStep, setCurrentStep] = useState(() => {
     try {
       const saved = window.localStorage.getItem("arth-os-wizard-step");
@@ -353,6 +353,9 @@ export default function AssessmentSection({ assessment, result, onChange, ui, re
 
     const payload = buildAnonymousTelemetryPayload(result, assessment);
     await dispatchAnonymousTelemetry(payload, "/api/telemetry");
+    if (typeof onSaveAssessment === "function") {
+      onSaveAssessment();
+    }
     setShowFeedback(true);
   };
 
@@ -469,7 +472,7 @@ export default function AssessmentSection({ assessment, result, onChange, ui, re
             <div className="result-stack-inner">
               <LiveResultSnapshot result={result} />
               <InsightNarrative result={result} assessment={assessment} />
-              <DecisionSimulator profile={assessment.profile} />
+              <DecisionSimulator id="simulator" profile={assessment.profile} />
             </div>
           )}
         </aside>

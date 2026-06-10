@@ -5,9 +5,10 @@ import {
   AlertTriangle,
   ArrowRight,
   BarChart3,
+  Bell,
   Brain,
-  ChevronLeft,
-  ChevronRight,
+  ChevronDown,
+  CircleUserRound,
   Cpu,
   Download,
   LockKeyhole,
@@ -15,10 +16,12 @@ import {
   Network,
   RotateCcw,
   Save,
+  Search,
   ShieldCheck,
   Sparkles,
   Target,
   ThumbsUp,
+  TrendingUp,
   WalletCards,
 } from "lucide-react";
 import {
@@ -153,11 +156,11 @@ async function flushQueuedAssessmentSaves() {
 
 const navItems = [
   { label: "Home", href: "#home" },
-  { label: "AI", href: "#ai" },
-  { label: "Business", href: "#business" },
-  { label: "Founder", href: "#founder" },
-  { label: "Investors", href: "#assessment" },
-  { label: "Admin", href: "#admin" },
+  { label: "Intelligence", href: "#intelligence" },
+  { label: "Assessments", href: "#assessment" },
+  { label: "Simulator", href: "#simulator" },
+  { label: "Insights", href: "#insights" },
+  { label: "Reports", href: "#reports" },
 ];
 
 const engineSignals = [
@@ -166,6 +169,47 @@ const engineSignals = [
   "Uncovers Money Personality",
   "Generates Financial Health Actions",
 ];
+
+function buildLiveInsightCards(result, assessment) {
+  const lowestComponent = result.componentRows?.[0];
+  const stressPattern = assessment.behaviour?.spendWhenStressed;
+  const impulsePattern = assessment.behaviour?.regretImpulseFreq;
+  const planState = assessment.awareness?.hasFinancialPlan;
+  const focusLabel = lowestComponent?.label ?? "Behaviour";
+
+  return [
+    {
+      icon: Brain,
+      title: "Behavior Pattern",
+      copy: `${result.personalityType ?? "Current"} profile detected from your active responses.`,
+      time: "Live now",
+      tone: "purple",
+    },
+    {
+      icon: BarChart3,
+      title: "Spending Signal",
+      copy: stressPattern
+        ? `Stress-spend response is currently marked ${stressPattern.replaceAll("_", " ")}.`
+        : "Answer emotion prompts to reveal stress-spend patterns.",
+      time: "Live now",
+      tone: "cyan",
+    },
+    {
+      icon: ShieldCheck,
+      title: "Risk Exposure",
+      copy: `${result.futureRiskLabel ?? "Risk"} based on your current stability inputs.`,
+      time: "Live now",
+      tone: "purple",
+    },
+    {
+      icon: Target,
+      title: "Focus Opportunity",
+      copy: `${focusLabel} is the next area to strengthen as your answers update.`,
+      time: planState || impulsePattern ? "Live now" : "Needs input",
+      tone: "cyan",
+    },
+  ];
+}
 
 const intelligenceRows = [
   {
@@ -379,6 +423,11 @@ export default function App() {
     },
   };
 
+  const isWorkflowRoute = activeHash === "#assessment" || activeHash === "#simulator";
+  const isReportsRoute = activeHash === "#reports";
+  const showHeroSection = !isWorkflowRoute && !isReportsRoute;
+  const showAssessmentSection = !isReportsRoute;
+
 
 
   function updateGroup(group, key, value) {
@@ -507,19 +556,24 @@ export default function App() {
           />
         ) : (
           <>
-            <HeroSection result={result} />
-            <IntelligenceSection />
-            <BusinessSection />
-            <FounderSection />
-            <AssessmentSection
-              assessment={assessment}
-              result={result}
-              onChange={updateGroup}
-              ui={ui}
-              resetTrigger={resetTrigger}
-            />
+            {showHeroSection && (
+              <HeroSection
+                assessment={assessment}
+                result={result}
+              />
+            )}
+            {showAssessmentSection && (
+              <AssessmentSection
+                assessment={assessment}
+                result={result}
+                onChange={updateGroup}
+                onSaveAssessment={saveAssessment}
+                ui={ui}
+                resetTrigger={resetTrigger}
+              />
+            )}
 
-            <section className="assessment-summary-grid">
+            <section className="assessment-summary-grid" id="reports">
               <div className="summary-main-column">
                 <AnalyticsDashboard result={result} />
               </div>
@@ -681,83 +735,143 @@ function Header({
         ))}
       </nav>
 
-      <div className="toolbar" aria-label="Assessment actions">
-        <span className={`save-state save-state-${saveState.toLowerCase()}`}>
+      <div className="model-header-actions" aria-label="Product actions">
+        <span className={`header-sync save-state-${saveState.toLowerCase()}`}>
           {saveState}
         </span>
-
-
-        <button type="button" className="icon-button" onClick={onSave} title="Save">
-          <Save size={18} />
-          <span>Save</span>
+        <button type="button" className="model-icon-btn" title="Search">
+          <Search size={18} />
         </button>
-        <button
-          type="button"
-          className="icon-button"
-          onClick={onExport}
-          title="Export report"
-        >
-          <Download size={18} />
-          <span>Export</span>
+        <button type="button" className="model-icon-btn notification-btn" title="Notifications">
+          <Bell size={18} />
+          <span />
         </button>
-        <button type="button" className="ghost-button" onClick={onReset} title="Reset">
-          <RotateCcw size={18} />
-          <span>Reset</span>
-        </button>
+        <a className="model-avatar-btn" href="#admin" aria-label="Admin dashboard">
+          <span>A</span>
+          <ChevronDown size={15} />
+        </a>
+        <a className="model-start-btn" href="#assessment">
+          Start Assessment
+        </a>
       </div>
 
     </header>
   );
 }
 
-function HeroSection({ result }) {
+function HeroSection({ assessment, result }) {
+  const scorePreview = Math.max(0, Math.min(100, Math.round(result.healthScore ?? 0)));
+  const scoreLabel = result.categoryBand?.label ?? "Live profile";
+  const liveInsights = buildLiveInsightCards(result, assessment);
+  const metricRows = [
+    {
+      label: "Financial Health Behavior Score",
+      value: scorePreview,
+      width: `${scorePreview}%`,
+    },
+    {
+      label: "Behavior Control",
+      value: Math.round(result.behaviourScore ?? 0),
+      width: `${Math.min(100, ((result.behaviourScore ?? 0) / componentMaximumsV2.behaviour) * 100)}%`,
+    },
+    {
+      label: "Awareness Signal",
+      value: Math.round(result.awarenessScore ?? 0),
+      width: `${Math.min(100, ((result.awarenessScore ?? 0) / componentMaximumsV2.awareness) * 100)}%`,
+    },
+  ];
   return (
-    <section className="hero-section" id="home">
-      <div className="hero-copy">
-        <div className="hero-pill">
-          <Sparkles size={16} />
-          <span>ARTH.OS by SANKHYA</span>
+    <section className="model-screen" id="home">
+      <div className="model-hero-grid">
+        <div className="model-hero-copy">
+          <h1>
+            <span>ARTH.OS</span>
+            decodes financial behavior
+          </h1>
+          <p>
+            Our proprietary intelligence engine analyzes how you think, feel,
+            and decide with money-so you can make better choices and build lasting wealth.
+          </p>
+          <div className="model-hero-actions">
+            <a className="model-primary-cta" href="#assessment">
+              Start Score
+              <ArrowRight size={18} />
+            </a>
+            <a className="model-secondary-cta" href="#intelligence">
+              See Intelligence
+              <ArrowRight size={18} />
+            </a>
+          </div>
         </div>
-        <h1>
-          <span>
-            ARTH.<em>OS</em>
-          </span>{" "}
-          decodes financial behavior.
-        </h1>
-        <p>
-          ARTH.OS combines behavioral psychology, AI and financial intelligence
-          to decode emotional spending, stress spending and hidden money habits.
-        </p>
-        <div className="hero-actions">
-          <a className="primary-link" href="#assessment">
-            Start Score
+
+        <article className="model-engine-panel" id="intelligence">
+          <div className="model-panel-title">
+            <span className="model-orb" />
+            <h2>ARTH.OS Intelligence Engine</h2>
+          </div>
+          <div className="model-engine-content">
+            <div className="model-score-block">
+              <span>Live Score</span>
+              <div className="model-score-ring" style={{ "--score": `${scorePreview}%` }}>
+                <strong>{scorePreview}</strong>
+                <small>/100</small>
+              </div>
+              <p>{scoreLabel}</p>
+              <small>Updated just now</small>
+            </div>
+
+            <div className="model-metric-stack">
+              {metricRows.map((row) => (
+                <div className="model-metric-row" key={row.label}>
+                  <div>
+                    <span>{row.label}</span>
+                    <strong>{row.value}</strong>
+                  </div>
+                  <div className="model-metric-track" aria-hidden="true">
+                    <span style={{ width: row.width }} />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+          <div className="model-engine-footer">
+            <span>Scoring based on 12 behavioral dimensions</span>
+            <a href="#assessment">
+              View full breakdown
+              <ArrowRight size={17} />
+            </a>
+          </div>
+        </article>
+
+        <aside className="model-insights-rail" id="insights" aria-label="Live insights">
+          <div className="model-insights-header">
+            <div>
+              <Sparkles size={18} />
+              <h2>Live Insights</h2>
+            </div>
+            <span>Live</span>
+          </div>
+          <div className="model-insight-list">
+            {liveInsights.map(({ icon: Icon, title, copy, time, tone }) => (
+              <article className={`model-insight-card tone-${tone}`} key={title}>
+                <div className="model-insight-icon">
+                  <Icon size={24} />
+                </div>
+                <div>
+                  <h3>{title}</h3>
+                  <p>{copy}</p>
+                  <span>{time}</span>
+                </div>
+              </article>
+            ))}
+          </div>
+          <a className="model-view-insights" href="#reports">
+            View all insights
             <ArrowRight size={18} />
           </a>
-          <a className="secondary-link" href="#ai">
-            See Intelligence
-          </a>
-        </div>
+        </aside>
       </div>
 
-      <aside className="engine-card" aria-label="ARTH.OS intelligence engine">
-        <div className="engine-chip">
-          <Sparkles size={16} />
-          <span>ARTH.OS Intelligence Engine</span>
-        </div>
-        <div className="engine-metric">
-          <strong>99.99%</strong>
-          <span>Behavior Intelligence Accuracy</span>
-        </div>
-        <div className="engine-list">
-          {engineSignals.map((signal) => (
-            <div key={signal}>{signal}</div>
-          ))}
-        </div>
-        <div className="engine-footer">
-          <span>Live Score</span>
-          <strong>{result.healthScore}/100</strong>
-        </div>
-      </aside>
     </section>
   );
 }

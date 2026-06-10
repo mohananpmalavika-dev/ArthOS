@@ -2,7 +2,7 @@ import React, { useMemo, useState } from "react";
 import { Cpu } from "lucide-react";
 import { calculateDecisionSimulatorV2, formatMonths as formatMonthsV2 } from "../lib/scoring-v2.js";
 
-export default function DecisionSimulator({ profile }) {
+export default function DecisionSimulator({ id, profile }) {
   const [purchaseCost, setPurchaseCost] = useState(0);
   const simulator = useMemo(
     () => calculateDecisionSimulatorV2(profile, purchaseCost),
@@ -18,7 +18,7 @@ export default function DecisionSimulator({ profile }) {
   const riskTrend = purchaseCost > 0 && riskIncrease > 0 ? "negative" : purchaseCost > 0 ? "positive" : "neutral";
 
   return (
-    <section className="result-card simulator-card">
+    <section className="result-card simulator-card" id={id}>
       <div className="result-heading">
         <Cpu size={19} />
         <h2>Decision Simulator</h2>
