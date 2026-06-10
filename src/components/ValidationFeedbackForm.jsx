@@ -1,5 +1,5 @@
 // src/components/ValidationFeedbackForm.jsx
-import { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { MessageSquare, ThumbsUp } from "lucide-react";
 
 export default function ValidationFeedbackForm({ healthScore, onSubmitFeedback }) {

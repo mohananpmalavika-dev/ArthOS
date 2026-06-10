@@ -1,7 +1,7 @@
 // src/components/UserHistory.jsx
 // Track and display financial health score progression over time
 
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { TrendingUp, Calendar, Award } from "lucide-react";
 
 export default function UserHistory({ currentScore, personalityType, className }) {

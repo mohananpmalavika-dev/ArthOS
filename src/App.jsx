@@ -326,6 +326,20 @@ export default function App() {
     return () => window.removeEventListener("hashchange", handleHashChange);
   }, []);
 
+  useEffect(() => {
+    if (!isBrowser() || activeHash === "#admin") return;
+
+    const target = document.getElementById(activeHash.replace("#", ""));
+    if (!target) return;
+
+    window.requestAnimationFrame(() => {
+      const topbar = document.querySelector(".topbar");
+      const headerOffset = (topbar?.getBoundingClientRect().height ?? 0) + 24;
+      const targetTop = target.getBoundingClientRect().top + window.scrollY - headerOffset;
+      window.scrollTo({ top: Math.max(targetTop, 0), behavior: "smooth" });
+    });
+  }, [activeHash]);
+
   // Clear any persisted state on initial load so the user must actively select answers
   useEffect(() => {
     try {
@@ -393,10 +407,13 @@ export default function App() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       })
-        .then((resp) => {
+        .then(async (resp) => {
+          const body = await resp.text().catch(() => null);
           if (!resp.ok) {
             enqueueAssessmentSave(payload);
-            console.warn("Remote save failed, queued for retry:", resp.statusText);
+            console.warn("Remote save failed, queued for retry:", resp.statusText, body);
+          } else {
+            console.log("Remote save response:", resp.status, body);
           }
         })
         .catch((err) => {
