@@ -1,3 +1,5 @@
+import { integrations, registerProvider } from './integrations.js';
+
 export class ArthOSSDK {
   constructor(baseUrl = '') {
     this.baseUrl = baseUrl.replace(/\/$/, '');
@@ -19,4 +21,10 @@ export class ArthOSSDK {
     if (!res.ok) throw new Error('Failed to load risk profile');
     return res.json();
   }
+
+  registerProvider(type, provider) {
+    return registerProvider(type, provider);
+  }
 }
+
+export { integrations, registerProvider };

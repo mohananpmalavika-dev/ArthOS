@@ -195,6 +195,16 @@ export default function FinancialTwin({ personalityType, behaviourScore, awarene
               <strong className="scenario-value">{twinScenarios.survivalIfJobLoss} months</strong>
               <span className="scenario-impact">{twinScenarios.survivalIfJobLoss < twinScenarios.survivalNow ? "⚠️ More urgent" : "✓ Resilient"}</span>
             </div>
+            {twinScenarios.stressTest && (
+              <div className="scenario-card negative">
+                <div className="scenario-icon-wrapper">
+                  <AlertTriangle size={20} />
+                </div>
+                <div className="scenario-label">{twinScenarios.stressTest.scenario}</div>
+                <strong className="scenario-value">{twinScenarios.stressTest.runway} months</strong>
+                <span className="scenario-impact">Health impact: {twinScenarios.stressTest.healthImpact}</span>
+              </div>
+            )}
           </div>
         </div>
       )}

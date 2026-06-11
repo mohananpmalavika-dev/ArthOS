@@ -42,6 +42,11 @@ import { buildFinancialTwinScenarios } from "./engines/financialTwinEngine.js";
 import { buildCognitionProfile } from "./engines/cognitionEngine.js";
 import { evaluateHabitProgress } from "./engines/habitEngine.js";
 import { forecastHealth, detectFutureRisk } from "./engines/forecastEngine.js";
+import { detectBiases as detectCognitiveBiases, calculateRiskCalibration } from "./engines/biasEngine.js";
+import { trackGoalEvolution } from "./engines/goalEvolutionEngine.js";
+import { generateMemoryInsight } from "./engines/contextualMemoryEngine.js";
+import { opportunityForecast } from "./engines/opportunityForecastEngine.js";
+import { CognitionGraph } from "./engines/cognitionGraph.js";
 import { mapSignalsToBehaviour } from "./engines/smsParser.js";
 
 import AnalyticsDashboard from "./components/AnalyticsDashboard.jsx";
@@ -503,9 +508,51 @@ export default function App() {
     }),
     [assessment.profile, assessment.behaviour, assessment.awareness],
   );
+  const biasProfile = useMemo(
+    () => detectCognitiveBiases({
+      ...assessment.profile,
+      ...assessment.behaviour,
+      ...assessment.awareness,
+    }),
+    [assessment.profile, assessment.behaviour, assessment.awareness],
+  );
   const futureRisk = useMemo(() => detectFutureRisk(assessment.profile), [assessment.profile]);
+  const riskCalibration = useMemo(
+    () => calculateRiskCalibration(
+      cognitionProfile.riskCalibration.perceivedRisk,
+      cognitionProfile.riskCalibration.actualRisk,
+    ),
+    [cognitionProfile.riskCalibration.perceivedRisk, cognitionProfile.riskCalibration.actualRisk],
+  );
   const habitProgress = useMemo(() => evaluateHabitProgress(weeklyCheckins), [weeklyCheckins]);
   const forecastHealthValues = useMemo(() => forecastHealth(result.healthScore, Math.round(habitProgress.score / 8)), [result.healthScore, habitProgress.score]);
+  const memoryInsight = useMemo(() => generateMemoryInsight(weeklyCheckins), [weeklyCheckins]);
+  const opportunity = useMemo(() => opportunityForecast(assessment.profile), [assessment.profile]);
+  const goalEvolution = useMemo(
+    () => trackGoalEvolution(
+      assessment.profile.previousGoal || assessment.profile.goal || assessment.profile.goalDescription,
+      assessment.profile.currentGoal || assessment.profile.goal || assessment.profile.goalDescription,
+    ),
+    [
+      assessment.profile.previousGoal,
+      assessment.profile.goal,
+      assessment.profile.goalDescription,
+      assessment.profile.currentGoal,
+    ],
+  );
+  const cognitionGraph = useMemo(() => {
+    const graph = new CognitionGraph();
+    graph.addNode({ id: "moneyBeliefs" });
+    graph.addNode({ id: "cognitiveBiases" });
+    graph.addNode({ id: "emotionalTriggers" });
+    graph.addNode({ id: "decisions" });
+    graph.addNode({ id: "outcomes" });
+    graph.connect("moneyBeliefs", "cognitiveBiases", 0.9);
+    graph.connect("cognitiveBiases", "emotionalTriggers", 0.8);
+    graph.connect("emotionalTriggers", "decisions", 0.85);
+    graph.connect("decisions", "outcomes", 0.95);
+    return graph.serialize();
+  }, [assessment.profile, assessment.behaviour, assessment.awareness]);
   const scoreProgress = useMemo(() => getProgressSummary(scoreHistory), [scoreHistory]);
 
   useEffect(() => {
@@ -695,6 +742,8 @@ export default function App() {
       <Header
         activeHash={activeHash}
         saveState={saveState}
+        saveStatusLabel={saveStatusLabel}
+        saveStatusClass={saveStatusClass}
         onExport={exportReport}
         onReset={resetAssessment}
         onSave={saveAssessment}
@@ -802,7 +851,7 @@ export default function App() {
                           Calibration gap
                         </div>
                         <div style={{ marginTop: 8, fontSize: 24, fontWeight: 700 }}>
-                          {cognitionProfile.riskCalibration.calibrationGap}%
+                          {riskCalibration.calibrationGap}%
                         </div>
                         <div style={{ marginTop: 6, color: "#475569", fontSize: 13 }}>
                           Perceived vs. actual risk alignment.
@@ -846,6 +895,73 @@ export default function App() {
                         </div>
                       </div>
                     </div>
+                    <div style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: "14px" }}>
+                      <div style={{ padding: "16px", border: "1px solid #e5e7eb", borderRadius: "12px", background: "#fff" }}>
+                        <div style={{ fontSize: 12, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.04em" }}>
+                          Cognitive bias load
+                        </div>
+                        <div style={{ marginTop: 8, fontSize: 24, fontWeight: 700 }}>
+                          {Math.round((biasProfile.presentBias + biasProfile.lossAversion + biasProfile.optimismBias + biasProfile.anchoringBias + biasProfile.sunkCostBias) / 5)}%
+                        </div>
+                        <div style={{ marginTop: 6, color: "#475569", fontSize: 13 }}>
+                          Average exposure across your core bias dimensions.
+                        </div>
+                      </div>
+                      <div style={{ padding: "16px", border: "1px solid #e5e7eb", borderRadius: "12px", background: "#fff" }}>
+                        <div style={{ fontSize: 12, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.04em" }}>
+                          Opportunity forecast
+                        </div>
+                        <div style={{ marginTop: 8, fontSize: 18, fontWeight: 700 }}>
+                          {opportunity.action}
+                        </div>
+                        <div style={{ marginTop: 6, color: "#475569", fontSize: 13 }}>
+                          {opportunity.benefit}
+                        </div>
+                      </div>
+                    </div>
+                    <div style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: "14px" }}>
+                      <div style={{ padding: "16px", border: "1px solid #e5e7eb", borderRadius: "12px", background: "#f8fafc" }}>
+                        <div style={{ fontSize: 12, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.04em" }}>
+                          Cognition graph
+                        </div>
+                        <div style={{ marginTop: 8, fontSize: 24, fontWeight: 700 }}>
+                          {cognitionGraph.nodes.length} nodes
+                        </div>
+                        <div style={{ marginTop: 6, color: "#475569", fontSize: 13 }}>
+                          {cognitionGraph.edges.length} links modeling belief → bias → outcome.
+                        </div>
+                      </div>
+                      <div style={{ padding: "16px", border: "1px solid #e5e7eb", borderRadius: "12px", background: "#f8fafc" }}>
+                        <div style={{ fontSize: 12, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.04em" }}>
+                          Risk calibration
+                        </div>
+                        <div style={{ marginTop: 8, fontSize: 24, fontWeight: 700 }}>
+                          {riskCalibration.calibrated ? "Aligned" : "Misaligned"}
+                        </div>
+                        <div style={{ marginTop: 6, color: "#475569", fontSize: 13 }}>
+                          Perception gap is {riskCalibration.calibrationGap}%.
+                        </div>
+                      </div>
+                    </div>
+                    {memoryInsight && (
+                      <div style={{ padding: "18px", border: "1px solid #e2e8f0", borderRadius: "12px", background: "#f8fafc" }}>
+                        <strong style={{ display: "block", marginBottom: "8px" }}>Memory Insight</strong>
+                        <p style={{ margin: 0, color: "#334155" }}>{memoryInsight.insight}</p>
+                      </div>
+                    )}
+                    {(goalEvolution.previousGoal || goalEvolution.currentGoal) && (
+                      <div style={{ padding: "18px", border: "1px solid #e2e8f0", borderRadius: "12px", background: "#fff" }}>
+                        <span style={{ fontSize: 12, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.04em" }}>Goal evolution</span>
+                        <div style={{ marginTop: 8, fontSize: 18, fontWeight: 700 }}>
+                          {goalEvolution.changed ? "Goal path shifted" : "Goal path stable"}
+                        </div>
+                        <div style={{ marginTop: 6, color: "#475569", fontSize: 13 }}>
+                          {goalEvolution.changed
+                            ? `Moved from ${goalEvolution.previousGoal || "previous"} to ${goalEvolution.currentGoal || "current"}.`
+                            : "Your current goal remains consistent."}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </section>
                 {/* Decision Simulator - Phase 3 Strategic Engine */}
@@ -1002,7 +1118,7 @@ function ScoreRing({ score }) {
   ];
 
   return (
-    <div className="score-ring-chart">
+    <div className="score-ring-chart" style={{ "--score": normalizedScore }}>
       <ResponsiveContainer width="100%" height={220}>
         <PieChart>
           <Pie
@@ -1218,6 +1334,8 @@ function AdminSection({
 function Header({
   activeHash,
   saveState,
+  saveStatusLabel,
+  saveStatusClass,
   onExport,
   onReset,
   onSave,
@@ -1300,12 +1418,12 @@ function HeroSection({ assessment, result }) {
       <div className="model-hero-grid">
         <div className="model-hero-copy">
           <h1>
-            <span>See the financial blindspots</span>
-            you don't know you have.
+            <span>Decode the financial blindspots</span>
+            your money leaves behind.
           </h1>
           <p>
-            ARTH.OS measures Behavior, Awareness and Stability to reveal the hidden risks shaping your
-            financial future.
+            ARTH.OS turns behavior, awareness and stability into a private intelligence layer for
+            clearer financial decisions.
           </p>
           <div className="hero-stat-card">
             <div className="metric">
@@ -1323,11 +1441,11 @@ function HeroSection({ assessment, result }) {
           </div>
           <div className="model-hero-actions">
             <a className="model-primary-cta" href="#assessment">
-              Start Score
+              Build My Score
               <ArrowRight size={18} />
             </a>
             <a className="model-secondary-cta" href="#intelligence">
-              See Intelligence
+              View Intelligence
               <ArrowRight size={18} />
             </a>
           </div>

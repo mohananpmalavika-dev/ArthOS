@@ -1,6 +1,12 @@
 import assert from 'assert';
 import { analyzeMoneyBeliefs, detectBiases } from '../src/engines/cognitionEngine.js';
 import { forecast30d, forecastHealth } from '../src/engines/forecastEngine.js';
+import { detectBiases as detectCognitiveBiases, calculateRiskCalibration } from '../src/engines/biasEngine.js';
+import { stressTestTwin } from '../src/engines/financialTwinEngine.js';
+import { generateMemoryInsight } from '../src/engines/contextualMemoryEngine.js';
+import { opportunityForecast } from '../src/engines/opportunityForecastEngine.js';
+import { CognitionGraph } from '../src/engines/cognitionGraph.js';
+import { integrations, registerProvider } from '../src/lib/integrations.js';
 import decisionHandler from '../api/decision.js';
 import riskScoreHandler from '../api/risk-score.js';
 import { scoreDecision, decisionTrend } from '../src/engines/decisionIntelligence.js';
@@ -53,6 +59,42 @@ async function testDecisionIntelligence() {
   assert.strictEqual(trend.trend, 'Improving', 'decision trend calculated');
 }
 
+async function testBiasEngine() {
+  const biases = detectCognitiveBiases({ presentFutureMindset: 8, lossAversion: 7, optimismBias: 3, anchoring: 2, sunkCost: 1 });
+  assert.strictEqual(typeof biases.presentBias, 'number', 'presentBias exists');
+  const calibration = calculateRiskCalibration(70, 50);
+  assert.ok(calibration.calibrated === false, 'risk calibration returns false when gap is large');
+}
+
+async function testTwinStress() {
+  const output = stressTestTwin({ monthlyIncome: 10000, expenses: 4000, savings: 20000, healthScore: 70 });
+  assert.strictEqual(output.scenario, '50% Income Loss', 'stress scenario label set');
+  assert.ok(typeof output.runway === 'number', 'stress runway computed');
+}
+
+async function testMemoryInsight() {
+  const insight = generateMemoryInsight([{ event: 'salary_hike', amount: 10000 }]);
+  assert.ok(insight && insight.insight.includes('salary increase'), 'memory insight generated');
+}
+
+async function testOpportunityForecast() {
+  const forecast = opportunityForecast({ monthlyExpense: 15000 });
+  assert.ok(forecast.action.includes('Save ₹'), 'opportunity action generated');
+  assert.ok(forecast.benefit.includes('extra months runway'), 'benefit text generated');
+}
+
+async function testCognitionGraph() {
+  const graph = new CognitionGraph();
+  graph.addNode({ id: 'beliefs' });
+  graph.connect('beliefs', 'biases', 0.7);
+  assert.strictEqual(graph.edges.length, 1, 'graph edge created');
+}
+
+async function testIntegrationRegistry() {
+  registerProvider('banks', { name: 'Test Bank', id: 'test-bank' });
+  assert.ok(Array.isArray(integrations.banks) && integrations.banks.length > 0, 'bank provider registered');
+}
+
 async function testRiskApi() {
   const req = { method: 'POST', body: { user: { monthlyIncome: 5000, monthlyExpense: 4000, stressLevel: 70, perceivedRisk: 60 } } };
   const res = mockRes();
@@ -71,6 +113,18 @@ async function testRiskApi() {
     console.log('Decision API tests passed');
     await testDecisionIntelligence();
     console.log('Decision intelligence tests passed');
+    await testBiasEngine();
+    console.log('Bias engine tests passed');
+    await testTwinStress();
+    console.log('Twin stress tests passed');
+    await testMemoryInsight();
+    console.log('Contextual memory tests passed');
+    await testOpportunityForecast();
+    console.log('Opportunity forecast tests passed');
+    await testCognitionGraph();
+    console.log('Cognition graph tests passed');
+    await testIntegrationRegistry();
+    console.log('Integration registry tests passed');
     await testRiskApi();
     console.log('Risk API tests passed');
     console.log('ALL TESTS OK');

@@ -54,6 +54,18 @@ export function detectFutureRisk(profile = {}) {
   };
 }
 
+export function simulateWhatIf(profile = {}, deltaMonthlySaving = 1000) {
+  const currentScore = Number(profile.currentScore || 50);
+  const improvement = Number(deltaMonthlySaving) / Math.max(1, Number(profile.monthlyExpense || profile.monthlySpending || 1));
+  return {
+    scenario: `Save ₹${deltaMonthlySaving} more monthly`,
+    projectedDay30: clamp(currentScore + improvement),
+    projectedDay90: clamp(currentScore + improvement * 3),
+    projectedDay180: clamp(currentScore + improvement * 6),
+    generatedAt: new Date().toISOString(),
+  };
+}
+
 export function riskAlertEngine(projection) {
   const hasNegative = projection.some((p) => p < 0);
   const maxDrop = Math.min(0, Math.min(...projection) - Math.max(...projection));

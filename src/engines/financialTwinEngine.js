@@ -17,6 +17,19 @@ export function simulateJobLoss(currentRunway) {
   return Math.max(0, currentRunway - 5);
 }
 
+export function stressTestTwin(twin = {}) {
+  const incomeDrop = Number(twin.monthlyIncome || 0) * 0.5;
+  const savings = Number(twin.savings || 0);
+  const expenses = Number(twin.expenses || 0);
+  const runway = expenses - incomeDrop > 0 ? savings / Math.max(1, expenses - incomeDrop) : 0;
+
+  return {
+    scenario: '50% Income Loss',
+    runway: Math.round(runway * 10) / 10,
+    healthImpact: Math.max(0, Number(twin.healthScore || 0) - 10),
+  };
+}
+
 export function simulateCareerChange(twin = {}, newIncome = 0) {
   const delta = Number(newIncome || 0) - Number(twin.monthlyIncome || 0);
   return {
@@ -64,6 +77,13 @@ export function buildFinancialTwinScenarios(result, profile) {
     Number(profile?.homeLoanEmi || 0)
   );
 
+  const stressTest = stressTestTwin({
+    monthlyIncome: profile.monthlyIncome,
+    expenses,
+    savings: Number(profile?.emergencySavingsFixed || 0) + Number(profile?.emergencySavingsDiscretionary || 0),
+    healthScore: result.healthScore,
+  });
+
   return {
     baseRunway,
     survivalNow: Math.round(baseRunway),
@@ -73,5 +93,6 @@ export function buildFinancialTwinScenarios(result, profile) {
     survivalIfJobLoss: Math.round(jobLossRunway),
     careerChangeImpact,
     homePurchaseImpact,
+    stressTest,
   };
 }

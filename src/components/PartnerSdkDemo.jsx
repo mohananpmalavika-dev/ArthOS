@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from "react";
-import { ArthOSSDK } from "../lib/ArthOSSDK.js";
+import { ArthOSSDK, integrations } from "../lib/ArthOSSDK.js";
 
 export default function PartnerSdkDemo({ userId = "demo", assessment = {} }) {
   const [loading, setLoading] = useState(false);
@@ -8,6 +8,32 @@ export default function PartnerSdkDemo({ userId = "demo", assessment = {} }) {
   const [error, setError] = useState(null);
 
   const sdk = useMemo(() => new ArthOSSDK(""), []);
+  const [providerCounts, setProviderCounts] = useState({
+    banks: integrations.banks.length,
+    lenders: integrations.lenders.length,
+    insurers: integrations.insurers.length,
+    investments: integrations.investments.length,
+  });
+  const [providerMessage, setProviderMessage] = useState("");
+
+  function updateProviderCounts() {
+    setProviderCounts({
+      banks: integrations.banks.length,
+      lenders: integrations.lenders.length,
+      insurers: integrations.insurers.length,
+      investments: integrations.investments.length,
+    });
+  }
+
+  function registerSampleProvider() {
+    try {
+      sdk.registerProvider("banks", { id: "demo-bank", name: "Demo Bank Connector" });
+      updateProviderCounts();
+      setProviderMessage("Demo bank connector registered successfully.");
+    } catch (err) {
+      setProviderMessage(err?.message || "Unable to register provider.");
+    }
+  }
 
   async function refreshPartnerData() {
     setLoading(true);
@@ -106,6 +132,40 @@ export default function PartnerSdkDemo({ userId = "demo", assessment = {} }) {
           </div>
         </div>
       )}
+
+      <div style={{ marginTop: 20, paddingTop: 16, borderTop: "1px solid #e5e7eb" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", gap: 12, marginBottom: 10 }}>
+          <div style={{ color: "#334155", fontSize: 13, fontWeight: 600 }}>Marketplace connectors</div>
+          <button
+            type="button"
+            onClick={registerSampleProvider}
+            style={{ padding: "10px 14px", backgroundColor: "#0f766e", color: "white", borderRadius: "8px", border: "none", cursor: "pointer" }}
+          >
+            Register Demo Bank
+          </button>
+        </div>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: "10px" }}>
+          <div style={{ padding: "14px", backgroundColor: "#f8fafc", borderRadius: "10px" }}>
+            <div style={{ fontSize: 12, color: "#64748b", marginBottom: 6 }}>Banks</div>
+            <div style={{ fontSize: 20, fontWeight: 700 }}>{providerCounts.banks}</div>
+          </div>
+          <div style={{ padding: "14px", backgroundColor: "#f8fafc", borderRadius: "10px" }}>
+            <div style={{ fontSize: 12, color: "#64748b", marginBottom: 6 }}>Lenders</div>
+            <div style={{ fontSize: 20, fontWeight: 700 }}>{providerCounts.lenders}</div>
+          </div>
+          <div style={{ padding: "14px", backgroundColor: "#f8fafc", borderRadius: "10px" }}>
+            <div style={{ fontSize: 12, color: "#64748b", marginBottom: 6 }}>Insurers</div>
+            <div style={{ fontSize: 20, fontWeight: 700 }}>{providerCounts.insurers}</div>
+          </div>
+          <div style={{ padding: "14px", backgroundColor: "#f8fafc", borderRadius: "10px" }}>
+            <div style={{ fontSize: 12, color: "#64748b", marginBottom: 6 }}>Investments</div>
+            <div style={{ fontSize: 20, fontWeight: 700 }}>{providerCounts.investments}</div>
+          </div>
+        </div>
+        {providerMessage && (
+          <div style={{ marginTop: 14, fontSize: 13, color: "#0f766e" }}>{providerMessage}</div>
+        )}
+      </div>
     </section>
   );
 }
