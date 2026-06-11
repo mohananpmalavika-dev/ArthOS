@@ -330,22 +330,58 @@ function getAwarenessScore(awareness) {
 }
 
 
-const CRISIS_ELASTICITY_FACTOR = 0.4; // Assumes 40% of variable lifestyle cost can be frozen in crisis mode
+const BASELINE_ELASTICITY_FACTOR = 0.4;
 
-function getStabilityScore(profile) {
+export function calculateDynamicElasticity(behaviour = {}) {
+  let frictionPoints = 0;
+  let answeredSignals = 0;
+
+  function addFriction(key, pointsByValue) {
+    const value = behaviour?.[key];
+    if (!value) return;
+    answeredSignals += 1;
+    frictionPoints += pointsByValue[value] ?? 0;
+  }
+
+  addFriction("emotionalMoneyLevel", {
+    extremely_emotional: 25,
+    somewhat_emotional: 12,
+  });
+  addFriction("socialInfluenceLevel", {
+    heavily: 25,
+    sometimes: 10,
+  });
+  addFriction("unplannedPurchaseFreq", {
+    very_frequently: 25,
+    sometimes: 15,
+  });
+  addFriction("impulseWaitRule", {
+    never: 25,
+    rarely: 10,
+  });
+
+  if (answeredSignals === 0) return BASELINE_ELASTICITY_FACTOR;
+
+  const maxElasticityOffset = 0.5;
+  const degradationDelta = (clamp(frictionPoints, 0, 100) / 100) * 0.35;
+  return Number(clamp(maxElasticityOffset - degradationDelta, 0.15, 0.5).toFixed(3));
+}
+
+function getStabilityScore(profile, behaviour) {
   const monthlyExpenses = toNumber(profile.monthlyExpenses);
   const fixedSavings = toNumber(profile.emergencySavingsFixed);
   const discretionarySavings = toNumber(profile.emergencySavingsDiscretionary);
   const totalDebt = toNumber(profile.totalDebt);
   const monthlyIncome = toNumber(profile.monthlyIncome);
   const monthlyLiabilities = toNumber(profile.monthlyLiabilities);
+  const activeElasticityFactor = calculateDynamicElasticity(behaviour);
 
   const totalSavings = fixedSavings + discretionarySavings;
   const survivalMonthsRaw =
     monthlyExpenses > 0 && totalSavings > 0 ? totalSavings / monthlyExpenses : 0;
 
   const variableExpenses = Math.max(0, monthlyExpenses - monthlyLiabilities);
-  const bareMinimumBurn = monthlyLiabilities + variableExpenses * (1 - CRISIS_ELASTICITY_FACTOR);
+  const bareMinimumBurn = monthlyLiabilities + variableExpenses * (1 - activeElasticityFactor);
   const bareMinimumSurvivalMonthsRaw =
     bareMinimumBurn > 0 && totalSavings > 0 ? totalSavings / bareMinimumBurn : 0;
 
@@ -365,6 +401,7 @@ function getStabilityScore(profile) {
     score: roundToOne(normalized),
     survivalMonthsRaw,
     bareMinimumSurvivalMonthsRaw,
+    activeElasticityFactor,
     fixedBufferMonths,
     discretionaryBufferMonths,
     fixedEmergencySavings: fixedSavings,
@@ -406,6 +443,41 @@ function getAwarenessGap(awarenessScore, survivalMonthsRaw) {
     actualSurvivalMonths: survivalMonthsRaw,
     awarenessGap: Math.abs(awarenessBias),
     awarenessBias,
+  };
+}
+
+export function calculateAdvancedCognitiveDrift(awareness = {}, actualSurvivalMonths = 0) {
+  let cognitiveOverconfidenceDrift = 0;
+
+  if (awareness.knowsMonthlyExpenses === "exact" && awareness.tracksExpenses === "never") {
+    cognitiveOverconfidenceDrift += 2.2;
+  }
+
+  if (awareness.knowsTotalDebt === "fully" && awareness.budgetCycle === "never") {
+    cognitiveOverconfidenceDrift += 1.5;
+  }
+
+  if (awareness.tracksSavingsRate === "know_exact" && awareness.knowsTop3Expenses === "no") {
+    cognitiveOverconfidenceDrift += 1.8;
+  }
+
+  const awarenessScore = getAwarenessScore(awareness);
+  const awarenessFactor = clamp(
+    1 - awarenessScore / componentMaximumsV2.awareness,
+    0,
+    1,
+  );
+  const baseBias = 1 + 0.38 * awarenessFactor;
+  const rawPerceived = actualSurvivalMonths * baseBias;
+  const perceivedSurvivalMonths = rawPerceived + cognitiveOverconfidenceDrift;
+  const awarenessBias = perceivedSurvivalMonths - actualSurvivalMonths;
+
+  return {
+    perceivedSurvivalMonths,
+    actualSurvivalMonths,
+    awarenessGap: Math.abs(awarenessBias),
+    awarenessBias,
+    cognitiveOverconfidenceDrift,
   };
 }
 
@@ -689,14 +761,70 @@ function getDiagnosis(assessment, lowestComponent, futureRiskLabel, awarenessMet
   };
 }
 
-export function calculateDecisionSimulatorV2(profile, purchaseCost = 0) {
+function applyCommitmentToEmergencyBuffers(profile, itemCost) {
+  const fixedSavings = toNumber(profile.emergencySavingsFixed);
+  const discretionarySavings = toNumber(profile.emergencySavingsDiscretionary);
+  let remainingCommitment = Math.max(0, itemCost);
+
+  const discretionaryDrawdown = Math.min(discretionarySavings, remainingCommitment);
+  remainingCommitment -= discretionaryDrawdown;
+
+  const fixedDrawdown = Math.min(fixedSavings, remainingCommitment);
+
+  return {
+    ...profile,
+    emergencySavingsDiscretionary: Math.max(0, discretionarySavings - discretionaryDrawdown),
+    emergencySavingsFixed: Math.max(0, fixedSavings - fixedDrawdown),
+  };
+}
+
+export function simulateCommitmentImpact(profile = {}, simulatedItemCost = 0, behaviour) {
+  const itemCost = Math.max(0, toNumber(simulatedItemCost));
   const monthlyExpenses = toNumber(profile.monthlyExpenses);
-  const totalSavings = toNumber(profile.emergencySavingsFixed) + toNumber(profile.emergencySavingsDiscretionary);
+  const fixedSavings = toNumber(profile.emergencySavingsFixed);
+  const discretionarySavings = toNumber(profile.emergencySavingsDiscretionary);
+  const totalSavings = fixedSavings + discretionarySavings;
+
   const currentRunway = monthlyExpenses > 0 ? totalSavings / monthlyExpenses : 0;
-  const fee = Math.max(0, purchaseCost);
-  const remainingSavings = Math.max(0, totalSavings - fee);
-  const forecastRunway = monthlyExpenses > 0 ? remainingSavings / monthlyExpenses : 0;
-  const runwayDelta = currentRunway - forecastRunway;
+
+  if (itemCost <= 0) {
+    return {
+      commitmentCost: 0,
+      runwayImpactMonths: 0,
+      newRunway: roundToOne(currentRunway),
+      stabilityLoss: 0,
+      currentRunway: roundToOne(currentRunway),
+      postSimulatedSavings: totalSavings,
+      simulatedProfile: profile,
+    };
+  }
+
+  const simulatedProfile = applyCommitmentToEmergencyBuffers(profile, itemCost);
+  const postSimulatedSavings =
+    toNumber(simulatedProfile.emergencySavingsFixed) +
+    toNumber(simulatedProfile.emergencySavingsDiscretionary);
+  const simulatedRunway = monthlyExpenses > 0 ? postSimulatedSavings / monthlyExpenses : 0;
+  const initialStability = calculateStabilityScoreV2(profile, behaviour).score;
+  const postSimulatedStability = calculateStabilityScoreV2(simulatedProfile, behaviour).score;
+
+  return {
+    commitmentCost: itemCost,
+    runwayImpactMonths: roundToOne(Math.max(0, currentRunway - simulatedRunway)),
+    newRunway: roundToOne(simulatedRunway),
+    stabilityLoss: roundToOne(Math.max(0, initialStability - postSimulatedStability)),
+    currentRunway: roundToOne(currentRunway),
+    postSimulatedSavings,
+    simulatedProfile,
+  };
+}
+
+export function calculateDecisionSimulatorV2(profile = {}, purchaseCost = 0, behaviour) {
+  const impact = simulateCommitmentImpact(profile, purchaseCost, behaviour);
+  const fee = impact.commitmentCost;
+  const currentRunway = impact.currentRunway;
+  const forecastRunway = impact.newRunway;
+  const runwayDelta = impact.runwayImpactMonths;
+  const remainingSavings = impact.postSimulatedSavings;
   const baselineBand = getSurvivalBand(currentRunway).label;
   const forecastBand = getSurvivalBand(forecastRunway).label;
 
@@ -711,9 +839,12 @@ export function calculateDecisionSimulatorV2(profile, purchaseCost = 0) {
 
   return {
     purchaseCost: fee,
-    currentRunway: roundToOne(currentRunway),
-    forecastRunway: roundToOne(forecastRunway),
-    runwayDelta: roundToOne(runwayDelta),
+    currentRunway,
+    forecastRunway,
+    runwayDelta,
+    runwayImpactMonths: impact.runwayImpactMonths,
+    newRunway: impact.newRunway,
+    stabilityLoss: impact.stabilityLoss,
     baselineRisk: baselineBand,
     forecastRisk: forecastBand,
     recommendation,
@@ -737,8 +868,8 @@ export function calculateAwarenessScoreV2(awareness) {
   return getAwarenessScore(awareness);
 }
 
-export function calculateStabilityScoreV2(profile) {
-  return getStabilityScore(profile);
+export function calculateStabilityScoreV2(profile, behaviour) {
+  return getStabilityScore(profile, behaviour);
 }
 
 export function calculateDebtScheduleEstimateV2(profile) {
@@ -757,8 +888,12 @@ export function calculatePersonalityTypeV2(behaviour) {
   return getPersonalityType(behaviour);
 }
 
-export function calculateAwarenessGapV2(awarenessScore, survivalMonthsRaw) {
-  return getAwarenessGap(awarenessScore, survivalMonthsRaw);
+export function calculateAwarenessGapV2(awarenessOrScore, survivalMonthsRaw) {
+  if (typeof awarenessOrScore === "object" && awarenessOrScore !== null) {
+    return calculateAdvancedCognitiveDrift(awarenessOrScore, survivalMonthsRaw);
+  }
+
+  return getAwarenessGap(awarenessOrScore, survivalMonthsRaw);
 }
 
 export function calculateBlindSpotV2(awarenessMetrics) {
@@ -774,11 +909,14 @@ export function calculateFinancialHealthV2(assessment) {
 
   const behaviourScore = calculateBehaviourScoreV2(safe.behaviour);
   const awarenessScore = calculateAwarenessScoreV2(safe.awareness);
-  const stability = calculateStabilityScoreV2(safe.profile);
+  const stability = calculateStabilityScoreV2(safe.profile, safe.behaviour);
   const futureRisk = calculateFutureRiskV2(safe.profile);
   const personalityType = calculatePersonalityTypeV2(safe.behaviour);
   const personalityReport = calculatePersonalityReportV2(personalityType);
-  const awarenessMetrics = calculateAwarenessGapV2(awarenessScore, stability.survivalMonthsRaw);
+  const awarenessMetrics = calculateAdvancedCognitiveDrift(
+    safe.awareness,
+    stability.survivalMonthsRaw,
+  );
   const blindSpot = calculateBlindSpotV2(awarenessMetrics);
 
   const healthScore = Math.round(
@@ -850,6 +988,8 @@ export function calculateFinancialHealthV2(assessment) {
     bareMinimumSurvivalMonthsDisplay: formatMonths(
       stability.bareMinimumSurvivalMonthsRaw,
     ),
+    activeElasticityFactor: stability.activeElasticityFactor,
+    activeElasticityPercent: Math.round(stability.activeElasticityFactor * 100),
     survivalBand,
     fixedBufferMonths: stability.fixedBufferMonths,
     discretionaryBufferMonths: stability.discretionaryBufferMonths,
@@ -987,7 +1127,8 @@ export function buildAnonymousTelemetryPayload(assessmentResult, coreAssessment)
     runway_metrics: {
       nominal_survival_months: Number((assessmentResult.survivalMonthsRaw || 0).toFixed(2)),
       crisis_optimized_survival_months: Number((assessmentResult.bareMinimumSurvivalMonthsRaw || 0).toFixed(2)),
-      perceived_survival_months: Number((assessmentResult.perceivedSurvivalMonths || 0).toFixed(2))
+      perceived_survival_months: Number((assessmentResult.perceivedSurvivalMonths || 0).toFixed(2)),
+      dynamic_elasticity_percent: assessmentResult.activeElasticityPercent ?? 0
     },
     financial_ratios: {
       savings_rate_proxied: monthlyIncome > 0 
@@ -1152,5 +1293,9 @@ export async function dispatchAnonymousFeedback(feedbackPayload, endpointUrl) {
     isBrowser() && (window?.VITE_FEEDBACK_ENDPOINT || window?.REACT_APP_FEEDBACK_ENDPOINT);
   const targetUrl = endpointUrl || browserEndpoint || "/api/feedback";
   return await postWithFallback(targetUrl, feedbackPayload, OFFLINE_QUEUE_KEYS.feedback, "Feedback", false);
+}
+
+export async function dispatchAnonymousFeedbackEvent(feedbackPayload, endpointUrl) {
+  return await dispatchAnonymousFeedback(feedbackPayload, endpointUrl);
 }
 

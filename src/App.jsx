@@ -31,17 +31,32 @@ import {
   formatMonths as formatMonthsV2,
   initOfflineApiQueue,
 } from "./lib/scoring-v2.js";
+import {
+  appendScoreHistory,
+  appendAssessmentHistory,
+  loadScoreHistory,
+} from "./engines/financialMemoryEngine.js";
+import { buildFinancialTwinScenarios } from "./engines/financialTwinEngine.js";
+import { mapSignalsToBehaviour } from "./engines/smsParser.js";
 
 import AnalyticsDashboard from "./components/AnalyticsDashboard.jsx";
 import FinancialTwin from "./components/FinancialTwin.jsx";
 import UserHistory from "./components/UserHistory.jsx";
 import AssessmentSection from "./components/AssessmentSection.jsx";
-import DecisionSimulator from "./components/DecisionSimulator.jsx";
 import TraitMatrixVisualizer from "./components/TraitMatrixVisualizer.jsx";
 import SingleRecommendedAction from "./components/SingleRecommendedAction.jsx";
 import BehaviourDrivers from "./components/BehaviourDrivers.jsx";
 import SurvivalHero from "./components/SurvivalHero.jsx";
 import CognitionGapCard from "./components/CognitionGapCard.jsx";
+import { SMSIngestForm } from "./components/SMSIngestForm.jsx";
+import { SalaryRoastGenerator } from "./components/SalaryRoastGenerator.jsx";
+import { ScenarioForecast } from "./components/ScenarioForecast.jsx";
+import { EnhancedInsightNarrative } from "./components/EnhancedInsightNarrative.jsx";
+import DecisionSimulator from "./components/DecisionSimulator.jsx";
+import { ConsequenceForecastCard } from "./components/ConsequenceForecastCard.jsx";
+import { InterventionsPrescriptionCard } from "./components/InterventionsPrescriptionCard.jsx";
+import { StrategicMetricsCard } from "./components/StrategicMetricsCard.jsx";
+import DailyCheckinForm from "./components/DailyCheckinForm.jsx";
 import { AreaChart, Area, XAxis, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
 
 import {
@@ -370,6 +385,11 @@ export default function App() {
   const [adminCredentials, setAdminCredentials] = useState({ username: "", password: "" });
   const [adminLoginError, setAdminLoginError] = useState("");
   const [adminReport, setAdminReport] = useState(null);
+  const [smsEnrichment, setSmsEnrichment] = useState(null);
+  const [showSmsForm, setShowSmsForm] = useState(false);
+  const [scoreHistory, setScoreHistory] = useState([]);
+  const [twinScenarios, setTwinScenarios] = useState(null);
+  const [historyTimespan, setHistoryTimespan] = useState("all");
 
   useEffect(() => {
     const handleHashChange = () => setActiveHash(window.location.hash || "#home");
@@ -398,7 +418,7 @@ export default function App() {
       window.localStorage.removeItem("arth-os-assessment-v2");
       window.localStorage.removeItem("arth-os-assessment-v1");
       window.localStorage.removeItem("arth-os-wizard-step");
-      window.localStorage.removeItem("arth-os-score-history");
+      // Keep score history to preserve financial memory across sessions
     } catch (error) {
       console.warn("Could not clear localStorage on page load:", error);
     }
@@ -417,6 +437,23 @@ export default function App() {
   }, []);
 
   const result = useMemo(() => calculateFinancialHealthV2(assessment), [assessment]);
+
+  useEffect(() => {
+    if (!isBrowser()) return;
+    const history = loadScoreHistory();
+    setScoreHistory(history);
+  }, []);
+
+  useEffect(() => {
+    if (!isBrowser()) return;
+    if (typeof result?.healthScore !== "number" || Number.isNaN(result.healthScore)) return;
+    if (result.healthScore <= 0) return;
+
+    const updatedHistory = appendScoreHistory(result.healthScore);
+    setScoreHistory(updatedHistory);
+    appendAssessmentHistory(result);
+    setTwinScenarios(buildFinancialTwinScenarios(result, assessment.profile));
+  }, [result.healthScore, assessment.profile, result]);
 
   const ui = {
     behaviourQuestions: v2BehaviourQuestions,
@@ -509,6 +546,8 @@ export default function App() {
 
   function resetAssessment() {
     setAssessment(makeEmptyAssessment());
+    setSmsEnrichment(null);
+    setShowSmsForm(false);
     try {
       window.localStorage.removeItem(STORAGE_KEY);
       window.localStorage.removeItem("arth-os-wizard-step");
@@ -517,6 +556,33 @@ export default function App() {
     }
     setSaveState("Ready");
     setResetTrigger((current) => current + 1);
+  }
+
+  function handleSmsEnrichment(signals, transactions) {
+    setSmsEnrichment({ signals, transactions });
+    setShowSmsForm(false);
+    if (signals) {
+      setAssessment((current) => ({
+        ...current,
+        behaviour: {
+          ...current.behaviour,
+          ...signals,
+        },
+      }));
+      setSaveState("Unsaved");
+    }
+  }
+
+  function handleDailyCheckin({ behaviourUpdates }) {
+    if (!behaviourUpdates) return;
+    setAssessment((current) => ({
+      ...current,
+      behaviour: {
+        ...current.behaviour,
+        ...behaviourUpdates,
+      },
+    }));
+    setSaveState("Unsaved");
   }
 
 
@@ -580,9 +646,67 @@ export default function App() {
               />
             )}
 
+            {/* SMS Ingest Form (Optional enrichment) */}
+            {showSmsForm && activeHash === "#assessment" && (
+              <section style={{ maxWidth: "1200px", margin: "20px auto", padding: "0 16px" }}>
+                <div className="section-card">
+                  <h2 style={{ marginBottom: "20px" }}>Enrich Your Assessment with Banking Data</h2>
+                  <SMSIngestForm
+                    onEnrichment={handleSmsEnrichment}
+                    onCancel={() => setShowSmsForm(false)}
+                  />
+                </div>
+              </section>
+            )}
+
+            {/* SMS Enrichment Applied Badge */}
+            {smsEnrichment && (
+              <section style={{ maxWidth: "1200px", margin: "20px auto", padding: "0 16px" }}>
+                <div style={{
+                  padding: "12px 16px",
+                  backgroundColor: "#dcfce7",
+                  border: "2px solid #22c55e",
+                  borderRadius: "8px",
+                  color: "#166534"
+                }}>
+                  ✓ Your assessment has been enriched with {smsEnrichment.transactions?.length || 0} banking transactions
+                </div>
+              </section>
+            )}
+
             <section className="assessment-summary-grid" id="reports">
               <div className="summary-main-column">
                 <AnalyticsDashboard result={result} />
+                {/* Salary Roast Generator */}
+                <section className="summary-card">
+                  <div style={{ padding: "20px 0", borderBottom: "1px solid #e5e7eb", marginBottom: "20px" }}>
+                    <h2 style={{ fontSize: "20px", fontWeight: "bold", display: "flex", alignItems: "center", gap: "8px" }}>
+                      🔥 Financial Roast
+                    </h2>
+                  </div>
+                  <SalaryRoastGenerator
+                    assessmentResult={result}
+                    profile={assessment.profile}
+                  />
+                </section>
+                {/* Scenario Forecasting */}
+                <section className="summary-card">
+                  <div style={{ padding: "20px 0", borderBottom: "1px solid #e5e7eb", marginBottom: "20px" }}>
+                    <h2 style={{ fontSize: "20px", fontWeight: "bold", display: "flex", alignItems: "center", gap: "8px" }}>
+                      📊 Financial Forecast
+                    </h2>
+                  </div>
+                  <ScenarioForecast
+                    profile={assessment.profile}
+                    assessmentResult={result}
+                  />
+                </section>
+                {/* Decision Simulator - Phase 3 Strategic Engine */}
+                <DecisionSimulator
+                  id="simulator"
+                  profile={assessment.profile}
+                  behaviour={assessment.behaviour}
+                />
               </div>
 
               <div className="assessment-summary-sidebar">
@@ -590,9 +714,37 @@ export default function App() {
                   personalityType={result.personalityType}
                   behaviourScore={result.behaviourScore}
                   awarenessScore={result.awarenessScore}
+                  scenarios={twinScenarios}
                 />
                 <FinancialDNA result={result} />
                 <UpgradeJourney result={result} currentScore={result.healthScore} />
+                {/* SMS Integration Button in Sidebar */}
+                {!showSmsForm && !smsEnrichment && (
+                  <section style={{ padding: "20px", backgroundColor: "#eff6ff", border: "2px solid #93c5fd", borderRadius: "8px" }}>
+                    <p style={{ fontSize: "14px", fontWeight: "600", marginBottom: "12px" }}>💬 Enrich Your Assessment</p>
+                    <button
+                      onClick={() => setShowSmsForm(true)}
+                      style={{
+                        width: "100%",
+                        padding: "10px",
+                        backgroundColor: "#3b82f6",
+                        color: "white",
+                        border: "none",
+                        borderRadius: "6px",
+                        fontWeight: "600",
+                        cursor: "pointer",
+                        fontSize: "14px"
+                      }}
+                      onMouseEnter={(e) => e.target.style.backgroundColor = "#2563eb"}
+                      onMouseLeave={(e) => e.target.style.backgroundColor = "#3b82f6"}
+                    >
+                      Add Banking Data (SMS)
+                    </button>
+                    <p style={{ fontSize: "12px", color: "#64748b", marginTop: "8px" }}>
+                      Import banking alerts to refine your assessment
+                    </p>
+                  </section>
+                )}
               </div>
 
               {/* Full-width centered UserHistory spanning both columns */}
@@ -601,6 +753,21 @@ export default function App() {
                 currentScore={result.healthScore}
                 personalityType={result.personalityType}
               />
+              
+              {/* Enhanced Insights */}
+              <section className="summary-span">
+                <div className="summary-card">
+                  <div style={{ padding: "20px 0", borderBottom: "1px solid #e5e7eb", marginBottom: "20px" }}>
+                    <h2 style={{ fontSize: "20px", fontWeight: "bold", display: "flex", alignItems: "center", gap: "8px" }}>
+                      💡 Personalized Insights
+                    </h2>
+                  </div>
+                  <EnhancedInsightNarrative
+                    assessmentResult={result}
+                    assessment={assessment}
+                  />
+                </div>
+              </section>
             </section>
 
             {/* Advanced Diagnostic Components */}
@@ -611,8 +778,18 @@ export default function App() {
                 <BehaviourDrivers drivers={deriveDrivers(result, assessment)} />
               </div>
               <SingleRecommendedAction result={result} assessment={assessment} />
-              <DecisionSimulator result={result} />
               <TraitMatrixVisualizer result={result} assessment={assessment} />
+
+              {/* Strategic Defensibility Layer - Phase 4 Core Engines */}
+              <ConsequenceForecastCard result={result} assessment={assessment} />
+              <InterventionsPrescriptionCard result={result} assessment={assessment} />
+              <StrategicMetricsCard 
+                result={result} 
+                profile={assessment?.profile} 
+                behaviour={assessment?.behaviour}
+                stability={assessment?.stability}
+              />
+              <DailyCheckinForm onCheckin={handleDailyCheckin} />
             </div>
           </>
         )}

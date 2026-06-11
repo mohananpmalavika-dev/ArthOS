@@ -14,7 +14,7 @@ import InsightNarrative from "./InsightNarrative.jsx";
 import {
   buildAnonymousTelemetryPayload,
   dispatchAnonymousTelemetry,
-  dispatchAnonymousFeedback,
+  dispatchAnonymousFeedbackEvent,
 } from "../lib/scoring-v2.js";
 
 function ParticipantSection({ values, onChange }) {
@@ -452,7 +452,7 @@ export default function AssessmentSection({ assessment, result, onChange, onSave
             <ValidationFeedbackForm
               healthScore={result.healthScore}
               onSubmitFeedback={async (feedbackPayload) => {
-                const ok = await dispatchAnonymousFeedback(feedbackPayload, "/api/feedback");
+                const ok = await dispatchAnonymousFeedbackEvent(feedbackPayload, "/api/feedback");
                 const resultsEl = document.querySelector(".result-stack");
                 if (resultsEl) {
                   resultsEl.scrollIntoView({ behavior: "smooth", block: "center" });
@@ -472,7 +472,11 @@ export default function AssessmentSection({ assessment, result, onChange, onSave
             <div className="result-stack-inner">
               <LiveResultSnapshot result={result} />
               <InsightNarrative result={result} assessment={assessment} />
-              <DecisionSimulator id="simulator" profile={assessment.profile} />
+              <DecisionSimulator
+                id="simulator"
+                profile={assessment.profile}
+                behaviour={assessment.behaviour}
+              />
             </div>
           )}
         </aside>

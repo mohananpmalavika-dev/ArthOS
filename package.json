@@ -5,10 +5,12 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "start": "vite",
     "build": "node node_modules/vite/bin/vite.js build",
     "preview": "vite preview"
   },
   "dependencies": {
+    "@playwright/test": "^1.60.0",
     "@supabase/supabase-js": "^2.35.0",
     "@vitejs/plugin-react": "^4.3.4",
     "dotenv": "^16.1.4",

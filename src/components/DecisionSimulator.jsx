@@ -1,46 +1,50 @@
 import React, { useMemo, useState } from "react";
-import { Cpu } from "lucide-react";
+import { AlertCircle, Cpu } from "lucide-react";
 import { calculateDecisionSimulatorV2, formatMonths as formatMonthsV2 } from "../lib/scoring-v2.js";
 
-export default function DecisionSimulator({ result }) {
-  const [purchaseCost, setPurchaseCost] = useState(0);
-
-  if (!result) return null;
+export default function DecisionSimulator({ id, profile, behaviour }) {
+  const [purchaseValue, setPurchaseValue] = useState("");
+  const purchaseCost = useMemo(
+    () => Math.max(0, Number.parseFloat(purchaseValue) || 0),
+    [purchaseValue],
+  );
 
   const simulator = useMemo(
-    () => calculateDecisionSimulatorV2(result, purchaseCost),
-    [result, purchaseCost],
+    () => calculateDecisionSimulatorV2(profile, purchaseCost, behaviour),
+    [profile, purchaseCost, behaviour],
   );
 
   const currentRiskIndex = simulator.currentRunway > 0 ? 100 / simulator.currentRunway : 100;
   const forecastRiskIndex = simulator.forecastRunway > 0 ? 100 / simulator.forecastRunway : 100;
-  const riskIncrease = purchaseCost > 0
+  const riskIncrease = purchaseCost > 0 && currentRiskIndex > 0
     ? Math.round(((forecastRiskIndex - currentRiskIndex) / currentRiskIndex) * 100)
     : 0;
 
-  const riskTrend = purchaseCost > 0 && riskIncrease > 0 ? "negative" : purchaseCost > 0 ? "positive" : "neutral";
+  const riskTrend = purchaseCost > 0 && riskIncrease > 0 ? "negative" : "positive";
 
   return (
-    <section className="result-card simulator-card">
+    <section className="result-card simulator-card" id={id}>
       <div className="result-heading">
         <Cpu size={19} />
-        <h2>Decision Simulator</h2>
+        <h2>Cognitive Decision Simulator</h2>
       </div>
 
-      <p className="result-heading" style={{ marginBottom: '12px' }}>Estimate the runway impact before you buy.</p>
+      <p className="simulator-subtitle">
+        Simulate an unplanned expense or major commitment before capital leaves your bank account.
+      </p>
 
       <div className="simulator-input-group">
-        <label htmlFor="purchase-cost">If I buy an item for</label>
+        <label htmlFor={id ? `${id}-purchase-cost` : "purchase-cost"}>Proposed purchase price</label>
         <div className="input-wrapper">
           <span className="currency-label">INR</span>
           <input
-            id="purchase-cost"
+            id={id ? `${id}-purchase-cost` : "purchase-cost"}
             type="number"
             min="0"
             step="1000"
-            placeholder="0"
-            value={purchaseCost}
-            onChange={(event) => setPurchaseCost(Number.parseFloat(event.target.value) || 0)}
+            placeholder="45000"
+            value={purchaseValue}
+            onChange={(event) => setPurchaseValue(event.target.value)}
           />
         </div>
       </div>
@@ -58,7 +62,18 @@ export default function DecisionSimulator({ result }) {
               <strong className="impact-value forecast">{formatMonthsV2(simulator.forecastRunway)} months</strong>
             </div>
             <div className="impact-reduction">
-              <span>Loss: {formatMonthsV2(simulator.runwayDelta)} months</span>
+              <span>Runway reduction: -{formatMonthsV2(simulator.runwayImpactMonths)} months</span>
+            </div>
+          </div>
+
+          <div className="simulator-metrics-grid">
+            <div className="simulator-metric">
+              <span>New core cushion</span>
+              <strong>{formatMonthsV2(simulator.newRunway)} mos</strong>
+            </div>
+            <div className="simulator-metric">
+              <span>Stability score penalty</span>
+              <strong>-{simulator.stabilityLoss} pts</strong>
             </div>
           </div>
 
@@ -67,9 +82,12 @@ export default function DecisionSimulator({ result }) {
             <span className="risk-value">{riskIncrease > 0 ? "+" : ""}{riskIncrease}%</span>
           </div>
 
-          <div className="simulator-recommendation-box">
-            <span className="rec-label">Recommendation</span>
-            <p className="rec-text">{simulator.recommendation}</p>
+          <div className="simulator-recommendation-box friction-warning">
+            <AlertCircle size={17} />
+            <div>
+              <span className="rec-label">Friction warning</span>
+              <p className="rec-text">{simulator.recommendation}</p>
+            </div>
           </div>
         </>
       ) : (

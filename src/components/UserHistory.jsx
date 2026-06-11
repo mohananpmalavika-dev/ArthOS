@@ -3,6 +3,19 @@
 
 import React, { useState, useEffect } from "react";
 import { TrendingUp, Calendar, Award } from "lucide-react";
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+} from "recharts";
+import {
+  getScoreProgression,
+  getProgressSummary,
+} from "../engines/financialMemoryEngine.js";
 
 export default function UserHistory({ currentScore, personalityType, className }) {
   const [history, setHistory] = useState([]);
@@ -49,30 +62,8 @@ export default function UserHistory({ currentScore, personalityType, className }
   }, [currentScore]);
 
   // Filter history by timespan
-  const getFilteredHistory = () => {
-    if (!history.length) return [];
-    
-    const now = new Date();
-    let cutoffDate = new Date();
-
-    switch (timespan) {
-      case "week":
-        cutoffDate.setDate(now.getDate() - 7);
-        break;
-      case "month":
-        cutoffDate.setMonth(now.getMonth() - 1);
-        break;
-      case "quarter":
-        cutoffDate.setMonth(now.getMonth() - 3);
-        break;
-      default: // "all"
-        return history;
-    }
-
-    return history.filter(h => new Date(h.date) >= cutoffDate);
-  };
-
-  const filteredHistory = getFilteredHistory();
+  const filteredHistory = getScoreProgression(history, timespan);
+  const progressSummary = getProgressSummary(filteredHistory);
   
   // Calculate statistics
   const getStats = () => {
@@ -92,7 +83,7 @@ export default function UserHistory({ currentScore, personalityType, className }
   };
 
   const stats = getStats();
-  const hasTrend = stats.trend !== 0;
+  const hasTrend = progressSummary.improvement !== 0;
 
   return (
     <section className={`result-card user-history-card ${className || ""}`}>
@@ -142,11 +133,58 @@ export default function UserHistory({ currentScore, personalityType, className }
 
           {/* Trend indicator */}
           {hasTrend && (
-            <div className={`history-trend ${stats.trend > 0 ? "positive" : "negative"}`}>
+            <div className={`history-trend ${progressSummary.improvement > 0 ? "positive" : "negative"}`}>
               <TrendingUp size={16} />
               <span>
-                {stats.trend > 0 ? "+" : ""}{stats.trend} points since {filteredHistory[0].date}
+                {progressSummary.periodLabel} since {progressSummary.startDate}
               </span>
+            </div>
+          )}
+
+          <div className="history-summary-note">
+            <p>
+              {progressSummary.periodLabel}. Your score moved from {filteredHistory[0]?.score || 0} to {filteredHistory[filteredHistory.length - 1]?.score || 0}.
+            </p>
+          </div>
+
+          {/* Chart visualization */}
+          {filteredHistory.length > 1 && (
+            <div className="history-chart-container">
+              <ResponsiveContainer width="100%" height={250}>
+                <LineChart data={filteredHistory}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.1)" />
+                  <XAxis
+                    dataKey="date"
+                    tickFormatter={(date) =>
+                      new Date(date).toLocaleDateString("en-IN", {
+                        month: "short",
+                        day: "numeric",
+                      })
+                    }
+                    tick={{ fontSize: 12 }}
+                  />
+                  <YAxis domain={[0, 100]} tick={{ fontSize: 12 }} />
+                  <Tooltip
+                    formatter={(value) => [Math.round(value), "Score"]}
+                    labelFormatter={(date) =>
+                      new Date(date).toLocaleDateString("en-IN")
+                    }
+                    contentStyle={{
+                      backgroundColor: "rgba(255, 255, 255, 0.95)",
+                      border: "1px solid #e5e7eb",
+                      borderRadius: "6px",
+                    }}
+                  />
+                  <Line
+                    type="monotone"
+                    dataKey="score"
+                    stroke="#3b82f6"
+                    strokeWidth={2}
+                    dot={{ fill: "#3b82f6", r: 4 }}
+                    activeDot={{ r: 6 }}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
             </div>
           )}
 

@@ -2,7 +2,7 @@
 // Display personality archetype generated from behavior patterns
 
 import React from "react";
-import { Sparkles, Award, Heart, Target, Zap } from "lucide-react";
+import { Sparkles, Award, Heart, Target, Zap, DollarSign, TrendingDown, ArrowUp, AlertTriangle } from "lucide-react";
 
 const ARCHETYPES = {
   Builder: {
@@ -57,9 +57,10 @@ const ARCHETYPES = {
   }
 };
 
-export default function FinancialTwin({ personalityType, behaviourScore, awarenessScore }) {
+export default function FinancialTwin({ personalityType, behaviourScore, awarenessScore, scenarios }) {
   const archetype = ARCHETYPES[personalityType] || ARCHETYPES.Survivor;
   const Icon = archetype.icon;
+  const twinScenarios = scenarios || {};
 
   // Normalize scores for visualization
   const behaviourNorm = Math.min((behaviourScore / 45) * 100, 100);
@@ -149,6 +150,54 @@ export default function FinancialTwin({ personalityType, behaviourScore, awarene
           you align most closely with <strong>The {personalityType.replace(/_/g, " ")}</strong> archetype.
         </p>
       </div>
+
+      {twinScenarios && twinScenarios.survivalNow !== undefined && (
+        <div className="twin-scenarios">
+          <h3>What If? Survival Scenarios</h3>
+          <p className="scenarios-subtitle">Months your emergency fund lasts under different conditions</p>
+          <div className="scenario-grid">
+            <div className="scenario-card baseline">
+              <div className="scenario-icon-wrapper">
+                <DollarSign size={20} />
+              </div>
+              <div className="scenario-label">Current Runway</div>
+              <strong className="scenario-value">{twinScenarios.survivalNow} months</strong>
+            </div>
+            <div className="scenario-card positive">
+              <div className="scenario-icon-wrapper">
+                <ArrowUp size={20} />
+              </div>
+              <div className="scenario-label">Save ₹5,000</div>
+              <strong className="scenario-value">+{Math.max(0, twinScenarios.survivalIfSave5000 - twinScenarios.survivalNow)} mo</strong>
+              <span className="scenario-total">{twinScenarios.survivalIfSave5000} mos</span>
+            </div>
+            <div className="scenario-card positive">
+              <div className="scenario-icon-wrapper">
+                <TrendingDown size={20} />
+              </div>
+              <div className="scenario-label">Reduce Debt</div>
+              <strong className="scenario-value">+{Math.max(0, twinScenarios.survivalIfDebtReduced - twinScenarios.survivalNow)} mo</strong>
+              <span className="scenario-total">{twinScenarios.survivalIfDebtReduced} mos</span>
+            </div>
+            <div className="scenario-card positive">
+              <div className="scenario-icon-wrapper">
+                <Zap size={20} />
+              </div>
+              <div className="scenario-label">Salary Growth</div>
+              <strong className="scenario-value">+{Math.max(0, twinScenarios.survivalIfSalaryIncrease - twinScenarios.survivalNow)} mo</strong>
+              <span className="scenario-total">{twinScenarios.survivalIfSalaryIncrease} mos</span>
+            </div>
+            <div className="scenario-card negative">
+              <div className="scenario-icon-wrapper">
+                <AlertTriangle size={20} />
+              </div>
+              <div className="scenario-label">Job Loss Risk</div>
+              <strong className="scenario-value">{twinScenarios.survivalIfJobLoss} months</strong>
+              <span className="scenario-impact">{twinScenarios.survivalIfJobLoss < twinScenarios.survivalNow ? "⚠️ More urgent" : "✓ Resilient"}</span>
+            </div>
+          </div>
+        </div>
+      )}
     </section>
   );
 }
