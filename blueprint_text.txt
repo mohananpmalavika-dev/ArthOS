@@ -1,0 +1,741 @@
+STRICTLY CONFIDENTIAL · INTERNAL WORKING DRAFT
+S A N K H Y A
+ARTH.OS
+Financial Cognition System
++
+Financial Operating System
+"Build the Financial Cognition Infrastructure Layer for Humanity."
+FOUNDER
+Ankit Chakravorty
+COMPANY
+SANKHYA
+STAGE
+Pre-MVP · Seed
+VERSION
+Blueprint v1.0 · 2026
+CLASSIFICATION
+Strictly Confidential
+This document is a confidential founder-level strategy paper. Not a pitch deck. Not marketing.
+
+-- 1 of 26 --
+
+STRICTLY CONFIDENTIAL · INTERNAL WORKING DRAFT · NOT FOR PUBLIC DISTRIBUTION SANKHYA · ARTH.OS · 1
+CHAPTER 01
+Executive Summary
+What SANKHYA is. What ARTH.OS does. Why it matters.
+SANKHYA is a financial cognition intelligence company.
+Its mission is to build the foundational infrastructure that
+helps human beings understand, improve, and act on
+their financial lives — not through more features or
+dashboards, but through a deeper, more honest
+understanding of the human mind behind money.
+ARTH.OS is the world's first Financial Cognition System
+layered on a Financial Operating System. It does not
+track expenses. It tracks your financial mind. It does
+not measure wealth. It measures readiness, resilience,
+and decision quality.
+"Finance is not primarily a mathematics problem.
+Finance is a cognition problem."
+The Opportunity
+TARGET POPULATION
+500M+
+Financially active Indians
+COGNITION TOOLS TODAY
+~0
+No behavioural finance OS
+MARKET POSITION
+Day 1
+Category being created
+People do not fail financially because they cannot calculate. They fail because of behaviour, habits,
+biases, emotional reactions, and a fundamental lack of awareness. ARTH.OS is built to solve this.
+
+-- 2 of 26 --
+
+STRICTLY CONFIDENTIAL · INTERNAL WORKING DRAFT · NOT FOR PUBLIC DISTRIBUTION SANKHYA · ARTH.OS · 2
+CHAPTER 02
+Founding Thesis
+The belief system that SANKHYA is built upon.
+Every great company begins not with a product, but with a belief. A conviction about something that is
+fundamentally true about the world — and fundamentally broken about the current state of it.
+"Human beings are the most important variable in their own financial equation —
+and no product today takes them seriously."
+The Five Beliefs
+1 · Cognition precedes action.
+Every financial decision passes through the human mind first. Products that ignore this are incomplete by design.
+2 · Awareness is the entry point.
+Most people do not know where they truly stand financially. Creating honest awareness is the single most valuable
+thing a financial product can do.
+3 · Behaviour determines outcomes more than income.
+A person earning n30,000/month with excellent financial habits will outperform a person earning n3,00,000 with
+poor ones — over any 10-year horizon.
+4 · The infrastructure layer is missing.
+Banks, payments, lending, investment — all being solved. The intelligence layer that understands the human does
+not exist at scale.
+5 · The platform that understands the human owns the relationship.
+Whoever builds the deepest understanding of financial behaviour, cognition, and decision quality will own the most
+trusted position in a person's financial life.
+
+-- 3 of 26 --
+
+STRICTLY CONFIDENTIAL · INTERNAL WORKING DRAFT · NOT FOR PUBLIC DISTRIBUTION SANKHYA · ARTH.OS · 3
+CHAPTER 03
+Why SANKHYA Exists
+The gap that was left open. The problem that was left unsolved.
+SANKHYA exists because of a fundamental omission in the global financial services landscape. The most
+basic question a person has — "Am I going to be okay?" — remains unanswered by almost every product in
+existence.
+What the Financial Ecosystem Solves
+Moving money (payments)
+Storing money (banking)
+Growing money (investments)
+Lending money (credit)
+Tracking transactions (expense tools)
+Measuring creditworthiness (credit bureaus)
+What the Financial Ecosystem Does NOT Solve
+Why people make bad financial decisions
+How financial behaviour changes over time
+What the long-term consequences of current habits will be
+Whether a person is financially prepared for uncertainty
+How to improve financial decision quality — not just financial products
+"The financial system is built around products.
+SANKHYA is built around people."
+The Name: SANKHYA
+Sankhya is a Sanskrit word meaning numeral, calculation, and enumeration — one of the oldest schools of Indian
+philosophy, built on understanding reality through precise observation. SANKHYA counts what matters — not just
+money, but the mind behind it.
+
+-- 4 of 26 --
+
+STRICTLY CONFIDENTIAL · INTERNAL WORKING DRAFT · NOT FOR PUBLIC DISTRIBUTION SANKHYA · ARTH.OS · 4
+CHAPTER 04
+Why ARTH.OS Exists
+The product that brings the vision to life.
+"Artha" is Sanskrit for wealth, meaning, and livelihood — one of the four Purusharthas, the fundamental goals
+of human existence. ARTH.OS is the Operating System for your financial life.
+What ARTH.OS Is NOT
+An expense tracker · A budgeting app · A banking product
+An investment platform · A credit score tool · A personal finance dashboard
+These are implementation details. ARTH.OS transcends them.
+The Distinction That Matters
+Financial Operating System
+Helps people act on money. Organises financial data. Describes the past. Tracks transactions. Measures wealth.
+Financial Cognition System
+Helps people understand their mind about money. Analyses financial behaviour. Predicts the future. Tracks
+decisions. Measures readiness.
+"Cognition comes before action. Understanding comes before guidance.
+Awareness comes before transformation."
+
+-- 5 of 26 --
+
+STRICTLY CONFIDENTIAL · INTERNAL WORKING DRAFT · NOT FOR PUBLIC DISTRIBUTION SANKHYA · ARTH.OS · 5
+CHAPTER 05
+The Financial Cognition Gap
+The missing layer. Named clearly for the first time.
+There is a gap in financial services that almost no one has named. We call it the Financial Cognition Gap —
+the space between what a person's financial data says about them, and what they actually understand about
+their own financial reality.
+Three Layers of the Gap
+THE AWARENESS GAP
+Most people have no honest picture
+of their current financial position.
+They operate on feeling, not fact.
+They believe they are "doing okay"
+right until the moment they are not.
+!
+THE BEHAVIOUR GAP
+Even when people have financial
+information, they cannot connect it to
+their own patterns. They do not see
+their own habits clearly enough to
+change them.
+!
+THE CONSEQUENCE GAP
+People have almost no visibility into
+future consequences of present
+decisions. The compounding impact
+of small choices remains invisible
+until it is too late.
+!
+How People Actually Think About Money
+"Am I doing okay financially?" "Can I afford this right now?" "What happens if something goes wrong?"
+"Am I moving toward my goals?" "Do I have enough to feel secure?" "What does my future look like?"
+"ARTH.OS is the first product designed to close all three layers
+of the Financial Cognition Gap simultaneously."
+
+-- 6 of 26 --
+
+STRICTLY CONFIDENTIAL · INTERNAL WORKING DRAFT · NOT FOR PUBLIC DISTRIBUTION SANKHYA · ARTH.OS · 6
+CHAPTER 06
+Why Existing Finance Products Fail
+A structural critique of the current financial product landscape.
+The industry assumes that access to financial products solves financial problems. It does not. Access to
+products without the cognition to use them well produces worse outcomes, not better ones.
+Five Structural Failures
+F1 · Products solve for transactions, not humans.
+Every major financial product is built around a transaction type. The human making those transactions is an
+afterthought. No product has a model of the human at its core.
+F2 · Information is mistaken for intelligence.
+Dashboards produce enormous financial information. But information without interpretation is noise. People need
+clarity about what it means, not more data.
+F3 · Behaviour is tracked but never improved.
+Many apps track spending. Almost none actively work to improve it. Knowing you spent n8,000 on dining is
+different from understanding why, and what to do instead.
+F4 · Products are designed for the financially literate.
+Most products assume a user who already understands finance. This excludes the vast majority of the population
+— and almost the entirety of emerging markets.
+F5 · No product operates on future-state thinking.
+Financial products are backward-looking. They tell you what happened. None tell you what is about to happen if
+nothing changes — the only information that truly motivates behavioural change.
+
+-- 7 of 26 --
+
+STRICTLY CONFIDENTIAL · INTERNAL WORKING DRAFT · NOT FOR PUBLIC DISTRIBUTION SANKHYA · ARTH.OS · 7
+CHAPTER 07
+Behaviour · Awareness · Stability
+The three dimensions of true financial health.
+SANKHYA identified three dimensions that together constitute genuine financial health. They are not about
+wealth. They are about readiness, resilience, and rationality.
+BEHAVIOUR — 40% Weight
+Financial behaviour is the aggregate of all financial decisions a person makes, habituated over time. It includes
+spending discipline, savings consistency, debt management, and the degree to which short-term impulses override
+long-term goals. Behaviour is not determined by income. It is determined by habit, identity, and awareness.
+Spending discipline · Savings consistency · Debt management patterns
+Impulse vs. planned purchases · Financial habit formation
+AWARENESS — 30% Weight
+Financial awareness is the accuracy of a person's mental model of their own financial reality. Most people operate
+with a significantly distorted picture — overestimating income, underestimating expenses, misunderstanding risk.
+Awareness is not intelligence. It is calibration.
+Accuracy of self-assessed financial position · Understanding of existing risks
+Knowledge of future consequences · Awareness of financial blind spots
+STABILITY — 30% Weight
+Financial stability is not about having money. It is about being resilient to disruption. Stability is the capacity to
+survive uncertainty — financially, emotionally, and practically.
+Emergency fund adequacy · Income source diversity · Fixed obligation ratio
+Recovery time from financial shock · Insurance adequacy
+
+-- 8 of 26 --
+
+STRICTLY CONFIDENTIAL · INTERNAL WORKING DRAFT · NOT FOR PUBLIC DISTRIBUTION SANKHYA · ARTH.OS · 8
+CHAPTER 08
+The BAS™ Framework
+Behaviour + Awareness + Stability — The proprietary model at the heart of ARTH.OS
+B 40%
+BEHAVIOUR
+Spending discipline
+Savings consistency
+Debt management
+Impulse vs planned
+Habit formation
+A 30%
+AWARENESS
+Self-position accuracy
+Risk understanding
+Future consequences
+Financial blind spots
+Product knowledge
+S 30%
+STABILITY
+Emergency fund
+Income diversity
+Fixed obligation ratio
+Recovery time
+Insurance adequacy
+BAS™ MODEL → FINANCIAL HEALTH SCORE
+Three Operational Layers
+LAYER 1
+ASSESSMENT
+Calibrated psychometric instrument +
+behavioural signals. Produces baseline
+score across all three BAS™
+dimensions.
+LAYER 2
+DIAGNOSIS
+Identifies weakest dimension, most
+impactful behaviours, and where the
+most leverage exists for improvement.
+LAYER 3
+PRESCRIPTION
+Generates prioritised, personalised
+interventions — the specific actions
+most likely to improve outcomes right
+now.
+
+-- 9 of 26 --
+
+STRICTLY CONFIDENTIAL · INTERNAL WORKING DRAFT · NOT FOR PUBLIC DISTRIBUTION SANKHYA · ARTH.OS · 9
+CHAPTER 09
+Financial Health Score
+"How financially healthy am I?" — The most honest answer.
+Score Architecture
+40% BEHAVIOUR
+Spending discipline, savings habit, debt management
+30% AWARENESS
+Self-position accuracy, risk understanding
+30% STABILITY
+Emergency readiness, income resilience
+Score Bands
+800–1000
+FINANCIALLY SOVEREIGN
+Exceptional readiness.
+600–799
+FINANCIALLY RESILIENT
+Strong. Weathers disruption.
+400–599
+FINANCIALLY DEVELOPING
+Moderate. Identifiable gaps.
+200–399
+FINANCIALLY FRAGILE
+Significant vulnerabilities.
+0–199
+FINANCIALLY CRITICAL
+Immediate action required.
+/1000
+HEALTH SCORE
+CRITICAL SOVEREIGN
+Measures readiness, not wealth.
+
+-- 10 of 26 --
+
+STRICTLY CONFIDENTIAL · INTERNAL WORKING DRAFT · NOT FOR PUBLIC DISTRIBUTION SANKHYA · ARTH.OS · 10
+CHAPTER 10
+The Survival Engine
+Your first real financial reality check.
+"If my income stopped today —
+how long could I continue living my current lifestyle?"
+Survival Window Calculation
+MONTHLY ESSENTIAL EXPENSES
+Fixed obligations + Minimum living costs
+LIQUID AVAILABLE ASSETS
+Savings + Accessible emergency funds
+SURVIVAL WINDOW (DAYS)
+( Liquid Assets ÷ Monthly Expenses ) × 30
+Why the Survival Engine Works
+Visceral awareness.
+Telling someone their window is 18 days is more motivating
+than any graph of monthly spending.
+Human-scale thinking.
+People do not relate to "net worth". They relate to "how many
+days can I survive".
+Universal across incomes.
+Whether earning n15,000 or n1,50,000/month — the
+Survival Window question hits equally hard.
+Urgency without alarm.
+The Survival Engine does not manipulate. It shows the truth.
+The truth itself is motivating.
+
+-- 11 of 26 --
+
+STRICTLY CONFIDENTIAL · INTERNAL WORKING DRAFT · NOT FOR PUBLIC DISTRIBUTION SANKHYA · ARTH.OS · 11
+CHAPTER 11
+User Journey
+From first touch to financial transformation.
+01
+ENTRY
+Discovers ARTH.OS via Salary Roast, word of mouth, or organic reach. Hook: curiosity, not obligation.
+02
+BAS™ ASSESSMENT
+5–7 minute assessment designed to feel like self-discovery. Target: 70%+ completion rate.
+03
+FINANCIAL HEALTH SCORE
+Composite score with B/A/S breakdown. First moment of genuine, precise self-knowledge.
+KEY MOMENT
+04
+SURVIVAL ENGINE
+User sees their Survival Window. Emotional centrepiece — creates urgency, shareability, motivation.
+KEY MOMENT
+05
+PERSONALISED INSIGHT
+ARTH.OS surfaces the single most important insight. Not ten. One. The most impactful one.
+06
+RECOMMENDED ACTION
+One specific, concrete action for this week. Not a plan. An action. Low friction. High impact.
+KEY MOMENT
+07
+TRACKING & RETURN
+Weekly check-ins. Score evolves. Insights deepen. The user builds a financial relationship.
+
+-- 12 of 26 --
+
+STRICTLY CONFIDENTIAL · INTERNAL WORKING DRAFT · NOT FOR PUBLIC DISTRIBUTION SANKHYA · ARTH.OS · 12
+CHAPTER 12
+MVP Blueprint
+Built to prove the thesis — not everything.
+The ARTH.OS MVP has a precise, non-negotiable scope. Its purpose is to validate the most fundamental
+hypothesis: that people engage with a product giving them honest visibility into their financial health — and
+that this translates into behavioural change.
+Core Validation Objectives
+BAS™ Assessment completion rate → target 70%+
+Financial Health Score creates genuine emotional resonance and self-recognition
+Survival Engine creates urgency and willingness to act
+Single recommended action drives measurable behaviour change at Day 7 & Day 30
+Users return to check score → target 40%+ Day 30 retention
+What Gets Built First — P0 Core
+BAS™ Assessment · 5–7 min survey. Adaptive. Progress indicators.
+Financial Health Score · Composite B/A/S. Visual. Shareable.
+Survival Engine · Survival Window. Honest, precise.
+Personalised Insight · AI-generated. Single most impactful.
+Recommended Action · One specific action. Low friction.
+What Gets Built Next — P1 Phase 2
+Score History · Week-on-week tracking.
+Salary Roast · Shareable report. Viral growth mechanic.
+SMS Integration · Parse SMS to enrich BAS™ signals.
+Explicitly Out of MVP Scope
+
+-- 13 of 26 --
+
+STRICTLY CONFIDENTIAL · INTERNAL WORKING DRAFT · NOT FOR PUBLIC DISTRIBUTION SANKHYA · ARTH.OS · 13
+CHAPTER 13
+Product Architecture
+11 intelligence layers. Each builds on the last. Nothing is optional.
+L01 Data Ingestion Layer SMS parsing · Survey inputs · Behavioural signals · Transaction data LIVE
+L02 BAS™ Processing Engine Converts raw signals into Behaviour, Awareness, Stability scores LIVE
+L03 Health Score Engine Aggregates BAS™ into composite Financial Health Score LIVE
+L04 Survival Engine Calculates Survival Window and financial runway metrics LIVE
+L05 Insight Generation Engine AI-driven personalised insight synthesis — most impactful per user LIVE
+L06 Action Prescription Engine Converts insights into specific, prioritised, actionable recommendations LIVE
+L07 Financial Cognition Layer Models money beliefs, cognitive biases, behavioural patterns PHASE 3
+L08 Decision Intelligence Layer Analyses decision quality and identifies decision risk factors PHASE 4
+L09 Prediction Engine Forecasts future financial states and scenario simulations PHASE 5
+L10 Financial Memory Longitudinal behaviour history and goal evolution tracking PHASE 6
+L11 Financial Digital Twin Full simulation environment for financial futures PHASE 7
+s MVP (Phases 1–2) · s Intelligence Layers (Phases 3–7)
+
+-- 14 of 26 --
+
+STRICTLY CONFIDENTIAL · INTERNAL WORKING DRAFT · NOT FOR PUBLIC DISTRIBUTION SANKHYA · ARTH.OS · 14
+CHAPTER 14
+Financial Cognition Layer
+Where ARTH.OS moves from behaviour tracking to mind modelling.
+The Financial Cognition Layer is what separates ARTH.OS from every other financial product in existence.
+The system stops describing what a person does with money, and starts understanding why.
+What the Cognition Layer Models
+Money Beliefs
+Core beliefs about wealth — is money scarce or abundant? Is it a tool or an identity marker? These beliefs, often
+formed in childhood, determine financial behaviour more than any external factor.
+Cognitive Bias Profile
+ARTH.OS identifies which biases most affect financial decisions — present bias, loss aversion, optimism bias,
+sunk-cost fallacy, anchoring. Naming the bias is the first step to neutralising it.
+Risk Perception Calibration
+Most people's risk perception is systematically distorted. ARTH.OS calibrates a user's risk perception against
+objective probability, identifying where they over- or under-estimate.
+Financial Emotional Triggers
+What events or emotional states drive impulsive financial decisions? What creates financial anxiety? What creates
+false confidence? The Cognition Layer maps and tracks these triggers.
+"Understanding why someone makes a financial decision is worth
+more than knowing what decision they made."
+
+-- 15 of 26 --
+
+STRICTLY CONFIDENTIAL · INTERNAL WORKING DRAFT · NOT FOR PUBLIC DISTRIBUTION SANKHYA · ARTH.OS · 15
+CHAPTER 15–16
+Decision Intelligence & Prediction Engine
+From cognition to decision quality to forecasting the future.
+Decision Intelligence Layer
+If the Cognition Layer answers "how does this person think about money?", the Decision Intelligence Layer
+answers "which of their decisions are creating the most risk — and which would create the most value?"
+Every significant financial decision is captured and classified
+Decisions scored: goal alignment, value consistency, cognitive bias evidence, time orientation
+"You consistently make high-risk decisions when under time pressure"
+"If you had taken Option B in March, your Stability Score would be 40 points higher today"
+Prediction Engine
+Every other layer looks at what has happened. The Prediction Engine looks at what is about to happen —
+and what will happen if the user changes nothing.
+Financial State Forecasting
+Predicts the user's Health Score, Survival Window, and BAS™ dimensions 30, 90, and 180 days into the future
+based on current behaviour patterns.
+Scenario Simulation
+"If you increase monthly savings by n3,000, your Survival Window extends by 47 days within 6 months." The user
+tests decisions before making them.
+Risk & Opportunity Forecasting
+"At your current spending rate, you will exhaust your emergency fund within 3 months." Specific, time-bound risk
+alerts and proactive opportunity guidance.
+
+-- 16 of 26 --
+
+STRICTLY CONFIDENTIAL · INTERNAL WORKING DRAFT · NOT FOR PUBLIC DISTRIBUTION SANKHYA · ARTH.OS · 16
+CHAPTER 17–18
+Financial Memory & Digital Twin
+The layers that make ARTH.OS irreplaceable and impossible to replicate.
+Financial Memory
+Financial Memory converts ARTH.OS from a product into a relationship. Every financial product forgets you
+the moment you close it. ARTH.OS remembers everything.
+Behaviour History · Longitudinal record of decisions, goals, emotional responses, changes
+Goal Evolution · How goals change, what users stop caring about, what they start prioritising
+Score Trajectory · A narrative of financial growth, setbacks, recoveries, and breakthroughs
+Contextual Memory · "Last time you got a salary increment, you spent 80% within 30 days"
+Financial Digital Twin
+A complete, dynamic, real-time model of a user's financial life — past, present, and future — that can be
+simulated, stress-tested, and used to explore decisions before they are made.
+"Think of it as a flight simulator for your financial life.
+You practice in the simulator before you fly the real thing."
+Test major financial decisions before making them
+Simulate career change, home purchase, investment shifts — see probabilistic outcomes
+A Twin built on years of behavioural data is impossible to replicate. The longer a user stays,
+the richer their Twin becomes — creating compounding lock-in based on genuine value.
+
+-- 17 of 26 --
+
+STRICTLY CONFIDENTIAL · INTERNAL WORKING DRAFT · NOT FOR PUBLIC DISTRIBUTION SANKHYA · ARTH.OS · 17
+CHAPTER 19
+The Operating System Layer
+When ARTH.OS becomes the platform through which all financial decisions are made.
+The final architectural expression of ARTH.OS is the OS Layer — the point at which ARTH.OS is not just a
+product, but the infrastructure through which all financial interactions happen. The 10-year vision.
+What an OS Means in Financial Services
+An OS provides the foundational layer upon which all applications run. In finance, the OS is the intelligence
+infrastructure that sits between the user and all financial products — understanding the user, contextualising every
+decision, ensuring every interaction aligns with long-term financial health.
+ARTH.OS as the Intelligence Layer
+Banks, lenders, insurers, and investment platforms plug into ARTH.OS to deliver their services — contextualised
+by ARTH.OS's deep understanding of the user's financial health, behaviour, and cognition. ARTH.OS is the
+platform through which financial products are consumed, not the product itself.
+The Network Effect
+As more financial products integrate with ARTH.OS, the user's financial intelligence improves. As intelligence
+improves, more products want to integrate. A network effect impossible to replicate without the user base and the
+data.
+"SANKHYA does not aim to beat any existing financial player.
+It aims to sit above all of them — as the intelligence layer they did not build."
+
+-- 18 of 26 --
+
+STRICTLY CONFIDENTIAL · INTERNAL WORKING DRAFT · NOT FOR PUBLIC DISTRIBUTION SANKHYA · ARTH.OS · 18
+CHAPTER 20
+Strategic Moats
+Five compounding defensibilities. Each strengthens the others.
+01
+Proprietary Behavioural Dataset
+The largest, most richly structured dataset of Indian financial behaviour. Cannot be purchased, replicated, or
+approximated by any new entrant.
+STRENGTH
+02
+BAS™ as Intellectual Infrastructure
+A proprietary framework for understanding financial health. Refined through millions of interactions, it
+becomes a model competitors cannot build without the data that created it.
+STRENGTH
+03
+Longitudinal User Relationships
+ARTH.OS improves the longer a user stays. A 3-year user has a Digital Twin of extraordinary precision.
+Switching costs based on genuine value — the most durable kind.
+STRENGTH
+04
+Trust as the Primary Asset
+ARTH.OS operates in the most sensitive domain — financial reality. Trust, once earned here, is extremely
+difficult to displace. SANKHYA is the trusted advisor, not the product vendor.
+STRENGTH
+05
+Cognition Layer Network Effects
+As Cognition Layer models improve through data, they improve for all users. Competitors cannot replicate
+these effects without the user base and behavioural history.
+STRENGTH
+"The platform that understands the human owns the relationship.
+SANKHYA is building that platform."
+
+-- 19 of 26 --
+
+STRICTLY CONFIDENTIAL · INTERNAL WORKING DRAFT · NOT FOR PUBLIC DISTRIBUTION SANKHYA · ARTH.OS · 19
+CHAPTER 21
+Competitive Positioning
+SANKHYA is creating a category, not entering one.
+SANKHYA does not have direct competitors — because the category it is creating does not yet exist.
+Adjacent players define the white space SANKHYA occupies.
+The Competitive Landscape
+CATEGORY EXAMPLES WHAT THEY DO WHAT THEY MISS
+Credit Bureaus CIBIL, Experian Measure creditworthiness Behaviour, cognition, health, future
+Expense Trackers Walnut, Money View Track spending Intelligence, cognition, prescriptions
+Neobanks Jupiter, Fi Better banking UX Financial health layer entirely
+Investment Platforms Zerodha, Groww Enable investing Behavioural suitability, readiness
+Insurance Platforms PolicyBazaar Distribute insurance Financial health context
+Financial Advisors Human advisors Personalised advice Scale, accessibility, affordability
+"SANKHYA sits above all of these — as the intelligence layer
+that connects data to behaviour to outcomes."
+The Real Competition
+The real competition for SANKHYA is not any existing company. It is inertia — the assumption that financial
+services have been built correctly, and that the human mind is someone else's problem.
+
+-- 20 of 26 --
+
+STRICTLY CONFIDENTIAL · INTERNAL WORKING DRAFT · NOT FOR PUBLIC DISTRIBUTION SANKHYA · ARTH.OS · 20
+CHAPTER 22
+Risk Assessment
+Honest assessment of what could go wrong — and how we think about it.
+SANKHYA is built on the belief that honest risk assessment is a prerequisite for building durable companies. These
+risks are real, material, and require active mitigation.
+HIGH Assessment Completion Drop-off
+Risk: Users abandon the BAS™ Assessment before completion, preventing score generation.
+Mitigation: UX optimisation. Progressive disclosure. Emotional hooks. Salary Roast as completion incentive.
+HIGH Data Quality in SMS Parsing
+Risk: SMS transaction data is inconsistently formatted across banks, leading to poor signal quality.
+Mitigation: Conservative parsing with human-verified training data. Graceful degradation to survey signals.
+MEDIUM Low Day-30 Retention
+Risk: Users engage once and do not return, limiting behavioural data accumulation.
+Mitigation: Weekly score updates. Personalised check-ins. Score improvement notifications. Progress milestones.
+MEDIUM Regulatory Changes
+Risk: RBI regulation changes affecting data access or financial advice boundaries.
+Mitigation: Conservative positioning of ARTH.OS as financial awareness, not advice. Legal counsel.
+MEDIUM Category Awareness Gap
+Risk: Users do not understand what a Financial Cognition System is, making acquisition difficult.
+Mitigation: Lead with emotional outcomes ("Know your Survival Window"), not category labels.
+LOW Large Platform Entry
+Risk: Google, Paytm, or HDFC builds a similar product.
+Mitigation: Proprietary dataset moat. BAS™ depth. Longitudinal relationships. Speed of category leadership.
+LOW Monetisation Delay
+Risk: Product proves conceptual value but struggles to convert engagement into revenue.
+Mitigation: B2B2C model — selling BAS™ intelligence to lenders and insurers as revenue bridge.
+
+-- 21 of 26 --
+
+STRICTLY CONFIDENTIAL · INTERNAL WORKING DRAFT · NOT FOR PUBLIC DISTRIBUTION SANKHYA · ARTH.OS · 21
+CHAPTER 23–24
+Assumptions & Open Questions
+What must be true. What we have not yet answered.
+Strategic Assumptions
+A1 · People will engage with honest financial self-assessment.
+The value proposition assumes users engage with difficult truths about their financial health — if delivered with
+clarity, empathy, and utility.
+A2 · Behavioural signals are richer predictors than transactional data alone.
+How people decide is more predictive of financial outcomes than what they spend.
+A3 · The B2B market for behavioural financial intelligence materialises within 18 months.
+Lenders, insurers, and wealth managers paying for BAS™-powered risk signals is a core monetisation assumption.
+A4 · Technical co-founder can be recruited within 3–6 months.
+This is an honest operational assumption. The entire product roadmap depends on it.
+Open Questions
+Q1 · What is the right monetisation sequencing?
+Freemium consumer model vs B2B2C? The answer depends on data only early cohorts can provide.
+Q2 · Can the BAS™ framework be validated academically?
+Academic validation as a legitimate psychometric instrument would strengthen credibility with institutional partners.
+Q3 · What does category-creation marketing look like at this budget?
+Creating a new category requires significant narrative investment at scale. How SANKHYA builds awareness
+efficiently is an open strategic question.
+
+-- 22 of 26 --
+
+STRICTLY CONFIDENTIAL · INTERNAL WORKING DRAFT · NOT FOR PUBLIC DISTRIBUTION SANKHYA · ARTH.OS · 22
+CHAPTER 25
+Strategic Roadmap
+8-phase evolution from MVP to Financial Operating System.
+01 2026
+Awareness Layer
+BAS™ Assessment
+Financial Health Score
+Survival Engine
+Personalised Insight
+One Recommended Action
+02 2026
+Behaviour Layer
+SMS Parsing
+Spending Analysis
+Salary Roast
+Score History
+03 2027
+Financial Cognition
+Money Beliefs
+Bias Profiling
+Risk Calibration
+Psychology Score
+04 2027
+Decision Intelligence
+Decision Quality
+Pattern Recognition
+Counterfactuals
+Risk Alerts
+05 2028
+Prediction Engine
+30/90/180d Forecast
+Scenario Simulation
+Risk Forecasting
+Opportunity Alerts
+06 2028
+Financial Memory
+Behaviour History
+Goal Evolution
+Score Trajectory
+Contextual Memory
+07 2029
+Digital Twin
+Life Simulation
+Decision Pre-testing
+Stress Testing
+Probabilistic Ranges
+08 2030+
+Operating System
+Platform Layer
+B2B API
+Embedded Intelligence
+Full OS
+2026 2027 2028 2029 2030+
+n
+
+-- 23 of 26 --
+
+STRICTLY CONFIDENTIAL · INTERNAL WORKING DRAFT · NOT FOR PUBLIC DISTRIBUTION SANKHYA · ARTH.OS · 23
+CHAPTER 26
+Long-Term Vision
+What SANKHYA is building toward over the next 20 years.
+The 20-year vision is an ambition about what becomes possible when a critical mass of human financial
+intelligence is understood, modelled, and improved at scale.
+05 YEARS
+HORIZON
+Cognition at Scale
+ARTH.OS is the most trusted
+financial intelligence product in
+India, with tens of millions of active
+users. BAS™ is validated and
+institutionalised. The Financial
+Health Score is a recognised
+standard for financial wellness.
+10 YEARS
+HORIZON
+The Operating System
+ARTH.OS functions as the
+intelligence infrastructure layer for
+Indian financial services, expanding
+across Southeast Asia. Banks and
+lenders integrate ARTH.OS as the
+trust layer through which they serve
+customers.
+20 YEARS
+HORIZON
+Cognition Infrastructure for Humanity
+Financial Cognition Infrastructure
+exists globally — the intelligence
+layer between every human being
+and every financial decision. The
+global financial system becomes
+more humane, equitable, and
+aligned with the actual humans it
+serves.
+"The measure of SANKHYA's success is not users or revenue.
+It is the aggregate improvement in financial outcomes for every person who interacts with ARTH.OS."
+
+-- 24 of 26 --
+
+STRICTLY CONFIDENTIAL · INTERNAL WORKING DRAFT · NOT FOR PUBLIC DISTRIBUTION SANKHYA · ARTH.OS · 24
+FOUNDER'S CLOSING NOTE
+I started SANKHYA because I was tired of watching people around me make the same financial mistakes,
+over and over, not because they were unintelligent or irresponsible — but because no product in existence
+gave them honest, precise, compassionate visibility into what was actually happening in their financial lives.
+I watched friends with good incomes live paycheck to paycheck. I watched families with modest means build
+genuine financial resilience through discipline and awareness alone. I saw that income was a weak predictor
+of financial outcomes. Behaviour and awareness were the real variables. And no one was measuring them.
+ARTH.OS is my attempt to fix that. Not just for a niche. For everyone. For the person earning n12,000 a
+month in a tier-3 city who deserves the same quality of financial intelligence as a high-net-worth individual
+with a private banker.
+SANKHYA is pre-MVP. We have a vision, a framework, a product architecture, and the conviction that this is
+one of the most important things that can be built in Indian fintech in the next decade.
+If you are reading this document, you may be one of those people.
+The question is: do you see what I see?
+Ankit Chakravorty
+Founder & CEO, SANKHYA
+Kolkata, India · 2026
+
+-- 25 of 26 --
+
+ARTH.OS
+"The future of finance is not understanding money.
+The future of finance is understanding humans."
+Built by SANKHYA
+Kolkata, India · 2026
+STRICTLY CONFIDENTIAL · NOT FOR PUBLIC DISTRIBUTION · SANKHYA © 2026
+
+-- 26 of 26 --
+

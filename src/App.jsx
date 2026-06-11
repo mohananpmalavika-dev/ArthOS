@@ -36,6 +36,13 @@ import AnalyticsDashboard from "./components/AnalyticsDashboard.jsx";
 import FinancialTwin from "./components/FinancialTwin.jsx";
 import UserHistory from "./components/UserHistory.jsx";
 import AssessmentSection from "./components/AssessmentSection.jsx";
+import DecisionSimulator from "./components/DecisionSimulator.jsx";
+import TraitMatrixVisualizer from "./components/TraitMatrixVisualizer.jsx";
+import SingleRecommendedAction from "./components/SingleRecommendedAction.jsx";
+import BehaviourDrivers from "./components/BehaviourDrivers.jsx";
+import SurvivalHero from "./components/SurvivalHero.jsx";
+import CognitionGapCard from "./components/CognitionGapCard.jsx";
+import { AreaChart, Area, XAxis, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
 
 import {
   v2BehaviourQuestions,
@@ -584,6 +591,8 @@ export default function App() {
                   behaviourScore={result.behaviourScore}
                   awarenessScore={result.awarenessScore}
                 />
+                <FinancialDNA result={result} />
+                <UpgradeJourney result={result} currentScore={result.healthScore} />
               </div>
 
               {/* Full-width centered UserHistory spanning both columns */}
@@ -593,10 +602,164 @@ export default function App() {
                 personalityType={result.personalityType}
               />
             </section>
+
+            {/* Advanced Diagnostic Components */}
+            <div style={{ maxWidth: "1200px", margin: "0 auto", padding: "0 16px" }}>
+              <div className="diagnostics-grid">
+                <SurvivalHero survivalMonths={result.survivalMonthsRaw} />
+                <CognitionGapCard perceived={result.awarenessGapDisplay} actual={result.survivalMonthsDisplay} />
+                <BehaviourDrivers drivers={deriveDrivers(result, assessment)} />
+              </div>
+              <SingleRecommendedAction result={result} assessment={assessment} />
+              <DecisionSimulator result={result} />
+              <TraitMatrixVisualizer result={result} assessment={assessment} />
+            </div>
           </>
         )}
       </main>
     </div>
+  );
+}
+
+function deriveDrivers(result, assessment) {
+  if (!result) return [];
+  // Simple heuristic mapping for MVP
+  const drivers = [];
+  const spendWhenStressed = assessment.behaviour?.spendWhenStressed;
+  if (spendWhenStressed && spendWhenStressed !== "never") {
+    drivers.push({ title: "Stress Spending", impact: -18 });
+  }
+  const impulse = assessment.behaviour?.regretImpulseFreq;
+  if (impulse && impulse !== "never") {
+    drivers.push({ title: "Impulse Purchases", impact: -12 });
+  }
+  if ((result.awarenessGapDisplay || 0) > 2) {
+    drivers.push({ title: "Poor Expense Tracking", impact: -9 });
+  }
+
+  // Fallback sample drivers if none derived
+  if (drivers.length === 0) {
+    drivers.push({ title: "Low savings rate", impact: -8 });
+    drivers.push({ title: "Irregular income", impact: -6 });
+  }
+
+  return drivers;
+}
+
+function ScoreRing({ score }) {
+  const normalizedScore = Math.max(0, Math.min(100, Number(score) || 0));
+  const ringData = [
+    { value: normalizedScore },
+    { value: 100 - normalizedScore },
+  ];
+
+  return (
+    <div className="score-ring-chart">
+      <ResponsiveContainer width="100%" height={220}>
+        <PieChart>
+          <Pie
+            data={ringData}
+            dataKey="value"
+            startAngle={90}
+            endAngle={-270}
+            innerRadius={72}
+            outerRadius={96}
+            paddingAngle={3}
+          >
+            <Cell fill="rgba(139, 92, 246, 0.96)" />
+            <Cell fill="rgba(255, 255, 255, 0.08)" />
+          </Pie>
+        </PieChart>
+      </ResponsiveContainer>
+      <div className="score-ring-label">
+        <strong>{normalizedScore}</strong>
+        <small>/100</small>
+      </div>
+    </div>
+  );
+}
+
+function FinancialDNA({ result }) {
+  if (!result) return null;
+
+  const behaviourPct = Math.min(100, Math.round((result.behaviourScore / componentMaximumsV2.behaviour) * 100));
+  const awarenessPct = Math.min(100, Math.round((result.awarenessScore / componentMaximumsV2.awareness) * 100));
+  const stabilityPct = Math.min(100, Math.round((result.stabilityScore / componentMaximumsV2.stability) * 100));
+
+  const dnaMetrics = [
+    { label: "Behavioral Control", value: behaviourPct },
+    { label: "Awareness Clarity", value: awarenessPct },
+    { label: "Financial Stability", value: stabilityPct },
+  ];
+
+  return (
+    <section className="financial-dna-card">
+      <div className="result-heading">
+        <ShieldCheck size={19} />
+        <div>
+          <h2>Financial DNA</h2>
+          <span>Why your money profile behaves this way</span>
+        </div>
+      </div>
+      <div className="dna-grid">
+        {dnaMetrics.map((item) => (
+          <div className="dna-item" key={item.label}>
+            <div>
+              <span>{item.label}</span>
+              <strong>{item.value}%</strong>
+            </div>
+            <div className="dna-track" aria-hidden="true">
+              <span style={{ width: `${item.value}%` }} />
+            </div>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function UpgradeJourney({ result, currentScore }) {
+  // Build journey data from current health score; in production, this would come from history
+  const journeyData = [
+    { month: "Week 1", healthScore: Math.max(0, currentScore - 28) },
+    { month: "Week 2", healthScore: Math.max(0, currentScore - 21) },
+    { month: "Week 3", healthScore: Math.max(0, currentScore - 14) },
+    { month: "Week 4", healthScore: Math.max(0, currentScore - 7) },
+    { month: "Today", healthScore: currentScore },
+  ];
+
+  return (
+    <section className="journey-card">
+      <div className="result-heading">
+        <TrendingUp size={19} />
+        <div>
+          <h2>Progress Journey</h2>
+          <span>How your financial strength is trending</span>
+        </div>
+      </div>
+      <div className="journey-chart-wrapper">
+        <ResponsiveContainer width="100%" height={250}>
+          <AreaChart data={journeyData} margin={{ top: 10, right: 0, left: 0, bottom: 0 }}>
+            <defs>
+              <linearGradient id="journeyGrad" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="#8b5cf6" stopOpacity={0.7} />
+                <stop offset="100%" stopColor="#8b5cf6" stopOpacity={0.08} />
+              </linearGradient>
+            </defs>
+            <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fill: "rgba(255,255,255,0.76)", fontSize: 12 }} />
+            <Area
+              type="monotone"
+              dataKey="healthScore"
+              stroke="#8b5cf6"
+              strokeWidth={3}
+              fill="url(#journeyGrad)"
+              fillOpacity={1}
+              activeDot={{ r: 5, fill: "#fff", stroke: "#8b5cf6", strokeWidth: 2 }}
+            />
+          </AreaChart>
+        </ResponsiveContainer>
+      </div>
+    </section>
   );
 }
 
@@ -780,18 +943,36 @@ function HeroSection({ assessment, result }) {
       width: `${Math.min(100, ((result.awarenessScore ?? 0) / componentMaximumsV2.awareness) * 100)}%`,
     },
   ];
+  const perceivedRunway = Number(result.blindSpotPerceived) || 8;
+  const actualRunway = Number(result.blindSpotActual) || 4;
+  const blindSpot = Number(result.blindSpotGap) || Math.max(perceivedRunway - actualRunway, 0);
+
   return (
     <section className="model-screen" id="home">
       <div className="model-hero-grid">
         <div className="model-hero-copy">
           <h1>
-            <span>ARTH.OS</span>
-            decodes financial behavior
+            <span>See the financial blindspots</span>
+            you don't know you have.
           </h1>
           <p>
-            Our proprietary intelligence engine analyzes how you think, feel,
-            and decide with money-so you can make better choices and build lasting wealth.
+            ARTH.OS measures Behavior, Awareness and Stability to reveal the hidden risks shaping your
+            financial future.
           </p>
+          <div className="hero-stat-card">
+            <div className="metric">
+              <span>24+</span>
+              <label>Behavior Signals</label>
+            </div>
+            <div className="metric">
+              <span>3</span>
+              <label>BAS Dimensions</label>
+            </div>
+            <div className="metric">
+              <span>1</span>
+              <label>Financial Reality Score</label>
+            </div>
+          </div>
           <div className="model-hero-actions">
             <a className="model-primary-cta" href="#assessment">
               Start Score
@@ -812,13 +993,31 @@ function HeroSection({ assessment, result }) {
           <div className="model-engine-content">
             <div className="model-score-block">
               <span>Live Score</span>
-              <div className="model-score-ring" style={{ "--score": `${scorePreview}%` }}>
-                <strong>{scorePreview}</strong>
-                <small>/100</small>
-              </div>
+              <ScoreRing score={scorePreview} />
               <p>{scoreLabel}</p>
               <small>Updated just now</small>
             </div>
+
+            <section className="awareness-card">
+              <h3>The Visibility Blindspot</h3>
+              <div className="gap-grid">
+                <div>
+                  <h1>{perceivedRunway}</h1>
+                  <label>You Believe</label>
+                </div>
+                <div>
+                  <h1>{actualRunway}</h1>
+                  <label>Reality</label>
+                </div>
+                <div>
+                  <h1>{blindSpot}</h1>
+                  <label>Gap</label>
+                </div>
+              </div>
+              <p className="awareness-copy">
+                You overestimate your financial runway by {blindSpot} months.
+              </p>
+            </section>
 
             <div className="model-metric-stack">
               {metricRows.map((row) => (

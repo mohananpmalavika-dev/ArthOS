@@ -2,11 +2,14 @@ import React, { useMemo, useState } from "react";
 import { Cpu } from "lucide-react";
 import { calculateDecisionSimulatorV2, formatMonths as formatMonthsV2 } from "../lib/scoring-v2.js";
 
-export default function DecisionSimulator({ id, profile }) {
+export default function DecisionSimulator({ result }) {
   const [purchaseCost, setPurchaseCost] = useState(0);
+
+  if (!result) return null;
+
   const simulator = useMemo(
-    () => calculateDecisionSimulatorV2(profile, purchaseCost),
-    [profile, purchaseCost],
+    () => calculateDecisionSimulatorV2(result, purchaseCost),
+    [result, purchaseCost],
   );
 
   const currentRiskIndex = simulator.currentRunway > 0 ? 100 / simulator.currentRunway : 100;
@@ -18,15 +21,15 @@ export default function DecisionSimulator({ id, profile }) {
   const riskTrend = purchaseCost > 0 && riskIncrease > 0 ? "negative" : purchaseCost > 0 ? "positive" : "neutral";
 
   return (
-    <section className="result-card simulator-card" id={id}>
+    <section className="result-card simulator-card">
       <div className="result-heading">
         <Cpu size={19} />
         <h2>Decision Simulator</h2>
       </div>
 
-      <p className="simulator-subtitle">Estimate the runway impact before you buy.</p>
+      <p className="result-heading" style={{ marginBottom: '12px' }}>Estimate the runway impact before you buy.</p>
 
-      <div className="simulator-input">
+      <div className="simulator-input-group">
         <label htmlFor="purchase-cost">If I buy an item for</label>
         <div className="input-wrapper">
           <span className="currency-label">INR</span>

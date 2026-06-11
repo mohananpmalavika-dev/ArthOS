@@ -450,20 +450,20 @@ export default function AssessmentSection({ assessment, result, onChange, onSave
 
           {showFeedback && (
             <ValidationFeedbackForm
-                  healthScore={result.healthScore}
-                  onSubmitFeedback={async (feedbackPayload) => {
-                    const ok = await dispatchAnonymousFeedback(feedbackPayload, "/api/feedback");
-                    const resultsEl = document.querySelector(".result-stack");
-                    if (resultsEl) {
-                      resultsEl.scrollIntoView({ behavior: "smooth", block: "center" });
-                      setTimeout(() => {
-                        resultsEl.tabIndex = -1;
-                        resultsEl.focus();
-                      }, 600);
-                    }
-                    return ok;
-                  }}
-                />
+              healthScore={result.healthScore}
+              onSubmitFeedback={async (feedbackPayload) => {
+                const ok = await dispatchAnonymousFeedback(feedbackPayload, "/api/feedback");
+                const resultsEl = document.querySelector(".result-stack");
+                if (resultsEl) {
+                  resultsEl.scrollIntoView({ behavior: "smooth", block: "center" });
+                  setTimeout(() => {
+                    resultsEl.tabIndex = -1;
+                    resultsEl.focus();
+                  }, 600);
+                }
+                return ok;
+              }}
+            />
           )}
         </section>
 
