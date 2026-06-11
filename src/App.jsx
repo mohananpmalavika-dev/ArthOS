@@ -35,11 +35,17 @@ import {
   appendScoreHistory,
   appendAssessmentHistory,
   loadScoreHistory,
+  loadWeeklyCheckins,
+  getProgressSummary,
 } from "./engines/financialMemoryEngine.js";
 import { buildFinancialTwinScenarios } from "./engines/financialTwinEngine.js";
+import { buildCognitionProfile } from "./engines/cognitionEngine.js";
+import { evaluateHabitProgress } from "./engines/habitEngine.js";
+import { forecastHealth, detectFutureRisk } from "./engines/forecastEngine.js";
 import { mapSignalsToBehaviour } from "./engines/smsParser.js";
 
 import AnalyticsDashboard from "./components/AnalyticsDashboard.jsx";
+import PartnerSdkDemo from "./components/PartnerSdkDemo.jsx";
 import FinancialTwin from "./components/FinancialTwin.jsx";
 import UserHistory from "./components/UserHistory.jsx";
 import AssessmentSection from "./components/AssessmentSection.jsx";
@@ -57,6 +63,8 @@ import { ConsequenceForecastCard } from "./components/ConsequenceForecastCard.js
 import { InterventionsPrescriptionCard } from "./components/InterventionsPrescriptionCard.jsx";
 import { StrategicMetricsCard } from "./components/StrategicMetricsCard.jsx";
 import DailyCheckinForm from "./components/DailyCheckinForm.jsx";
+import DecisionHistory from "./components/DecisionHistory.jsx";
+import RecordDecision from "./components/RecordDecision.jsx";
 import { AreaChart, Area, XAxis, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
 
 import {
@@ -377,10 +385,41 @@ function loadInitialAssessment() {
 export default function App() {
   const [assessment, setAssessment] = useState(() => makeEmptyAssessment());
   const [saveState, setSaveState] = useState("Ready");
+  const [queuedSaveCount, setQueuedSaveCount] = useState(() => (isBrowser() ? loadQueuedAssessmentSaves().length : 0));
+  const [isOnline, setIsOnline] = useState(() => (typeof navigator !== "undefined" ? navigator.onLine : true));
   const [resetTrigger, setResetTrigger] = useState(0);
   const [activeHash, setActiveHash] = useState(
     isBrowser() ? window.location.hash || "#home" : "#home"
   );
+
+  const saveStatusLabel = queuedSaveCount > 0
+    ? isOnline
+      ? `Upload pending (${queuedSaveCount})`
+      : `Saved offline (${queuedSaveCount})`
+    : saveState === "Unsaved"
+      ? "Unsaved changes"
+      : saveState;
+
+  const saveStatusClass = queuedSaveCount > 0
+    ? isOnline
+      ? "upload-pending"
+      : "saved-offline"
+    : saveState.toLowerCase().replace(/\s+/g, "-");
+
+  const refreshQueuedSaveCount = () => {
+    if (!isBrowser()) return;
+    setQueuedSaveCount(loadQueuedAssessmentSaves().length);
+  };
+
+  const enqueueAssessmentSaveAndRefresh = (payload) => {
+    enqueueAssessmentSave(payload);
+    refreshQueuedSaveCount();
+  };
+
+  const flushQueuedAssessmentSavesAndRefresh = async () => {
+    await flushQueuedAssessmentSaves();
+    refreshQueuedSaveCount();
+  };
   const [adminLoggedIn, setAdminLoggedIn] = useState(false);
   const [adminCredentials, setAdminCredentials] = useState({ username: "", password: "" });
   const [adminLoginError, setAdminLoginError] = useState("");
@@ -389,7 +428,14 @@ export default function App() {
   const [showSmsForm, setShowSmsForm] = useState(false);
   const [scoreHistory, setScoreHistory] = useState([]);
   const [twinScenarios, setTwinScenarios] = useState(null);
+  const [weeklyCheckins, setWeeklyCheckins] = useState([]);
   const [historyTimespan, setHistoryTimespan] = useState("all");
+  const [decisionsRefresh, setDecisionsRefresh] = useState(0);
+
+  useEffect(() => {
+    if (!isBrowser()) return;
+    setWeeklyCheckins(loadWeeklyCheckins());
+  }, []);
 
   useEffect(() => {
     const handleHashChange = () => setActiveHash(window.location.hash || "#home");
@@ -425,18 +471,42 @@ export default function App() {
   }, []);
 
   useEffect(() => {
+    if (!isBrowser()) return;
     initOfflineApiQueue();
-    void flushQueuedAssessmentSaves();
+    refreshQueuedSaveCount();
+    setIsOnline(navigator.onLine);
+    void flushQueuedAssessmentSavesAndRefresh();
 
     function handleOnline() {
-      void flushQueuedAssessmentSaves();
+      setIsOnline(true);
+      void flushQueuedAssessmentSavesAndRefresh();
+    }
+
+    function handleOffline() {
+      setIsOnline(false);
     }
 
     window.addEventListener("online", handleOnline);
-    return () => window.removeEventListener("online", handleOnline);
+    window.addEventListener("offline", handleOffline);
+    return () => {
+      window.removeEventListener("online", handleOnline);
+      window.removeEventListener("offline", handleOffline);
+    };
   }, []);
 
   const result = useMemo(() => calculateFinancialHealthV2(assessment), [assessment]);
+  const cognitionProfile = useMemo(
+    () => buildCognitionProfile({
+      ...assessment.profile,
+      ...assessment.behaviour,
+      ...assessment.awareness,
+    }),
+    [assessment.profile, assessment.behaviour, assessment.awareness],
+  );
+  const futureRisk = useMemo(() => detectFutureRisk(assessment.profile), [assessment.profile]);
+  const habitProgress = useMemo(() => evaluateHabitProgress(weeklyCheckins), [weeklyCheckins]);
+  const forecastHealthValues = useMemo(() => forecastHealth(result.healthScore, Math.round(habitProgress.score / 8)), [result.healthScore, habitProgress.score]);
+  const scoreProgress = useMemo(() => getProgressSummary(scoreHistory), [scoreHistory]);
 
   useEffect(() => {
     if (!isBrowser()) return;
@@ -488,13 +558,19 @@ export default function App() {
   function saveAssessment() {
     try {
       window.localStorage.setItem(STORAGE_KEY, JSON.stringify(assessment));
-      setSaveState("Saved");
     } catch (e) {
       console.warn("Could not save locally:", e);
     }
 
     const payload = { assessment, result: calculateFinancialHealthV2(assessment) };
     if (isBrowser()) {
+      if (!isOnline) {
+        enqueueAssessmentSaveAndRefresh(payload);
+        setSaveState("Saved offline");
+        return;
+      }
+
+      setSaveState("Upload pending");
       fetch("/api/saveAssessment", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -503,14 +579,24 @@ export default function App() {
         .then(async (resp) => {
           const body = await resp.text().catch(() => null);
           if (!resp.ok) {
-            enqueueAssessmentSave(payload);
+            enqueueAssessmentSaveAndRefresh(payload);
+            setSaveState("Saved offline");
             console.warn("Remote save failed, queued for retry:", resp.statusText, body);
-          } else {
-            console.log("Remote save response:", resp.status, body);
+            return;
           }
+
+          const pendingCount = loadQueuedAssessmentSaves().length;
+          if (pendingCount > 0) {
+            void flushQueuedAssessmentSavesAndRefresh();
+            setSaveState("Upload pending");
+          } else {
+            setSaveState("Saved");
+          }
+          console.log("Remote save response:", resp.status, body);
         })
         .catch((err) => {
-          enqueueAssessmentSave(payload);
+          enqueueAssessmentSaveAndRefresh(payload);
+          setSaveState("Saved offline");
           console.warn("Remote save error, queued for retry:", err);
         });
     }
@@ -559,14 +645,15 @@ export default function App() {
   }
 
   function handleSmsEnrichment(signals, transactions) {
-    setSmsEnrichment({ signals, transactions });
+    const behaviourUpdates = mapSignalsToBehaviour(signals);
+    setSmsEnrichment({ signals, transactions, behaviourUpdates });
     setShowSmsForm(false);
     if (signals) {
       setAssessment((current) => ({
         ...current,
         behaviour: {
           ...current.behaviour,
-          ...signals,
+          ...behaviourUpdates,
         },
       }));
       setSaveState("Unsaved");
@@ -701,6 +788,66 @@ export default function App() {
                     assessmentResult={result}
                   />
                 </section>
+                <section className="summary-card" style={{ padding: "24px" }}>
+                  <div style={{ paddingBottom: "16px", borderBottom: "1px solid #e5e7eb", marginBottom: "18px" }}>
+                    <h2 style={{ fontSize: "20px", fontWeight: "bold" }}>🧠 Cognition & Future Risk</h2>
+                    <p style={{ margin: "8px 0 0", color: "#475569", fontSize: 14 }}>
+                      See your cognitive calibration, runway risk, and forecasted health trajectory.
+                    </p>
+                  </div>
+                  <div style={{ display: "grid", gap: "16px" }}>
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "14px" }}>
+                      <div style={{ padding: "16px", border: "1px solid #e5e7eb", borderRadius: "12px", background: "#f8fafc" }}>
+                        <div style={{ fontSize: 12, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.04em" }}>
+                          Calibration gap
+                        </div>
+                        <div style={{ marginTop: 8, fontSize: 24, fontWeight: 700 }}>
+                          {cognitionProfile.riskCalibration.calibrationGap}%
+                        </div>
+                        <div style={{ marginTop: 6, color: "#475569", fontSize: 13 }}>
+                          Perceived vs. actual risk alignment.
+                        </div>
+                      </div>
+                      <div style={{ padding: "16px", border: "1px solid #e5e7eb", borderRadius: "12px", background: "#f8fafc" }}>
+                        <div style={{ fontSize: 12, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.04em" }}>
+                          Near-term runway
+                        </div>
+                        <div style={{ marginTop: 8, fontSize: 24, fontWeight: 700 }}>
+                          {futureRisk.runway} months
+                        </div>
+                        <div style={{ marginTop: 6, color: "#475569", fontSize: 13 }}>
+                          {futureRisk.message}
+                        </div>
+                      </div>
+                    </div>
+                    <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: "14px" }}>
+                      <div style={{ padding: "16px", border: "1px solid #e5e7eb", borderRadius: "12px", background: "#fff" }}>
+                        <div style={{ fontSize: 12, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.04em" }}>
+                          30 day health
+                        </div>
+                        <div style={{ marginTop: 8, fontSize: 22, fontWeight: 700 }}>
+                          {forecastHealthValues.day30}
+                        </div>
+                      </div>
+                      <div style={{ padding: "16px", border: "1px solid #e5e7eb", borderRadius: "12px", background: "#fff" }}>
+                        <div style={{ fontSize: 12, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.04em" }}>
+                          90 day health
+                        </div>
+                        <div style={{ marginTop: 8, fontSize: 22, fontWeight: 700 }}>
+                          {forecastHealthValues.day90}
+                        </div>
+                      </div>
+                      <div style={{ padding: "16px", border: "1px solid #e5e7eb", borderRadius: "12px", background: "#fff" }}>
+                        <div style={{ fontSize: 12, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.04em" }}>
+                          180 day health
+                        </div>
+                        <div style={{ marginTop: 8, fontSize: 22, fontWeight: 700 }}>
+                          {forecastHealthValues.day180}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </section>
                 {/* Decision Simulator - Phase 3 Strategic Engine */}
                 <DecisionSimulator
                   id="simulator"
@@ -745,6 +892,13 @@ export default function App() {
                     </p>
                   </section>
                 )}
+
+                <section className="summary-card" style={{ padding: "20px", marginTop: "18px" }}>
+                  <PartnerSdkDemo
+                    userId={assessment.participant?.email || 'demo'}
+                    assessment={assessment}
+                  />
+                </section>
               </div>
 
               {/* Full-width centered UserHistory spanning both columns */}
@@ -790,6 +944,23 @@ export default function App() {
                 stability={assessment?.stability}
               />
               <DailyCheckinForm onCheckin={handleDailyCheckin} />
+              {/* Decisions UI */}
+              <section id="decisions" style={{ marginTop: 20 }}>
+                <h2 style={{ fontSize: 18, marginBottom: 12 }}>Decisions</h2>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 360px', gap: 16 }}>
+                  <div>
+                    {/* Decision history list */}
+                    <DecisionHistory userId={assessment.participant?.email || 'demo'} refreshSignal={decisionsRefresh} />
+                  </div>
+                  <div>
+                    {/* Decision recording form */}
+                    <RecordDecision userId={assessment.participant?.email || 'demo'} onSaved={() => {
+                      // soft refresh decision list
+                      setDecisionsRefresh((c) => c + 1);
+                    }} />
+                  </div>
+                </div>
+              </section>
             </div>
           </>
         )}
@@ -1076,8 +1247,8 @@ function Header({
       </nav>
 
       <div className="model-header-actions" aria-label="Product actions">
-        <span className={`header-sync save-state-${saveState.toLowerCase()}`}>
-          {saveState}
+        <span className={`header-sync save-state-${saveStatusClass}`}>
+          {saveStatusLabel}
         </span>
         <button type="button" className="model-icon-btn" title="Search">
           <Search size={18} />

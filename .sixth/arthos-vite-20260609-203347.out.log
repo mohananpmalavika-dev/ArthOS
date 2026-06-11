@@ -348,3 +348,11 @@ Port 5173 is in use, trying another one...
 [2m7:12:40 am[22m [36m[1m[vite][22m[39m [32m.env changed, restarting server...[39m
 [2m7:12:40 am[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m Re-optimizing dependencies because vite config has changed
 [2m7:12:40 am[22m [36m[1m[vite][22m[39m server restarted.
+[2m12:09:25 pm[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mpage reload [39m[2mindex.html[22m
+[2m12:10:45 pm[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mpage reload [39m[2mindex.html[22m
+[2m4:03:52 pm[22m [36m[1m[vite][22m[39m [32m.env changed, restarting server...[39m
+[2m4:03:52 pm[22m [36m[1m[vite][22m[39m [32m.env changed, restarting server...[39m
+[2m4:03:52 pm[22m [36m[1m[vite][22m[39m server restarted.
+[2m4:04:01 pm[22m [36m[1m[vite][22m[39m [32m.env changed, restarting server...[39m
+[2m4:04:01 pm[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m Re-optimizing dependencies because vite config has changed
+[2m4:04:01 pm[22m [36m[1m[vite][22m[39m server restarted.

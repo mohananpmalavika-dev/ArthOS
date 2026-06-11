@@ -36,14 +36,14 @@ api/telemetry.js
 ├─ Validates payload structure
 ├─ Strips PII, builds clean row
 ├─ Returns 200/500 responses
-└─ TODO: Connect createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)
+└─ Connected via `api/dbClient.js`; requires `SUPABASE_URL`/`SUPABASE_SERVICE_ROLE_KEY` or `DATABASE_URL`
 
 api/feedback.js
 ├─ POST handler for user feedback
 ├─ Validates primary_driver + notes
 ├─ Truncates to 1000 chars
 ├─ Returns 200/500 responses
-└─ TODO: Connect to Supabase tester_feedback table
+└─ Connected via `api/dbClient.js`; requires `SUPABASE_URL`/`SUPABASE_SERVICE_ROLE_KEY` or `DATABASE_URL`
 ```
 
 #### Database

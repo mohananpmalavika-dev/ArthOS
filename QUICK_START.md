@@ -25,13 +25,13 @@
    - Accepts POST with assessment telemetry data
    - Validates payload, strips PII
    - Returns 200/500 responses
-   - TODO: Connect to Supabase
+   - Connected via `api/dbClient.js`; requires SUPABASE_URL/SUPABASE_SERVICE_ROLE_KEY or DATABASE_URL
 
 3. **`api/feedback.js`**
    - Accepts POST with feedback data
    - Validates payload, truncates notes
    - Returns 200/500 responses
-   - TODO: Connect to Supabase
+   - Connected via `api/dbClient.js`; requires SUPABASE_URL/SUPABASE_SERVICE_ROLE_KEY or DATABASE_URL
 
 ### Database
 4. **`SQL_SCHEMA.sql`**
@@ -158,8 +158,8 @@ npm run dev
 |------|---------|-------|
 | `src/App.jsx` | Main app, assessment flow | Already done ✅ |
 | `src/components/ValidationFeedbackForm.jsx` | Feedback form UI | Ready to deploy |
-| `api/telemetry.js` | Telemetry backend route | TODO: Connect Supabase |
-| `api/feedback.js` | Feedback backend route | TODO: Connect Supabase |
+| `api/telemetry.js` | Telemetry backend route | Supports Supabase/local Postgres; requires env vars |
+| `api/feedback.js` | Feedback backend route | Supports Supabase/local Postgres; requires env vars |
 | `SQL_SCHEMA.sql` | Database tables & policies | Run in Supabase |
 | `src/styles.css` | All CSS (including feedback form) | Already done ✅ |
 | `src/lib/scoring-v2.js` | Telemetry payload builder | No changes needed |

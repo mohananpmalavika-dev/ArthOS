@@ -36,7 +36,7 @@
 - Builds clean telemetry row with typed columns (NUMERIC scores, VARCHAR categories, DATE timestamps)
 - Returns 200 `{ status: 'success', recorded: true }` on success
 - Fails gracefully with 500 `{ status: 'deferred', reason: '...' }` on error (never interrupts user)
-- TODO: Connect to Supabase via `createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)`
+- Connected via `api/dbClient.js`; requires `SUPABASE_URL`/`SUPABASE_SERVICE_ROLE_KEY` or `DATABASE_URL`
 
 ---
 
@@ -77,7 +77,7 @@
 - POST-only handler validates feedback payload
 - Builds clean row: health_score (NUMERIC), primary_driver (VARCHAR), feedback_text (TEXT truncated to 1000)
 - Same 200/500 response pattern as telemetry route
-- TODO: Connect to Supabase `tester_feedback` table
+- Connected via `api/dbClient.js`; requires `SUPABASE_URL`/`SUPABASE_SERVICE_ROLE_KEY` or `DATABASE_URL`
 
 ---
 
@@ -101,6 +101,8 @@
    SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
    FEEDBACK_ENDPOINT=https://your-vercel-domain.vercel.app/api/feedback
    ```
+
+> Keep local secrets in `.env` only. Do not commit `.env` to source control; the repo includes a `.gitignore` entry for this.
 
 4. **Deploy:**
    ```bash

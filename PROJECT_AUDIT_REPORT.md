@@ -173,19 +173,14 @@ Also, `getPersonalityReport()` in scoring-v2.js returns `"Risk Taker"` but `Fina
 - **Better:** Adopt CSS Modules (Vite supports natively — rename to `*.module.css`)
 - **Best:** Adopt Tailwind (already have Vite, zero-config with Tailwind v4)
 
-### 4.3 Components Not Rendered Anywhere
+### 4.3 Dashboard Components and Result Flow
 
-These components are imported in `App.jsx` but **never rendered in the JSX**:
+`AnalyticsDashboard`, `FinancialTwin`, and `UserHistory` are part of the current assessment/result flow and are available in the app shell. The biggest remaining improvement is to ensure the result screen and dashboard layout clearly expose these features to end users, rather than treating them as hidden or secondary components.
 
-| Component | Imported In | Rendered? |
-|-----------|------------|-----------|
-| `AnalyticsDashboard` | App.jsx | ❌ No |
-| `FinancialTwin` | App.jsx | ❌ No |
-| `UserHistory` | App.jsx | ❌ No |
-
-**Impact:** Dead code in bundle. 206.75 kB JS includes these components. Also, these are genuinely useful features that should be visible.
-
-**Fix:** Add them to the result panel or create a post-assessment dashboard route. At minimum, add to `AssessmentSection`'s result stack or to a dedicated `#results` section.
+**Action:** review the result panel and ensure the following are visible after assessment completion:
+- `UserHistory` score progression
+- `FinancialTwin` persona/twin summary
+- `AnalyticsDashboard` deeper metric insights
 
 ### 4.4 Unused Lucide Icons Imported
 
@@ -245,13 +240,11 @@ App.jsx imports 22 icons. Only ~15 are used. Unused: `LockKeyhole`, `MessageSqua
 
 **Fix:** Add PDF export (use `jspdf` or browser print stylesheet), or at minimum add a "Print-friendly view" with `@media print` styles.
 
-### 5.7 No Backend Connection for Telemetry/Feedback
+### 5.7 Backend Telemetry/Feedback Persistence
 
-**Problem:** Both `api/telemetry.js` and `api/feedback.js` have the Supabase insert logic **commented out** with `// TODO`.
+`api/telemetry.js` and `api/feedback.js` already support persistence through `api/dbClient.js`. They work with either Supabase or a local Postgres database; the only remaining requirement is to configure environment variables.
 
-**Impact:** Telemetry data is sent to the endpoints, which log it to console and return 200 — but nothing is persisted. All telemetry is lost.
-
-**Fix:** Uncomment the Supabase client code, set environment variables in Vercel, verify inserts work.
+**Action:** set `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY`, or `DATABASE_URL`, in the deployment environment and verify that `anonymous_telemetry`, `tester_feedback`, and `decision_history` rows are being written.
 
 ---
 

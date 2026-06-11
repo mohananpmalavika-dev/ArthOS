@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import PropTypes from "prop-types";
 import {
   Activity,
   BarChart3,
@@ -317,6 +318,61 @@ export default function AssessmentSection({ assessment, result, onChange, onSave
     }
   });
   const [showFeedback, setShowFeedback] = useState(false);
+  const [validationErrors, setValidationErrors] = useState([]);
+
+  const handleFieldChange = (group, key, value) => {
+    if (validationErrors.length) {
+      setValidationErrors([]);
+    }
+    onChange(group, key, value);
+  };
+
+  const validateCurrentStep = () => {
+    const errors = [];
+    const { participant, behaviour, awareness, profile, habits } = assessment;
+
+    if (!participant.name || !participant.name.trim()) {
+      errors.push("Please enter your name.");
+    }
+    if (!participant.age || Number(participant.age) <= 0) {
+      errors.push("Enter a valid age greater than zero.");
+    }
+    if (participant.email && !/^\S+@\S+\.\S+$/.test(participant.email)) {
+      errors.push("Enter a valid email address.");
+    }
+
+    const addMissingAnswer = (question, group) => {
+      if (!assessment[group]?.[question.key]) {
+        errors.push(`Answer the question: "${question.prompt}"`);
+      }
+    };
+
+    if (currentStep === 0) {
+      ui.behaviourQuestions.forEach((question) => addMissingAnswer(question, "behaviour"));
+    }
+
+    if (currentStep === 1) {
+      ui.awarenessQuestions.forEach((question) => addMissingAnswer(question, "awareness"));
+    }
+
+    if (currentStep === 2) {
+      if (!profile.monthlyIncome || Number(profile.monthlyIncome) <= 0) {
+        errors.push("Monthly income must be greater than 0.");
+      }
+      if (!profile.monthlyExpenses || Number(profile.monthlyExpenses) <= 0) {
+        errors.push("Monthly expenses must be greater than 0.");
+      }
+      if (profile.monthlyLiabilities < 0) {
+        errors.push("Fixed commitments cannot be negative.");
+      }
+    }
+
+    if (currentStep === 3 && mode === "v2") {
+      ui.habitsQuestions.forEach((question) => addMissingAnswer(question, "habits"));
+    }
+
+    return errors;
+  };
 
   useEffect(() => {
     if (resetTrigger !== undefined) {
@@ -346,6 +402,12 @@ export default function AssessmentSection({ assessment, result, onChange, onSave
   };
 
   const handleNext = async () => {
+    const errors = validateCurrentStep();
+    if (errors.length) {
+      setValidationErrors(errors);
+      return;
+    }
+
     if (currentStep < totalSteps - 1) {
       handleStepChange(currentStep + 1);
       return;
@@ -391,7 +453,18 @@ export default function AssessmentSection({ assessment, result, onChange, onSave
             </div>
           )}
 
-          <ParticipantSection values={assessment.participant} onChange={(key, value) => onChange("participant", key, value)} />
+          <ParticipantSection values={assessment.participant} onChange={handleFieldChange} />
+
+          {validationErrors.length > 0 && (
+            <div className="validation-alert" role="alert">
+              <strong>Fix these fields before continuing:</strong>
+              <ul>
+                {validationErrors.map((error, index) => (
+                  <li key={index}>{error}</li>
+                ))}
+              </ul>
+            </div>
+          )}
 
           {!showFeedback && currentStep === 0 && (
             <QuestionSection
@@ -419,7 +492,7 @@ export default function AssessmentSection({ assessment, result, onChange, onSave
             <ProfileSection
               values={assessment.profile}
               score={`${result.stabilityScore}/${ui.componentMaximums.stability}`}
-              onChange={(key, value) => onChange("profile", key, value)}
+              onChange={handleFieldChange}
             />
           )}
 
@@ -430,7 +503,7 @@ export default function AssessmentSection({ assessment, result, onChange, onSave
               score={`${result.habits.habitScore}/100`}
               questions={ui.habitsQuestions}
               values={assessment.habits}
-              onChange={(key, value) => onChange("habits", key, value)}
+              onChange={handleFieldChange}
             />
           )}
 

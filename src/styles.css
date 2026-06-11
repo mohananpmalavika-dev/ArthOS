@@ -20,11 +20,10 @@
   --green: #73f0bf;
   --accent: #9e7dff;
   --shadow: 0 32px 90px rgba(0, 0, 0, 0.32);
-  --display:
-    "Arial Black", "Segoe UI Black", "Trebuchet MS", "Segoe UI", system-ui,
-    sans-serif;
-  --body:
-    Inter, "Segoe UI", Roboto, "Helvetica Neue", Arial, system-ui, sans-serif;
+  --radius: 16px;
+  --gap: 20px;
+  --display: Sora, "Segoe UI", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
+  --body: Inter, "Segoe UI", Roboto, "Helvetica Neue", Arial, system-ui, sans-serif;
   color: var(--text);
   background: var(--bg);
   font-family: var(--body);
@@ -48,6 +47,17 @@ body {
     radial-gradient(circle at 86% 18%, rgba(75, 229, 212, 0.12), transparent 18%),
     linear-gradient(180deg, #050712 0%, #081025 40%, #050714 100%);
   background-attachment: fixed;
+}
+
+/* Accessibility and focus states */
+:focus {
+  outline: none;
+}
+
+:focus-visible {
+  outline: 3px solid rgba(159, 123, 255, 0.28);
+  outline-offset: 3px;
+  border-radius: 8px;
 }
 
 body::before {
@@ -115,10 +125,10 @@ blockquote {
 .logo-word {
   color: var(--text);
   font-family: var(--display);
-  font-size: 38px;
-  font-weight: 900;
+  font-size: 40px;
+  font-weight: 800;
   line-height: 0.92;
-  letter-spacing: 0;
+  letter-spacing: -0.5px;
 }
 
 .logo-word span {
@@ -236,7 +246,7 @@ blockquote {
   padding: 60px 0 40px;
   position: relative;
   overflow: hidden;
-  border-radius: 38px;
+  border-radius: 28px;
   background: radial-gradient(circle at top left, rgba(139, 92, 246, 0.18), transparent 36%),
     radial-gradient(circle at bottom right, rgba(41, 49, 123, 0.14), transparent 28%),
     linear-gradient(180deg, rgba(8, 12, 29, 0.97), rgba(9, 12, 30, 0.9));
@@ -281,7 +291,7 @@ blockquote {
 .hero-copy h1 {
   max-width: 840px;
   color: var(--text);
-  font-size: clamp(52px, 7vw, 84px);
+  font-size: clamp(44px, 6.6vw, 72px);
   line-height: 0.92;
 }
 
@@ -327,10 +337,10 @@ blockquote {
 }
 
 .primary-link {
-  border-color: rgba(162, 104, 255, 0.9);
-  background: linear-gradient(135deg, var(--purple), var(--violet));
+  border-color: rgba(162, 104, 255, 0.95);
+  background: linear-gradient(135deg, rgba(128,90,255,0.98), rgba(103,70,255,0.98));
   color: #fff;
-  box-shadow: 0 18px 55px rgba(109, 76, 255, 0.36);
+  box-shadow: 0 20px 60px rgba(88, 60, 200, 0.28);
 }
 
 .primary-link:hover {
@@ -360,12 +370,12 @@ blockquote {
   padding: 52px;
   overflow: hidden;
   border: 1px solid rgba(162, 104, 255, 0.22);
-  border-radius: 48px;
+  border-radius: 20px;
   background:
     linear-gradient(180deg, rgba(23, 26, 50, 0.84), rgba(21, 23, 42, 0.92)),
     linear-gradient(135deg, rgba(72, 52, 163, 0.2), rgba(37, 32, 126, 0.12));
   backdrop-filter: blur(24px);
-  box-shadow: 0 40px 100px rgba(9, 13, 35, 0.22);
+  box-shadow: 0 28px 68px rgba(5, 8, 24, 0.28);
 }
 
 .engine-card::before {
@@ -397,7 +407,7 @@ blockquote {
 .engine-metric strong {
   color: var(--purple);
   font-family: var(--display);
-  font-size: 98px;
+  font-size: 84px;
   font-weight: 900;
   line-height: 0.9;
   letter-spacing: 0;
@@ -7071,6 +7081,188 @@ html {
   color: #86efac;
   font-size: 13px;
   line-height: 1.5;
+}
+
+/* Final responsive polish for the model shell. These overrides sit after the
+   legacy layers so small screens do not inherit clipped desktop layouts. */
+@media (max-width: 760px) {
+  .topbar {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 12px;
+    min-height: 0;
+    padding: 14px 22px 16px;
+  }
+
+  .topbar .brand,
+  .model-header-actions,
+  .topbar .nav-links {
+    width: 100%;
+  }
+
+  .topbar .logo-word {
+    font-size: 32px;
+    letter-spacing: 0;
+  }
+
+  .topbar .brand small {
+    font-size: 9px;
+    letter-spacing: 0;
+  }
+
+  .model-header-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    gap: 9px;
+  }
+
+  .model-icon-btn,
+  .model-avatar-btn {
+    flex: 0 0 auto;
+  }
+
+  .model-start-btn {
+    flex: 1 0 100%;
+    min-height: 44px;
+  }
+
+  .topbar .nav-links {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+    overflow: visible;
+    padding: 4px 0 0;
+    mask-image: none;
+  }
+
+  .topbar .nav-links a {
+    display: inline-flex;
+    min-width: 0;
+    min-height: 38px;
+    align-items: center;
+    justify-content: center;
+    padding: 0 8px;
+    font-size: 12px;
+    line-height: 1;
+    white-space: nowrap;
+  }
+
+  .model-screen {
+    width: calc(100% - 28px);
+    margin-top: 18px;
+  }
+
+  .model-hero-grid {
+    gap: 18px;
+    padding: 24px 18px 18px;
+  }
+
+  .model-hero-copy {
+    gap: 18px;
+  }
+
+  .model-hero-copy h1,
+  .assessment-heading h2 {
+    font-size: 40px;
+    line-height: 1.06;
+  }
+
+  .model-hero-copy h1 span {
+    font-size: 1.02em;
+    letter-spacing: 0;
+  }
+
+  .model-hero-copy p,
+  .assessment-heading p {
+    font-size: 15px;
+    line-height: 1.58;
+  }
+
+  .hero-stat-card {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+    padding: 14px;
+  }
+
+  .hero-stat-card .metric {
+    min-width: 0;
+  }
+
+  .hero-stat-card .metric span {
+    font-size: 26px;
+  }
+
+  .hero-stat-card .metric label {
+    font-size: 11px;
+    line-height: 1.25;
+    overflow-wrap: anywhere;
+  }
+
+  .model-hero-actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+    width: 100%;
+  }
+
+  .model-primary-cta,
+  .model-secondary-cta {
+    min-width: 0;
+    width: 100%;
+    gap: 8px;
+    padding: 0 12px;
+    font-size: 14px;
+    text-align: center;
+  }
+
+  .assessment-section {
+    width: calc(100% - 28px);
+  }
+
+  .assessment-heading {
+    gap: 16px;
+    margin-bottom: 28px;
+  }
+
+  .wizard-progress-track {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+    overflow: visible;
+  }
+
+  .wizard-node {
+    min-width: 0;
+  }
+
+  .wizard-node-label {
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+
+  .wizard-node-connector {
+    display: none;
+  }
+}
+
+@media (max-width: 360px) {
+  .topbar {
+    padding-inline: 14px;
+  }
+
+  .topbar .nav-links {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .model-hero-copy h1,
+  .assessment-heading h2 {
+    font-size: 36px;
+  }
+
+  .model-hero-actions,
+  .hero-stat-card {
+    grid-template-columns: 1fr;
+  }
 }
 
 /* Enhanced Twin Scenarios */
