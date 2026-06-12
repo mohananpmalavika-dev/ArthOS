@@ -7,15 +7,13 @@ ALTER TABLE users ADD COLUMN IF NOT EXISTS subscription_tier VARCHAR(50) DEFAULT
 ALTER TABLE users ADD COLUMN IF NOT EXISTS subscription_status VARCHAR(50) DEFAULT 'inactive';
 ALTER TABLE users ADD COLUMN IF NOT EXISTS subscription_created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP;
 
--- Note: the users table in this project is expected to use UUID primary keys.
--- V11 was migrated from a MySQL-style schema where users.id was treated as INT.
--- We align subscriptions.*.user_id to UUID to satisfy FK constraints.
-
+-- Note: the users table in this project uses BIGINT primary keys (id).
+-- All user_id foreign keys must match this type.
 
 -- Create subscriptions table
 CREATE TABLE IF NOT EXISTS subscriptions (
   id BIGSERIAL PRIMARY KEY,
-  user_id UUID NOT NULL UNIQUE,
+  user_id BIGINT NOT NULL UNIQUE,
 
 
   stripe_subscription_id VARCHAR(255),
@@ -41,7 +39,7 @@ CREATE INDEX IF NOT EXISTS idx_subscriptions_status ON subscriptions(status);
 -- Create subscription invoices table for payment tracking
 CREATE TABLE IF NOT EXISTS subscription_invoices (
   id BIGSERIAL PRIMARY KEY,
-  user_id UUID NOT NULL,
+  user_id BIGINT NOT NULL,
   stripe_invoice_id VARCHAR(255) NOT NULL UNIQUE,
 
   stripe_subscription_id VARCHAR(255),
@@ -62,7 +60,7 @@ CREATE INDEX IF NOT EXISTS idx_subscription_invoices_status ON subscription_invo
 -- Create assessment usage table for free tier limiting
 CREATE TABLE IF NOT EXISTS assessment_usage (
   id BIGSERIAL PRIMARY KEY,
-  user_id VARCHAR(255) NOT NULL,
+  user_id BIGINT NOT NULL,
   month VARCHAR(7) NOT NULL,
   count INT DEFAULT 0,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -77,7 +75,7 @@ CREATE INDEX IF NOT EXISTS idx_assessment_usage_month ON assessment_usage(month)
 -- Create feature access log for analytics
 CREATE TABLE IF NOT EXISTS feature_access_log (
   id BIGSERIAL PRIMARY KEY,
-  user_id VARCHAR(255) NOT NULL,
+  user_id BIGINT NOT NULL,
   feature_key VARCHAR(100) NOT NULL,
   tier_at_time VARCHAR(50),
   allowed BOOLEAN,

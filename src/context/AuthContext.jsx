@@ -4,6 +4,7 @@
 
 import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
 import { migrateAnonymousData } from "../lib/storageManager.js";
+import { migrateAnonymousDataToUser, clearUserData } from "../lib/userDataManager.js";
 
 const AUTH_STORAGE_KEY = "arth-os-auth";
 const API_BASE = "/api";
@@ -103,6 +104,7 @@ export function AuthProvider({ children }) {
 
       // Migrate anonymous localStorage data to the new user scope
       migrateAnonymousData(data.user.id);
+      migrateAnonymousDataToUser(data.user.id);
 
       persistSession(data.user, data.token);
 
@@ -138,6 +140,7 @@ export function AuthProvider({ children }) {
 
       // Migrate anonymous localStorage data to the new user scope
       migrateAnonymousData(data.user.id);
+      migrateAnonymousDataToUser(data.user.id);
 
       persistSession(data.user, data.token);
 
@@ -155,6 +158,14 @@ export function AuthProvider({ children }) {
 
   const logout = useCallback(() => {
     try {
+      const stored = window.localStorage.getItem(AUTH_STORAGE_KEY);
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (parsed.user && parsed.user.id) {
+          // Clear user-scoped data from localStorage
+          clearUserData(parsed.user.id);
+        }
+      }
       window.localStorage.removeItem(AUTH_STORAGE_KEY);
     } catch {
       // ignore

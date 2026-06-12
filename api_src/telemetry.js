@@ -1,10 +1,34 @@
 // api/telemetry.js
 // Serverless handler for anonymous financial telemetry data
 // Deploy to Vercel or similar serverless platform
+// Now optionally associates telemetry with authenticated users via JWT
 
 import { insertIntoTable, hasDatabaseConfig } from "./dbClient.js";
+import jwt from "jsonwebtoken";
 
 const TELEMETRY_TABLE = process.env.SUPABASE_TELEMETRY_TABLE || "anonymous_telemetry";
+const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key";
+
+// Extract user ID from JWT token
+function extractUserFromToken(req) {
+  const authHeader = req.headers.authorization || "";
+  const token = authHeader.replace("Bearer ", "");
+
+  if (!token) {
+    return null;
+  }
+
+  try {
+    const decoded = jwt.verify(token, JWT_SECRET, { algorithms: ["HS256"] });
+    return {
+      id: decoded.userId || decoded.id || decoded.email || null,
+      email: decoded.email || null,
+    };
+  } catch (error) {
+    console.warn("[Telemetry] Invalid or missing token:", error.message);
+    return null;
+  }
+}
 
 export default async function handler(req, res) {
   // Enforce POST-only access
@@ -15,6 +39,12 @@ export default async function handler(req, res) {
   try {
     const payload = req.body;
 
+    // Extract authenticated user from JWT token (optional)
+    const user = extractUserFromToken(req);
+    if (user) {
+      console.log("[Telemetry] Authenticated user:", user.id);
+    }
+
     // Structural validation
     if (!payload.scores || !payload.telemetry_metadata) {
       return res.status(400).json({ error: "Incomplete payload telemetry data structure" });
@@ -24,6 +54,8 @@ export default async function handler(req, res) {
     const cleanTelemetryRow = {
       schema_version: String(payload.telemetry_metadata.schema_version),
       mode_executed: String(payload.telemetry_metadata.mode_executed),
+      user_id: user?.id || null,  // Associate with user if authenticated
+      is_authenticated: !!user,
 
       // Normalized Framework Component Scores
       health_score: Number(payload.scores.financial_health_score),
