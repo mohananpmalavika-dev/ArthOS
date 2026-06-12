@@ -16,6 +16,15 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  // Define syncLocalDataToServer BEFORE first useEffect that uses it
+  const syncLocalDataToServer = useCallback(async (userId, authToken) => {
+    if (!userId || !authToken) return;
+    const { syncAllToServer, processSyncQueue } = await import("../engines/financialMemoryEngine.js");
+    // Flush any pending sync queue items first
+    await processSyncQueue();
+    return await syncAllToServer(userId, authToken);
+  }, []);
+
   // Restore session from localStorage on mount
   useEffect(() => {
     let cancelled = false;
@@ -72,19 +81,6 @@ export function AuthProvider({ children }) {
     setUser(userData);
     setToken(tokenStr);
     setError(null);
-  }, []);
-
-  /**
-   * Sync all local data to the server under this user's ID.
-   * Called after login/register and on session restore to push
-   * any anonymous or unsynced data to the user's account.
-   */
-  const syncLocalDataToServer = useCallback(async (userId, authToken) => {
-    if (!userId || !authToken) return;
-    const { syncAllToServer, processSyncQueue } = await import("../engines/financialMemoryEngine.js");
-    // Flush any pending sync queue items first
-    await processSyncQueue();
-    return await syncAllToServer(userId, authToken);
   }, []);
 
   const login = useCallback(async (email, password) => {

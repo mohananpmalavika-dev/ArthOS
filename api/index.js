@@ -4,6 +4,7 @@ import riskOpportunityHandler from '../api_src/risk-opportunity.js';
 import feedbackHandler from '../api_src/feedback.js';
 import saveAssessmentHandler from '../api_src/saveAssessment.js';
 import telemetryHandler from '../api_src/telemetry.js';
+import errorLogHandler from '../api_src/error-log.js';
 import memoryHandler from '../api_src/memory.js';
 import authLoginHandler from '../api_src/auth/login.js';
 import authRegisterHandler from '../api_src/auth/register.js';
@@ -23,6 +24,7 @@ const routeDefinitions = [
   { match: (pathname) => pathname === '/api/feedback', handler: feedbackHandler },
   { match: (pathname) => pathname === '/api/saveAssessment', handler: saveAssessmentHandler },
   { match: (pathname) => pathname === '/api/telemetry', handler: telemetryHandler },
+  { match: (pathname) => pathname === '/api/error-log', handler: errorLogHandler },
   { match: (pathname) => pathname === '/api/memory' || pathname.startsWith('/api/memory/'), handler: memoryHandler },
   { match: (pathname) => pathname === '/api/auth/login', handler: authLoginHandler },
   { match: (pathname) => pathname === '/api/auth/register', handler: authRegisterHandler },
