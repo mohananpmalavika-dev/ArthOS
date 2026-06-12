@@ -46,6 +46,7 @@ import {
 } from "./engines/financialMemoryEngine.js";
 import { buildTrajectoryNarrative } from "./engines/trajectoryNarrativeEngine.js";
 import { buildFinancialTwinScenarios } from "./engines/financialTwinEngine.js";
+import { buildCompleteTwin } from "./engines/digitalTwinEngine.js";
 import { buildCognitionProfile } from "./engines/cognitionEngine.js";
 import { evaluateHabitProgress } from "./engines/habitEngine.js";
 import { forecastHealth, detectFutureRisk } from "./engines/forecastEngine.js";
@@ -81,6 +82,7 @@ const B2BPartnerPortal = lazy(() => import("./components/B2BPartnerPortal.jsx"))
 const FinancialTwin = lazy(() => import("./components/FinancialTwin.jsx"));
 const UserHistory = lazy(() => import("./components/UserHistory.jsx"));
 const TraitMatrixVisualizer = lazy(() => import("./components/TraitMatrixVisualizer.jsx"));
+const DigitalTwinDashboard = lazy(() => import("./components/DigitalTwinDashboard.jsx"));
 // Always-needed components (in main bundle)
 import OnboardingOverlay from "./components/OnboardingOverlay.jsx";
 import AssessmentSection from "./components/AssessmentSection.jsx";
@@ -461,6 +463,7 @@ export default function App() {
   const [showSmsForm, setShowSmsForm] = useState(false);
   const [scoreHistory, setScoreHistory] = useState([]);
   const [twinScenarios, setTwinScenarios] = useState(null);
+  const [digitalTwin, setDigitalTwin] = useState(null);
   const [weeklyCheckins, setWeeklyCheckins] = useState([]);
   const [historyTimespan, setHistoryTimespan] = useState("all");
   const [decisionsRefresh, setDecisionsRefresh] = useState(0);
@@ -523,6 +526,7 @@ export default function App() {
       decisionCount: decisionHistoryCount,
       hasSmsEnrichment: !!smsEnrichment,
       hasTwinSimulation: !!twinScenarios,
+      hasDigitalTwin: !!digitalTwin,
       hasPartnerConnection: false,
     });
 
@@ -531,7 +535,7 @@ export default function App() {
       notifyNewMilestones(milestones);
       refreshNotificationCount();
     }
-  }, [result.healthScore, scoreHistory, weeklyCheckins, decisionHistoryCount, smsEnrichment, twinScenarios, refreshNotificationCount]);
+  }, [result.healthScore, scoreHistory, weeklyCheckins, decisionHistoryCount, smsEnrichment, twinScenarios, digitalTwin, refreshNotificationCount]);
 
   // When auth state changes, set the email in the assessment participant
   useEffect(() => {
@@ -863,6 +867,13 @@ export default function App() {
     });
     setMemoryTimeline(memoryEngine.getHistory());
     setTwinScenarios(buildFinancialTwinScenarios(result, assessment.profile));
+    
+    // Build complete digital twin for simulation and forecasting
+    const completeTwin = buildCompleteTwin(result, assessment.profile, {
+      assessments: [result],
+      history: memoryEngine.getHistory(),
+    });
+    setDigitalTwin(completeTwin);
   }, [result.healthScore, assessment.profile, result, memoryEngine]);
 
   const ui = {
@@ -1151,6 +1162,14 @@ export default function App() {
                     <AnalyticsDashboard result={result} />
                   </ErrorBoundary>
                 </Suspense>
+                
+                {/* Digital Twin Dashboard - Flight Simulator for Financial Life */}
+                <Suspense fallback={<LazyComponentFallback />}>
+                  <ErrorBoundary>
+                    <DigitalTwinDashboard twin={digitalTwin} assessment={result} />
+                  </ErrorBoundary>
+                </Suspense>
+                
                 <section className="summary-card">
                   <div className="premium-report-section-header">
                     <h2 className="premium-report-section-title">🔥 Financial Roast</h2>
