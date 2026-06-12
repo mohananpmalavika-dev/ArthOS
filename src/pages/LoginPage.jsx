@@ -1,10 +1,12 @@
 // src/pages/LoginPage.jsx
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext.jsx";
 import { LogIn, Mail, Lock, AlertCircle, Eye, EyeOff, ArrowRight, Sparkles } from "lucide-react";
 
 export default function LoginPage({ onSwitchToRegister, onClose }) {
   const { login, error, loading, clearError } = useAuth();
+  const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -16,8 +18,14 @@ export default function LoginPage({ onSwitchToRegister, onClose }) {
     setSubmitted(true);
     clearError();
     const success = await login(email, password);
-    if (success && onClose) {
-      onClose();
+    if (success) {
+      // If onClose callback is provided (e.g., modal context), call it
+      if (onClose) {
+        onClose();
+      } else {
+        // Otherwise navigate to home page (React Router context)
+        navigate("/", { replace: true });
+      }
     }
   };
 

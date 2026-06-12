@@ -6,7 +6,7 @@ import { fileURLToPath, pathToFileURL } from "url";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const apiDirectory = path.resolve(__dirname, "api");
+const apiDirectory = path.resolve(__dirname, "api_src");
 
 function normalizeSegment(segment) {
   if (segment.startsWith("[") && segment.endsWith("]")) {
@@ -69,15 +69,21 @@ function buildApiRoutes() {
 async function loadApiHandlers(routes) {
   const handlers = [];
   for (const entry of routes) {
-    const module = await import(pathToFileURL(entry.fullPath).href);
-    if (typeof module.default !== "function") {
+    try {
+      const module = await import(pathToFileURL(entry.fullPath).href);
+      if (typeof module.default !== "function") {
+        continue;
+      }
+      handlers.push({
+        route: entry.route,
+        matcher: entry.matcher,
+        handler: module.default,
+      });
+    } catch (error) {
+      // Skip modules that can't be loaded as handlers
+      console.warn(`[vite-plugin-api] Skipping ${entry.route}: ${error.message}`);
       continue;
     }
-    handlers.push({
-      route: entry.route,
-      matcher: entry.matcher,
-      handler: module.default,
-    });
   }
   return handlers;
 }

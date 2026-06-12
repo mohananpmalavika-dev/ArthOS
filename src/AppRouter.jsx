@@ -16,7 +16,16 @@ import { useAuth } from './context/AuthContext.jsx';
  * - Protected authenticated app
  */
 function AppRouter() {
-  const { isLoggedIn } = useAuth();
+  const { isAuthenticated, loading } = useAuth();
+
+  // Show nothing while checking authentication status
+  if (loading) {
+    return (
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh' }}>
+        <p>Loading...</p>
+      </div>
+    );
+  }
 
   return (
     <BrowserRouter>
@@ -32,7 +41,7 @@ function AppRouter() {
           {/* Main app - shows login if not authenticated */}
           <Route
             path="/*"
-            element={isLoggedIn ? <App /> : <Navigate to="/login" replace />}
+            element={isAuthenticated ? <App /> : <Navigate to="/login" replace />}
           />
         </Routes>
       </ErrorBoundary>

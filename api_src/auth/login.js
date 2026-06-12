@@ -7,28 +7,36 @@ const JWT_SECRET = process.env.JWT_SECRET || "arthos-dev-secret-change-in-produc
 const DATABASE_URL = process.env.DATABASE_URL;
 
 export default async function handler(req, res) {
+  console.log("[login.js] Received request:", req.method, req.url);
+  
   if (req.method !== "POST") {
+    console.log("[login.js] Invalid method:", req.method);
     return res.status(405).json({ error: "Method Not Allowed" });
   }
 
   try {
+    console.log("[login.js] Request body:", req.body);
     const { email, password } = req.body || {};
 
     if (!email || !password) {
+      console.log("[login.js] Missing email or password");
       return res.status(400).json({ error: "Email and password are required" });
     }
 
     const cleanedEmail = email.toLowerCase().trim();
+    console.log("[login.js] Demo mode check - DATABASE_URL:", DATABASE_URL ? "set" : "not set");
 
     // Demo mode — no real DB, create a token for dev/test
     if (!DATABASE_URL) {
       // In demo mode any email/password combo works (for development)
+      console.log("[login.js] Using demo mode, creating token for:", cleanedEmail);
       const token = jwt.sign(
         { userId: cleanedEmail, email: cleanedEmail, name: cleanedEmail.split("@")[0] },
         JWT_SECRET,
         { expiresIn: "30d" },
       );
 
+      console.log("[login.js] Token created successfully");
       return res.status(200).json({
         user: { id: cleanedEmail, email: cleanedEmail, name: cleanedEmail.split("@")[0] },
         token,
