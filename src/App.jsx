@@ -420,7 +420,7 @@ function loadInitialAssessment() {
 }
 
 export default function App() {
-  const { user, isAuthenticated, loading: authLoading, logout } = useAuth();
+  const { user, token, isAuthenticated, loading: authLoading, logout } = useAuth();
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [authMode, setAuthMode] = useState("login");
 
@@ -1014,9 +1014,16 @@ export default function App() {
       }
 
       setSaveState("Upload pending");
+      
+      // Build headers with JWT token for authenticated users
+      const headers = { "Content-Type": "application/json" };
+      if (token) {
+        headers["Authorization"] = `Bearer ${token}`;
+      }
+      
       fetch("/api/saveAssessment", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers,
         body: JSON.stringify(payload),
       })
         .then(async (resp) => {
