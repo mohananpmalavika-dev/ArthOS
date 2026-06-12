@@ -8,11 +8,12 @@
 
 const STORAGE_KEY = 'arth_assessment_usage';
 
-export interface AssessmentUsage {
-  month: string; // YYYY-MM format
-  count: number;
-  dates: string[]; // ISO date strings of assessments
-}
+/**
+ * @typedef {Object} AssessmentUsage
+ * @property {string} month - YYYY-MM format
+ * @property {number} count
+ * @property {string[]} dates - ISO date strings of assessments
+ */
 
 /**
  * Get current month in YYYY-MM format

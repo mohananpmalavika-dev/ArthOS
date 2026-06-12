@@ -8,7 +8,15 @@
 import Stripe from 'stripe';
 import { query } from './dbClient.js';
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+// Lazy-load Stripe to avoid errors when STRIPE_SECRET_KEY is not available at build time
+let stripe;
+function getStripe() {
+  if (!stripe && process.env.STRIPE_SECRET_KEY) {
+    stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+  }
+  return stripe;
+}
+
 const STRIPE_WEBHOOK_SECRET = process.env.STRIPE_WEBHOOK_SECRET;
 
 // Product/Price IDs (to be created in Stripe dashboard)
@@ -56,7 +64,7 @@ export async function getOrCreateStripeCustomer(userId, email, name) {
       customerId = result[0].stripe_customer_id;
     } else {
       // Create new Stripe customer
-      const customer = await stripe.customers.create({
+      const customer = await getStripe().customers.create({
         email,
         name,
         metadata: {
@@ -108,7 +116,7 @@ export async function createSubscription(userId, email, name, planId = 'plus') {
     }
 
     // For Plus tier, create Stripe subscription
-    const subscription = await stripe.subscriptions.create({
+    const subscription = await getStripe().subscriptions.create({
       customer: customerId,
       items: [
         {
@@ -224,7 +232,7 @@ export async function upgradeSubscription(userId, newPlanId) {
         [userId]
       );
 
-      const subscription = await stripe.subscriptions.create({
+      const subscription = await getStripe().subscriptions.create({
         customer: customerId[0].stripe_customer_id,
         items: [
           {
@@ -260,9 +268,9 @@ export async function upgradeSubscription(userId, newPlanId) {
 
     // If modifying existing Stripe subscription
     if (current.subscriptionId) {
-      const subscription = await stripe.subscriptions.retrieve(current.subscriptionId);
+      const subscription = await getStripe().subscriptions.retrieve(current.subscriptionId);
 
-      await stripe.subscriptions.update(current.subscriptionId, {
+      await getStripe().subscriptions.update(current.subscriptionId, {
         items: [
           {
             id: subscription.items.data[0].id,
@@ -308,7 +316,7 @@ export async function cancelSubscription(userId) {
     }
 
     if (current.subscriptionId) {
-      await stripe.subscriptions.del(current.subscriptionId);
+      await getStripe().subscriptions.del(current.subscriptionId);
 
       await query(
         'UPDATE subscriptions SET status = ? WHERE stripe_subscription_id = ?',

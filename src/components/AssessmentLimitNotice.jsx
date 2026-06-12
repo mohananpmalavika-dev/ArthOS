@@ -4,7 +4,7 @@
  */
 
 import React from 'react';
-import { AlertCircle, Calendar, Upgrade } from 'lucide-react';
+import { AlertCircle, Calendar, ArrowUp } from 'lucide-react';
 
 export default function AssessmentLimitNotice({
   tier = 'free',
@@ -48,7 +48,7 @@ export default function AssessmentLimitNotice({
         </div>
 
         <button className="btn-upgrade" onClick={onUpgradeClick}>
-          <Upgrade size={16} />
+          <ArrowUp size={16} />
           Upgrade to Plus
         </button>
       </div>

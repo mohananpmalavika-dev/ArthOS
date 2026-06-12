@@ -27,13 +27,13 @@ export function generateSalaryRoast(assessmentResult, profile) {
   // Generate roast commentary based on personality & scores
   const roastLines = generateRoastCommentary(personalityType, healthScore, savingsRate, survivalMonthsRaw);
 
-  // Comparison stats
+  // Comparison stats - with more emotionally engaging messaging
   const percentileScore = Math.round((healthScore / 100) * 100);
   const nationalAverage = 55; // fictional baseline
   const comparisonVsAverage = percentileScore - nationalAverage;
 
-  // Headline - hook for sharing
-  const headline = generateHeadline(healthScore, personalityType, monthlyIncome);
+  // Headline - hook for sharing (enhanced for virality)
+  const headline = generateHeadlineViral(healthScore, personalityType, monthlyIncome);
 
   // Badges/Achievements
   const badges = generateBadges(healthScore, savingsRate, survivalMonthsRaw, behaviourScore);
@@ -47,8 +47,8 @@ export function generateSalaryRoast(assessmentResult, profile) {
     { label: 'Risk Level', value: futureRiskLabel, unit: '' },
   ];
 
-  // Generate shareable text
-  const shareText = generateShareText(headline, Math.round(healthScore), personalityType, monthlyIncome);
+  // Generate shareable text - enhanced for virality
+  const shareText = generateShareTextViral(headline, Math.round(healthScore), personalityType, monthlyIncome, survivalMonthsRaw);
 
   return {
     title: 'Your Financial Roast 🔥',
@@ -73,6 +73,25 @@ function generateHeadline(score, personality, income) {
     `I'm a ${band} ${personality} with ₹${Math.round(income / 1000)}K monthly income`,
     `${band} Financial Health: My ₹${Math.round(income / 1000)}K salary tells a story`,
     `My Financial Roast: ${personality} earning ₹${Math.round(income / 1000)}K/month`,
+  ];
+
+  return templates[Math.floor(Math.random() * templates.length)];
+}
+
+/**
+ * VIRAL-ENHANCED headline with stronger emotional hooks & urgency
+ * Optimized for social sharing and click-through
+ */
+function generateHeadlineViral(score, personality, income) {
+  const emoji = score >= 75 ? '🚀' : score >= 50 ? '⚡' : '🔥';
+  const sentiment = score >= 75 ? 'Crushing It' : score >= 50 ? 'Getting By' : 'In Trouble';
+  
+  const templates = [
+    `${emoji} I took the Financial Roast. My ${personality} score: ${Math.round(score)}/100. (Ouch.)`,
+    `${emoji} Honest Assessment: I earn ₹${Math.round(income / 1000)}K/month but my finances are ${sentiment.toLowerCase()}`,
+    `${emoji} Just discovered my financial personality is ${personality}. The roast? Brutal. Accurate. Eye-opening.`,
+    `${emoji} My ${personality} financial DNA decoded: Score ${Math.round(score)}/100. I'm not prepared for what I learned.`,
+    `${emoji} "Your survival window is X months" — This Financial Roast just changed my life.`,
   ];
 
   return templates[Math.floor(Math.random() * templates.length)];
@@ -164,6 +183,25 @@ function generateShareText(headline, score, personality, income) {
     `My financial health score: ${score}/100. I'm a ${personality}. What about you? #ArthOS`,
     `Found out I earn ₹${Math.round(income / 1000)}K/month but my finances say... 🤷 #FinancialRoast #ArthOS`,
     `${headline}. Want yours? Try ARTH.OS 👇 #FinancialWellness`,
+  ];
+
+  return templates[Math.floor(Math.random() * templates.length)];
+}
+
+/**
+ * VIRAL-ENHANCED share text with stronger CTAs & emotional resonance
+ * Optimized for WhatsApp, Twitter, LinkedIn
+ */
+function generateShareTextViral(headline, score, personality, income, survivalMonths) {
+  const emoji = score >= 75 ? '🚀' : score >= 50 ? '⚡' : '🔥';
+  const urgency = survivalMonths < 3 ? '(This is urgent)' : survivalMonths < 6 ? '(Wake-up call)' : '(Solid foundation)';
+  
+  const templates = [
+    `${emoji} Just got my Financial Roast and it's BRUTAL. Score: ${score}/100. I'm a ${personality}. ${urgency} What's yours? #ArthOS`,
+    `My ₹${Math.round(income / 1000)}K salary. My financial reality: Score ${score}/100. This honestly changed how I see my money. #FinancialRoast`,
+    `${emoji} "Your survival window is ${Math.round(survivalMonths)} months" — This roast just became my wake-up call. #ArthOS #FinancialHealth`,
+    `I'm a ${personality} with a ${score}/100 score. Not gonna lie, this financial roast hit different. Take yours → #ArthOS #MoneyMatters`,
+    `Financial Roast dropped: ${score}/100. I'm ${score >= 75 ? 'CRUSHING IT 🚀' : score >= 50 ? 'getting by ⚡' : 'in trouble 🔥'}. This is eye-opening.`,
   ];
 
   return templates[Math.floor(Math.random() * templates.length)];

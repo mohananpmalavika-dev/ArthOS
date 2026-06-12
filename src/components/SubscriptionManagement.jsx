@@ -4,7 +4,7 @@
  */
 
 import React, { useEffect, useState, useCallback } from 'react';
-import { Check, Upgrade, AlertCircle, Loader } from 'lucide-react';
+import { Check, ArrowUp, AlertCircle, Loader } from 'lucide-react';
 import { hasFeature, getTierFeatures, getNewFeaturesAtTier } from '../lib/featureGating.js';
 
 const PLAN_INFO = {
@@ -212,7 +212,7 @@ export default function SubscriptionManagement({ userId }) {
                       </>
                     ) : (
                       <>
-                        <Upgrade size={14} />
+                        <ArrowUp size={14} />
                         {info.cta}
                       </>
                     )}

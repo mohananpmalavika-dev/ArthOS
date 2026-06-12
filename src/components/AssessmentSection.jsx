@@ -100,57 +100,6 @@ function ParticipantSection({ values, onChange }) {
   );
 }
 
-// ── G3: Idle Detection Hook ──
-function useIdleDetection(active, answeredKeys, onSkip) {
-  const [idleState, setIdleState] = useState(null); // null | 'nudge' | 'stuck'
-  const lastInteraction = useRef(Date.now());
-  const timerRef = useRef(null);
-
-  const resetIdle = useCallback(() => {
-    lastInteraction.current = Date.now();
-    setIdleState(null);
-    if (timerRef.current) {
-      clearTimeout(timerRef.current);
-      timerRef.current = null;
-    }
-  }, []);
-
-  // Track any interaction in the step container
-  const handleInteraction = useCallback(() => {
-    resetIdle();
-  }, [resetIdle]);
-
-  useEffect(() => {
-    if (!active) {
-      resetIdle();
-      return;
-    }
-
-    // Start timer progression: nudge at 15s, skip at 30s
-    const nudgeTimer = setTimeout(() => {
-      // Only show nudge if LESS than half the visible questions are answered
-      const answeredCount = answeredKeys.filter(k => k).length;
-      if (answeredCount < 2) {
-        setIdleState('nudge');
-      }
-    }, IDLE_NUDGE_THRESHOLD_MS);
-
-    const skipTimer = setTimeout(() => {
-      const answeredCount = answeredKeys.filter(k => k).length;
-      if (answeredCount < 1) {
-        setIdleState('stuck');
-      }
-    }, IDLE_SKIP_THRESHOLD_MS);
-
-    return () => {
-      clearTimeout(nudgeTimer);
-      clearTimeout(skipTimer);
-    };
-  }, [active, answeredKeys, resetIdle]);
-
-  return { idleState, handleInteraction };
-}
-
 function QuestionContext({ context }) {
   const [open, setOpen] = useState(false);
   if (!context) return null;
@@ -583,8 +532,9 @@ export default function AssessmentSection({ assessment, result, onChange, onSave
   // ── G3: Check for resume draft on mount ──
   useEffect(() => {
     const draft = loadDraft();
-    if (draft && draft.currentStep > 0 && !draft.assessment.participant?.name) {
-      // Only show if there's meaningful progress (step > 0) and no fresh start
+    // Show resume banner when: step > 0 AND participant name exists (meaningful progress)
+    // BUGFIX: was checking `!draft.assessment.participant?.name` which inverted the condition
+    if (draft && draft.currentStep > 0 && draft.assessment.participant?.name && draft.assessment.participant?.name.trim()) {
       setShowResumeBanner(true);
       setResumeRestore(draft);
     }
@@ -592,15 +542,14 @@ export default function AssessmentSection({ assessment, result, onChange, onSave
 
   const handleResume = useCallback(() => {
     if (resumeRestore) {
-      // Restore the draft state — the parent will handle setting assessment
-      // via the onChange callback approach
-      setCurrentStep(resumeRestore.currentStep);
+      const restoredStep = resumeRestore.currentStep;
+      // Restore the draft state
+      setCurrentStep(restoredStep);
       if (resumeRestore.expressMode !== undefined) {
         setExpressMode(resumeRestore.expressMode);
       }
       // Import the draft values back into the assessment
       if (resumeRestore.assessment) {
-        // Restore each section
         const draft = resumeRestore.assessment;
         Object.keys(draft).forEach((group) => {
           if (typeof draft[group] === 'object' && draft[group] !== null) {
@@ -615,9 +564,9 @@ export default function AssessmentSection({ assessment, result, onChange, onSave
     }
     setShowResumeBanner(false);
     setResumeRestore(null);
-    // Archive orphaned telemetry session
+    const finalStep = resumeRestore?.currentStep ?? 0;
     startAssessmentSession();
-    recordStepEntry(currentStep, totalSteps);
+    recordStepEntry(finalStep, finalStep + 1);
   }, [resumeRestore, onChange]);
 
   const handleDismissResume = useCallback(() => {

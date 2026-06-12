@@ -1,6 +1,7 @@
 import React, { useMemo, useState, useRef, useCallback } from 'react';
 import { Copy, MessageCircle, Share2, Camera, CheckCircle, Loader2, Link, Globe, Smartphone } from 'lucide-react';
 import { generateComparisonReport, generateInstagramCaption, generateSalaryRoast } from '../engines/salaryRoast';
+import { roastAnalytics } from '../lib/roastAnalytics.js';
 
 const FEATURED_STAT_LABELS = new Set(['Financial Health Score', 'vs National Average']);
 
@@ -334,6 +335,7 @@ export function SalaryRoastGenerator({ assessmentResult, profile }) {
             <button
               type="button"
               onClick={() => {
+                roastAnalytics.trackShare('whatsapp', { assessmentResult });
                 window.open(
                   `https://wa.me/?text=${shareTextEncoded}`,
                   '_blank',
@@ -348,6 +350,7 @@ export function SalaryRoastGenerator({ assessmentResult, profile }) {
             <button
               type="button"
               onClick={() => {
+                roastAnalytics.trackShare('telegram', { assessmentResult });
                 window.open(
                   `https://t.me/share/url?url=${shareUrlEncoded}&text=${shareTextEncoded}`,
                   '_blank',
@@ -362,6 +365,7 @@ export function SalaryRoastGenerator({ assessmentResult, profile }) {
             <button
               type="button"
               onClick={() => {
+                roastAnalytics.trackShare('twitter', { assessmentResult });
                 window.open(
                   `https://twitter.com/intent/tweet?text=${shareTextEncoded}`,
                   '_blank',

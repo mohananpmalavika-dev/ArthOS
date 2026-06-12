@@ -13,6 +13,7 @@ const ALLOWED_TABLES = [
   "assessments",
   "anonymous_telemetry",
   "tester_feedback",
+  "users",
   // Blueprint longitudinal tables
   "decision_history",
   "user_scores_history",
@@ -81,6 +82,35 @@ export async function fetchDecisionsForUser(userId) {
     }
 
     return (data || []).map((entry) => entry.decision || {});
+  }
+
+  throw new Error("No database configuration found. Set DATABASE_URL or SUPABASE_URL/SUPABASE_SERVICE_ROLE_KEY.");
+}
+
+export async function query(sql, params = []) {
+  if (DATABASE_URL) {
+    const pool = getPgPool();
+    if (!pool) {
+      throw new Error("PostgreSQL pool could not be initialized.");
+    }
+
+    // Convert ? placeholders to $1, $2, etc. for PostgreSQL
+    let pgSql = sql;
+    let paramIndex = 1;
+    pgSql = pgSql.replace(/\?/g, () => `$${paramIndex++}`);
+
+    const { rows } = await pool.query(pgSql, params);
+    return rows;
+  }
+
+  const supabase = createSupabaseClient();
+  if (supabase) {
+    // For Supabase RPC or raw SQL through stored procedures
+    // Note: Supabase doesn't support raw SQL queries directly via JS client
+    // This would need to be a stored procedure or use Supabase REST API
+    // For now, return empty array as fallback
+    console.warn("query() with raw SQL not fully supported on Supabase yet");
+    return [];
   }
 
   throw new Error("No database configuration found. Set DATABASE_URL or SUPABASE_URL/SUPABASE_SERVICE_ROLE_KEY.");
