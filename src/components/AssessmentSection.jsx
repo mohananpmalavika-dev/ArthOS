@@ -584,6 +584,14 @@ export default function AssessmentSection({ assessment, result, onChange, onSave
     saveDraft(stateRef.current.assessment, stateRef.current.currentStep, stateRef.current.expressMode);
   };
 
+  // ── Compute assessment steps BEFORE useEffect hooks ──
+  const mode = result?.mode || "v2";
+  const steps = [
+    ...ASSESSMENT_SECTIONS.filter(s => !s.conditional).map(s => ({ ...s, icon: ICON_REGISTRY[s.icon] || Activity })),
+    ...(mode === "v2" ? [ASSESSMENT_SECTIONS.find(s => s.conditional)].filter(Boolean).map(s => ({ ...s, icon: ICON_REGISTRY[s.icon] || Activity })) : []),
+  ];
+  const totalSteps = steps.length;
+
   const validateCurrentStep = () => {
     const errors = [];
     const { participant, behaviour, awareness, profile, habits } = assessment;
@@ -683,13 +691,6 @@ export default function AssessmentSection({ assessment, result, onChange, onSave
     }
   }, [resetTrigger]);
 
-  const mode = result?.mode || "v2";
-  const steps = [
-    ...ASSESSMENT_SECTIONS.filter(s => !s.conditional).map(s => ({ ...s, icon: ICON_REGISTRY[s.icon] || Activity })),
-    ...(mode === "v2" ? [ASSESSMENT_SECTIONS.find(s => s.conditional)].filter(Boolean).map(s => ({ ...s, icon: ICON_REGISTRY[s.icon] || Activity })) : []),
-  ];
-
-  const totalSteps = steps.length;
   const isLastStep = currentStep === totalSteps - 1;
 
   const handleStepChange = (newStep) => {
