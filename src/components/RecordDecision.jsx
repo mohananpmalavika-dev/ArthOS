@@ -50,32 +50,37 @@ export default function RecordDecision({ userId = 'demo', onSaved = () => {} }) 
   }
 
   return (
-    <form className="record-decision engine-card" onSubmit={handleSubmit} style={{ padding: 12 }}>
-      <h3 style={{ marginTop: 0 }}>Record Decision</h3>
-      <div style={{ marginBottom: 8 }}>
-        <label style={{ display: 'block', fontSize: 12, color: '#334155' }}>Category</label>
+    <form className="record-decision summary-card premium-report-block" onSubmit={handleSubmit}>
+      <div className="premium-report-block-header">
+        <h3 className="premium-report-block-title">Record Decision</h3>
+      </div>
+
+      <div className="decision-form-field">
+        <label>Category</label>
         <input
           value={category}
           onChange={(e) => setCategory(e.target.value)}
-          style={{ width: '100%', padding: 8, borderRadius: 6, border: errors.category ? '1px solid #ef4444' : '1px solid #e5e7eb' }}
+          className={errors.category ? 'decision-input-error' : ''}
         />
-        {errors.category && <div style={{ color: '#ef4444', fontSize: 12 }}>{errors.category}</div>}
+        {errors.category && <div className="decision-error-text">{errors.category}</div>}
       </div>
-      <div style={{ marginBottom: 8 }}>
-        <label style={{ display: 'block', fontSize: 12, color: '#334155' }}>Notes</label>
+
+      <div className="decision-form-field">
+        <label>Notes</label>
         <textarea
           value={notes}
           onChange={(e) => setNotes(e.target.value)}
           rows={4}
-          style={{ width: '100%', padding: 8, borderRadius: 6, border: errors.notes ? '1px solid #ef4444' : '1px solid #e5e7eb' }}
+          className={errors.notes ? 'decision-input-error' : ''}
         />
-        {errors.notes && <div style={{ color: '#ef4444', fontSize: 12 }}>{errors.notes}</div>}
+        {errors.notes && <div className="decision-error-text">{errors.notes}</div>}
       </div>
-      <div style={{ marginTop: 8, display: 'flex', gap: 8 }}>
-        <button type="submit" disabled={saving} className="primary-link" style={{ padding: '8px 12px' }}>
+
+      <div className="decision-form-actions">
+        <button type="submit" disabled={saving} className="decision-submit-button">
           {saving ? 'Saving…' : 'Save Decision'}
         </button>
-        <button type="button" onClick={() => { setCategory('general'); setNotes(''); setErrors({}); }} style={{ padding: '8px 12px' }}>
+        <button type="button" className="decision-reset-button" onClick={() => { setCategory('general'); setNotes(''); setErrors({}); }}>
           Reset
         </button>
       </div>

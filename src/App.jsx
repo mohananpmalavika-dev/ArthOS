@@ -1,4 +1,7 @@
-import React, { memo, useEffect, useMemo, useState } from "react";
+import React, { memo, useEffect, useMemo, useState, lazy, Suspense } from "react";
+import { useAuth } from "./context/AuthContext.jsx";
+import LoginPage from "./pages/LoginPage.jsx";
+import RegisterPage from "./pages/RegisterPage.jsx";
 
 import {
   Activity,
@@ -12,6 +15,8 @@ import {
   Cpu,
   Download,
   LockKeyhole,
+  LogIn,
+  LogOut,
   MessageSquare,
   Network,
   RotateCcw,
@@ -38,28 +43,51 @@ import {
   loadWeeklyCheckins,
   getProgressSummary,
 } from "./engines/financialMemoryEngine.js";
+import { buildTrajectoryNarrative } from "./engines/trajectoryNarrativeEngine.js";
 import { buildFinancialTwinScenarios } from "./engines/financialTwinEngine.js";
 import { buildCognitionProfile } from "./engines/cognitionEngine.js";
 import { evaluateHabitProgress } from "./engines/habitEngine.js";
 import { forecastHealth, detectFutureRisk } from "./engines/forecastEngine.js";
+import { calculateConfidence } from "./engines/confidenceEngine.js";
+import { generateAlerts } from "./engines/riskOpportunityEngine.js";
 import { detectBiases as detectCognitiveBiases, calculateRiskCalibration } from "./engines/biasEngine.js";
 import { trackGoalEvolution } from "./engines/goalEvolutionEngine.js";
 import { generateMemoryInsight } from "./engines/contextualMemoryEngine.js";
 import { opportunityForecast } from "./engines/opportunityForecastEngine.js";
-import { CognitionGraph } from "./engines/cognitionGraph.js";
+import { FinancialCognitionGraph } from "./engines/cognitionGraph.js";
+import { deriveMoneyBeliefs } from "./engines/moneyBeliefEngine.js";
+import { UnifiedMemoryEngine } from "./engines/unifiedMemoryEngine.js";
+import { createDefaultProviderMarketplace } from "./lib/providerMarketplace.js";
+import { detectTriggers, identifyTriggerPatterns } from "./engines/emotionalTriggerEngine.js";
+import { compareAlternatives } from "./engines/counterfactualEngine.js";
+import { FinancialMindProfile } from "./lib/FinancialMindProfile.js";
 import { mapSignalsToBehaviour } from "./engines/smsParser.js";
 
-import AnalyticsDashboard from "./components/AnalyticsDashboard.jsx";
-import PartnerSdkDemo from "./components/PartnerSdkDemo.jsx";
-import FinancialTwin from "./components/FinancialTwin.jsx";
-import UserHistory from "./components/UserHistory.jsx";
+import { checkAndUnlockMilestones } from "./engines/milestoneEngine.js";
+import { getUnreadCount, addNotification, notifyNewMilestones, checkCheckinReminder } from "./engines/notificationEngine.js";
+import BadgeDisplay from "./components/BadgeDisplay.jsx";
+import NotificationPanel from "./components/NotificationPanel.jsx";
+import PeerComparisonCard from "./components/PeerComparisonCard.jsx";
+import ErrorBoundary from "./components/ErrorBoundary.jsx";
+// Lazy-loaded feature components to reduce main bundle
+const AnalyticsDashboard = lazy(() => import("./components/AnalyticsDashboard.jsx"));
+const CognitionGraphView = lazy(() => import("./components/CognitionGraphView.jsx"));
+const PartnerSdkDemo = lazy(() => import("./components/PartnerSdkDemo.jsx"));
+const B2BPartnerPortal = lazy(() => import("./components/B2BPartnerPortal.jsx"));
+const FinancialTwin = lazy(() => import("./components/FinancialTwin.jsx"));
+const UserHistory = lazy(() => import("./components/UserHistory.jsx"));
+const TraitMatrixVisualizer = lazy(() => import("./components/TraitMatrixVisualizer.jsx"));
+// Always-needed components (in main bundle)
+import OnboardingOverlay from "./components/OnboardingOverlay.jsx";
 import AssessmentSection from "./components/AssessmentSection.jsx";
-import TraitMatrixVisualizer from "./components/TraitMatrixVisualizer.jsx";
 import SingleRecommendedAction from "./components/SingleRecommendedAction.jsx";
 import BehaviourDrivers from "./components/BehaviourDrivers.jsx";
 import SurvivalHero from "./components/SurvivalHero.jsx";
 import CognitionGapCard from "./components/CognitionGapCard.jsx";
 import { SMSIngestForm } from "./components/SMSIngestForm.jsx";
+import FinancialMindProfileCard from "./components/FinancialMindProfileCard.jsx";
+import EmotionalTriggersCard from "./components/EmotionalTriggersCard.jsx";
+import MoneyBeliefsCard from "./components/MoneyBeliefsCard.jsx";
 import { SalaryRoastGenerator } from "./components/SalaryRoastGenerator.jsx";
 import { ScenarioForecast } from "./components/ScenarioForecast.jsx";
 import { EnhancedInsightNarrative } from "./components/EnhancedInsightNarrative.jsx";
@@ -71,6 +99,8 @@ import DailyCheckinForm from "./components/DailyCheckinForm.jsx";
 import DecisionHistory from "./components/DecisionHistory.jsx";
 import RecordDecision from "./components/RecordDecision.jsx";
 import { AreaChart, Area, XAxis, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
+import "./premium-report.css";
+
 
 import {
   v2BehaviourQuestions,
@@ -78,13 +108,38 @@ import {
   v2HabitsQuestions,
   v2DefaultAssessment,
 } from "./data/questionnaire-v2.js";
-
+import {
+  NAV_ITEMS,
+  HERO_STATS,
+  HERO_ACTIONS,
+  ASSESSMENT_BANNER,
+  INSIGHT_TITLES,
+  ADMIN_LABELS,
+  INTELLIGENCE_ROWS,
+  BUSINESS_CARDS,
+} from "./lib/copy.js";
 
 
 const STORAGE_KEY = "arth-os-assessment";
 
+// Suspense loading fallback for lazy-loaded components
+const LazyComponentFallback = () => (
+  <div style={{
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    minHeight: "400px",
+    fontSize: "14px",
+    color: "#666",
+  }}>
+    <div style={{ textAlign: "center" }}>
+      <div style={{ marginBottom: "12px" }}>Loading component...</div>
+      <div style={{ fontSize: "12px", color: "#999" }}>Please wait</div>
+    </div>
+  </div>
+);
+
 function makeEmptyAssessment() {
-  // build an empty assessment shape so nothing is pre-selected
   const emptyBehaviour = Object.keys(v2DefaultAssessment.behaviour || {}).reduce((acc, k) => {
     acc[k] = "";
     return acc;
@@ -189,21 +244,12 @@ async function flushQueuedAssessmentSaves() {
   persistQueuedAssessmentSaves(remaining);
 }
 
-const navItems = [
-  { label: "Home", href: "#home" },
-  { label: "Intelligence", href: "#intelligence" },
-  { label: "Assessments", href: "#assessment" },
-  { label: "Simulator", href: "#simulator" },
-  { label: "Insights", href: "#insights" },
-  { label: "Reports", href: "#reports" },
-];
-
-const engineSignals = [
-  "Decodes Spending Patterns",
-  "Detects Emotional Triggers",
-  "Uncovers Money Personality",
-  "Generates Financial Health Actions",
-];
+const ICON_REGISTRY = { Network, Cpu, Brain };
+const intelligenceRows = INTELLIGENCE_ROWS.map((row) => ({
+  ...row,
+  icon: ICON_REGISTRY[row.icon] ?? Network,
+}));
+const businessCards = BUSINESS_CARDS;
 
 function buildLiveInsightCards(result, assessment) {
   const lowestComponent = result.componentRows?.[0];
@@ -245,39 +291,6 @@ function buildLiveInsightCards(result, assessment) {
     },
   ];
 }
-
-const intelligenceRows = [
-  {
-    icon: Network,
-    title: "AI Financial Intelligence",
-    copy: "Connects financial signals with behavioral psychology.",
-  },
-  {
-    icon: Cpu,
-    title: "Behavior Pattern Detection",
-    copy: "Reads impulse, avoidance and planning patterns in one score.",
-  },
-  {
-    icon: Brain,
-    title: "Psychology Driven Analysis",
-    copy: "Turns choices into a practical financial behavior profile.",
-  },
-];
-
-const businessCards = [
-  {
-    title: "Behavior Layer AI",
-    copy: "Traditional fintech tracks transactions. ARTH.OS analyzes emotional spending patterns and financial personality behavior.",
-  },
-  {
-    title: "Privacy First Architecture",
-    copy: "Assessment data stays in the browser until you choose to save or export it.",
-  },
-  {
-    title: "Scalable Intelligence Engine",
-    copy: "Built to evolve into behavioral finance infrastructure for future trust and credit systems.",
-  },
-];
 
 const sectionIcons = {
   behaviour: Brain,
@@ -369,7 +382,6 @@ function normalizeV1Assessment(assessment) {
 
 function loadInitialAssessment() {
   try {
-    // Prefer unified key, but also support legacy v2 key
     const unified = window.localStorage.getItem(STORAGE_KEY);
     if (unified) return normalizeV2Assessment(JSON.parse(unified));
 
@@ -379,7 +391,6 @@ function loadInitialAssessment() {
     const legacyV1 = window.localStorage.getItem("arth-os-assessment-v1");
     if (legacyV1) return normalizeV2Assessment(normalizeV1Assessment(JSON.parse(legacyV1)));
 
-    // fallback to empty v2 default shape
     return typeof v2DefaultAssessment !== "undefined" ? v2DefaultAssessment : {};
   } catch (error) {
     console.warn("Could not load initial assessment from localStorage:", error);
@@ -388,6 +399,10 @@ function loadInitialAssessment() {
 }
 
 export default function App() {
+  const { user, isAuthenticated, loading: authLoading, logout } = useAuth();
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  const [authMode, setAuthMode] = useState("login");
+
   const [assessment, setAssessment] = useState(() => makeEmptyAssessment());
   const [saveState, setSaveState] = useState("Ready");
   const [queuedSaveCount, setQueuedSaveCount] = useState(() => (isBrowser() ? loadQueuedAssessmentSaves().length : 0));
@@ -396,6 +411,13 @@ export default function App() {
   const [activeHash, setActiveHash] = useState(
     isBrowser() ? window.location.hash || "#home" : "#home"
   );
+  const [showOnboarding, setShowOnboarding] = useState(() => {
+    if (!isBrowser()) return false;
+    return window.localStorage.getItem("arth-os-onboarding-complete") !== "true";
+  });
+
+  const currentUserId = isAuthenticated && user ? user.id : null;
+  const effectiveUserId = currentUserId || assessment.participant?.email || 'demo';
 
   const saveStatusLabel = queuedSaveCount > 0
     ? isOnline
@@ -436,11 +458,117 @@ export default function App() {
   const [weeklyCheckins, setWeeklyCheckins] = useState([]);
   const [historyTimespan, setHistoryTimespan] = useState("all");
   const [decisionsRefresh, setDecisionsRefresh] = useState(0);
+  const [memoryTimeline, setMemoryTimeline] = useState([]);
+  const [showFullMemoryTimeline, setShowFullMemoryTimeline] = useState(false);
+  const memoryEngine = useMemo(() => new UnifiedMemoryEngine(), []);
+  const [marketplaceRecommendations, setMarketplaceRecommendations] = useState([]);
+  const [backendMarketplaceRecommendations, setBackendMarketplaceRecommendations] = useState([]);
+  const [backendRiskAlerts, setBackendRiskAlerts] = useState([]);
+  const [decisionHistoryCount, setDecisionHistoryCount] = useState(0);
+  const [showNotificationPanel, setShowNotificationPanel] = useState(false);
+  const [notificationBadgeCount, setNotificationBadgeCount] = useState(0);
+  const [newlyUnlockedMilestones, setNewlyUnlockedMilestones] = useState([]);
+
+  // Refresh notification badge count whenever modal opens or periodically
+  const refreshNotificationCount = useCallback(() => {
+    setNotificationBadgeCount(getUnreadCount());
+  }, []);
+
+  useEffect(() => {
+    if (isBrowser()) {
+      refreshNotificationCount();
+      const interval = setInterval(refreshNotificationCount, 30000);
+      return () => clearInterval(interval);
+    }
+  }, [refreshNotificationCount]);
+
+  const handleDismissMilestone = (badgeId) => {
+    setNewlyUnlockedMilestones((current) => current.filter((b) => b.id !== badgeId));
+  };
+
+  // Detect score changes and check milestones each time score updates
+  const prevScoreRef = React.useRef(0);
+  useEffect(() => {
+    if (!isBrowser()) return;
+    if (result.healthScore <= 0) return;
+
+    const prev = prevScoreRef.current;
+    if (prev > 0 && result.healthScore !== prev) {
+      // Score changed — fire in-app notification
+      const { detectAndNotifyScoreChange } = require("./engines/notificationEngine.js");
+      detectAndNotifyScoreChange(result.healthScore, prev);
+      refreshNotificationCount();
+    }
+    prevScoreRef.current = result.healthScore;
+  }, [result.healthScore, refreshNotificationCount]);
+
+  // Check and unlock milestones on score/checkin changes
+  useEffect(() => {
+    if (!isBrowser()) return;
+    if (result.healthScore <= 0) return;
+
+    const milestones = checkAndUnlockMilestones({
+      currentScore: result.healthScore,
+      firstScore: scoreHistory.length > 0 ? scoreHistory[0]?.score : null,
+      assessmentCount: scoreHistory.length,
+      streak: calculateConsecutiveStreak(weeklyCheckins),
+      decisionCount: decisionHistoryCount,
+      hasSmsEnrichment: !!smsEnrichment,
+      hasTwinSimulation: !!twinScenarios,
+      hasPartnerConnection: false,
+    });
+
+    if (milestones.length > 0) {
+      setNewlyUnlockedMilestones((current) => [...current, ...milestones]);
+      notifyNewMilestones(milestones);
+      refreshNotificationCount();
+    }
+  }, [result.healthScore, scoreHistory, weeklyCheckins, decisionHistoryCount, smsEnrichment, twinScenarios, refreshNotificationCount]);
+
+  // When auth state changes, set the email in the assessment participant
+  useEffect(() => {
+    if (isAuthenticated && user?.email) {
+      setAssessment((current) => ({
+        ...current,
+        participant: {
+          ...current.participant,
+          email: user.email,
+          name: user.name || current.participant.name,
+        },
+      }));
+    }
+  }, [isAuthenticated, user?.email, user?.name]);
 
   useEffect(() => {
     if (!isBrowser()) return;
     setWeeklyCheckins(loadWeeklyCheckins());
-  }, []);
+    setMemoryTimeline(memoryEngine.getHistory());
+  }, [memoryEngine]);
+
+  useEffect(() => {
+    if (!isBrowser()) return;
+    const userId = currentUserId || assessment.participant?.email || 'demo';
+    void fetch(`/api/decision?userId=${encodeURIComponent(userId)}`)
+      .then((response) => response.json())
+      .then((data) => {
+        setDecisionHistoryCount(Array.isArray(data.decisions) ? data.decisions.length : 0);
+      })
+      .catch(() => {
+        setDecisionHistoryCount(0);
+      });
+  }, [currentUserId, assessment.participant?.email, decisionsRefresh]);
+
+  useEffect(() => {
+    const market = createDefaultProviderMarketplace();
+    setMarketplaceRecommendations(
+      market.recommend({
+        ...assessment.profile,
+        ...assessment.behaviour,
+        monthlyExpense: assessment.profile.monthlyExpense || assessment.profile.monthlySpending,
+        savings: Number(assessment.profile.emergencySavingsFixed || 0) + Number(assessment.profile.emergencySavingsDiscretionary || 0),
+      }),
+    );
+  }, [assessment.profile, assessment.behaviour]);
 
   useEffect(() => {
     const handleHashChange = () => setActiveHash(window.location.hash || "#home");
@@ -449,30 +577,28 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-    if (!isBrowser() || activeHash === "#admin") return;
+    if (!isBrowser()) return;
 
-    const target = document.getElementById(activeHash.replace("#", ""));
-    if (!target) return;
+    initOfflineApiQueue();
+    refreshQueuedSaveCount();
+    setIsOnline(navigator.onLine);
+    void flushQueuedAssessmentSavesAndRefresh();
 
-    window.requestAnimationFrame(() => {
-      const topbar = document.querySelector(".topbar");
-      const headerOffset = (topbar?.getBoundingClientRect().height ?? 0) + 12;
-      const targetTop = target.getBoundingClientRect().top + window.scrollY - headerOffset;
-      window.scrollTo({ top: Math.max(targetTop, 0), behavior: "smooth" });
-    });
-  }, [activeHash]);
-
-  // Clear any persisted state on initial load so the user must actively select answers
-  useEffect(() => {
-    try {
-      window.localStorage.removeItem(STORAGE_KEY);
-      window.localStorage.removeItem("arth-os-assessment-v2");
-      window.localStorage.removeItem("arth-os-assessment-v1");
-      window.localStorage.removeItem("arth-os-wizard-step");
-      // Keep score history to preserve financial memory across sessions
-    } catch (error) {
-      console.warn("Could not clear localStorage on page load:", error);
+    function handleOnline() {
+      setIsOnline(true);
+      void flushQueuedAssessmentSavesAndRefresh();
     }
+
+    function handleOffline() {
+      setIsOnline(false);
+    }
+
+    window.addEventListener("online", handleOnline);
+    window.addEventListener("offline", handleOffline);
+    return () => {
+      window.removeEventListener("online", handleOnline);
+      window.removeEventListener("offline", handleOffline);
+    };
   }, []);
 
   useEffect(() => {
@@ -499,7 +625,53 @@ export default function App() {
     };
   }, []);
 
+  useEffect(() => {
+    if (!isBrowser()) return;
+    if (window.localStorage.getItem("arth-os-onboarding-complete") === "true") {
+      setShowOnboarding(false);
+    }
+  }, []);
+
+  const dismissOnboarding = () => {
+    if (isBrowser()) {
+      window.localStorage.setItem("arth-os-onboarding-complete", "true");
+    }
+    setShowOnboarding(false);
+  };
+
   const result = useMemo(() => calculateFinancialHealthV2(assessment), [assessment]);
+
+  useEffect(() => {
+    if (!isBrowser()) return;
+
+    const payload = {
+      user: {
+        ...assessment.profile,
+        ...assessment.behaviour,
+        survivalMonths: result.survivalMonthsRaw,
+      },
+      profile: assessment.profile,
+    };
+
+    void fetch("/api/risk-opportunity", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        if (Array.isArray(data.alerts)) {
+          setBackendRiskAlerts(data.alerts);
+        }
+        if (Array.isArray(data.recommendations)) {
+          setBackendMarketplaceRecommendations(data.recommendations);
+        }
+      })
+      .catch(() => {
+        setBackendRiskAlerts([]);
+      });
+  }, [assessment.profile, assessment.behaviour, result.survivalMonthsRaw]);
+
   const cognitionProfile = useMemo(
     () => buildCognitionProfile({
       ...assessment.profile,
@@ -525,7 +697,14 @@ export default function App() {
     [cognitionProfile.riskCalibration.perceivedRisk, cognitionProfile.riskCalibration.actualRisk],
   );
   const habitProgress = useMemo(() => evaluateHabitProgress(weeklyCheckins), [weeklyCheckins]);
-  const forecastHealthValues = useMemo(() => forecastHealth(result.healthScore, Math.round(habitProgress.score / 8)), [result.healthScore, habitProgress.score]);
+  const forecastHealthValues = useMemo(() => {
+    return forecastHealth(
+      result.healthScore,
+      Math.round(habitProgress.score / 8),
+      scoreHistory.length,
+      decisionHistoryCount,
+    );
+  }, [result.healthScore, habitProgress.score, scoreHistory.length, decisionHistoryCount]);
   const memoryInsight = useMemo(() => generateMemoryInsight(weeklyCheckins), [weeklyCheckins]);
   const opportunity = useMemo(() => opportunityForecast(assessment.profile), [assessment.profile]);
   const goalEvolution = useMemo(
@@ -540,19 +719,100 @@ export default function App() {
       assessment.profile.currentGoal,
     ],
   );
-  const cognitionGraph = useMemo(() => {
-    const graph = new CognitionGraph();
-    graph.addNode({ id: "moneyBeliefs" });
-    graph.addNode({ id: "cognitiveBiases" });
-    graph.addNode({ id: "emotionalTriggers" });
-    graph.addNode({ id: "decisions" });
-    graph.addNode({ id: "outcomes" });
-    graph.connect("moneyBeliefs", "cognitiveBiases", 0.9);
-    graph.connect("cognitiveBiases", "emotionalTriggers", 0.8);
-    graph.connect("emotionalTriggers", "decisions", 0.85);
-    graph.connect("decisions", "outcomes", 0.95);
-    return graph.serialize();
-  }, [assessment.profile, assessment.behaviour, assessment.awareness]);
+  const trajectoryNarrative = useMemo(() => buildTrajectoryNarrative(scoreHistory), [scoreHistory]);
+  const riskAlerts = useMemo(
+    () => generateAlerts({
+      ...assessment.profile,
+      ...assessment.behaviour,
+      survivalMonths: result.survivalMonthsRaw,
+    }),
+    [assessment.profile, assessment.behaviour, result.survivalMonthsRaw],
+  );
+  const displayedRiskAlerts = useMemo(
+    () => (backendRiskAlerts.length > 0 ? backendRiskAlerts : riskAlerts),
+    [backendRiskAlerts, riskAlerts],
+  );
+  const fullMemoryEvents = useMemo(() => [...memoryTimeline].reverse(), [memoryTimeline]);
+  const displayedMemoryEvents = useMemo(() => {
+    return showFullMemoryTimeline ? fullMemoryEvents : fullMemoryEvents.slice(0, 3);
+  }, [fullMemoryEvents, showFullMemoryTimeline]);
+  
+  const moneyBeliefs = useMemo(() => deriveMoneyBeliefs({
+    ...assessment.profile,
+    ...assessment.behaviour,
+  }), [assessment.profile, assessment.behaviour]);
+  
+  const emotionalTriggers = useMemo(() => detectTriggers({
+    ...assessment.profile,
+    ...assessment.behaviour,
+  }), [assessment.profile, assessment.behaviour]);
+  
+  const triggerPatterns = useMemo(
+    () => identifyTriggerPatterns(emotionalTriggers, weeklyCheckins),
+    [emotionalTriggers, weeklyCheckins],
+  );
+
+  const financialCognitionGraph = useMemo(() => {
+    const graph = new FinancialCognitionGraph();
+    graph.beliefs = moneyBeliefs.beliefs || [];
+    graph.biases = [
+      { id: 'presentBias', value: biasProfile.presentBias },
+      { id: 'lossAversion', value: biasProfile.lossAversion },
+      { id: 'optimismBias', value: biasProfile.optimismBias },
+    ].filter((item) => item.value !== undefined);
+    graph.emotions = Object.entries(emotionalTriggers || {})
+      .filter(([key, value]) => typeof value === 'number' && value > 0)
+      .map(([key, value]) => ({ id: key, value }));
+    graph.decisions = [
+      { id: 'spendWhenStressed', value: assessment.behaviour.spendWhenStressed || null },
+      { id: 'regretImpulseFreq', value: assessment.behaviour.regretImpulseFreq || null },
+    ].filter((item) => item.value !== null);
+    graph.outcomes = [{ id: 'healthScore', value: result.healthScore }];
+    graph.connect('beliefs', 'biases');
+    graph.connect('biases', 'emotions');
+    graph.connect('emotions', 'decisions');
+    graph.connect('decisions', 'outcomes');
+    return graph;
+  }, [moneyBeliefs.beliefs, biasProfile, emotionalTriggers, assessment.behaviour, result.healthScore]);
+
+  const cognitionGraphData = useMemo(() => {
+    const nodes = [];
+    const addGroup = (items, group) => {
+      (Array.isArray(items) ? items : []).forEach((item, index) => {
+        const id = `${group}-${item.id || index}`;
+        nodes.push({
+          id,
+          title: item.label || item.id || `${group} ${index + 1}`,
+          group,
+        });
+      });
+    };
+
+    addGroup(financialCognitionGraph.beliefs, 'beliefs');
+    addGroup(financialCognitionGraph.biases, 'biases');
+    addGroup(financialCognitionGraph.emotions, 'emotions');
+    addGroup(financialCognitionGraph.decisions, 'decisions');
+    addGroup(financialCognitionGraph.outcomes, 'outcomes');
+
+    const edges = (financialCognitionGraph.connections || []).map((connection, index) => ({
+      source: connection.source,
+      target: connection.target,
+      id: `edge-${index}`,
+    }));
+
+    return { nodes, edges };
+  }, [financialCognitionGraph]);
+  
+  const financialMindProfile = useMemo(() => {
+    const profile = new FinancialMindProfile({ userId: assessment.participant?.email || 'anonymous' });
+    if (moneyBeliefs.beliefs) {
+      moneyBeliefs.beliefs.forEach(b => profile.addBelief(b));
+    }
+    profile.updateBiases(biasProfile);
+    profile.updateEmotionalTriggers(emotionalTriggers);
+    return profile;
+  }, [moneyBeliefs.beliefs, biasProfile, emotionalTriggers, assessment.participant?.email]);
+  
   const scoreProgress = useMemo(() => getProgressSummary(scoreHistory), [scoreHistory]);
 
   useEffect(() => {
@@ -569,8 +829,21 @@ export default function App() {
     const updatedHistory = appendScoreHistory(result.healthScore);
     setScoreHistory(updatedHistory);
     appendAssessmentHistory(result);
+    memoryEngine.addEvent({
+      type: 'assessment_result',
+      score: result.healthScore,
+      personalityType: result.personalityType,
+      stabilityMonths: result.survivalMonthsRaw,
+      source: 'assessment',
+    });
+    memoryEngine.addEvent({
+      type: 'trajectory_snapshot',
+      score: result.healthScore,
+      date: new Date().toISOString(),
+    });
+    setMemoryTimeline(memoryEngine.getHistory());
     setTwinScenarios(buildFinancialTwinScenarios(result, assessment.profile));
-  }, [result.healthScore, assessment.profile, result]);
+  }, [result.healthScore, assessment.profile, result, memoryEngine]);
 
   const ui = {
     behaviourQuestions: v2BehaviourQuestions,
@@ -721,20 +994,8 @@ export default function App() {
 
 
   function exportReport() {
-    const report = {
-      assessment,
-      result,
-      createdAt: new Date().toISOString(),
-    };
-    const blob = new Blob([JSON.stringify(report, null, 2)], {
-      type: "application/json",
-    });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = "arth-os-financial-health-report.json";
-    link.click();
-    URL.revokeObjectURL(url);
+    if (!isBrowser()) return;
+    window.print();
   }
 
   return (
@@ -747,10 +1008,44 @@ export default function App() {
         onExport={exportReport}
         onReset={resetAssessment}
         onSave={saveAssessment}
+        isAuthenticated={isAuthenticated}
+        user={user}
+        onOpenAuth={() => setShowAuthModal(true)}
+        onLogout={logout}
       />
 
+      {showOnboarding && (
+        <OnboardingOverlay onComplete={dismissOnboarding} />
+      )}
+
+      {/* Auth Modal */}
+      {showAuthModal && (
+        <div className="auth-modal-backdrop" onClick={() => setShowAuthModal(false)}>
+          <div className="auth-modal-container" onClick={(e) => e.stopPropagation()}>
+            {authMode === "login" ? (
+              <LoginPage
+                onSwitchToRegister={() => setAuthMode("register")}
+                onClose={() => setShowAuthModal(false)}
+              />
+            ) : (
+              <RegisterPage
+                onSwitchToLogin={() => setAuthMode("login")}
+                onClose={() => setShowAuthModal(false)}
+              />
+            )}
+          </div>
+        </div>
+      )}
+
       <main>
-        {activeHash === "#admin" ? (
+        {activeHash === "#b2b" ? (
+          <Suspense fallback={<LazyComponentFallback />}>
+            <B2BPartnerPortal
+              userId={effectiveUserId}
+              assessment={assessment}
+            />
+          </Suspense>
+        ) : activeHash === "#admin" ? (
           <AdminSection
             assessment={assessment}
             result={result}
@@ -772,17 +1067,18 @@ export default function App() {
               />
             )}
             {showAssessmentSection && (
-              <AssessmentSection
-                assessment={assessment}
-                result={result}
-                onChange={updateGroup}
-                onSaveAssessment={saveAssessment}
-                ui={ui}
-                resetTrigger={resetTrigger}
-              />
+              <ErrorBoundary>
+                <AssessmentSection
+                  assessment={assessment}
+                  result={result}
+                  onChange={updateGroup}
+                  onSaveAssessment={saveAssessment}
+                  ui={ui}
+                  resetTrigger={resetTrigger}
+                />
+              </ErrorBoundary>
             )}
 
-            {/* SMS Ingest Form (Optional enrichment) */}
             {showSmsForm && activeHash === "#assessment" && (
               <section style={{ maxWidth: "1200px", margin: "20px auto", padding: "0 16px" }}>
                 <div className="section-card">
@@ -795,167 +1091,187 @@ export default function App() {
               </section>
             )}
 
-            {/* SMS Enrichment Applied Badge */}
             {smsEnrichment && (
-              <section style={{ maxWidth: "1200px", margin: "20px auto", padding: "0 16px" }}>
-                <div style={{
-                  padding: "12px 16px",
-                  backgroundColor: "#dcfce7",
-                  border: "2px solid #22c55e",
-                  borderRadius: "8px",
-                  color: "#166534"
-                }}>
+              <section className="premium-inline-badge-wrap" style={{ maxWidth: "1200px", margin: "20px auto", padding: "0 16px" }}>
+                <div className="premium-success-badge">
                   ✓ Your assessment has been enriched with {smsEnrichment.transactions?.length || 0} banking transactions
                 </div>
               </section>
             )}
 
+
             <section className="assessment-summary-grid" id="reports">
               <div className="summary-main-column">
-                <AnalyticsDashboard result={result} />
-                {/* Salary Roast Generator */}
+                <Suspense fallback={<LazyComponentFallback />}>
+                  <ErrorBoundary>
+                    <AnalyticsDashboard result={result} />
+                  </ErrorBoundary>
+                </Suspense>
                 <section className="summary-card">
-                  <div style={{ padding: "20px 0", borderBottom: "1px solid #e5e7eb", marginBottom: "20px" }}>
-                    <h2 style={{ fontSize: "20px", fontWeight: "bold", display: "flex", alignItems: "center", gap: "8px" }}>
-                      🔥 Financial Roast
-                    </h2>
+                  <div className="premium-report-section-header">
+                    <h2 className="premium-report-section-title">🔥 Financial Roast</h2>
                   </div>
                   <SalaryRoastGenerator
                     assessmentResult={result}
                     profile={assessment.profile}
                   />
                 </section>
-                {/* Scenario Forecasting */}
                 <section className="summary-card">
-                  <div style={{ padding: "20px 0", borderBottom: "1px solid #e5e7eb", marginBottom: "20px" }}>
-                    <h2 style={{ fontSize: "20px", fontWeight: "bold", display: "flex", alignItems: "center", gap: "8px" }}>
-                      📊 Financial Forecast
-                    </h2>
+                  <div className="premium-report-section-header">
+                    <h2 className="premium-report-section-title">📊 Financial Forecast</h2>
                   </div>
                   <ScenarioForecast
                     profile={assessment.profile}
                     assessmentResult={result}
                   />
                 </section>
-                <section className="summary-card" style={{ padding: "24px" }}>
-                  <div style={{ paddingBottom: "16px", borderBottom: "1px solid #e5e7eb", marginBottom: "18px" }}>
-                    <h2 style={{ fontSize: "20px", fontWeight: "bold" }}>🧠 Cognition & Future Risk</h2>
-                    <p style={{ margin: "8px 0 0", color: "#475569", fontSize: 14 }}>
+                <section className="summary-card premium-report-block">
+                  <div className="premium-report-block-header">
+                    <h2 className="premium-report-block-title">🧠 Cognition & Future Risk</h2>
+                    <p className="premium-report-block-subtitle">
                       See your cognitive calibration, runway risk, and forecasted health trajectory.
                     </p>
                   </div>
-                  <div style={{ display: "grid", gap: "16px" }}>
-                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "14px" }}>
-                      <div style={{ padding: "16px", border: "1px solid #e5e7eb", borderRadius: "12px", background: "#f8fafc" }}>
-                        <div style={{ fontSize: 12, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.04em" }}>
-                          Calibration gap
-                        </div>
-                        <div style={{ marginTop: 8, fontSize: 24, fontWeight: 700 }}>
-                          {riskCalibration.calibrationGap}%
-                        </div>
-                        <div style={{ marginTop: 6, color: "#475569", fontSize: 13 }}>
-                          Perceived vs. actual risk alignment.
-                        </div>
+                  <div className="premium-report-grid">
+                    <div className="premium-report-grid-2">
+                      <div className="premium-metric-tile">
+                        <div className="premium-metric-kicker">Calibration gap</div>
+                        <div className="premium-metric-value">{riskCalibration.calibrationGap}%</div>
+                        <div className="premium-metric-desc">Perceived vs. actual risk alignment.</div>
                       </div>
-                      <div style={{ padding: "16px", border: "1px solid #e5e7eb", borderRadius: "12px", background: "#f8fafc" }}>
-                        <div style={{ fontSize: 12, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.04em" }}>
-                          Near-term runway
-                        </div>
-                        <div style={{ marginTop: 8, fontSize: 24, fontWeight: 700 }}>
-                          {futureRisk.runway} months
-                        </div>
-                        <div style={{ marginTop: 6, color: "#475569", fontSize: 13 }}>
-                          {futureRisk.message}
-                        </div>
+                      <div className="premium-metric-tile">
+                        <div className="premium-metric-kicker">Near-term runway</div>
+                        <div className="premium-metric-value">{futureRisk.runway} months</div>
+                        <div className="premium-metric-desc">{futureRisk.message}</div>
                       </div>
                     </div>
-                    <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: "14px" }}>
-                      <div style={{ padding: "16px", border: "1px solid #e5e7eb", borderRadius: "12px", background: "#fff" }}>
-                        <div style={{ fontSize: 12, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.04em" }}>
-                          30 day health
-                        </div>
-                        <div style={{ marginTop: 8, fontSize: 22, fontWeight: 700 }}>
-                          {forecastHealthValues.day30}
-                        </div>
+                    <div className="premium-report-grid-3">
+                      <div className="premium-metric-tile">
+                        <div className="premium-metric-kicker">30 day health (p50)</div>
+                        <div className="premium-metric-value">{forecastHealthValues.day30?.p50 ?? '—'}</div>
+                        <div className="premium-metric-desc">Range: {forecastHealthValues.day30?.p25 ?? '—'}–{forecastHealthValues.day30?.p75 ?? '—'}</div>
                       </div>
-                      <div style={{ padding: "16px", border: "1px solid #e5e7eb", borderRadius: "12px", background: "#fff" }}>
-                        <div style={{ fontSize: 12, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.04em" }}>
-                          90 day health
-                        </div>
-                        <div style={{ marginTop: 8, fontSize: 22, fontWeight: 700 }}>
-                          {forecastHealthValues.day90}
-                        </div>
+                      <div className="premium-metric-tile">
+                        <div className="premium-metric-kicker">90 day health (p50)</div>
+                        <div className="premium-metric-value">{forecastHealthValues.day90?.p50 ?? '—'}</div>
+                        <div className="premium-metric-desc">Range: {forecastHealthValues.day90?.p25 ?? '—'}–{forecastHealthValues.day90?.p75 ?? '—'}</div>
                       </div>
-                      <div style={{ padding: "16px", border: "1px solid #e5e7eb", borderRadius: "12px", background: "#fff" }}>
-                        <div style={{ fontSize: 12, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.04em" }}>
-                          180 day health
-                        </div>
-                        <div style={{ marginTop: 8, fontSize: 22, fontWeight: 700 }}>
-                          {forecastHealthValues.day180}
-                        </div>
+                      <div className="premium-metric-tile">
+                        <div className="premium-metric-kicker">180 day health (p50)</div>
+                        <div className="premium-metric-value">{forecastHealthValues.day180?.p50 ?? '—'}</div>
+                        <div className="premium-metric-desc">Range: {forecastHealthValues.day180?.p25 ?? '—'}–{forecastHealthValues.day180?.p75 ?? '—'}</div>
                       </div>
                     </div>
-                    <div style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: "14px" }}>
-                      <div style={{ padding: "16px", border: "1px solid #e5e7eb", borderRadius: "12px", background: "#fff" }}>
-                        <div style={{ fontSize: 12, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.04em" }}>
-                          Cognitive bias load
-                        </div>
-                        <div style={{ marginTop: 8, fontSize: 24, fontWeight: 700 }}>
+                    <div className="premium-report-grid-2">
+                      <div className="premium-metric-tile">
+                        <div className="premium-metric-kicker">Forecast confidence</div>
+                        <div className="premium-metric-value">{forecastHealthValues.confidence}%</div>
+                        <div className="premium-metric-desc">Based on {scoreHistory.length} historical datapoints and {decisionHistoryCount} decisions tracked.</div>
+                      </div>
+                      <div className="premium-metric-tile">
+                        <div className="premium-metric-kicker">Cognitive bias load</div>
+                        <div className="premium-metric-value">
                           {Math.round((biasProfile.presentBias + biasProfile.lossAversion + biasProfile.optimismBias + biasProfile.anchoringBias + biasProfile.sunkCostBias) / 5)}%
                         </div>
-                        <div style={{ marginTop: 6, color: "#475569", fontSize: 13 }}>
-                          Average exposure across your core bias dimensions.
-                        </div>
+                        <div className="premium-metric-desc">Average exposure across your core bias dimensions.</div>
                       </div>
-                      <div style={{ padding: "16px", border: "1px solid #e5e7eb", borderRadius: "12px", background: "#fff" }}>
-                        <div style={{ fontSize: 12, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.04em" }}>
-                          Opportunity forecast
-                        </div>
-                        <div style={{ marginTop: 8, fontSize: 18, fontWeight: 700 }}>
-                          {opportunity.action}
-                        </div>
-                        <div style={{ marginTop: 6, color: "#475569", fontSize: 13 }}>
-                          {opportunity.benefit}
-                        </div>
+                      <div className="premium-metric-tile">
+                        <div className="premium-metric-kicker">Opportunity forecast</div>
+                        <div className="premium-metric-value premium-metric-value-compact">{opportunity.action}</div>
+                        <div className="premium-metric-desc">{opportunity.benefit}</div>
                       </div>
                     </div>
-                    <div style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: "14px" }}>
-                      <div style={{ padding: "16px", border: "1px solid #e5e7eb", borderRadius: "12px", background: "#f8fafc" }}>
-                        <div style={{ fontSize: 12, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.04em" }}>
-                          Cognition graph
-                        </div>
-                        <div style={{ marginTop: 8, fontSize: 24, fontWeight: 700 }}>
-                          {cognitionGraph.nodes.length} nodes
-                        </div>
-                        <div style={{ marginTop: 6, color: "#475569", fontSize: 13 }}>
-                          {cognitionGraph.edges.length} links modeling belief → bias → outcome.
-                        </div>
+                    <div className="premium-report-grid-2">
+                      <div className="premium-metric-tile">
+                        <div className="premium-metric-kicker">Cognition graph</div>
+                        <div className="premium-metric-value">{financialCognitionGraph.beliefs.length + financialCognitionGraph.biases.length + financialCognitionGraph.emotions.length + financialCognitionGraph.decisions.length + financialCognitionGraph.outcomes.length} elements</div>
+                        <div className="premium-metric-desc">{financialCognitionGraph.connections.length} connections modeling belief → bias → outcome.</div>
                       </div>
-                      <div style={{ padding: "16px", border: "1px solid #e5e7eb", borderRadius: "12px", background: "#f8fafc" }}>
-                        <div style={{ fontSize: 12, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.04em" }}>
-                          Risk calibration
-                        </div>
-                        <div style={{ marginTop: 8, fontSize: 24, fontWeight: 700 }}>
-                          {riskCalibration.calibrated ? "Aligned" : "Misaligned"}
-                        </div>
-                        <div style={{ marginTop: 6, color: "#475569", fontSize: 13 }}>
-                          Perception gap is {riskCalibration.calibrationGap}%.
-                        </div>
+                      <div className="premium-metric-tile">
+                        <div className="premium-metric-kicker">Risk calibration</div>
+                        <div className="premium-metric-value">{riskCalibration.calibrated ? "Aligned" : "Misaligned"}</div>
+                        <div className="premium-metric-desc">Perception gap is {riskCalibration.calibrationGap}%.</div>
                       </div>
                     </div>
+                    <div className="premium-metric-tile premium-metric-tile-wide">
+                      <strong className="premium-metric-heading">Risk & opportunity alerts</strong>
+                      <ul className="risk-alert-list">
+                        {displayedRiskAlerts.map((alert, index) => (
+                          <li key={`${alert.type}-${index}`} className={`risk-alert risk-alert-${alert.type}`}>
+                            <strong>{alert.title}</strong>
+                            <span>{alert.message}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                    {(backendMarketplaceRecommendations.length > 0 || marketplaceRecommendations.length > 0) && (
+                      <div className="premium-metric-tile premium-metric-tile-wide">
+                        <strong className="premium-metric-heading">Marketplace recommendations</strong>
+                        <p className="premium-metric-longtext">
+                          {backendMarketplaceRecommendations.length > 0
+                            ? backendMarketplaceRecommendations.map((provider) => provider.name).join(', ')
+                            : marketplaceRecommendations.map((provider) => provider.name).join(', ')}
+                        </p>
+                      </div>
+                    )}
                     {memoryInsight && (
-                      <div style={{ padding: "18px", border: "1px solid #e2e8f0", borderRadius: "12px", background: "#f8fafc" }}>
-                        <strong style={{ display: "block", marginBottom: "8px" }}>Memory Insight</strong>
-                        <p style={{ margin: 0, color: "#334155" }}>{memoryInsight.insight}</p>
+                      <div className="premium-metric-tile premium-metric-tile-wide">
+                        <strong className="premium-metric-heading">Memory Insight</strong>
+                        <p className="premium-metric-longtext">{memoryInsight.insight}</p>
+                      </div>
+                    )}
+                    <div className="premium-metric-tile premium-metric-tile-wide">
+                      <strong className="premium-metric-heading">Score trajectory</strong>
+                      <p className="premium-metric-longtext">{trajectoryNarrative}</p>
+                    </div>
+                    <div className="premium-metric-tile premium-metric-tile-wide">
+                      <strong className="premium-metric-heading">Cognition graph explorer</strong>
+                      <Suspense fallback={<LazyComponentFallback />}>
+                        <CognitionGraphView nodes={cognitionGraphData.nodes} edges={cognitionGraphData.edges} />
+                      </Suspense>
+                    </div>
+                    <div className="premium-metric-tile premium-metric-tile-wide">
+                      <strong className="premium-metric-heading">Unified memory</strong>
+                      <p className="premium-metric-longtext">{memoryTimeline.length} memory events stored across your financial history.</p>
+                      {displayedMemoryEvents.length > 0 ? (
+                        <>
+                          <ul className="memory-timeline-list">
+                            {displayedMemoryEvents.map((event, index) => (
+                              <li key={`${event.type}-${event.timestamp}-${index}`}>
+                                <strong>{event.type.replaceAll('_', ' ')}</strong>: {event.score !== undefined ? `score ${event.score}` : event.name || event.description || 'event recorded'}
+                                <span> · {new Date(event.timestamp).toLocaleDateString()}</span>
+                              </li>
+                            ))}
+                          </ul>
+                          {memoryTimeline.length > 3 && (
+                            <button
+                              type="button"
+                              className="memory-toggle-button"
+                              onClick={() => setShowFullMemoryTimeline((current) => !current)}
+                            >
+                              {showFullMemoryTimeline ? "Show recent events" : "View full memory timeline"}
+                            </button>
+                          )}
+                        </>
+                      ) : (
+                        <p className="premium-metric-longtext">Complete an assessment to start building your financial memory timeline.</p>
+                      )}
+                    </div>
+                    {marketplaceRecommendations.length > 0 && (
+                      <div className="premium-metric-tile premium-metric-tile-wide">
+                        <strong className="premium-metric-heading">OS marketplace</strong>
+                        <p className="premium-metric-longtext">
+                          Recommended providers: {marketplaceRecommendations.map((provider) => provider.name).join(", ")}.
+                        </p>
                       </div>
                     )}
                     {(goalEvolution.previousGoal || goalEvolution.currentGoal) && (
-                      <div style={{ padding: "18px", border: "1px solid #e2e8f0", borderRadius: "12px", background: "#fff" }}>
-                        <span style={{ fontSize: 12, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.04em" }}>Goal evolution</span>
-                        <div style={{ marginTop: 8, fontSize: 18, fontWeight: 700 }}>
+                      <div className="premium-metric-tile premium-metric-tile-wide">
+                        <span className="premium-metric-kicker">Goal evolution</span>
+                        <div className="premium-metric-value premium-metric-value-compact">
                           {goalEvolution.changed ? "Goal path shifted" : "Goal path stable"}
                         </div>
-                        <div style={{ marginTop: 6, color: "#475569", fontSize: 13 }}>
+                        <div className="premium-metric-desc">
                           {goalEvolution.changed
                             ? `Moved from ${goalEvolution.previousGoal || "previous"} to ${goalEvolution.currentGoal || "current"}.`
                             : "Your current goal remains consistent."}
@@ -964,83 +1280,154 @@ export default function App() {
                     )}
                   </div>
                 </section>
-                {/* Decision Simulator - Phase 3 Strategic Engine */}
-                <DecisionSimulator
-                  id="simulator"
-                  profile={assessment.profile}
-                  behaviour={assessment.behaviour}
-                />
+
+                <section className="summary-card premium-report-block">
+                  <MoneyBeliefsCard moneyBeliefs={moneyBeliefs} />
+                  <EmotionalTriggersCard triggers={emotionalTriggers} patterns={triggerPatterns} />
+                  <FinancialMindProfileCard profile={financialMindProfile} />
+                </section>
+
+                <ErrorBoundary>
+                  <DecisionSimulator
+                    id="simulator"
+                    profile={assessment.profile}
+                    behaviour={assessment.behaviour}
+                  />
+                </ErrorBoundary>
               </div>
 
               <div className="assessment-summary-sidebar">
-                <FinancialTwin
-                  personalityType={result.personalityType}
-                  behaviourScore={result.behaviourScore}
-                  awarenessScore={result.awarenessScore}
-                  scenarios={twinScenarios}
-                />
+                <Suspense fallback={<LazyComponentFallback />}>
+                  <ErrorBoundary>
+                    <FinancialTwin
+                      personalityType={result.personalityType}
+                      behaviourScore={result.behaviourScore}
+                      awarenessScore={result.awarenessScore}
+                      scenarios={twinScenarios}
+                    />
+                  </ErrorBoundary>
+                </Suspense>
+                <PeerComparisonCard userScore={result.healthScore} />
                 <FinancialDNA result={result} />
+                {isAuthenticated ? (
+                  <div className="summary-card padded" style={{ marginTop: "18px" }}>
+                    <div className="auth-status-card">
+                      <CircleUserRound size={20} />
+                      <span>Signed in as <strong>{user?.name || user?.email}</strong></span>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="summary-card padded" style={{ marginTop: "18px" }}>
+                    <div className="auth-status-card">
+                      <LogIn size={20} />
+                      <span>
+                        <button
+                          type="button"
+                          className="auth-link-btn"
+                          onClick={() => { setAuthMode("login"); setShowAuthModal(true); }}
+                        >
+                          Sign in
+                        </button>
+                        {" "}or{" "}
+                        <button
+                          type="button"
+                          className="auth-link-btn"
+                          onClick={() => { setAuthMode("register"); setShowAuthModal(true); }}
+                        >
+                          create an account
+                        </button>
+                        {" "}to persist data across devices
+                      </span>
+                    </div>
+                  </div>
+                )}
                 <UpgradeJourney result={result} currentScore={result.healthScore} />
-                {/* SMS Integration Button in Sidebar */}
                 {!showSmsForm && !smsEnrichment && (
-                  <section style={{ padding: "20px", backgroundColor: "#eff6ff", border: "2px solid #93c5fd", borderRadius: "8px" }}>
-                    <p style={{ fontSize: "14px", fontWeight: "600", marginBottom: "12px" }}>💬 Enrich Your Assessment</p>
-                    <button
-                      onClick={() => setShowSmsForm(true)}
-                      style={{
-                        width: "100%",
-                        padding: "10px",
-                        backgroundColor: "#3b82f6",
-                        color: "white",
-                        border: "none",
-                        borderRadius: "6px",
-                        fontWeight: "600",
-                        cursor: "pointer",
-                        fontSize: "14px"
-                      }}
-                      onMouseEnter={(e) => e.target.style.backgroundColor = "#2563eb"}
-                      onMouseLeave={(e) => e.target.style.backgroundColor = "#3b82f6"}
-                    >
-                      Add Banking Data (SMS)
+                  <section className="enrichment-banner">
+                    <p className="enrichment-banner-title">{ASSESSMENT_BANNER.title}</p>
+                    <button type="button" className="enrichment-button" onClick={() => setShowSmsForm(true)}>
+                      {ASSESSMENT_BANNER.cta}
                     </button>
-                    <p style={{ fontSize: "12px", color: "#64748b", marginTop: "8px" }}>
-                      Import banking alerts to refine your assessment
-                    </p>
+                    <p className="enrichment-copy">{ASSESSMENT_BANNER.description}</p>
                   </section>
                 )}
 
-                <section className="summary-card" style={{ padding: "20px", marginTop: "18px" }}>
+                <section className="summary-card padded" style={{ marginTop: "18px" }}>
                   <PartnerSdkDemo
-                    userId={assessment.participant?.email || 'demo'}
+                    userId={effectiveUserId}
                     assessment={assessment}
                   />
                 </section>
               </div>
 
-              {/* Full-width centered UserHistory spanning both columns */}
-              <UserHistory
-                className="summary-span"
-                currentScore={result.healthScore}
-                personalityType={result.personalityType}
-              />
-              
-              {/* Enhanced Insights */}
-              <section className="summary-span">
+              <section id="memory" className="summary-span">
                 <div className="summary-card">
-                  <div style={{ padding: "20px 0", borderBottom: "1px solid #e5e7eb", marginBottom: "20px" }}>
-                    <h2 style={{ fontSize: "20px", fontWeight: "bold", display: "flex", alignItems: "center", gap: "8px" }}>
-                      💡 Personalized Insights
-                    </h2>
+                  <div className="premium-report-section-header">
+                    <h2 className="premium-report-section-title">🧠 Memory Timeline</h2>
+                    <p className="premium-report-block-subtitle">
+                      A dedicated memory view for your recorded financial events, reflections and decision milestones.
+                    </p>
                   </div>
-                  <EnhancedInsightNarrative
-                    assessmentResult={result}
-                    assessment={assessment}
-                  />
+                  {memoryTimeline.length > 0 ? (
+                    <>
+                      <div className="premium-report-grid-2">
+                        <div className="premium-metric-tile">
+                          <div className="premium-metric-kicker">Memory events</div>
+                          <div className="premium-metric-value">{memoryTimeline.length}</div>
+                          <div className="premium-metric-desc">Events captured from assessments, forecasts, and decisions.</div>
+                        </div>
+                        <div className="premium-metric-tile">
+                          <div className="premium-metric-kicker">Latest entry</div>
+                          <div className="premium-metric-value">
+                            {new Date(fullMemoryEvents[0]?.timestamp || Date.now()).toLocaleDateString()}
+                          </div>
+                          <div className="premium-metric-desc">Most recent financial memory update.</div>
+                        </div>
+                      </div>
+                      <ul className="memory-timeline-list memory-timeline-page-list">
+                        {fullMemoryEvents.map((event, index) => (
+                          <li key={`${event.type}-${event.timestamp}-${index}`}>
+                            <strong>{event.type.replaceAll('_', ' ')}</strong>
+                            <span>{event.score !== undefined ? `Score ${event.score}` : event.name || event.description || 'Event recorded'}</span>
+                            <span>{new Date(event.timestamp).toLocaleDateString()} · {new Date(event.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </>
+                  ) : (
+                    <p className="premium-metric-longtext">No financial memory events yet. Keep using the app to build a richer timeline of your financial journey.</p>
+                  )}
+                </div>
+              </section>
+              
+              <section id="history" className="summary-span">
+                <Suspense fallback={<LazyComponentFallback />}>
+                  <ErrorBoundary>
+                    <UserHistory
+                      className="summary-span"
+                      currentScore={result.healthScore}
+                      personalityType={result.personalityType}
+                    />
+                  </ErrorBoundary>
+                </Suspense>
+              </section>
+              
+              <section className="summary-span">
+                <div className="summary-card premium-report-block" style={{ padding: "24px" }}>
+                  <div className="premium-report-block-header">
+                    <h2 className="premium-report-block-title">{INSIGHT_TITLES.narrativeTitle}</h2>
+                    <p className="premium-report-block-subtitle">{INSIGHT_TITLES.narrativeSubtitle}</p>
+                  </div>
+                  <ErrorBoundary>
+                    <EnhancedInsightNarrative
+                      assessmentResult={result}
+                      assessment={assessment}
+                    />
+                  </ErrorBoundary>
                 </div>
               </section>
             </section>
 
-            {/* Advanced Diagnostic Components */}
             <div style={{ maxWidth: "1200px", margin: "0 auto", padding: "0 16px" }}>
               <div className="diagnostics-grid">
                 <SurvivalHero survivalMonths={result.survivalMonthsRaw} />
@@ -1050,7 +1437,6 @@ export default function App() {
               <SingleRecommendedAction result={result} assessment={assessment} />
               <TraitMatrixVisualizer result={result} assessment={assessment} />
 
-              {/* Strategic Defensibility Layer - Phase 4 Core Engines */}
               <ConsequenceForecastCard result={result} assessment={assessment} />
               <InterventionsPrescriptionCard result={result} assessment={assessment} />
               <StrategicMetricsCard 
@@ -1060,21 +1446,18 @@ export default function App() {
                 stability={assessment?.stability}
               />
               <DailyCheckinForm onCheckin={handleDailyCheckin} />
-              {/* Decisions UI */}
-              <section id="decisions" style={{ marginTop: 20 }}>
-                <h2 style={{ fontSize: 18, marginBottom: 12 }}>Decisions</h2>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 360px', gap: 16 }}>
-                  <div>
-                    {/* Decision history list */}
-                    <DecisionHistory userId={assessment.participant?.email || 'demo'} refreshSignal={decisionsRefresh} />
-                  </div>
-                  <div>
-                    {/* Decision recording form */}
-                    <RecordDecision userId={assessment.participant?.email || 'demo'} onSaved={() => {
-                      // soft refresh decision list
-                      setDecisionsRefresh((c) => c + 1);
-                    }} />
-                  </div>
+              <section id="decisions" className="summary-card premium-report-block decision-overview-section">
+                <div className="premium-report-block-header">
+                  <h2 className="premium-report-block-title">Decisions</h2>
+                  <p className="premium-report-block-subtitle">
+                    Track your choices, review recent outcomes, and keep decision-making aligned to your financial goals.
+                  </p>
+                </div>
+                <div className="decision-section-grid">
+                  <DecisionHistory userId={effectiveUserId} refreshSignal={decisionsRefresh} />
+                  <RecordDecision userId={effectiveUserId} onSaved={() => {
+                    setDecisionsRefresh((c) => c + 1);
+                  }} />
                 </div>
               </section>
             </div>
@@ -1087,7 +1470,6 @@ export default function App() {
 
 function deriveDrivers(result, assessment) {
   if (!result) return [];
-  // Simple heuristic mapping for MVP
   const drivers = [];
   const spendWhenStressed = assessment.behaviour?.spendWhenStressed;
   if (spendWhenStressed && spendWhenStressed !== "never") {
@@ -1101,7 +1483,6 @@ function deriveDrivers(result, assessment) {
     drivers.push({ title: "Poor Expense Tracking", impact: -9 });
   }
 
-  // Fallback sample drivers if none derived
   if (drivers.length === 0) {
     drivers.push({ title: "Low savings rate", impact: -8 });
     drivers.push({ title: "Irregular income", impact: -6 });
@@ -1130,8 +1511,8 @@ function ScoreRing({ score }) {
             outerRadius={96}
             paddingAngle={3}
           >
-            <Cell fill="rgba(139, 92, 246, 0.96)" />
-            <Cell fill="rgba(255, 255, 255, 0.08)" />
+            <Cell fill="var(--purple-96)" />
+            <Cell fill="var(--white-08)" />
           </Pie>
         </PieChart>
       </ResponsiveContainer>
@@ -1183,7 +1564,6 @@ function FinancialDNA({ result }) {
 }
 
 function UpgradeJourney({ result, currentScore }) {
-  // Build journey data from current health score; in production, this would come from history
   const journeyData = [
     { month: "Week 1", healthScore: Math.max(0, currentScore - 28) },
     { month: "Week 2", healthScore: Math.max(0, currentScore - 21) },
@@ -1206,19 +1586,19 @@ function UpgradeJourney({ result, currentScore }) {
           <AreaChart data={journeyData} margin={{ top: 10, right: 0, left: 0, bottom: 0 }}>
             <defs>
               <linearGradient id="journeyGrad" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="#8b5cf6" stopOpacity={0.7} />
-                <stop offset="100%" stopColor="#8b5cf6" stopOpacity={0.08} />
+                <stop offset="0%" stopColor="var(--purple)" stopOpacity={0.7} />
+                <stop offset="100%" stopColor="var(--purple)" stopOpacity={0.08} />
               </linearGradient>
             </defs>
-            <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fill: "rgba(255,255,255,0.76)", fontSize: 12 }} />
+            <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fill: "var(--white-76)", fontSize: 12 }} />
             <Area
               type="monotone"
               dataKey="healthScore"
-              stroke="#8b5cf6"
+              stroke="var(--purple)"
               strokeWidth={3}
               fill="url(#journeyGrad)"
               fillOpacity={1}
-              activeDot={{ r: 5, fill: "#fff", stroke: "#8b5cf6", strokeWidth: 2 }}
+              activeDot={{ r: 5, fill: "var(--white)", stroke: "var(--purple)", strokeWidth: 2 }}
             />
           </AreaChart>
         </ResponsiveContainer>
@@ -1244,11 +1624,11 @@ function AdminSection({
       <div className="admin-panel">
         <div className="admin-header">
           <div>
-            <span className="admin-label">Admin Dashboard</span>
+            <span className="admin-label">{ADMIN_LABELS.dashboard}</span>
           </div>
           {adminLoggedIn && (
             <button type="button" className="ghost-button admin-logout-btn" onClick={onAdminLogout}>
-              Logout
+              {ADMIN_LABELS.logout}
             </button>
           )}
         </div>
@@ -1256,7 +1636,7 @@ function AdminSection({
         {!adminLoggedIn ? (
           <form className="admin-login-card" onSubmit={onAdminLogin} autoComplete="off">
             <label>
-              Username
+              {ADMIN_LABELS.username}
               <input
                 type="text"
                 autoComplete="username"
@@ -1268,7 +1648,7 @@ function AdminSection({
               />
             </label>
             <label>
-              Password
+              {ADMIN_LABELS.password}
               <input
                 type="password"
                 autoComplete="current-password"
@@ -1281,31 +1661,31 @@ function AdminSection({
             </label>
             {adminLoginError && <p className="admin-login-error">{adminLoginError}</p>}
             <button type="submit" className="primary-link admin-login-btn">
-              Sign In
+              {ADMIN_LABELS.signIn}
             </button>
           </form>
         ) : (
           <>
             <div className="admin-summary-grid">
               <div className="admin-card">
-                <h3>Participant data</h3>
+                <h3>{ADMIN_LABELS.participantData}</h3>
                 <pre>{JSON.stringify(assessment.participant, null, 2)}</pre>
               </div>
               <div className="admin-card">
-                <h3>Profile inputs</h3>
+                <h3>{ADMIN_LABELS.profileInputs}</h3>
                 <pre>{JSON.stringify(assessment.profile, null, 2)}</pre>
               </div>
               <div className="admin-card">
-                <h3>Behaviour answers</h3>
+                <h3>{ADMIN_LABELS.behaviourAnswers}</h3>
                 <pre>{JSON.stringify(assessment.behaviour, null, 2)}</pre>
               </div>
               <div className="admin-card">
-                <h3>Awareness answers</h3>
+                <h3>{ADMIN_LABELS.awarenessAnswers}</h3>
                 <pre>{JSON.stringify(assessment.awareness, null, 2)}</pre>
               </div>
               {assessment.habits && (
                 <div className="admin-card admin-habits-card">
-                  <h3>Habits answers</h3>
+                  <h3>{ADMIN_LABELS.habitsAnswers}</h3>
                   <pre>{JSON.stringify(assessment.habits, null, 2)}</pre>
                 </div>
               )}
@@ -1313,9 +1693,9 @@ function AdminSection({
 
             <div className="admin-actions-row">
               <button type="button" className="admin-generate-btn" onClick={onGenerateReport}>
-                Generate report
+                {ADMIN_LABELS.generateReport}
               </button>
-              <span className="admin-report-hint">This produces the same report payload visible for review.</span>
+              <span className="admin-report-hint">{ADMIN_LABELS.reportHint}</span>
             </div>
 
             {adminReport && (
@@ -1339,6 +1719,10 @@ function Header({
   onExport,
   onReset,
   onSave,
+  isAuthenticated,
+  user,
+  onOpenAuth,
+  onLogout,
 }) {
 
   return (
@@ -1352,7 +1736,7 @@ function Header({
       </a>
 
       <nav className="nav-links" aria-label="Primary navigation">
-        {navItems.map((item) => (
+        {NAV_ITEMS.map((item) => (
           <a
             href={item.href}
             key={item.label}
@@ -1375,6 +1759,27 @@ function Header({
           <Bell size={18} />
           <span />
         </button>
+        <button type="button" className="model-icon-btn" title="Export report as PDF" onClick={onExport}>
+          <Download size={18} />
+        </button>
+
+        {/* Auth button */}
+        {isAuthenticated && user ? (
+          <div className="auth-header-group">
+            <span className="auth-header-user" title={user.email}>
+              <CircleUserRound size={16} />
+              <span>{user.name || user.email?.split("@")[0]}</span>
+            </span>
+            <button type="button" className="model-icon-btn" title="Sign out" onClick={onLogout}>
+              <LogOut size={16} />
+            </button>
+          </div>
+        ) : (
+          <button type="button" className="model-icon-btn" title="Sign in" onClick={onOpenAuth}>
+            <LogIn size={18} />
+          </button>
+        )}
+
         <a className="model-avatar-btn" href="#admin" aria-label="Admin dashboard">
           <span>A</span>
           <ChevronDown size={15} />
@@ -1387,6 +1792,8 @@ function Header({
     </header>
   );
 }
+
+const sIcons = { behaviour: Brain, awareness: BarChart3, stability: ShieldCheck };
 
 function HeroSection({ assessment, result }) {
   const scorePreview = Math.max(0, Math.min(100, Math.round(result.healthScore ?? 0)));
@@ -1426,28 +1833,20 @@ function HeroSection({ assessment, result }) {
             clearer financial decisions.
           </p>
           <div className="hero-stat-card">
-            <div className="metric">
-              <span>24+</span>
-              <label>Behavior Signals</label>
-            </div>
-            <div className="metric">
-              <span>3</span>
-              <label>BAS Dimensions</label>
-            </div>
-            <div className="metric">
-              <span>1</span>
-              <label>Financial Reality Score</label>
-            </div>
+            {HERO_STATS.map((item) => (
+              <div className="metric" key={item.label}>
+                <span>{item.value}</span>
+                <label>{item.label}</label>
+              </div>
+            ))}
           </div>
           <div className="model-hero-actions">
-            <a className="model-primary-cta" href="#assessment">
-              Build My Score
-              <ArrowRight size={18} />
-            </a>
-            <a className="model-secondary-cta" href="#intelligence">
-              View Intelligence
-              <ArrowRight size={18} />
-            </a>
+            {HERO_ACTIONS.map((action) => (
+              <a key={action.label} className={action.href === "#assessment" ? "model-primary-cta" : "model-secondary-cta"} href={action.href}>
+                {action.label}
+                <ArrowRight size={18} />
+              </a>
+            ))}
           </div>
         </div>
 
@@ -1508,402 +1907,31 @@ function HeroSection({ assessment, result }) {
           </div>
         </article>
 
-        <aside className="model-insights-rail" id="insights" aria-label="Live insights">
+        <aside className="model-insights-rail">
           <div className="model-insights-header">
+            <h2>Live Insights</h2>
             <div>
-              <Sparkles size={18} />
-              <h2>Live Insights</h2>
+              <a className="model-view-insights">View all</a>
             </div>
-            <span>Live</span>
           </div>
+
           <div className="model-insight-list">
-            {liveInsights.map(({ icon: Icon, title, copy, time, tone }) => (
-              <article className={`model-insight-card tone-${tone}`} key={title}>
-                <div className="model-insight-icon">
-                  <Icon size={24} />
+            {liveInsights.map((it, idx) => {
+              const Icon = it.icon;
+              return (
+                <div className={`model-insight-card tone-${it.tone}`} key={idx}>
+                  <div className="insight-icon"><Icon size={18} /></div>
+                  <div className="insight-content">
+                    <strong>{it.title}</strong>
+                    <p>{it.copy}</p>
+                    <small>{it.time}</small>
+                  </div>
                 </div>
-                <div>
-                  <h3>{title}</h3>
-                  <p>{copy}</p>
-                  <span>{time}</span>
-                </div>
-              </article>
-            ))}
+              );
+            })}
           </div>
-          <a className="model-view-insights" href="#reports">
-            View all insights
-            <ArrowRight size={18} />
-          </a>
         </aside>
       </div>
-
     </section>
   );
 }
-
-function IntelligenceSection() {
-  return (
-    <section className="feature-section" id="ai">
-      <div className="section-copy">
-        <h2>
-          ARTH.OS detects hidden <span>financial behavior.</span>
-        </h2>
-        <p>
-          It turns human money choices into a behavioral signal layer for
-          planning, resilience and financial self-awareness.
-        </p>
-      </div>
-      <div className="intelligence-layout">
-        <div className="intelligence-list">
-          {intelligenceRows.map(({ icon: Icon, title, copy }) => (
-            <article className="intelligence-row" key={title}>
-              <Icon size={28} />
-              <div>
-                <h3>{title}</h3>
-                <p>{copy}</p>
-              </div>
-            </article>
-          ))}
-        </div>
-        <div className="brain-frame" aria-hidden="true">
-          <div className="code-stack">
-            <span />
-            <span />
-            <span />
-            <span />
-            <span />
-          </div>
-          <div className="brain-core">
-            <Brain size={92} />
-          </div>
-          <div className="node-cluster">
-            <i />
-            <i />
-            <i />
-            <i />
-          </div>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-function BusinessSection() {
-  return (
-    <section className="business-section" id="business">
-      <h2>
-        Built for the future of <span>financial intelligence.</span>
-      </h2>
-      <p>
-        ARTH.OS is not another budgeting application. It is a Behavioral Finance
-        Intelligence Engine designed to understand how humans emotionally
-        interact with money.
-      </p>
-      <div className="business-grid">
-        {businessCards.map((card) => (
-          <article className="business-card" key={card.title}>
-            <h3>{card.title}</h3>
-            <p>{card.copy}</p>
-          </article>
-        ))}
-      </div>
-    </section>
-  );
-}
-
-function FounderSection() {
-  return (
-    <section className="founder-section" id="founder">
-      <div>
-        <h2>
-          Building India's Behavior <span>Intelligence Layer.</span>
-        </h2>
-        <p>
-          Most financial systems only understand numbers. Human behavior drives
-          every financial decision.
-        </p>
-        <div className="founder-stats">
-          <div>
-            <strong>AI + Psychology</strong>
-            <span>Core Foundation</span>
-          </div>
-          <div>
-            <strong>Privacy First</strong>
-            <span>No Statement Storage</span>
-          </div>
-          <div>
-            <strong>India Built</strong>
-            <span>Global Vision</span>
-          </div>
-        </div>
-      </div>
-      <aside className="founder-card">
-        <h3>Ankit Chakravorty</h3>
-        <span>Founder & CEO - Sankhya</span>
-        <blockquote>
-          India does not need another budgeting app. It needs an intelligence
-          layer that understands human financial behavior before collapse
-          happens.
-        </blockquote>
-      </aside>
-    </section>
-  );
-}
-
-const ScoreOverview = memo(function ScoreOverview({ result }) {
-  return (
-
-    <section className={`result-card score-card tone-${result.categoryBand.tone}`}>
-      <div className="score-copy">
-        <span className="metric-label">Health Score</span>
-        <h1>{result.healthScore}/100</h1>
-        <strong>{result.categoryBand.label}</strong>
-        <p>{result.summary}</p>
-      </div>
-      <ScoreDial score={result.healthScore} tone={result.categoryBand.tone} />
-    </section>
-  );
-});
-
-const ScoreDial = memo(function ScoreDial({ score, tone }) {
-
-  const radius = 63;
-  const circumference = 2 * Math.PI * radius;
-  const progress = (score / 100) * circumference;
-
-  return (
-    <div className={`score-dial dial-${tone}`} aria-hidden="true">
-      <svg viewBox="0 0 160 160">
-        <circle className="track" cx="80" cy="80" r={radius} />
-        <circle
-          className="progress"
-          cx="80"
-          cy="80"
-          r={radius}
-          strokeDasharray={`${progress} ${circumference - progress}`}
-        />
-      </svg>
-      <span>{score}</span>
-    </div>
-  );
-});
-
-const ComponentBreakdown = memo(function ComponentBreakdown({ result }) {
-
-  const orderedRows = [...result.componentRows].sort((a, b) => {
-    const order = { behaviour: 0, awareness: 1, stability: 2 };
-    return order[a.key] - order[b.key];
-  });
-
-  return (
-    <section className="result-card">
-      <div className="result-heading">
-        <WalletCards size={19} />
-        <h2>Breakdown</h2>
-      </div>
-      <div className="breakdown-list">
-        {orderedRows.map((row) => {
-          const Icon = sectionIcons[row.key];
-          return (
-            <div className="breakdown-row" key={row.key}>
-              <div>
-                <Icon size={18} />
-                <span>{row.label}</span>
-              </div>
-              <strong>
-                {row.score}/{row.max}
-              </strong>
-              <div className="bar-track" aria-hidden="true">
-                <span style={{ width: `${row.percent}%` }} />
-              </div>
-              <small>{row.band}</small>
-            </div>
-          );
-        })}
-      </div>
-    </section>
-  );
-});
-
-const BlindSpotPanel = memo(function BlindSpotPanel({ result }) {
-  const gapMessage =
-    result.blindSpotDirection === "overestimated"
-      ? `You are overestimating your runway by ${result.blindSpotGap} months.`
-      : result.blindSpotDirection === "underestimated"
-      ? `You are underestimating your runway by ${result.blindSpotGap} months.`
-      : "Your perceived runway matches your actual cash runway.";
-
-  return (
-    <section className="result-card blindspot-panel">
-      <div className="result-heading">
-        <Activity size={19} />
-        <div>
-          <h2>Your Financial Blind Spot</h2>
-          <span>What your score hides about actual runway</span>
-        </div>
-      </div>
-      <div className="blindspot-copy">
-        <p>{result.blindSpotHeadline}</p>
-        <p>{result.blindSpotSummary}</p>
-      </div>
-      <div className="insight-grid">
-        <div className="insight-stat">
-          <span>Perceived runway</span>
-          <strong>{result.blindSpotPerceived} mos</strong>
-        </div>
-        <div className="insight-stat">
-          <span>Actual runway</span>
-          <strong>{result.blindSpotActual} mos</strong>
-        </div>
-        <div className="insight-stat">
-          <span>Blind spot size</span>
-          <strong>{result.blindSpotGap} mos</strong>
-        </div>
-        <div className="insight-stat">
-          <span>Risk signal</span>
-          <strong>{result.futureRiskLabel}</strong>
-        </div>
-      </div>
-      <div className="insight-meta">
-        <div>
-          <span>Financial personality</span>
-          <strong>{result.personalityReport.title}</strong>
-        </div>
-        <p>{gapMessage}</p>
-      </div>
-    </section>
-  );
-});
-
-const SurvivalBlock = memo(function SurvivalBlock({ result, assessment }) {
-
-  const expenseValue = Number.parseFloat(assessment.profile.monthlyExpenses) || 0;
-  const fixedValue = Number.parseFloat(assessment.profile.emergencySavingsFixed) || 0;
-  const discretionaryValue = Number.parseFloat(assessment.profile.emergencySavingsDiscretionary) || 0;
-  const savingsValue = Number.parseFloat(assessment.profile.emergencySavings) || 0;
-  const totalSavingsValue = fixedValue + discretionaryValue;
-
-  const milestones = [1, 3, 6, 12];
-
-  return (
-    <section className="result-card">
-      <div className="result-heading">
-        <AlertTriangle size={19} />
-        <h2>Income Stop</h2>
-      </div>
-      <div className="survival-number">
-        <strong>{result.survivalMonthsDisplay}</strong>
-        <span>months</span>
-      </div>
-      <p className={`status-line tone-text-${result.survivalBand.tone}`}>
-        {result.survivalBand.label}
-      </p>
-
-          <div className="dual-survival-grid">
-            <div>
-              <span>As-Is Lifestyle</span>
-              <strong>{result.survivalMonthsDisplay} mos</strong>
-            </div>
-            <div>
-              <span>Crisis Mode Optimized</span>
-              <strong>{result.bareMinimumSurvivalMonthsDisplay} mos</strong>
-            </div>
-          </div>
-          <div className="survival-insight-grid">
-            <div>
-              <span>Perceived runway</span>
-              <strong>{result.perceivedSurvivalMonthsDisplay} mos</strong>
-            </div>
-            <div>
-              <span>Awareness gap</span>
-              <strong>{result.awarenessGapDisplay} mos</strong>
-            </div>
-          </div>
-          <div className="emergency-goal">
-            <span>Emergency fund target</span>
-            <strong>6 months</strong>
-            <span>
-              Need: {formatCurrencyV2(Math.max(0, expenseValue * 6 - totalSavingsValue))}
-            </span>
-          </div>
-          <p className="buffer-summary">
-            Fixed: {result.fixedBufferMonthsDisplay} / Discretionary: {result.discretionaryBufferMonthsDisplay}
-          </p>
-
-      <div className="survival-rail" aria-hidden="true">
-        {milestones.map((month) => (
-          <span
-            key={month}
-            className={result.survivalMonthsRaw >= month ? "active" : ""}
-          />
-        ))}
-      </div>
-
-          <div className="money-pair">
-            <span>Fixed buffer: {formatCurrencyV2(fixedValue)}</span>
-            <span>Discretionary buffer: {formatCurrencyV2(discretionaryValue)}</span>
-          </div>
-          <div className="money-pair">
-            <span>Total: {formatCurrencyV2(totalSavingsValue)}</span>
-            <span>{formatCurrencyV2(expenseValue)} monthly burn</span>
-          </div>
-
-    </section>
-  );
-});
-
-const ActionBlock = memo(function ActionBlock({ result }) {
-
-  return (
-    <section className="result-card action-card">
-
-      <div className="result-heading">
-        <Target size={19} />
-        <h2>Recommended Action</h2>
-      </div>
-      <p>{result.recommendedActionText}</p>
-
-
-          <div className="driver-grid">
-            <div>
-              <span>Strength</span>
-              <strong>{result.strongestComponent?.label ?? "-"}</strong>
-            </div>
-            <div>
-              <span>Risk</span>
-              <strong>{result.lowestComponent?.label ?? "-"}</strong>
-            </div>
-          </div>
-          <div className="future-risk-grid">
-            <div>
-              <span>Future risk</span>
-              <strong>{result.futureRiskLabel}</strong>
-            </div>
-            <div>
-              <span>Personality</span>
-              <strong>{result.personalityType}</strong>
-            </div>
-          </div>
-
-    </section>
-  );
-});
-
-const DiagnosisPanel = memo(function DiagnosisPanel({ result }) {
-  const diagnosis = result.diagnosis || {};
-
-  return (
-    <section className="result-card diagnosis-card">
-      <div className="result-heading">
-        <ShieldCheck size={19} />
-        <h2>Diagnosis</h2>
-      </div>
-      <p className="diagnosis-headline">{diagnosis.headline}</p>
-      <p className="diagnosis-problem"><strong>{diagnosis.problem}</strong></p>
-      <p>{diagnosis.explanation}</p>
-      <div className="diagnosis-focus">
-        <strong>Priority focus:</strong> {diagnosis.focus}
-      </div>
-    </section>
-  );
-});

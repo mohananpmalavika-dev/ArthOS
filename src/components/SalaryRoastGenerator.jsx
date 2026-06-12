@@ -1,195 +1,264 @@
-import React, { useState } from 'react';
-import { Share2, Download, Copy, MessageCircle } from 'lucide-react';
-import { generateSalaryRoast, generateComparisonReport, generateInstagramCaption } from '../engines/salaryRoast';
+import React, { useMemo, useState } from 'react';
+import { Copy, Download, MessageCircle, Share2 } from 'lucide-react';
+import { generateComparisonReport, generateInstagramCaption, generateSalaryRoast } from '../engines/salaryRoast';
+
+const FEATURED_STAT_LABELS = new Set(['Financial Health Score', 'vs National Average']);
+
+function dedupeByLabel(items = []) {
+  const seen = new Set();
+
+  return items.filter((item) => {
+    if (!item?.label || seen.has(item.label)) {
+      return false;
+    }
+
+    seen.add(item.label);
+    return true;
+  });
+}
+
+function dedupeText(items = []) {
+  const seen = new Set();
+
+  return items.filter((item) => {
+    const value = String(item || '').trim();
+
+    if (!value || seen.has(value)) {
+      return false;
+    }
+
+    seen.add(value);
+    return true;
+  });
+}
+
+function getComparisonTone(value) {
+  return Number(value) >= 0 ? 'positive' : 'negative';
+}
+
+function getBadgeClassName(color) {
+  return `salary-roast-badge salary-roast-badge-${color || 'default'}`;
+}
 
 export function SalaryRoastGenerator({ assessmentResult, profile }) {
   const [showShare, setShowShare] = useState(false);
   const [copyFeedback, setCopyFeedback] = useState('');
 
+  const roast = useMemo(
+    () => (assessmentResult && profile ? generateSalaryRoast(assessmentResult, profile) : null),
+    [assessmentResult, profile],
+  );
+
+  const comparison = useMemo(
+    () =>
+      assessmentResult
+        ? generateComparisonReport(assessmentResult.healthScore, assessmentResult.personalityType)
+        : null,
+    [assessmentResult],
+  );
+
+  const instagramCaption = useMemo(
+    () =>
+      assessmentResult && profile
+        ? generateInstagramCaption(
+            assessmentResult.healthScore,
+            assessmentResult.personalityType,
+            profile.monthlyIncome,
+            assessmentResult.survivalMonthsRaw,
+          )
+        : '',
+    [assessmentResult, profile],
+  );
+
+  const uniqueStats = useMemo(
+    () => dedupeByLabel(roast?.stats).filter((stat) => !FEATURED_STAT_LABELS.has(stat.label)),
+    [roast],
+  );
+  const uniqueBadges = useMemo(() => dedupeByLabel(roast?.badges), [roast]);
+  const uniqueRoastLines = useMemo(() => dedupeText(roast?.roastCommentary), [roast]);
+
   if (!assessmentResult || !profile) {
     return (
-      <div className="p-6 bg-gradient-to-br from-red-50 to-orange-50 rounded-lg border border-red-200">
-        <p className="text-red-600">Complete your assessment first to unlock your Financial Roast.</p>
+      <div className="salary-roast-empty">
+        <p>Complete your assessment first to unlock your Financial Roast.</p>
       </div>
     );
   }
 
-  const roast = generateSalaryRoast(assessmentResult, profile);
-  const comparison = generateComparisonReport(assessmentResult.healthScore, assessmentResult.personalityType);
-  const instagramCaption = generateInstagramCaption(
-    assessmentResult.healthScore,
-    assessmentResult.personalityType,
-    profile.monthlyIncome,
-    assessmentResult.survivalMonthsRaw
-  );
+  if (!roast || !comparison) return null;
 
-  if (!roast) return null;
+  const comparisonTone = getComparisonTone(roast.comparisonVsAverage);
 
-  const handleCopyText = (text, label) => {
-    navigator.clipboard.writeText(text);
-    setCopyFeedback(label);
+  const handleCopyText = async (text, label) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopyFeedback(label);
+    } catch {
+      setCopyFeedback('Copy failed');
+    }
+
     setTimeout(() => setCopyFeedback(''), 2000);
   };
 
   const handleDownloadImage = () => {
-    // Placeholder for image export (would use html2canvas + download)
     alert('Image export coming soon! Generating shareable PNG...');
   };
 
   return (
-    <div className="space-y-6">
-      {/* Main Roast Card */}
-      <div className="p-8 bg-gradient-to-br from-yellow-50 via-orange-50 to-red-50 rounded-xl border-2 border-yellow-300 shadow-lg">
-        {/* Headline */}
-        <div className="mb-6">
-          <h2 className="text-3xl font-bold text-gray-900 mb-2">{roast.headline}</h2>
-          <p className="text-lg text-gray-700 italic">Your Financial Personality: <span className="font-bold text-orange-600">{roast.personalityType}</span></p>
+    <div className="salary-roast">
+      <section className="salary-roast-hero">
+        <div className="salary-roast-hero-copy">
+          <span className="salary-roast-eyebrow">Personalized money snapshot</span>
+          <h3>{roast.headline}</h3>
+          <p>
+            Your Financial Personality: <strong>{roast.personalityType}</strong>
+          </p>
         </div>
 
-        {/* Score Display */}
-        <div className="mb-8 p-6 bg-white rounded-lg border-2 border-yellow-300">
-          <div className="text-center mb-4">
-            <div className="inline-block">
-              <div className="text-6xl font-bold text-orange-600">{Math.round(assessmentResult.healthScore)}</div>
-              <div className="text-gray-600">/100 Financial Health Score</div>
-            </div>
-          </div>
-          <div className="grid grid-cols-2 gap-4 text-sm">
+        <div className="salary-roast-score-panel">
+          <span>Financial Health Score</span>
+          <strong>{Math.round(assessmentResult.healthScore)}</strong>
+          <small>/100</small>
+          <div className="salary-roast-score-meta">
             <div>
-              <div className="text-gray-500">Percentile</div>
-              <div className="text-2xl font-bold text-blue-600">{comparison.percentile}th</div>
+              <span>Percentile</span>
+              <strong>{comparison.percentile}th</strong>
             </div>
-            <div>
-              <div className="text-gray-500">vs National Average</div>
-              <div className={`text-2xl font-bold ${roast.comparisonVsAverage >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                {roast.comparisonVsAverage >= 0 ? '+' : ''}{roast.comparisonVsAverage}
-              </div>
+            <div className={`salary-roast-tone-${comparisonTone}`}>
+              <span>vs National Average</span>
+              <strong>
+                {roast.comparisonVsAverage >= 0 ? '+' : ''}
+                {roast.comparisonVsAverage}
+              </strong>
             </div>
           </div>
         </div>
+      </section>
 
-        {/* Badges */}
-        <div className="mb-8">
-          <h4 className="font-semibold text-gray-700 mb-3">Your Badges 🏆</h4>
-          <div className="flex flex-wrap gap-3">
-            {roast.badges.map((badge) => (
-              <div key={badge.label} className="px-4 py-2 bg-white rounded-full border-2 border-gray-300 font-semibold">
-                {badge.icon} {badge.label}
-              </div>
+      <div className="salary-roast-detail-grid">
+        <section className="salary-roast-panel">
+          <div className="salary-roast-panel-heading">
+            <span>Your Badges</span>
+            <small>{uniqueBadges.length} earned</small>
+          </div>
+          <div className="salary-roast-badges">
+            {uniqueBadges.map((badge) => (
+              <span key={badge.label} className={getBadgeClassName(badge.color)}>
+                <span aria-hidden="true">{badge.icon}</span>
+                {badge.label}
+              </span>
             ))}
           </div>
-        </div>
+        </section>
 
-        {/* Roast Commentary */}
-        <div className="mb-8 space-y-3">
-          <h4 className="font-semibold text-gray-800">The Roast 🔥</h4>
-          {roast.roastCommentary.map((line, idx) => (
-            <p key={idx} className="text-gray-800 bg-white bg-opacity-50 p-3 rounded border-l-4 border-orange-400">
-              {line}
-            </p>
-          ))}
-        </div>
-
-        {/* Stats */}
-        <div className="grid grid-cols-2 gap-4 mb-8">
-          {roast.stats.map((stat) => (
-            <div key={stat.label} className="p-4 bg-white rounded-lg text-center">
-              <div className="text-gray-600 text-xs uppercase font-semibold">{stat.label}</div>
-              <div className="text-2xl font-bold text-gray-900">
-                {stat.value}
-                <span className="text-sm text-gray-600">{stat.unit}</span>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {/* Comparison Message */}
-        <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
-          <p className="text-blue-900">{comparison.message}</p>
-        </div>
-      </div>
-
-      {/* Share Section */}
-      <div className="p-6 bg-white rounded-lg border border-gray-200">
-        <h3 className="font-bold text-lg mb-4 flex items-center gap-2">
-          <Share2 size={20} /> Share Your Roast
-        </h3>
-
-        <div className="space-y-3 mb-4">
-          {/* Twitter */}
-          <button
-            onClick={() => {
-              const url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(roast.shareText + ' #ArthOS #FinancialHealth')}`;
-              window.open(url, '_blank');
-            }}
-            className="w-full p-3 bg-blue-400 text-white rounded-lg hover:bg-blue-500 font-semibold flex items-center justify-center gap-2"
-          >
-            <MessageCircle size={18} /> Share on Twitter
-          </button>
-
-          {/* LinkedIn */}
-          <button
-            onClick={() => {
-              const url = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(roast.shareLink)}`;
-              window.open(url, '_blank');
-            }}
-            className="w-full p-3 bg-blue-700 text-white rounded-lg hover:bg-blue-800 font-semibold flex items-center justify-center gap-2"
-          >
-            <Share2 size={18} /> Share on LinkedIn
-          </button>
-
-          {/* Instagram Caption Copy */}
-          <button
-            onClick={() => handleCopyText(instagramCaption, 'Instagram caption copied!')}
-            className="w-full p-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-lg hover:from-purple-600 hover:to-pink-600 font-semibold flex items-center justify-center gap-2"
-          >
-            <Copy size={18} /> {copyFeedback === 'Instagram caption copied!' ? '✓ Copied' : 'Copy Instagram Caption'}
-          </button>
-
-          {/* Download as Image */}
-          <button
-            onClick={handleDownloadImage}
-            className="w-full p-3 bg-green-500 text-white rounded-lg hover:bg-green-600 font-semibold flex items-center justify-center gap-2"
-          >
-            <Download size={18} /> Download as Image
-          </button>
-        </div>
-
-        {/* Custom Text Box */}
-        <div className="mt-4 p-3 bg-gray-50 rounded-lg">
-          <label className="text-sm text-gray-600 font-semibold block mb-2">Share Text</label>
-          <textarea
-            readOnly
-            value={roast.shareText}
-            className="w-full p-2 border border-gray-300 rounded text-sm bg-white"
-            rows="3"
-          />
-          <button
-            onClick={() => handleCopyText(roast.shareText, 'Share text copied!')}
-            className="mt-2 w-full p-2 bg-gray-200 hover:bg-gray-300 rounded font-semibold text-sm"
-          >
-            {copyFeedback === 'Share text copied!' ? '✓ Copied to clipboard' : 'Copy to clipboard'}
-          </button>
-        </div>
-      </div>
-
-      {/* Comparison Stats */}
-      <div className="p-6 bg-white rounded-lg border border-gray-200">
-        <h3 className="font-bold text-lg mb-4">How You Compare 📊</h3>
-        <div className="grid grid-cols-2 gap-4">
-          <div className="p-4 bg-gray-50 rounded-lg">
-            <div className="text-gray-600 text-sm">National Average</div>
-            <div className="text-3xl font-bold text-gray-900">{comparison.nationalAverage}</div>
+        <section className="salary-roast-panel salary-roast-panel-featured">
+          <div className="salary-roast-panel-heading">
+            <span>The Roast</span>
+            <small>{uniqueRoastLines.length} signals</small>
           </div>
-          <div className="p-4 bg-gray-50 rounded-lg">
-            <div className="text-gray-600 text-sm">{assessmentResult.personalityType}s Average</div>
-            <div className="text-3xl font-bold text-gray-900">{Math.round(comparison.personalityAverage)}</div>
+          <div className="salary-roast-notes">
+            {uniqueRoastLines.map((line, idx) => (
+              <p key={line}>
+                <span>{idx + 1}</span>
+                {line}
+              </p>
+            ))}
+          </div>
+        </section>
+      </div>
+
+      <div className="salary-roast-stat-grid">
+        {uniqueStats.map((stat) => (
+          <div key={stat.label} className="salary-roast-stat">
+            <span>{stat.label}</span>
+            <strong>
+              {stat.value}
+              <small>{stat.unit}</small>
+            </strong>
+          </div>
+        ))}
+      </div>
+
+      <section className="salary-roast-comparison">
+        <span>Relative benchmark</span>
+        <p>{comparison.message}</p>
+      </section>
+
+      <div className="salary-roast-actions">
+        <button
+          type="button"
+          className="salary-roast-tool-button"
+          onClick={() => setShowShare((current) => !current)}
+          aria-expanded={showShare}
+        >
+          <Share2 size={18} />
+          Share tools
+        </button>
+        <button type="button" className="salary-roast-tool-button" onClick={handleDownloadImage}>
+          <Download size={18} />
+          Export card
+        </button>
+        {copyFeedback && <span className="salary-roast-copy-feedback">{copyFeedback}</span>}
+      </div>
+
+      {showShare && (
+        <section className="salary-roast-share-panel">
+          <div className="salary-roast-share-grid">
+            <button
+              type="button"
+              onClick={() => {
+                const url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(roast.shareText + ' #ArthOS #FinancialHealth')}`;
+                window.open(url, '_blank');
+              }}
+              className="salary-roast-share-button salary-roast-share-button-twitter"
+            >
+              <MessageCircle size={18} /> Share on Twitter
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                const url = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(roast.shareLink)}`;
+                window.open(url, '_blank');
+              }}
+              className="salary-roast-share-button salary-roast-share-button-linkedin"
+            >
+              <Share2 size={18} /> Share on LinkedIn
+            </button>
+
+            <button
+              type="button"
+              onClick={() => handleCopyText(instagramCaption, 'Instagram caption copied!')}
+              className="salary-roast-share-button salary-roast-share-button-caption"
+            >
+              <Copy size={18} />
+              {copyFeedback === 'Instagram caption copied!' ? 'Copied' : 'Copy Instagram Caption'}
+            </button>
+          </div>
+
+          <label className="salary-roast-share-copy">
+            <span>Share Text</span>
+            <textarea readOnly value={roast.shareText} className="salary-roast-share-text" rows="3" />
+            <button type="button" onClick={() => handleCopyText(roast.shareText, 'Share text copied!')} className="salary-roast-copy-button">
+              {copyFeedback === 'Share text copied!' ? 'Copied to clipboard' : 'Copy to clipboard'}
+            </button>
+          </label>
+        </section>
+      )}
+
+      <section className="salary-roast-compare-panel">
+        <h3>How You Compare</h3>
+        <div className="salary-roast-compare-grid">
+          <div>
+            <span>National Average</span>
+            <strong>{comparison.nationalAverage}</strong>
+          </div>
+          <div>
+            <span>{assessmentResult.personalityType}s Average</span>
+            <strong>{Math.round(comparison.personalityAverage)}</strong>
           </div>
         </div>
-        <div className="mt-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
-          <p className="text-blue-900">{comparison.message}</p>
-        </div>
-      </div>
+      </section>
     </div>
   );
 }

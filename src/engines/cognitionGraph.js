@@ -23,3 +23,21 @@ export class CognitionGraph {
     };
   }
 }
+
+export class FinancialCognitionGraph {
+  beliefs = [];
+  biases = [];
+  emotions = [];
+  decisions = [];
+  outcomes = [];
+  connections = [];
+
+  connect(from, to) {
+    const edge = {
+      source: from,
+      target: to,
+    };
+    this.connections.push(edge);
+    return edge;
+  }
+}

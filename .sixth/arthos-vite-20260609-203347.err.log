@@ -1024,3 +1024,25 @@ C:/ArthOS/src/App.jsx:38:2: ERROR: The symbol "incomeStabilityOptions" has alrea
       at readableAddChunkPushByteMode (node:internal/streams/readable:514:3)
       at Readable.push (node:internal/streams/readable:394:5)
       at Pipe.onStreamRead (node:internal/stream_base_commons:189:23)
+X [ERROR] Unterminated string literal
+
+    vite.config.js:160:0:
+      160 │ 
+          ╵ ^
+
+[31mfailed to load config from C:\ArthOS\vite.config.js[39m
+[2m8:42:09 pm[22m [31m[1m[vite][22m[39m Build failed with 1 error:
+vite.config.js:160:0: ERROR: Unterminated string literal
+[2m8:42:09 pm[22m [31m[1m[vite][22m[39m server restart failed
+[2m8:42:29 pm[22m [31m[1m[vite][22m[39m Cannot find module 'C:\src\engines\cognitionEngine.js' imported from C:\ArthOS\api\user\[userId]\risk.js
+[2m8:42:29 pm[22m [31m[1m[vite][22m[39m server restart failed
+[2m8:42:46 pm[22m [31m[1m[vite][22m[39m Cannot find module 'C:\src\engines\cognitionEngine.js' imported from C:\ArthOS\api\user\[userId]\risk.js
+[2m8:42:46 pm[22m [31m[1m[vite][22m[39m server restart failed
+[2m8:42:46 pm[22m [31m[1m[vite][22m[39m Cannot find module 'C:\src\engines\cognitionEngine.js' imported from C:\ArthOS\api\user\[userId]\risk.js
+[2m8:42:46 pm[22m [31m[1m[vite][22m[39m server restart failed
+[2m8:46:19 pm[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m [31merror while updating dependencies:
+Error: EPERM: operation not permitted, rename 'C:\ArthOS\node_modules\.vite\deps_temp_640f37b4' -> 'C:\ArthOS\node_modules\.vite\deps'[39m
+[2m8:46:19 pm[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m [31merror while updating dependencies:
+Error: EPERM: operation not permitted, rename 'C:\ArthOS\node_modules\.vite\deps_temp_e7995805' -> 'C:\ArthOS\node_modules\.vite\deps'[39m
+[2m11:09:52 am[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m [31merror while updating dependencies:
+Error: EPERM: operation not permitted, rename 'C:\ArthOS\node_modules\.vite\deps_temp_d3e0f075' -> 'C:\ArthOS\node_modules\.vite\deps'[39m

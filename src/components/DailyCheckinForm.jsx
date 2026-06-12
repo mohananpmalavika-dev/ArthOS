@@ -143,15 +143,15 @@ export default function DailyCheckinForm({ onCheckin }) {
   const awarenessBoost = responses.stressLevel === "low" ? "+1" : "+0";
 
   return (
-    <section className="daily-checkin-card">
-      <div className="checkin-header">
+    <section className="daily-checkin-card summary-card premium-report-block">
+      <div className="premium-report-block-header checkin-header">
         <div className="checkin-title-group">
           <Calendar size={20} />
           <div>
-            <h3>Today's Financial Reflection</h3>
-            <span className="checkin-subtitle">
+            <h3 className="premium-report-block-title">Today's Financial Reflection</h3>
+            <p className="premium-report-block-subtitle">
               Quick daily check-in to track behavioral patterns
-            </span>
+            </p>
           </div>
         </div>
         <div className="streak-badge-group">
@@ -167,12 +167,12 @@ export default function DailyCheckinForm({ onCheckin }) {
 
       {todayCheckinExists ? (
         <div className="checkin-already-done">
-          <CheckCircle2 size={24} style={{ color: "#10b981" }} />
+          <CheckCircle2 size={24} style={{ color: "var(--green-500)" }} />
           <div>
             <p style={{ fontWeight: "600", marginBottom: "4px" }}>
               You've already checked in today
             </p>
-            <p style={{ fontSize: "14px", color: "#64748b" }}>
+            <p style={{ fontSize: "14px", color: "var(--gray-500)" }}>
               Come back tomorrow to continue your streak.
             </p>
           </div>
@@ -326,7 +326,7 @@ export default function DailyCheckinForm({ onCheckin }) {
 
           {checkinComplete && (
             <div className="checkin-success-message">
-              <CheckCircle2 size={20} style={{ color: "#10b981" }} />
+              <CheckCircle2 size={20} style={{ color: "var(--green-500)" }} />
               <span>Check-in saved! Keep up your streak.</span>
             </div>
           )}
@@ -344,183 +344,6 @@ export default function DailyCheckinForm({ onCheckin }) {
           </p>
         </>
       )}
-
-      <style>{`
-        .daily-checkin-card {
-          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-          border-radius: 12px;
-          padding: 24px;
-          color: white;
-          margin: 20px 0;
-        }
-
-        .checkin-header {
-          display: flex;
-          justify-content: space-between;
-          align-items: flex-start;
-          margin-bottom: 24px;
-          padding-bottom: 16px;
-          border-bottom: 1px solid rgba(255, 255, 255, 0.2);
-        }
-
-        .checkin-title-group {
-          display: flex;
-          gap: 12px;
-        }
-
-        .checkin-title-group h3 {
-          font-size: 18px;
-          font-weight: 700;
-          margin: 0;
-        }
-
-        .checkin-subtitle {
-          font-size: 13px;
-          opacity: 0.9;
-        }
-
-        .streak-badge-group {
-          display: flex;
-          flex-direction: column;
-          align-items: flex-end;
-          gap: 10px;
-        }
-
-        .streak-badge,
-        .checkin-count-badge {
-          display: flex;
-          align-items: center;
-          gap: 6px;
-          background: rgba(255, 255, 255, 0.2);
-          padding: 8px 12px;
-          border-radius: 8px;
-          font-size: 14px;
-          font-weight: 600;
-        }
-
-        .checkin-already-done {
-          display: flex;
-          align-items: center;
-          gap: 16px;
-          background: rgba(255, 255, 255, 0.1);
-          padding: 16px;
-          border-radius: 8px;
-        }
-
-        .checkin-already-done p {
-          margin: 0;
-        }
-
-        .checkin-questions {
-          margin-bottom: 20px;
-        }
-
-        .checkin-question {
-          margin-bottom: 20px;
-        }
-
-        .checkin-question label {
-          display: block;
-          font-size: 14px;
-          font-weight: 600;
-          margin-bottom: 10px;
-        }
-
-        .checkin-options {
-          display: grid;
-          grid-template-columns: 1fr 1fr;
-          gap: 8px;
-        }
-
-        .checkin-option {
-          padding: 10px 12px;
-          background: rgba(255, 255, 255, 0.15);
-          border: 2px solid transparent;
-          border-radius: 6px;
-          color: white;
-          font-size: 13px;
-          cursor: pointer;
-          transition: all 0.2s;
-          font-weight: 500;
-        }
-
-        .checkin-option:hover {
-          background: rgba(255, 255, 255, 0.25);
-        }
-
-        .checkin-option.selected {
-          background: rgba(255, 255, 255, 0.3);
-          border-color: white;
-        }
-
-        .checkin-summary-row {
-          display: flex;
-          gap: 16px;
-          justify-content: space-between;
-          margin-bottom: 16px;
-          padding: 14px;
-          background: rgba(255, 255, 255, 0.12);
-          border-radius: 10px;
-        }
-
-        .checkin-summary-row strong {
-          display: block;
-          margin-bottom: 4px;
-          font-size: 13px;
-        }
-
-        .checkin-success-message {
-          display: flex;
-          align-items: center;
-          gap: 10px;
-          background: rgba(16, 185, 129, 0.2);
-          padding: 12px;
-          border-radius: 6px;
-          margin-bottom: 16px;
-          font-size: 14px;
-        }
-
-        .checkin-submit-button {
-          width: 100%;
-          padding: 12px;
-          background: white;
-          color: #667eea;
-          border: none;
-          border-radius: 8px;
-          font-weight: 600;
-          font-size: 15px;
-          cursor: pointer;
-          transition: all 0.2s;
-        }
-
-        .checkin-submit-button:hover:not(.disabled) {
-          transform: translateY(-2px);
-          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-        }
-
-        .checkin-submit-button.disabled {
-          opacity: 0.5;
-          cursor: not-allowed;
-        }
-
-        .checkin-footer-text {
-          font-size: 12px;
-          opacity: 0.85;
-          text-align: center;
-          margin-top: 12px;
-          margin-bottom: 0;
-        }
-
-        @media (max-width: 768px) {
-          .checkin-options {
-            grid-template-columns: 1fr;
-          }
-
-          .checkin-summary-row {
-            flex-direction: column;
-          }
-        }
-      `}</style>
     </section>
   );
 }

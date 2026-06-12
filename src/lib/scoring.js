@@ -257,10 +257,11 @@ function getComponentRows(scores) {
 }
 
 function getHealthBand(score) {
-  if (score <= 25) return { label: "Critical", tone: "critical" };
-  if (score <= 50) return { label: "Vulnerable", tone: "warning" };
-  if (score <= 75) return { label: "Stable", tone: "steady" };
-  return { label: "Healthy", tone: "strong" };
+  if (score <= 19) return { label: "Financially Critical", tone: "critical" };
+  if (score <= 39) return { label: "Financially Fragile", tone: "warning" };
+  if (score <= 59) return { label: "Financially Developing", tone: "caution" };
+  if (score <= 79) return { label: "Financially Resilient", tone: "steady" };
+  return { label: "Financially Sovereign", tone: "strong" };
 }
 
 function getBehaviourBand(score) {

@@ -17,6 +17,7 @@ import {
   dispatchAnonymousTelemetry,
   dispatchAnonymousFeedbackEvent,
 } from "../lib/scoring-v2.js";
+import { ASSESSMENT_FIELDS, ASSESSMENT_OPTIONS, ASSESSMENT_BUTTONS } from "../lib/copy.js";
 
 function ParticipantSection({ values, onChange }) {
   return (
@@ -28,7 +29,7 @@ function ParticipantSection({ values, onChange }) {
             type="text"
             value={values.name ?? ""}
             onChange={(e) => onChange("name", e.target.value)}
-            placeholder="Your name"
+            placeholder={ASSESSMENT_FIELDS.name.placeholder}
           />
         </label>
 
@@ -39,7 +40,7 @@ function ParticipantSection({ values, onChange }) {
             min="0"
             value={values.age ?? ""}
             onChange={(e) => onChange("age", e.target.value)}
-            placeholder="Age"
+            placeholder={ASSESSMENT_FIELDS.age.placeholder}
           />
         </label>
 
@@ -49,7 +50,7 @@ function ParticipantSection({ values, onChange }) {
             type="email"
             value={values.email ?? ""}
             onChange={(e) => onChange("email", e.target.value)}
-            placeholder="you@domain.com"
+            placeholder={ASSESSMENT_FIELDS.email.placeholder}
           />
         </label>
       </div>
@@ -294,17 +295,11 @@ function LiveResultSnapshot({ result }) {
 }
 
 const incomeStabilityOptions = [
-  { value: "very_consistent", label: "Very consistent" },
-  { value: "mostly_consistent", label: "Mostly consistent" },
-  { value: "somewhat_variable", label: "Somewhat variable" },
-  { value: "highly_variable", label: "Highly variable" },
+  ...ASSESSMENT_OPTIONS.incomeStability,
 ];
 
 const dependentsOptions = [
-  { value: "0_1", label: "0-1" },
-  { value: "2_3", label: "2-3" },
-  { value: "4_5", label: "4-5" },
-  { value: "6_plus", label: "6+" },
+  ...ASSESSMENT_OPTIONS.dependents,
 ];
 
 export default function AssessmentSection({ assessment, result, onChange, onSaveAssessment, ui, resetTrigger }) {
@@ -331,19 +326,20 @@ export default function AssessmentSection({ assessment, result, onChange, onSave
     const errors = [];
     const { participant, behaviour, awareness, profile, habits } = assessment;
 
+    // Participant validation
     if (!participant.name || !participant.name.trim()) {
-      errors.push("Please enter your name.");
+      errors.push("⚠️ Please enter your name.");
     }
-    if (!participant.age || Number(participant.age) <= 0) {
-      errors.push("Enter a valid age greater than zero.");
+    if (!participant.age || Number(participant.age) <= 0 || Number.isNaN(Number(participant.age))) {
+      errors.push("⚠️ Enter a valid age greater than zero.");
     }
     if (participant.email && !/^\S+@\S+\.\S+$/.test(participant.email)) {
-      errors.push("Enter a valid email address.");
+      errors.push("⚠️ Enter a valid email address.");
     }
 
     const addMissingAnswer = (question, group) => {
       if (!assessment[group]?.[question.key]) {
-        errors.push(`Answer the question: "${question.prompt}"`);
+        errors.push(`⚠️ Answer: "${question.prompt}"`);
       }
     };
 
@@ -356,14 +352,40 @@ export default function AssessmentSection({ assessment, result, onChange, onSave
     }
 
     if (currentStep === 2) {
-      if (!profile.monthlyIncome || Number(profile.monthlyIncome) <= 0) {
-        errors.push("Monthly income must be greater than 0.");
+      // Validate income
+      if (profile.monthlyIncome === '' || profile.monthlyIncome === undefined) {
+        errors.push("⚠️ Monthly income is required.");
+      } else if (Number(profile.monthlyIncome) < 0) {
+        errors.push("❌ Monthly income cannot be negative.");
+      } else if (Number(profile.monthlyIncome) === 0) {
+        errors.push("⚠️ Monthly income should be greater than zero.");
       }
-      if (!profile.monthlyExpenses || Number(profile.monthlyExpenses) <= 0) {
-        errors.push("Monthly expenses must be greater than 0.");
+
+      // Validate expenses
+      if (profile.monthlyExpenses === '' || profile.monthlyExpenses === undefined) {
+        errors.push("⚠️ Monthly expenses are required.");
+      } else if (Number(profile.monthlyExpenses) < 0) {
+        errors.push("❌ Monthly expenses cannot be negative.");
+      } else if (Number(profile.monthlyExpenses) === 0) {
+        errors.push("⚠️ Monthly expenses should be greater than zero.");
       }
-      if (profile.monthlyLiabilities < 0) {
-        errors.push("Fixed commitments cannot be negative.");
+
+      // Validate debt (optional but cannot be negative)
+      if (profile.totalDebt !== undefined && profile.totalDebt !== '' && Number(profile.totalDebt) < 0) {
+        errors.push("❌ Total debt cannot be negative.");
+      }
+
+      // Validate emergency savings (optional but cannot be negative)
+      if (profile.emergencySavingsFixed !== undefined && Number(profile.emergencySavingsFixed) < 0) {
+        errors.push("❌ Emergency savings cannot be negative.");
+      }
+      if (profile.emergencySavingsDiscretionary !== undefined && Number(profile.emergencySavingsDiscretionary) < 0) {
+        errors.push("❌ Discretionary savings cannot be negative.");
+      }
+
+      // Validate liabilities (optional but cannot be negative)
+      if (profile.monthlyLiabilities !== undefined && Number(profile.monthlyLiabilities) < 0) {
+        errors.push("❌ Fixed commitments cannot be negative.");
       }
     }
 
@@ -383,10 +405,8 @@ export default function AssessmentSection({ assessment, result, onChange, onSave
 
   const mode = result?.mode || "v2";
   const steps = [
-    { id: "behaviour", label: "Psychology", icon: Brain },
-    { id: "awareness", label: "Clarity", icon: BarChart3 },
-    { id: "stability", label: "Resilience", icon: ShieldCheck },
-    ...(mode === "v2" ? [{ id: "habits", label: "Habits", icon: Activity }] : []),
+    ...ASSESSMENT_SECTIONS.filter(s => !s.conditional).map(s => ({ ...s, icon: eval(s.icon) })),
+    ...(mode === "v2" ? [ASSESSMENT_SECTIONS.find(s => s.conditional)].filter(Boolean).map(s => ({ ...s, icon: Activity })) : []),
   ];
 
   const totalSteps = steps.length;
@@ -403,9 +423,24 @@ export default function AssessmentSection({ assessment, result, onChange, onSave
 
   const handleNext = async () => {
     const errors = validateCurrentStep();
-    if (errors.length) {
+    
+    if (errors.length > 0) {
       setValidationErrors(errors);
-      return;
+      
+      // If it's the final step, offer to proceed anyway
+      if (isLastStep) {
+        const confirmed = window.confirm(
+          `⚠️ Some fields are incomplete:\n\n${errors.slice(0, 3).join('\n')}${errors.length > 3 ? `\n... and ${errors.length - 3} more` : ''}\n\n` +
+          `Continue to submit anyway?\n\nYour partial answers will be saved.`
+        );
+        
+        if (!confirmed) {
+          return;
+        }
+      } else {
+        // For non-final steps, don't proceed
+        return;
+      }
     }
 
     if (currentStep < totalSteps - 1) {
@@ -413,12 +448,18 @@ export default function AssessmentSection({ assessment, result, onChange, onSave
       return;
     }
 
-    const payload = buildAnonymousTelemetryPayload(result, assessment);
-    await dispatchAnonymousTelemetry(payload, "/api/telemetry");
-    if (typeof onSaveAssessment === "function") {
-      onSaveAssessment();
+    // Final step - submit assessment
+    try {
+      const payload = buildAnonymousTelemetryPayload(result, assessment);
+      await dispatchAnonymousTelemetry(payload, "/api/telemetry");
+      if (typeof onSaveAssessment === "function") {
+        onSaveAssessment();
+      }
+      setShowFeedback(true);
+    } catch (error) {
+      console.error("Error submitting assessment:", error);
+      setValidationErrors(['❌ Error submitting assessment. Please try again.']);
     }
-    setShowFeedback(true);
   };
 
   const handlePrev = () => handleStepChange(Math.max(currentStep - 1, 0));
@@ -515,7 +556,7 @@ export default function AssessmentSection({ assessment, result, onChange, onSave
               </button>
 
               <button type="button" className="wizard-primary-btn" onClick={handleNext}>
-                {isLastStep ? "Finish & Review Score" : "Continue"}
+                {isLastStep ? ASSESSMENT_BUTTONS.finishReviewScore : ASSESSMENT_BUTTONS.continue}
                 {!isLastStep && <ChevronRight size={16} />}
               </button>
             </div>

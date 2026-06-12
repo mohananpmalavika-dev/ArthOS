@@ -1,0 +1,482 @@
+:root{--premium-report-kicker:rgba(231,236,255,.7);--premium-report-text:rgba(231,236,255,.86);--premium-report-muted:rgba(170,181,212,.95);--premium-report-border:rgba(200,155,255,.18);--premium-report-bg:rgba(255,255,255,.045);--premium-report-tile-bg:rgba(255,255,255,.035);--premium-report-success-border:rgba(115,240,191,.34);--premium-report-success-gradient-start:rgba(115,240,191,.12);--premium-report-success-gradient-end:rgba(139,92,246,.08);--premium-report-panel-bg:rgba(12,16,32,.66);--premium-report-success-text:rgba(170,255,224,.95);--premium-report-shadow:rgba(0,0,0,.18);--premium-report-summary-bg-start:rgba(24,29,54,.9);--premium-report-summary-bg-end:rgba(10,15,30,.96);--premium-report-summary-bg-fill:rgba(18,24,44,.86);--premium-report-summary-radial-cyan:rgba(98,228,209,.09);--premium-report-summary-radial-amber:rgba(244,178,85,.1);--premium-report-white-03:rgba(255,255,255,.03);--premium-report-white-04:rgba(255,255,255,.04);--premium-report-white-05:rgba(255,255,255,.05);--premium-report-white-06:rgba(255,255,255,.06);--premium-report-white-07:rgba(255,255,255,.07);--premium-report-white-08:rgba(255,255,255,.08);--premium-report-white-10:rgba(255,255,255,.10);--premium-report-white-12:rgba(255,255,255,.12);--premium-report-white-14:rgba(255,255,255,.14);--premium-report-white-16:rgba(255,255,255,.16);--premium-report-white-18:rgba(255,255,255,.18);--premium-report-white-22:rgba(255,255,255,.22);--premium-report-white-24:rgba(255,255,255,.24);--premium-report-white-28:rgba(255,255,255,.28);--premium-report-white-32:rgba(255,255,255,.32);--premium-report-white-035:rgba(255,255,255,.035);--premium-report-white-032:rgba(255,255,255,.032);--premium-report-white-045:rgba(255,255,255,.045);--premium-report-white-055:rgba(255,255,255,.055);--premium-report-surface-dark:rgba(3,7,18,.36);--premium-report-hero-border:rgba(98,228,209,.22);--premium-report-hero-gradient-cyan:rgba(98,228,209,.12);--premium-report-hero-gradient-purple:rgba(139,92,246,.09);--premium-report-hero-gradient-amber:rgba(244,178,85,.1);--premium-report-notice-border:rgba(244,178,85,.28);--premium-report-notice-bg:rgba(244,178,85,.08);--premium-report-warning-text:rgba(255,224,179,.95);--premium-report-hero-copy:rgba(231,236,255,.82);--premium-report-hero-copy-muted:rgba(231,236,255,.74);--premium-report-muted-85:rgba(170,181,212,.85);--premium-report-muted-88:rgba(170,181,212,.88);--premium-report-muted-90:rgba(170,181,212,.90);--premium-report-muted-92:rgba(170,181,212,.92);--premium-report-graph-legend:rgba(148,163,184,.95);--premium-report-graph-header:rgba(226,232,240,1);--premium-report-graph-node:rgba(203,213,225,1);--premium-report-notes-text:rgba(246,248,255,.94);--premium-report-badge-border-gold:rgba(244,178,85,.34);--premium-report-badge-bg-gold:rgba(244,178,85,.1);--premium-report-badge-border-green:rgba(115,240,191,.32);--premium-report-badge-bg-green:rgba(115,240,191,.09);--premium-report-badge-border-blue:rgba(98,228,209,.3);--premium-report-badge-bg-blue:rgba(98,228,209,.08);--premium-report-badge-border-purple:rgba(200,155,255,.3);--premium-report-badge-bg-purple:rgba(139,92,246,.12);--premium-report-badge-border-orange:rgba(255,111,145,.28);--premium-report-badge-bg-orange:rgba(255,111,145,.09);--premium-report-badge-hover-bg:rgba(98,228,209,.1);--premium-report-button-hover-border:rgba(98,228,209,.38);--premium-report-share-panel-bg:rgba(3,7,18,.28);--premium-report-share-twitter-bg:rgba(98,180,255,.14);--premium-report-share-linkedin-bg:rgba(74,127,255,.14);--premium-report-share-gradient-start:rgba(139,92,246,.2);--premium-report-share-gradient-end:rgba(255,111,145,.16);--premium-report-compare-bg:rgba(255,255,255,.032);}
+
+.premium-inline-badge-wrap{padding:0 16px}
+.premium-success-badge{padding:12px 16px;border-radius:12px;border:1px solid var(--premium-report-success-border);background:linear-gradient(135deg,var(--premium-report-success-gradient-start),var(--premium-report-success-gradient-end)),var(--premium-report-panel-bg);color:var(--premium-report-success-text);font-weight:800;box-shadow:0 18px 50px var(--premium-report-shadow),inset 0 1px 0 var(--premium-report-white-05)}
+
+.premium-report-section-header{padding:18px 0;border-bottom:1px solid var(--premium-report-white-08);margin-bottom:18px}
+.premium-report-section-title{font-size:20px;font-weight:900;display:flex;align-items:center;gap:8px;color:var(--premium-report-strong-white)}
+
+.premium-report-block{border-radius:26px}
+.premium-report-block-header{padding-bottom:16px;border-bottom:1px solid var(--premium-report-white-08);margin-bottom:18px}
+.premium-report-block-title{font-size:20px;font-weight:950;color:var(--premium-report-strong-white-96)}
+.premium-report-block-subtitle{margin:8px 0 0;font-size:13px;color:var(--premium-report-muted);font-weight:750;line-height:1.55}
+
+.premium-report-grid{display:grid;gap:16px}
+.premium-report-grid-2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.premium-report-grid-3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+
+.premium-metric-tile{padding:16px;border-radius:14px;border:1px solid var(--premium-report-border);background:var(--premium-report-bg)}
+.premium-metric-tile:hover{border-color:var(--premium-report-border)}
+
+.premium-metric-tile-wide{grid-column:1/-1}
+
+.premium-metric-kicker{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--premium-report-kicker);font-weight:950;margin-bottom:8px}
+.premium-metric-value{font-size:24px;font-weight:950;color:var(--white);line-height:1.1}
+.premium-metric-value-compact{font-size:18px}
+
+.premium-metric-desc{margin-top:6px;font-size:13px;color:var(--premium-report-muted);font-weight:700;line-height:1.55}
+
+.premium-metric-heading{display:block;margin-bottom:8px;color:var(--white);font-size:14px;font-weight:900}
+.premium-metric-longtext{margin:0;color:var(--premium-report-muted);font-size:13px;line-height:1.65}
+.memory-timeline-list{margin:12px 0 0;padding-left:18px;color:var(--premium-report-muted);font-size:13px;line-height:1.65;}
+.memory-timeline-list li{margin-bottom:10px;}
+.memory-timeline-list strong{color:var(--white);display:block;font-size:13px;font-weight:700;}
+.memory-timeline-list span{color:var(--premium-report-muted-85);font-size:12px;display:block;margin-top:4px;}
+.memory-timeline-page-list{margin:20px 0 0;padding-left:18px;color:var(--premium-report-muted);font-size:14px;line-height:1.8;}
+.memory-timeline-page-list li{margin-bottom:16px;padding:16px;border-radius:14px;border:1px solid var(--premium-report-white-08);background:var(--premium-report-white-03);}
+.memory-timeline-page-list strong{color:var(--white);display:block;font-size:14px;font-weight:700;margin-bottom:6px;}
+.memory-timeline-page-list span{color:var(--premium-report-muted-88);font-size:13px;display:block;margin-top:4px;}
+.memory-toggle-button{margin-top:12px;padding:10px 14px;border-radius:12px;border:1px solid var(--premium-report-white-18);background:var(--premium-report-white-06);color:var(--white);font-weight:700;cursor:pointer;transition:background 0.2s ease;border-color:var(--premium-report-white-18);}
+.memory-toggle-button:hover{background:var(--premium-report-white-12);}
+
+.risk-alert-list{margin:12px 0 0;padding-left:18px;color:var(--premium-report-muted);font-size:13px;line-height:1.75;}
+.risk-alert-list li{margin-bottom:12px;padding:12px 14px;border-radius:12px;background:var(--premium-report-white-04);border:1px solid var(--premium-report-white-08);}
+.risk-alert-list li strong{display:block;color:var(--white);font-size:13px;font-weight:700;margin-bottom:4px;}
+.risk-alert-list li span{color:var(--premium-report-muted-90);font-size:12px;}
+.risk-alert-risk{border-color:var(--premium-report-risk-border);}
+.risk-alert-opportunity{border-color:var(--premium-report-opportunity-border);}
+.risk-alert-info{border-color:var(--premium-report-info-border);}
+
+.cognition-graph-view{padding:16px 0;}
+.graph-legend{font-size:13px;color:var(--premium-report-graph-legend);font-weight:700;margin-bottom:16px;}
+.graph-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px;}
+.graph-column{background:var(--premium-report-white-04);border:1px solid var(--premium-report-white-08);border-radius:14px;padding:14px;}
+.graph-column-header{font-size:12px;font-weight:700;color:var(--premium-report-graph-header);text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px;}
+.graph-node{display:flex;align-items:center;gap:10px;color:var(--premium-report-graph-node);font-size:13px;padding:8px 0;border-bottom:1px solid var(--premium-report-white-06);}
+.graph-node:last-child{border-bottom:none;}
+.graph-edges{margin-top:16px;padding-top:14px;border-top:1px solid var(--premium-report-white-08);}
+.graph-edge{display:flex;align-items:center;gap:8px;color:var(--premium-report-graph-node);font-size:13px;margin-bottom:8px;}
+
+@media (max-width:980px){
+  .premium-report-grid-2{grid-template-columns:1fr}
+  .premium-report-grid-3{grid-template-columns:1fr}
+  .premium-metric-value-compact{font-size:18px}
+}
+
+.summary-card{
+  position:relative;
+  padding:24px;
+  overflow:hidden;
+  border:1px solid var(--premium-report-border);
+  border-radius:24px;
+  background:
+    linear-gradient(180deg,var(--premium-report-summary-bg-start),var(--premium-report-summary-bg-end)),
+    var(--premium-report-summary-bg-fill);
+  box-shadow:0 28px 80px var(--shadow-20),inset 0 1px 0 var(--premium-report-white-05)
+}
+
+.summary-card::before{
+  position:absolute;
+  inset:0;
+  pointer-events:none;
+  content:"";
+  background:
+    radial-gradient(circle at 10% 0%,var(--premium-report-summary-radial-cyan),transparent 28%),
+    radial-gradient(circle at 92% 12%,var(--premium-report-summary-radial-amber),transparent 24%)
+}
+
+.summary-card>*{position:relative}
+
+.salary-roast{
+  display:grid;
+  gap:18px;
+  color:var(--premium-report-text)
+}
+
+.salary-roast-empty{
+  padding:18px;
+  border:1px solid var(--premium-report-notice-border);
+  border-radius:14px;
+  background:var(--premium-report-notice-bg);
+  color:var(--premium-report-warning-text);
+  font-weight:800
+}
+
+.salary-roast-hero{
+  display:grid;
+  grid-template-columns:minmax(0,1.2fr) minmax(230px,.8fr);
+  gap:18px;
+  align-items:stretch;
+  padding:22px;
+  border:1px solid var(--premium-report-hero-border);
+  border-radius:20px;
+  background:
+    linear-gradient(135deg,var(--premium-report-hero-gradient-cyan),var(--premium-report-hero-gradient-purple) 48%,var(--premium-report-hero-gradient-amber)),
+    var(--premium-report-white-035)
+}
+
+.salary-roast-hero-copy{
+  display:grid;
+  align-content:center;
+  gap:12px;
+  min-width:0
+}
+
+.salary-roast-eyebrow,
+.salary-roast-score-panel>span,
+.salary-roast-panel-heading small,
+.salary-roast-stat>span,
+.salary-roast-comparison>span,
+.salary-roast-compare-grid span,
+.salary-roast-share-copy>span{
+  color:var(--premium-report-muted-92);
+  font-size:12px;
+  font-weight:900;
+  text-transform:uppercase
+}
+
+.salary-roast-hero h3{
+  max-width:760px;
+  color:var(--white);
+  font-size:clamp(24px,3vw,36px);
+  font-weight:950;
+  line-height:1.08;
+  overflow-wrap:anywhere;
+  text-wrap:balance
+}
+
+.salary-roast-hero p{
+  color:var(--premium-report-hero-copy);
+  font-size:15px;
+  font-weight:750;
+  line-height:1.55
+}
+
+.salary-roast-hero strong{color:var(--white)}
+
+.salary-roast-score-panel{
+  display:grid;
+  align-content:center;
+  justify-items:center;
+  gap:8px;
+  min-width:0;
+  padding:20px;
+  border:1px solid var(--premium-report-white-12);
+  border-radius:18px;
+  background:var(--premium-report-surface-dark);
+  text-align:center
+}
+
+.salary-roast-score-panel>strong{
+  color:var(--white);
+  font-size:64px;
+  font-weight:950;
+  line-height:.92
+}
+
+.salary-roast-score-panel>small{
+  color:var(--premium-report-hero-copy-muted);
+  font-size:14px;
+  font-weight:850
+}
+
+.salary-roast-score-meta{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+  width:100%;
+  margin-top:8px
+}
+
+.salary-roast-score-meta>div,
+.salary-roast-stat,
+.salary-roast-compare-grid>div{
+  min-width:0;
+  padding:12px;
+  border:1px solid var(--premium-report-white-10);
+  border-radius:12px;
+  background:var(--premium-report-white-04)
+}
+
+.salary-roast-score-meta span{
+  display:block;
+  color:var(--premium-report-muted-92);
+  font-size:11px;
+  font-weight:850;
+  text-transform:uppercase
+}
+
+.salary-roast-score-meta strong{
+  display:block;
+  margin-top:4px;
+  color:var(--white);
+  font-size:22px;
+  font-weight:950
+}
+
+.salary-roast-tone-positive strong{color:var(--green)}
+.salary-roast-tone-negative strong{color:var(--coral)}
+
+.salary-roast-detail-grid{
+  display:grid;
+  grid-template-columns:minmax(0,.75fr) minmax(0,1.25fr);
+  gap:16px
+}
+
+.salary-roast-panel{
+  min-width:0;
+  padding:18px;
+  border:1px solid var(--premium-report-white-10);
+  border-radius:18px;
+  background:var(--premium-report-white-035)
+}
+
+.salary-roast-panel-featured{
+  border-color:var(--premium-report-notice-border);
+  background:linear-gradient(135deg,var(--premium-report-notice-bg),var(--premium-report-white-03))
+}
+
+.salary-roast-panel-heading{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  margin-bottom:14px
+}
+
+.salary-roast-panel-heading>span{
+  color:var(--white);
+  font-size:16px;
+  font-weight:950
+}
+
+.salary-roast-badges{
+  display:flex;
+  flex-wrap:wrap;
+  gap:10px
+}
+
+.salary-roast-badge{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  min-height:38px;
+  padding:8px 12px;
+  border:1px solid var(--premium-report-white-12);
+  border-radius:999px;
+  background:var(--premium-report-white-045);
+  color:var(--premium-report-notes-text);
+  font-size:13px;
+  font-weight:900
+}
+
+.salary-roast-badge-gold{border-color:var(--premium-report-badge-border-gold);background:var(--premium-report-badge-bg-gold)}
+.salary-roast-badge-green{border-color:var(--premium-report-badge-border-green);background:var(--premium-report-badge-bg-green)}
+.salary-roast-badge-blue{border-color:var(--premium-report-badge-border-blue);background:var(--premium-report-badge-bg-blue)}
+.salary-roast-badge-purple{border-color:var(--premium-report-badge-border-purple);background:var(--premium-report-badge-bg-purple)}
+.salary-roast-badge-orange{border-color:var(--premium-report-badge-border-orange);background:var(--premium-report-badge-bg-orange)}
+
+.salary-roast-notes{
+  display:grid;
+  gap:10px
+}
+
+.salary-roast-notes p{
+  display:grid;
+  grid-template-columns:28px minmax(0,1fr);
+  gap:10px;
+  align-items:start;
+  margin:0;
+  color:var(--premium-report-notes-text);
+  font-size:14px;
+  font-weight:700;
+  line-height:1.55
+}
+
+.salary-roast-notes p>span{
+  display:grid;
+  place-items:center;
+  width:28px;
+  height:28px;
+  border-radius:50%;
+  background:var(--premium-report-hero-gradient-cyan);
+  color:var(--cyan);
+  font-size:12px;
+  font-weight:950
+}
+
+.salary-roast-stat-grid{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:12px
+}
+
+.salary-roast-stat{
+  display:grid;
+  gap:8px
+}
+
+.salary-roast-stat strong{
+  color:var(--white);
+  font-size:24px;
+  font-weight:950;
+  line-height:1.12;
+  overflow-wrap:anywhere
+}
+
+.salary-roast-stat small{
+  margin-left:4px;
+  color:var(--premium-report-muted-90);
+  font-size:13px;
+  font-weight:850
+}
+
+.salary-roast-comparison{
+  padding:16px;
+  border:1px solid var(--premium-report-white-10);
+  border-radius:16px;
+  background:var(--premium-report-white-04)
+}
+
+.salary-roast-comparison p{
+  margin-top:6px;
+  color:var(--white);
+  font-size:15px;
+  font-weight:800;
+  line-height:1.55
+}
+
+.salary-roast-actions,
+.salary-roast-share-grid{
+  display:flex;
+  flex-wrap:wrap;
+  gap:10px;
+  align-items:center
+}
+
+.salary-roast-tool-button,
+.salary-roast-share-button,
+.salary-roast-copy-button{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+  min-height:42px;
+  border:1px solid var(--premium-report-border);
+  border-radius:999px;
+  color:var(--white);
+  background:var(--premium-report-white-055);
+  font-size:13px;
+  font-weight:900;
+  transition:background 160ms ease,border-color 160ms ease,transform 160ms ease
+}
+
+.salary-roast-tool-button{padding:0 14px}
+.salary-roast-share-button,.salary-roast-copy-button{padding:0 16px}
+
+.salary-roast-tool-button:hover,
+.salary-roast-share-button:hover,
+.salary-roast-copy-button:hover{
+  border-color:var(--premium-report-button-hover-border);
+  background:var(--premium-report-badge-hover-bg);
+  transform:translateY(-1px)
+}
+
+.salary-roast-copy-feedback{
+  color:var(--green);
+  font-size:13px;
+  font-weight:900
+}
+
+.salary-roast-share-panel{
+  display:grid;
+  gap:14px;
+  padding:16px;
+  border:1px solid var(--premium-report-white-10);
+  border-radius:16px;
+  background:var(--premium-report-share-panel-bg)
+}
+
+.salary-roast-share-button-twitter{background:var(--premium-report-share-twitter-bg)}
+.salary-roast-share-button-linkedin{background:var(--premium-report-share-linkedin-bg)}
+.salary-roast-share-button-caption{background:linear-gradient(135deg,var(--premium-report-share-gradient-start),var(--premium-report-share-gradient-end))}
+
+.salary-roast-share-copy{
+  display:grid;
+  gap:8px
+}
+
+.salary-roast-share-text{
+  width:100%;
+  min-height:84px;
+  padding:12px;
+  resize:vertical;
+  border:1px solid var(--premium-report-white-12);
+  border-radius:12px;
+  color:var(--white);
+  background:var(--premium-report-white-045);
+  font:inherit;
+  font-size:13px;
+  line-height:1.55
+}
+
+.salary-roast-copy-button{
+  width:max-content
+}
+
+.salary-roast-compare-panel{
+  display:grid;
+  gap:12px;
+  padding:16px;
+  border:1px solid var(--premium-report-white-10);
+  border-radius:16px;
+  background:var(--premium-report-white-032)
+}
+
+.salary-roast-compare-panel h3{
+  margin:0;
+  color:var(--white);
+  font-size:16px;
+  font-weight:950
+}
+
+.salary-roast-compare-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:12px
+}
+
+.salary-roast-compare-grid strong{
+  display:block;
+  margin-top:6px;
+  color:var(--white);
+  font-size:28px;
+  font-weight:950
+}
+
+@media (max-width:980px){
+  .summary-card{padding:20px}
+  .salary-roast-hero,
+  .salary-roast-detail-grid,
+  .salary-roast-stat-grid,
+  .salary-roast-compare-grid{
+    grid-template-columns:1fr
+  }
+}
+
+@media (max-width:560px){
+  .summary-card{padding:18px;border-radius:20px}
+  .salary-roast-hero{padding:16px;border-radius:16px}
+  .salary-roast-score-panel>strong{font-size:52px}
+  .salary-roast-score-meta{grid-template-columns:1fr}
+  .salary-roast-actions,
+  .salary-roast-share-grid{
+    align-items:stretch
+  }
+  .salary-roast-tool-button,
+  .salary-roast-share-button,
+  .salary-roast-copy-button{
+    width:100%
+  }
+}
+

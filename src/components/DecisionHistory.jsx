@@ -50,33 +50,33 @@ export default function DecisionHistory({ userId = 'demo', refreshSignal = 0 }) 
   }
 
   return (
-    <div className="decision-history engine-card" style={{ padding: 12 }}>
-      <h3 style={{ marginTop: 0 }}>Decision History</h3>
+    <div className="decision-history summary-card premium-report-block">
+      <div className="premium-report-block-header">
+        <h3 className="premium-report-block-title">Decision History</h3>
+      </div>
       {trend && !loading && (
-        <div style={{ marginBottom: 12, display: 'flex', gap: 10, alignItems: 'center' }}>
-          <span style={{ padding: '4px 8px', borderRadius: 999, background: '#e0f2fe', color: '#0369a1', fontSize: 12 }}>
-            {trend.trend}
-          </span>
-          <span style={{ color: '#475569', fontSize: 12 }}>
-            Avg quality {trend.currentScore}%
-          </span>
+        <div className="decision-trend-banner">
+          <span className="decision-trend-pill">{trend.trend}</span>
+          <span className="decision-trend-note">Avg quality {trend.currentScore}%</span>
         </div>
       )}
-      {loading && <div>Loading…</div>}
-      {!loading && decisions.length === 0 && <div style={{ color: '#6b7280' }}>No decisions yet</div>}
-      <ul style={{ listStyle: 'none', padding: 0 }}>
+      {loading && <div className="decision-empty-state">Loading…</div>}
+      {!loading && decisions.length === 0 && <div className="decision-empty-state">No decisions yet</div>}
+      <ul className="decision-history-list">
         {decisions.map((d, i) => (
-          <li key={i} style={{ padding: '8px 0', borderBottom: '1px solid #f3f4f6' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 10 }}>
+          <li key={i} className="decision-history-item">
+            <div className="decision-history-meta">
               <div>
-                <div style={{ fontWeight: 600 }}>{d.category}</div>
+                <div className="decision-history-category">{d.category}</div>
                 {d.overallDecisionQuality !== undefined && (
-                  <div style={{ fontSize: 12, color: '#0f766e' }}>Quality {Math.round(d.overallDecisionQuality)}%</div>
+                  <div className="decision-history-quality">Quality {Math.round(d.overallDecisionQuality)}%</div>
                 )}
               </div>
-              <div style={{ fontSize: 12, color: '#6b7280' }} title={new Date(d.recorded_at || d.timestamp || Date.now()).toLocaleString()}>{formatRelativeTime(d.recorded_at || d.timestamp || Date.now())}</div>
+              <div className="decision-history-timestamp" title={new Date(d.recorded_at || d.timestamp || Date.now()).toLocaleString()}>
+                {formatRelativeTime(d.recorded_at || d.timestamp || Date.now())}
+              </div>
             </div>
-            <div style={{ color: '#374151', marginTop: 4 }}>{d.notes}</div>
+            <div className="decision-history-notes">{d.notes}</div>
           </li>
         ))}
       </ul>

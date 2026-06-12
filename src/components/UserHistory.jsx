@@ -152,7 +152,7 @@ export default function UserHistory({ currentScore, personalityType, className }
             <div className="history-chart-container">
               <ResponsiveContainer width="100%" height={250}>
                 <LineChart data={filteredHistory}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.1)" />
+                  <CartesianGrid strokeDasharray="3 3" stroke="var(--black-10)" />
                   <XAxis
                     dataKey="date"
                     tickFormatter={(date) =>
@@ -170,17 +170,17 @@ export default function UserHistory({ currentScore, personalityType, className }
                       new Date(date).toLocaleDateString("en-IN")
                     }
                     contentStyle={{
-                      backgroundColor: "rgba(255, 255, 255, 0.95)",
-                      border: "1px solid #e5e7eb",
+                      backgroundColor: "var(--white-95)",
+                      border: "1px solid var(--gray-100)",
                       borderRadius: "6px",
                     }}
                   />
                   <Line
                     type="monotone"
                     dataKey="score"
-                    stroke="#3b82f6"
+                    stroke="var(--blue)"
                     strokeWidth={2}
-                    dot={{ fill: "#3b82f6", r: 4 }}
+                    dot={{ fill: "var(--blue)", r: 4 }}
                     activeDot={{ r: 6 }}
                   />
                 </LineChart>

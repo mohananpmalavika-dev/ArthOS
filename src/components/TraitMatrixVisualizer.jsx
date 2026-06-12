@@ -42,21 +42,24 @@ export default function TraitMatrixVisualizer({ result, assessment }) {
         score: impulseDelayIndex,
         description: "Ability to defer gratification and stick to plans",
         icon: Zap,
-        color: "#8b5cf6",
+        color: "var(--purple)",
+        bg: "var(--purple-10)",
       },
       {
         name: "Stress Avoidance Factor",
         score: stressAvoidanceFactor,
         description: "Resilience when stressed (higher is better)",
         icon: Brain,
-        color: "#f59e0b",
+        color: "var(--yellow)",
+        bg: "var(--yellow-15)",
       },
       {
         name: "Social Friction Elasticity",
         score: socialFrictionElasticity,
         description: "Resistance to peer/social spending pressure",
         icon: Users,
-        color: "#06b6d4",
+        color: "var(--cyan)",
+        bg: "var(--blue-08)",
       },
     ];
   }, [assessment.behaviour]);
@@ -90,7 +93,7 @@ export default function TraitMatrixVisualizer({ result, assessment }) {
           return (
             <div key={trait.name} className="trait-item">
               <div className="trait-header">
-                <div className="trait-icon-wrapper" style={{ backgroundColor: `${trait.color}20` }}>
+                <div className="trait-icon-wrapper" style={{ backgroundColor: trait.bg }}>
                   <Icon size={18} color={trait.color} />
                 </div>
                 <div>

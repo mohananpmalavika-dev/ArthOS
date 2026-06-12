@@ -1,22 +1,38 @@
-# TODO - ARTH.OS Financial Health Score Framework
+# TODO – ARTH.OS Engagement & Retention
 
-## Phase 1: Correctness + Stability (approved)
-- [x] Fix amortization edge case in `src/lib/scoring-v2.js` (debt payoff months formula).
-- [x] Fix scalability/robustness in `src/lib/scoring-v2.js` (remove `Object.keys()` from score averaging; use explicit key lists).
-- [x] Fix `MoneyInput` numeric parsing + empty string handling in `src/App.jsx`.
-- [x] Fix v2 numeric input parsing in `src/App.jsx` (debtRepaymentRatePctOfIncome, averageInterestRatePct).
-- [x] Improve accessibility/semantics of `SegmentedControl` in `src/App.jsx` (remove invalid `name` on buttons; add keyboard handling).
-- [x] Improve responsive layout for `.numeric-grid` (and safe layout adjustments) in `src/styles.css` using `auto-fit`.
+## Phase 1: Foundation (TODO.md creation + Sync Fix)
+- [x] Create TODO.md for engagement/retention tracking
+- [x] Trigger data sync on login (AuthContext + financialMemoryEngine)
 
+## Phase 2: Score Improvement Notifications (in-app)
+- [ ] Detect score changes (delta from last assessment)
+- [ ] Show in-app toast/banner when score improves/declines
+- [ ] Show score improvement history in dashboard
 
-## Phase 2: Performance (in progress)
-- [x] Refactor `src/lib/scoring-v2.js` to expose smaller scoring helpers (behaviour/awareness/stability/debt/habits).
+## Phase 3: Progress Milestones / Badges / Achievements
+- [ ] Create `src/engines/milestoneEngine.js` — detect milestone unlocks
+- [ ] Store unlocked milestones in localStorage
+- [ ] Display badges in dashboard sidebar
+- [ ] Show milestone popup on unlock
 
-- [x] Update `src/App.jsx` to memoize per assessment slice instead of running full engine on every change.
+## Phase 4: Anonymized Peer Comparison
+- [ ] Create `src/engines/peerComparisonEngine.js` — local-only percentile ranges
+- [ ] Add peer comparison card to dashboard
+- [ ] Show anonymized score distribution
 
-- [x] Wrap selected result subcomponents with `React.memo` to reduce rerenders.
+## Phase 5: In-App Reminder/Notification System
+- [ ] Wire up the Bell icon in Header to notification panel
+- [ ] Create notification types: score change, milestone, streak, checkin reminder
+- [ ] Show notification badge count
+- [ ] Build notification panel component
 
+## Phase 6: Email/SMS Reminder Trigger System
+- [ ] Create API endpoint for reminder scheduling
+- [ ] Build reminder preference UI
+- [ ] Wire reminder triggers to checkin/streak logic
 
-## Phase 3: v2 Milestone (later)
-- [x] Split survival metric into Fixed vs Discretionary buffers (update questionnaire v2 schema, scoring engine, and UI).
-
+## Phase 7: Polish & Verification
+- [ ] Test all components render correctly
+- [ ] Verify milestone detection edge cases
+- [ ] Confirm notification badges update correctly
+- [ ] Build passes without errors

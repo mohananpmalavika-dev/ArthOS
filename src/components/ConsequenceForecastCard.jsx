@@ -25,12 +25,14 @@ export function ConsequenceForecastCard({ result, assessment }) {
   const warning = getTrajectoryWarning(result);
 
   return (
-    <section className="result-card consequence-forecast-card">
-      <div className="result-heading">
-        <TrendingDown size={20} />
-        <div>
-          <h2>Health Trajectory</h2>
-          <span className="forecast-subtitle">If current patterns continue...</span>
+    <section className="summary-card premium-report-block consequence-forecast-card">
+      <div className="premium-report-block-header">
+        <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+          <TrendingDown size={20} />
+          <div>
+            <h2 className="premium-report-block-title">Health Trajectory</h2>
+            <p className="premium-report-block-subtitle">If current patterns continue...</p>
+          </div>
         </div>
       </div>
 
@@ -49,32 +51,32 @@ export function ConsequenceForecastCard({ result, assessment }) {
       <div className="forecast-chart-container">
         <ResponsiveContainer width="100%" height={280}>
           <LineChart data={trajectory.trajectoryData}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+            <CartesianGrid strokeDasharray="3 3" stroke="var(--muted-18)" />
             <XAxis
               dataKey="month"
-              stroke="#94a3b8"
-              tick={{ fontSize: 12 }}
+              stroke="var(--muted)"
+              tick={{ fontSize: 12, fill: "var(--muted)" }}
             />
             <YAxis
               domain={[0, 100]}
-              stroke="#94a3b8"
-              tick={{ fontSize: 12 }}
+              stroke="var(--muted)"
+              tick={{ fontSize: 12, fill: "var(--muted)" }}
             />
             <Tooltip
               contentStyle={{
-                backgroundColor: "#1f2937",
-                border: "1px solid #374151",
+                backgroundColor: "var(--surface-3)",
+                border: "1px solid var(--gray-700)",
                 borderRadius: "6px",
-                color: "#fff",
+                color: "var(--white)",
               }}
               formatter={(value) => `${value.toFixed(1)}/100`}
             />
             <Line
               type="monotone"
               dataKey="healthScore"
-              stroke="#8b5cf6"
+              stroke="var(--purple)"
               strokeWidth={3}
-              dot={{ fill: "#8b5cf6", r: 5 }}
+              dot={{ fill: "var(--purple)", r: 5 }}
               activeDot={{ r: 7 }}
             />
           </LineChart>
@@ -113,7 +115,7 @@ export function ConsequenceForecastCard({ result, assessment }) {
         <p className="decay-rate-text">
           Monthly decay rate: <strong>{trajectory.decayRate}%</strong>
           <br />
-          <span style={{ fontSize: "12px", color: "#64748b" }}>
+          <span className="forecast-footnote">
             (Based on your behaviour, awareness, and stability patterns)
           </span>
         </p>
@@ -123,131 +125,6 @@ export function ConsequenceForecastCard({ result, assessment }) {
       <div className="forecast-cta">
         <p>This trajectory assumes no changes. Below are interventions to reverse the trend.</p>
       </div>
-
-      <style>{`
-        .consequence-forecast-card {
-          border-left: 4px solid #f97316;
-        }
-
-        .forecast-subtitle {
-          font-size: 13px;
-          color: #64748b;
-        }
-
-        .trajectory-warning {
-          display: flex;
-          gap: 12px;
-          padding: 14px 16px;
-          border-radius: 8px;
-          margin-bottom: 16px;
-          font-size: 13px;
-        }
-
-        .trajectory-warning strong {
-          display: block;
-          margin-bottom: 4px;
-        }
-
-        .trajectory-warning p {
-          margin: 0;
-          opacity: 0.9;
-        }
-
-        .warning-critical {
-          background: #fee2e2;
-          border: 1px solid #fca5a5;
-          color: #7f1d1d;
-        }
-
-        .warning-high {
-          background: #fef08a;
-          border: 1px solid #fde047;
-          color: #78350f;
-        }
-
-        .warning-moderate {
-          background: #dbeafe;
-          border: 1px solid #93c5fd;
-          color: #0c2d6b;
-        }
-
-        .forecast-chart-container {
-          margin: 16px 0;
-          background: #f9fafb;
-          border-radius: 8px;
-          padding: 12px;
-        }
-
-        .forecast-metrics {
-          display: grid;
-          grid-template-columns: repeat(4, 1fr);
-          gap: 12px;
-          margin: 16px 0;
-        }
-
-        .forecast-metric {
-          background: #f3f4f6;
-          padding: 12px;
-          border-radius: 8px;
-          text-align: center;
-        }
-
-        .metric-label {
-          font-size: 11px;
-          color: #64748b;
-          text-transform: uppercase;
-          font-weight: 600;
-          display: block;
-          margin-bottom: 6px;
-        }
-
-        .metric-value {
-          font-size: 20px;
-          display: block;
-        }
-
-        .metric-value.current {
-          color: #7c3aed;
-        }
-
-        .metric-value.decline {
-          color: #ef4444;
-        }
-
-        .metric-value.stable {
-          color: #10b981;
-        }
-
-        .forecast-narrative {
-          background: #f0f9ff;
-          padding: 14px;
-          border-radius: 6px;
-          margin: 14px 0;
-          border-left: 3px solid #06b6d4;
-        }
-
-        .consequence-text {
-          font-size: 14px;
-          margin: 0 0 10px 0;
-          color: #0c4a6e;
-          line-height: 1.5;
-        }
-
-        .decay-rate-text {
-          font-size: 12px;
-          color: #64748b;
-          margin: 0;
-        }
-
-        .forecast-cta {
-          background: #f5f3ff;
-          padding: 12px;
-          border-radius: 6px;
-          font-size: 13px;
-          color: #6b21a8;
-          margin-top: 12px;
-        }
-      `}</style>
     </section>
   );
 }

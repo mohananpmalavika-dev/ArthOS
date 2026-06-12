@@ -1,4 +1,4 @@
-import { generateRiskScore } from '../../../../src/engines/cognitionEngine.js';
+import { generateRiskScore } from '../../../src/engines/cognitionEngine.js';
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {

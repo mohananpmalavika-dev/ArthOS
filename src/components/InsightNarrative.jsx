@@ -4,19 +4,22 @@ import { calculateBehavioralCorrelationV2 } from "../engines/behaviorCorrelation
 
 export default function InsightNarrative({ result, assessment }) {
   const correlations = calculateBehavioralCorrelationV2(assessment);
-  const tone = result.healthScore >= 75 ? "positive" : result.healthScore >= 50 ? "cautious" : "critical";
+  const tone = result.healthScore >= 80 ? "positive" : result.healthScore >= 60 ? "cautious" : "critical";
 
-  const narrative = result.healthScore >= 75
-    ? `Good strength today. You are stable, but your awareness gap of ${result.awarenessGapDisplay} months means you may still be assuming more runway than you actually have.`
-    : result.healthScore >= 50
-      ? `Your financial health is mixed. ${result.blindSpotSummary} ${result.recommendedActionText}`
+  const narrative = result.healthScore >= 80
+    ? `Good strength today. You are ${result.categoryBand.label}. Your awareness gap of ${result.awarenessGapDisplay} months means you may still be assuming more runway than you actually have.`
+    : result.healthScore >= 60
+      ? `Your financial health is ${result.categoryBand.label.toLowerCase()}. ${result.blindSpotSummary} ${result.recommendedActionText}`
       : `Your profile is under pressure. ${result.blindSpotSummary} The most urgent priority is strengthening your runway and reducing high-risk spending.`;
 
   return (
-    <section className={`result-card narrative-card tone-${tone}`}>
-      <div className="result-heading">
-        <Sparkles size={19} />
-        <h2>Insight Narrative</h2>
+    <section className={`result-card narrative-card tone-${tone} summary-card`}>
+      <div className="premium-report-block-header">
+        <div className="result-heading">
+          <Sparkles size={19} />
+          <h2 className="premium-report-block-title">Insight Narrative</h2>
+        </div>
+        <p className="premium-report-block-subtitle">A concise behavioral narrative from your assessment.</p>
       </div>
 
       <p className="narrative-copy">{narrative}</p>

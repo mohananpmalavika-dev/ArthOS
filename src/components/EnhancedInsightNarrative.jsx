@@ -15,7 +15,6 @@ export function EnhancedInsightNarrative({ assessmentResult, assessment }) {
       setInsights(generatedInsights);
       setPatterns(detectedPatterns);
 
-      // Auto-select first critical insight
       const critical = generatedInsights.find((i) => i.priority === 'critical');
       if (critical) {
         setSelectedInsightId(critical.id);
@@ -25,33 +24,32 @@ export function EnhancedInsightNarrative({ assessmentResult, assessment }) {
 
   if (!assessmentResult || insights.length === 0) {
     return (
-      <div className="p-6 bg-gray-50 rounded-lg border border-gray-200">
-        <p className="text-gray-600">Complete your assessment to receive personalized insights.</p>
+      <div className="insight-empty-state summary-card">
+        <p className="premium-report-block-subtitle">Complete your assessment to receive personalized insights.</p>
       </div>
     );
   }
 
   const selectedInsight = insights.find((i) => i.id === selectedInsightId) || insights[0];
 
-  const getPriorityColor = (priority) => {
+  const getPriorityClass = (priority) => {
     switch (priority) {
       case 'critical':
-        return 'bg-red-50 border-red-300 text-red-900';
+        return 'insight-card-critical';
       case 'high':
-        return 'bg-orange-50 border-orange-300 text-orange-900';
+        return 'insight-card-high';
       case 'medium':
-        return 'bg-yellow-50 border-yellow-300 text-yellow-900';
+        return 'insight-card-medium';
       case 'low':
-        return 'bg-green-50 border-green-300 text-green-900';
+        return 'insight-card-low';
       default:
-        return 'bg-blue-50 border-blue-300 text-blue-900';
+        return 'insight-card-default';
     }
   };
 
   const getPriorityIcon = (priority) => {
     switch (priority) {
       case 'critical':
-        return <AlertCircle size={20} />;
       case 'high':
         return <AlertCircle size={20} />;
       case 'medium':
@@ -64,33 +62,25 @@ export function EnhancedInsightNarrative({ assessmentResult, assessment }) {
   };
 
   return (
-    <div className="space-y-6">
-      {/* Behavioral Patterns Alert */}
+    <div className="insight-section">
       {patterns.length > 0 && (
-        <div className="p-6 bg-purple-50 rounded-lg border-2 border-purple-300">
-          <h3 className="font-bold text-lg text-purple-900 mb-4 flex items-center gap-2">
-            <AlertCircle size={20} /> Behavioral Patterns Detected
-          </h3>
-          <div className="space-y-3">
+        <div className="insight-patterns-card summary-card">
+          <div className="premium-report-block-header">
+            <h3 className="premium-report-block-title">
+              <AlertCircle size={20} /> Behavioral Patterns Detected
+            </h3>
+          </div>
+
+          <div className="insight-patterns-list">
             {patterns.map((pattern) => (
-              <div key={pattern.id} className="p-4 bg-white rounded border border-purple-200">
-                <div className="flex items-start gap-3">
-                  <span
-                    className={`px-3 py-1 rounded text-xs font-bold ${
-                      pattern.severity === 'high'
-                        ? 'bg-red-100 text-red-700'
-                        : pattern.severity === 'medium'
-                        ? 'bg-yellow-100 text-yellow-700'
-                        : 'bg-blue-100 text-blue-700'
-                    }`}
-                  >
-                    {pattern.severity.toUpperCase()}
-                  </span>
-                  <div className="flex-1">
-                    <p className="font-semibold text-gray-900">{pattern.name}</p>
-                    <p className="text-sm text-gray-700 mt-1">{pattern.description}</p>
-                    <p className="text-xs text-gray-600 mt-2 italic">Evidence: {pattern.evidence}</p>
-                  </div>
+              <div key={pattern.id} className="insight-pattern-row">
+                <span className={`insight-pill ${pattern.severity === 'high' ? 'insight-pill-critical' : pattern.severity === 'medium' ? 'insight-pill-warning' : 'insight-pill-default'}`}>
+                  {pattern.severity.toUpperCase()}
+                </span>
+                <div className="insight-pattern-copy">
+                  <p className="insight-pattern-title">{pattern.name}</p>
+                  <p className="insight-pattern-text">{pattern.description}</p>
+                  <p className="insight-pattern-evidence">Evidence: {pattern.evidence}</p>
                 </div>
               </div>
             ))}
@@ -98,19 +88,14 @@ export function EnhancedInsightNarrative({ assessmentResult, assessment }) {
         </div>
       )}
 
-      {/* Insight Selector Tabs */}
-      <div className="flex flex-wrap gap-2 overflow-x-auto pb-2">
+      <div className="insight-tabs">
         {insights.map((insight) => (
           <button
             key={insight.id}
             onClick={() => setSelectedInsightId(insight.id)}
-            className={`px-4 py-2 rounded-full font-semibold text-sm transition-all flex-shrink-0 ${
-              selectedInsightId === insight.id
-                ? 'bg-blue-600 text-white shadow-lg'
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-            }`}
+            className={`insight-tab ${selectedInsightId === insight.id ? 'insight-tab-active' : ''}`}
           >
-            <span className="flex items-center gap-2">
+            <span className="insight-tab-label">
               {getPriorityIcon(insight.priority)}
               {insight.category}
             </span>
@@ -118,60 +103,37 @@ export function EnhancedInsightNarrative({ assessmentResult, assessment }) {
         ))}
       </div>
 
-      {/* Main Insight Display */}
       {selectedInsight && (
-        <div className={`p-8 rounded-xl border-2 ${getPriorityColor(selectedInsight.priority)}`}>
-          {/* Header */}
-          <div className="mb-6">
-            <div className="flex items-start justify-between mb-3">
-              <div className="flex items-center gap-2">
+        <div className={`insight-main-card summary-card ${getPriorityClass(selectedInsight.priority)}`}>
+          <div className="premium-report-block-header">
+            <div className="insight-main-header">
+              <div className="insight-main-tag-row">
                 {getPriorityIcon(selectedInsight.priority)}
-                <span className={`text-xs uppercase font-bold px-3 py-1 rounded ${
-                  selectedInsight.priority === 'critical'
-                    ? 'bg-red-200 text-red-900'
-                    : selectedInsight.priority === 'high'
-                    ? 'bg-orange-200 text-orange-900'
-                    : selectedInsight.priority === 'medium'
-                    ? 'bg-yellow-200 text-yellow-900'
-                    : 'bg-green-200 text-green-900'
-                }`}>
+                <span className={`insight-tag ${selectedInsight.priority === 'critical' ? 'insight-tag-critical' : selectedInsight.priority === 'high' ? 'insight-tag-high' : selectedInsight.priority === 'medium' ? 'insight-tag-medium' : 'insight-tag-low'}`}>
                   {selectedInsight.priority} Priority
                 </span>
               </div>
-              <span className="text-sm font-semibold text-gray-700 bg-white bg-opacity-50 px-3 py-1 rounded">
-                {selectedInsight.category}
-              </span>
+              <span className="insight-category-pill">{selectedInsight.category}</span>
             </div>
-
-            <h2 className="text-3xl font-bold mb-3">{selectedInsight.headline}</h2>
-            <p className="text-lg leading-relaxed">{selectedInsight.insight}</p>
           </div>
 
-          {/* Signal Indicator */}
+          <h2 className="insight-main-headline">{selectedInsight.headline}</h2>
+          <p className="insight-main-copy">{selectedInsight.insight}</p>
+
           {selectedInsight.signal && (
-            <div className="p-4 bg-white bg-opacity-50 rounded-lg mb-6 font-mono text-sm">
-              📊 {selectedInsight.signal}
-            </div>
+            <div className="insight-signal-box">📊 {selectedInsight.signal}</div>
           )}
 
-          {/* Actionable Section */}
-          {selectedInsight.actionable ? (
-            <div className="p-6 bg-white bg-opacity-70 rounded-lg border-l-4 border-current">
-              <h3 className="font-bold mb-2 flex items-center gap-2">
-                <Target size={20} /> What You Can Do This Week
-              </h3>
-              <p className="text-gray-900">{selectedInsight.actionable}</p>
-            </div>
-          ) : (
-            <div className="p-6 bg-white bg-opacity-70 rounded-lg border-l-4 border-current">
-              <p className="text-gray-900 italic">You're on the right track. Keep up your current approach.</p>
-            </div>
-          )}
+          <div className="insight-action-card summary-card">
+            <h3>
+              <Target size={20} /> What You Can Do This Week
+            </h3>
+            <p>{selectedInsight.actionable || "You're on the right track. Keep up your current approach."}</p>
+          </div>
         </div>
       )}
 
-      {/* Insights Summary Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="insight-summary-grid">
         {insights
           .filter((i) => i.id !== selectedInsightId)
           .slice(0, 2)
@@ -179,33 +141,30 @@ export function EnhancedInsightNarrative({ assessmentResult, assessment }) {
             <button
               key={insight.id}
               onClick={() => setSelectedInsightId(insight.id)}
-              className={`p-4 rounded-lg border-2 text-left transition-all hover:shadow-lg ${getPriorityColor(insight.priority)}`}
+              className={`insight-summary-card summary-card ${getPriorityClass(insight.priority)}`}
             >
-              <div className="flex items-start gap-3 mb-2">
+              <div className="insight-summary-top">
                 {getPriorityIcon(insight.priority)}
                 <div>
-                  <p className="font-bold text-sm">{insight.headline}</p>
-                  <p className="text-xs opacity-75 mt-1 line-clamp-2">{insight.insight}</p>
+                  <p className="insight-summary-headline">{insight.headline}</p>
+                  <p className="insight-summary-text">{insight.insight}</p>
                 </div>
               </div>
-              <p className="text-xs font-mono opacity-60 mt-2">{insight.signal}</p>
+              {insight.signal && <p className="insight-summary-signal">{insight.signal}</p>}
             </button>
           ))}
       </div>
 
-      {/* All Insights List */}
-      <details className="p-4 bg-gray-50 rounded-lg border border-gray-200">
-        <summary className="font-bold cursor-pointer text-gray-900">All Insights ({insights.length})</summary>
-        <div className="mt-4 space-y-3">
+      <details className="insight-details-panel summary-card">
+        <summary className="insight-details-summary">All Insights ({insights.length})</summary>
+        <div className="insight-details-list">
           {insights.map((insight) => (
-            <div key={insight.id} className={`p-4 rounded-lg border-l-4 ${getPriorityColor(insight.priority)}`}>
-              <div className="flex items-start gap-3">
-                <span className="text-xs font-bold uppercase text-gray-700 flex-shrink-0">{insight.category}</span>
-                <div className="flex-1">
-                  <p className="font-bold">{insight.headline}</p>
-                  <p className="text-sm mt-1">{insight.insight}</p>
-                  {insight.signal && <p className="text-xs font-mono text-gray-600 mt-2">{insight.signal}</p>}
-                </div>
+            <div key={insight.id} className={`insight-detail-row ${getPriorityClass(insight.priority)}`}>
+              <span className="insight-detail-category">{insight.category}</span>
+              <div>
+                <p className="insight-detail-headline">{insight.headline}</p>
+                <p className="insight-detail-text">{insight.insight}</p>
+                {insight.signal && <p className="insight-detail-signal">{insight.signal}</p>}
               </div>
             </div>
           ))}
