@@ -474,6 +474,9 @@ export default function App() {
     setNotificationBadgeCount(getUnreadCount());
   }, []);
 
+  // Calculate financial health scores — must be before useEffect hooks that depend on it
+  const result = useMemo(() => calculateFinancialHealthV2(assessment), [assessment]);
+
   useEffect(() => {
     if (isBrowser()) {
       refreshNotificationCount();
@@ -638,8 +641,6 @@ export default function App() {
     }
     setShowOnboarding(false);
   };
-
-  const result = useMemo(() => calculateFinancialHealthV2(assessment), [assessment]);
 
   useEffect(() => {
     if (!isBrowser()) return;
