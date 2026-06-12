@@ -1,4 +1,4 @@
-import React, { memo, useEffect, useMemo, useState, lazy, Suspense } from "react";
+import React, { memo, useEffect, useMemo, useState, lazy, Suspense, useCallback } from "react";
 import { useAuth } from "./context/AuthContext.jsx";
 import LoginPage from "./pages/LoginPage.jsx";
 import RegisterPage from "./pages/RegisterPage.jsx";

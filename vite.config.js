@@ -146,10 +146,30 @@ function createApiPlugin() {
     name: "vite-plugin-local-api",
     async configureServer(server) {
       const handlers = await apiHandlersPromise;
+      
+      // Add CSP middleware to allow data URIs, external fonts, and unsafe-inline styles
+      server.middlewares.use((req, res, next) => {
+        res.setHeader(
+          "Content-Security-Policy",
+          "default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; script-src 'self' 'unsafe-inline' 'unsafe-eval'; connect-src 'self' https://fonts.googleapis.com https://fonts.gstatic.com"
+        );
+        next();
+      });
+      
       server.middlewares.use(createApiMiddleware(handlers));
     },
     async configurePreviewServer(server) {
       const handlers = await apiHandlersPromise;
+      
+      // Add CSP middleware to allow data URIs, external fonts, and unsafe-inline styles
+      server.middlewares.use((req, res, next) => {
+        res.setHeader(
+          "Content-Security-Policy",
+          "default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; script-src 'self' 'unsafe-inline' 'unsafe-eval'; connect-src 'self' https://fonts.googleapis.com https://fonts.gstatic.com"
+        );
+        next();
+      });
+      
       server.middlewares.use(createApiMiddleware(handlers));
     },
   };
