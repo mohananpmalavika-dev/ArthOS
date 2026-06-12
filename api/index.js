@@ -51,6 +51,7 @@ const routeDefinitions = [
     handler: userRiskHandler,
     getParams: (match) => ({ userId: match[1] }),
   },
+  { match: (pathname) => pathname === '/api/reminders' || pathname.startsWith('/api/reminders/'), handler: remindersHandler },
 ];
 
 function getPathname(req) {

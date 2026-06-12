@@ -65,9 +65,10 @@ import { FinancialMindProfile } from "./lib/FinancialMindProfile.js";
 import { mapSignalsToBehaviour } from "./engines/smsParser.js";
 
 import { checkAndUnlockMilestones } from "./engines/milestoneEngine.js";
-import { getUnreadCount, addNotification, notifyNewMilestones, checkCheckinReminder } from "./engines/notificationEngine.js";
+import { getUnreadCount, addNotification, notifyNewMilestones, checkCheckinReminder, detectAndNotifyScoreChange } from "./engines/notificationEngine.js";
 import BadgeDisplay from "./components/BadgeDisplay.jsx";
 import NotificationPanel from "./components/NotificationPanel.jsx";
+import NotificationToast from "./components/NotificationToast.jsx";
 import FlowNavigation from "./components/FlowNavigation.jsx";
 import PeerComparisonCard from "./components/PeerComparisonCard.jsx";
 import ErrorBoundary from "./components/ErrorBoundary.jsx";
@@ -500,7 +501,6 @@ export default function App() {
     const prev = prevScoreRef.current;
     if (prev > 0 && result.healthScore !== prev) {
       // Score changed — fire in-app notification
-      const { detectAndNotifyScoreChange } = require("./engines/notificationEngine.js");
       detectAndNotifyScoreChange(result.healthScore, prev);
       refreshNotificationCount();
     }
@@ -1035,6 +1035,8 @@ export default function App() {
         isOpen={showNotificationPanel}
         onClose={() => setShowNotificationPanel(false)}
       />
+
+      <NotificationToast />
 
       {showOnboarding && (
         <OnboardingOverlay onComplete={dismissOnboarding} />

@@ -5,31 +5,31 @@
 - [x] Trigger data sync on login (AuthContext + financialMemoryEngine)
 
 ## Phase 2: Score Improvement Notifications (in-app)
-- [ ] Detect score changes (delta from last assessment)
-- [ ] Show in-app toast/banner when score improves/declines
-- [ ] Show score improvement history in dashboard
+- [x] Detect score changes (delta from last assessment) — `detectAndNotifyScoreChange()` in notificationEngine.js; wired in App.jsx via `prevScoreRef`
+- [x] Show in-app toast/banner when score improves/declines — NotificationToast.jsx polls for unread + shows animated toast
+- [x] Show score improvement history in dashboard — AnalyticsDashboard.jsx + UserHistory.jsx (lazy-loaded) display score history
 
 ## Phase 3: Progress Milestones / Badges / Achievements
-- [ ] Create `src/engines/milestoneEngine.js` — detect milestone unlocks
-- [ ] Store unlocked milestones in localStorage
-- [ ] Display badges in dashboard sidebar
-- [ ] Show milestone popup on unlock
+- [x] Create `src/engines/milestoneEngine.js` — detect milestone unlocks — exists with 20+ badge definitions, `checkAndUnlockMilestones()` wired in App.jsx
+- [x] Store unlocked milestones in localStorage — via MILESTONE_STORAGE_KEY
+- [x] Display badges in dashboard sidebar — BadgeDisplay.jsx with compact mode renders in sidebar
+- [x] Show milestone popup on unlock — newlyUnlocked state in App.jsx passed to BadgeDisplay which shows milestone-popup cards
 
 ## Phase 4: Anonymized Peer Comparison
-- [ ] Create `src/engines/peerComparisonEngine.js` — local-only percentile ranges
-- [ ] Add peer comparison card to dashboard
-- [ ] Show anonymized score distribution
+- [x] Create `src/engines/peerComparisonEngine.js` — local-only percentile ranges — exists with Box-Muller generated distribution
+- [x] Add peer comparison card to dashboard — PeerComparisonCard.jsx rendered in sidebar of reports section
+- [x] Show anonymized score distribution — bar chart (recharts) showing buckets with user highlight
 
 ## Phase 5: In-App Reminder/Notification System
-- [ ] Wire up the Bell icon in Header to notification panel
-- [ ] Create notification types: score change, milestone, streak, checkin reminder
-- [ ] Show notification badge count
-- [ ] Build notification panel component
+- [x] Wire up the Bell icon in Header to notification panel — Bell icon calls `onToggleNotification` → toggles NotificationPanel
+- [x] Create notification types: score change, milestone, streak, checkin reminder — all 4 types in notificationEngine.js
+- [x] Show notification badge count — `notificationBadgeCount` displayed as badge dot in Header, refreshed every 30s
+- [x] Build notification panel component — NotificationPanel.jsx with slide-out overlay, mark read/all, clear all
 
 ## Phase 6: Email/SMS Reminder Trigger System
-- [ ] Create API endpoint for reminder scheduling
-- [ ] Build reminder preference UI
-- [ ] Wire reminder triggers to checkin/streak logic
+- [x] Create API endpoint for reminder scheduling — `api_src/reminders.js` exists with full CRUD + trigger/delivery engine, now wired into `api/index.js` route definitions
+- [ ] Build reminder preference UI — **MISSING**: No frontend component for users to set reminder preferences (channel, time, frequency)
+- [ ] Wire reminder triggers to checkin/streak logic — **MISSING**: No calls to reminders API from checkin submissions or streak detection path
 
 ## Phase 7: Polish & Verification
 - [ ] Test all components render correctly
