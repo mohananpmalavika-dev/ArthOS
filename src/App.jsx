@@ -67,13 +67,16 @@ import { FinancialMindProfile } from "./lib/FinancialMindProfile.js";
 import { mapSignalsToBehaviour } from "./engines/smsParser.js";
 
 import { checkAndUnlockMilestones } from "./engines/milestoneEngine.js";
+import { archiveOrphanedSession } from "./engines/assessmentTelemetry.js";
 import { getUnreadCount, addNotification, notifyNewMilestones, checkCheckinReminder, detectAndNotifyScoreChange } from "./engines/notificationEngine.js";
+import { initializeUserRetention, recordUserReturn, recordAssessmentCompletion } from "./engines/retentionEngine.js";
 import BadgeDisplay from "./components/BadgeDisplay.jsx";
 import NotificationPanel from "./components/NotificationPanel.jsx";
 import NotificationToast from "./components/NotificationToast.jsx";
 import FlowNavigation from "./components/FlowNavigation.jsx";
 import PeerComparisonCard from "./components/PeerComparisonCard.jsx";
 import ErrorBoundary from "./components/ErrorBoundary.jsx";
+import RetentionDashboard from "./components/RetentionDashboard.jsx";
 // Lazy-loaded feature components to reduce main bundle
 const AnalyticsDashboard = lazy(() => import("./components/AnalyticsDashboard.jsx"));
 const CognitionGraphView = lazy(() => import("./components/CognitionGraphView.jsx"));
@@ -99,6 +102,8 @@ import { SalaryRoastGenerator } from "./components/SalaryRoastGenerator.jsx";
 import { ScenarioForecast } from "./components/ScenarioForecast.jsx";
 import { ForecastModelCard } from "./components/ForecastModelCard.jsx";
 import { EnhancedInsightNarrative } from "./components/EnhancedInsightNarrative.jsx";
+import SingleMostImportantInsight from "./components/SingleMostImportantInsight.jsx";
+import ActionFollowUpPanel from "./components/ActionFollowUpPanel.jsx";
 import DecisionSimulator from "./components/DecisionSimulator.jsx";
 import { ConsequenceForecastCard } from "./components/ConsequenceForecastCard.jsx";
 import { InterventionsPrescriptionCard } from "./components/InterventionsPrescriptionCard.jsx";
@@ -109,6 +114,7 @@ import DecisionHistory from "./components/DecisionHistory.jsx";
 import RecordDecision from "./components/RecordDecision.jsx";
 import { AreaChart, Area, XAxis, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
 import "./premium-report.css";
+import "./styles/retention-dashboard.css";
 
 
 import {
@@ -417,6 +423,7 @@ export default function App() {
   const [queuedSaveCount, setQueuedSaveCount] = useState(() => (isBrowser() ? loadQueuedAssessmentSaves().length : 0));
   const [isOnline, setIsOnline] = useState(() => (typeof navigator !== "undefined" ? navigator.onLine : true));
   const [resetTrigger, setResetTrigger] = useState(0);
+  const [pendingFollowUps, setPendingFollowUps] = useState([]);
   const [activeHash, setActiveHash] = useState(
     isBrowser() ? window.location.hash || "#home" : "#home"
   );
@@ -558,6 +565,38 @@ export default function App() {
     setMemoryTimeline(memoryEngine.getHistory());
   }, [memoryEngine]);
 
+  // Initialize user retention tracking on app load
+  useEffect(() => {
+    if (!isBrowser()) return;
+    const userId = currentUserId || assessment.participant?.email || 'demo';
+    initializeUserRetention(userId);
+  }, [currentUserId, assessment.participant?.email]);
+
+  // Track user activity for retention metrics (max once per day per session)
+  useEffect(() => {
+    if (!isBrowser()) return;
+    const userId = currentUserId || assessment.participant?.email || 'demo';
+    
+    const handleUserActivity = () => {
+      recordUserReturn(userId);
+    };
+
+    // Record return on: focus (page becomes visible), clicks, and scroll
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        handleUserActivity();
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    document.addEventListener('click', handleUserActivity);
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      document.removeEventListener('click', handleUserActivity);
+    };
+  }, [currentUserId, assessment.participant?.email]);
+
   useEffect(() => {
     if (!isBrowser()) return;
     const userId = currentUserId || assessment.participant?.email || 'demo';
@@ -570,6 +609,24 @@ export default function App() {
         setDecisionHistoryCount(0);
       });
   }, [currentUserId, assessment.participant?.email, decisionsRefresh]);
+
+  // Fetch pending follow-ups when user is authenticated
+  useEffect(() => {
+    if (!isBrowser() || !currentUserId) return;
+    void fetch(`/api/follow-up/pending?userId=${encodeURIComponent(currentUserId)}`, {
+      headers: { 'x-user-id': currentUserId },
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        if (data.followUps && Array.isArray(data.followUps)) {
+          setPendingFollowUps(data.followUps);
+        }
+      })
+      .catch((e) => {
+        console.error('Error fetching follow-ups:', e);
+        setPendingFollowUps([]);
+      });
+  }, [currentUserId]);
 
   useEffect(() => {
     const market = createDefaultProviderMarketplace();
@@ -589,37 +646,20 @@ export default function App() {
     return () => window.removeEventListener("hashchange", handleHashChange);
   }, []);
 
+  // Detect and archive orphaned assessment sessions (user left mid-assessment)
   useEffect(() => {
     if (!isBrowser()) return;
-
-    initOfflineApiQueue();
-    refreshQueuedSaveCount();
-    setIsOnline(navigator.onLine);
-    void flushQueuedAssessmentSavesAndRefresh();
-
-    function handleOnline() {
-      setIsOnline(true);
-      void flushQueuedAssessmentSavesAndRefresh();
-    }
-
-    function handleOffline() {
-      setIsOnline(false);
-    }
-
-    window.addEventListener("online", handleOnline);
-    window.addEventListener("offline", handleOffline);
-    return () => {
-      window.removeEventListener("online", handleOnline);
-      window.removeEventListener("offline", handleOffline);
-    };
+    archiveOrphanedSession();
   }, []);
 
   useEffect(() => {
     if (!isBrowser()) return;
+
     initOfflineApiQueue();
     refreshQueuedSaveCount();
     setIsOnline(navigator.onLine);
     void flushQueuedAssessmentSavesAndRefresh();
+    archiveOrphanedSession();
 
     function handleOnline() {
       setIsOnline(true);
@@ -854,6 +894,11 @@ export default function App() {
     const updatedHistory = appendScoreHistory(result.healthScore);
     setScoreHistory(updatedHistory);
     appendAssessmentHistory(result);
+    
+    // Record assessment completion for retention metrics
+    const userId = currentUserId || assessment.participant?.email || 'demo';
+    recordAssessmentCompletion(userId);
+    
     memoryEngine.addEvent({
       type: 'assessment_result',
       score: result.healthScore,
@@ -1164,9 +1209,30 @@ export default function App() {
             {showReportsSection && (
             <section className="assessment-summary-grid flow-report-grid" id="reports">
               <div className="summary-main-column">
+                {/* MOST IMPORTANT INSIGHT — Center of the MVP Experience */}
+                <Suspense fallback={<LazyComponentFallback />}>
+                  <ErrorBoundary>
+                    <SingleMostImportantInsight assessmentResult={result} assessment={assessment} />
+                  </ErrorBoundary>
+                </Suspense>
+                
+                {/* ACTION FOLLOW-UP PANEL — Day 7 & Day 30 Check-Ins */}
+                <Suspense fallback={<LazyComponentFallback />}>
+                  <ErrorBoundary>
+                    <ActionFollowUpPanel userId={currentUserId} followUps={pendingFollowUps} />
+                  </ErrorBoundary>
+                </Suspense>
+                
                 <Suspense fallback={<LazyComponentFallback />}>
                   <ErrorBoundary>
                     <AnalyticsDashboard result={result} />
+                  </ErrorBoundary>
+                </Suspense>
+
+                {/* Retention & Cohort Analytics Dashboard */}
+                <Suspense fallback={<LazyComponentFallback />}>
+                  <ErrorBoundary>
+                    <RetentionDashboard />
                   </ErrorBoundary>
                 </Suspense>
                 

@@ -18,6 +18,14 @@ import {
   dispatchAnonymousTelemetry,
   dispatchAnonymousFeedbackEvent,
 } from "../lib/scoring-v2.js";
+import {
+  startAssessmentSession,
+  recordStepEntry,
+  markStepCompleted,
+  markAssessmentCompleted,
+  archiveSession,
+  buildStepTelemetryPayload,
+} from "../engines/assessmentTelemetry.js";
 import { ASSESSMENT_FIELDS, ASSESSMENT_OPTIONS, ASSESSMENT_BUTTONS, ASSESSMENT_SECTIONS } from "../lib/copy.js";
 
 // Icon registry mapping icon names to actual components (replaces eval())
@@ -405,6 +413,21 @@ export default function AssessmentSection({ assessment, result, onChange, onSave
     return errors;
   };
 
+  // ── Assessment Telemetry: track step entries and session lifecycle ──
+  useEffect(() => {
+    // Archive any orphaned session from a previous page visit (drop-off)
+    // and start a fresh session for this assessment view
+    startAssessmentSession();
+    recordStepEntry(currentStep, totalSteps);
+  }, []); // only on mount
+
+  // Track step changes for telemetry
+  useEffect(() => {
+    if (currentStep > 0) {
+      recordStepEntry(currentStep, totalSteps);
+    }
+  }, [currentStep, totalSteps]);
+
   useEffect(() => {
     if (resetTrigger !== undefined) {
       setCurrentStep(0);
@@ -452,6 +475,9 @@ export default function AssessmentSection({ assessment, result, onChange, onSave
       }
     }
 
+    // Mark current step as completed in telemetry
+    markStepCompleted(currentStep);
+
     if (currentStep < totalSteps - 1) {
       handleStepChange(currentStep + 1);
       return;
@@ -459,7 +485,16 @@ export default function AssessmentSection({ assessment, result, onChange, onSave
 
     // Final step - submit assessment
     try {
+      // Mark full assessment as completed for telemetry, archive session
+      markAssessmentCompleted();
+      archiveSession();
+
       const payload = buildAnonymousTelemetryPayload(result, assessment);
+      
+      // Append step-level telemetry data to the existing payload
+      const stepTelemetry = buildStepTelemetryPayload();
+      payload.step_telemetry = stepTelemetry.step_telemetry;
+
       await dispatchAnonymousTelemetry(payload, "/api/telemetry");
       if (typeof onSaveAssessment === "function") {
         onSaveAssessment();

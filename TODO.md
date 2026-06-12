@@ -26,7 +26,7 @@
 | 1.2 | BAS Assessment (5–7 min) | "Adaptive. Progress indicators. Target: 70%+ completion rate." | 🟡 Partial — assessment exists but is NOT adaptive (fixed question set). Progress indicators exist (wizard steps). No completion rate tracking. | `AssessmentSection.jsx` |
 | 1.3 | Financial Health Score | "Composite B/A/S breakdown. First moment of genuine, precise self-knowledge." | 🟢 Complete | `AnalyticsDashboard.jsx`, `App.jsx` |
 | 1.4 | Survival Engine | "User sees their Survival Window. Emotional centrepiece — creates urgency, shareability, motivation." | 🟢 Complete | `SurvivalHero.jsx`, `scoring-v2.js` |
-| 1.5 | Personalised Insight (ONE) | "ARTH.OS surfaces the single most important insight. Not ten. One. The most impactful one." | 🔴 NOT Implemented — `insightGenerator.js` returns ALL insights sorted by priority. No UX for "single most impactful insight." | New component needed |
+| 1.5 | Personalised Insight (ONE) | "ARTH.OS surfaces the single most important insight. Not ten. One. The most impactful one." | � Complete | `SingleMostImportantInsight.jsx`, `singleInsightEngine.js`, integrated into App.jsx reports flow |
 | 1.6 | Recommended Action (ONE) | "One specific, concrete action for this week. Not a plan. An action. Low friction. High impact." | 🟢 Complete | `SingleRecommendedAction.jsx` |
 | 1.7 | Tracking & Return | "Weekly check-ins. Score evolves. Insights deepen." | 🟡 Partial — `DailyCheckinForm.jsx` exists but weekly re-engagement flow is weak. No automated weekly reminder to return. | `DailyCheckinForm.jsx` |
 
@@ -114,11 +114,11 @@
 
 | # | Gap | Blueprint Reference | Impact | Action Required |
 |---|-----|-------------------|--------|-----------------|
-| **G1** | **Single Insight UX** — Currently shows ALL insights. Blueprint demands ONE. | Ch. 11 Step 5: "Not ten. One." | HIGH — Core MVP promise broken | Build `SingleMostImportantInsight.jsx` component that picks the top priority insight and renders it full-screen with call-to-action. |
+| **G1** | **Single Insight UX** — Displays THE single most important insight prominently. Full-width hero card with priority badge, headline, explanation, and actionable CTA. | Ch. 11 Step 5: "Not ten. One." | ✅ COMPLETE | `SingleMostImportantInsight.jsx` renders before AnalyticsDashboard in reports flow. Picks top-priority insight via `singleInsightEngine.js`. |
 | **G2** | **Salary Roast Viral Share** — Generator exists but no share/copy mechanism. | Ch. 12 P1: "Shareable report. Viral growth mechanic." | MEDIUM — Key growth mechanic missing | Add 1-click copy-to-clipboard + share-as-image (html2canvas) + WhatsApp/Twitter share links to `SalaryRoastGenerator.jsx`. |
 | **G3** | **Adaptive Assessment** — Questions are fixed, not adaptive based on answers. | Ch. 12 P0: "Adaptive. Progress indicators." | MEDIUM — Affects completion rate | Build `adaptiveQuestionEngine.js` that selects next question based on previous answer. Could do simple skip logic. |
-| **G4** | **Day-7 & Day-30 Re-engagement** — No scheduled follow-up to measure action completion. | Ch. 12: "drives measurable behaviour change at Day 7 & Day 30" | HIGH — Core validation metric missing | Build `ActionFollowUpEngine.jsx` + reminder system that re-contacts user at Day 7 and Day 30. |
-| **G5** | **Assessment Completion Rate Tracking** — No telemetry on drop-off. | Ch. 12: "Target 70%+ completion rate" | MEDIUM — Cannot measure without tracking | Add step-level analytics events to assessment flow. Report via existing telemetry pipeline. |
+| **G4** | **Day-7 & Day-30 Re-engagement** — Scheduled follow-up to measure action completion via Day 7 & 30 check-ins. | Ch. 12: "drives measurable behaviour change at Day 7 & Day 30" | ✅ COMPLETE | `ActionFollowUpEngine.js` backend + `actionFollowUpHandler.js` API + `ActionFollowUpPanel.jsx` UI + V10 migration. When user commits to action, scheduled reminders trigger Day 7 & 30 prompts; deltas recorded. |
+| **G5** | **Assessment Completion Rate Tracking** — Step-level telemetry on drop-off, completion rates, and session durations. | Ch. 12: "Target 70%+ completion rate" | ✅ COMPLETE | `assessmentTelemetry.js` tracks step entries/exits, durations, drop-off points. Archived sessions stored in localStorage. Completion rate metrics (`getCompletionRateMetrics`) provide aggregated analytics. Step telemetry appended to existing anonymous telemetry payload on assessment completion. Orphaned sessions (user leaves mid-assessment) auto-detected and archived on next app load. |
 | **G6** | **Day-30 Retention Tracking** — No mechanism to measure 40%+ retention. | Ch. 12: "target 40%+ Day 30 retention" | MEDIUM | Build retention cohort analysis. Track user return frequency in memory engine. |
 | **G7** | **BAS™ Academic Validation** — Framework not validated as psychometric instrument. | Ch. 24 Q2 | LOW — Strategic, not urgent | Create validation study protocol. Partner with academic psychologist. |
 | **G8** | **Monetization Sequencing** — No pricing model implemented. | Ch. 24 Q1 | MEDIUM — Seed stage need | Design freemium tier (BAS assessment free, Premium: Digital Twin + Prediction Engine, Enterprise: B2B API). |
@@ -131,9 +131,9 @@
 
 ### Sprint 1: MVP Completeness (fix core promise violations)
 ```
-G1 — Single Insight UX          🔴 MUST FIX — core MVP promise
-G4 — Day-7/30 Re-engagement     🔴 MUST FIX — validation metric
-G5 — Completion Rate Tracking    🟡 SHOULD FIX — cannot measure success
+G1 — Single Insight UX          ✅ COMPLETE — core MVP promise FIXED
+G4 — Day-7/30 Re-engagement     ✅ COMPLETE — validation metric implemented
+G5 — Completion Rate Tracking    ✅ COMPLETE — can now measure completion rate, drop-off, durations
 ```
 
 ### Sprint 2: Growth Mechanics
@@ -222,7 +222,7 @@ Flow:
 | Category | Total Items | Complete | Partial | Not Started |
 |----------|------------|----------|---------|-------------|
 | **BAS Framework** | 6 | 5 | 1 | 0 |
-| **User Journey P0** | 7 | 4 | 2 | 1 |
+| **User Journey P0** | 7 | 5 | 1 | 0 |
 | **P1 Features** | 3 | 2 | 1 | 0 |
 | **Cognition Layer** | 5 | 5 | 0 | 0 |
 | **Decision Intelligence** | 4 | 4 | 0 | 0 |
@@ -230,11 +230,11 @@ Flow:
 | **Financial Memory** | 4 | 4 | 0 | 0 |
 | **Digital Twin** | 5 | 5 | 0 | 0 |
 | **OS / B2B** | 4 | 4 | 0 | 0 |
-| **Identified Gaps** | 10 | 0 | 0 | 10 |
-| **TOTAL** | **52** | **37** | **4** | **11** |
+| **Identified Gaps** | 10 | 3 | 0 | 7 |
+| **TOTAL** | **52** | **41** | **4** | **7** |
 
-**Code implementation: 41/52 items complete (79%)**
-**Core MVP validation gaps: 3 critical items remain (G1, G4, G5)**
+**Code implementation: 45/52 items complete (87%)**
+**Core MVP validation gaps: 0 critical items remain — Sprint 1 fully complete** ← G1 ✅ G4 ✅ G5 ✅
 
 ---
 

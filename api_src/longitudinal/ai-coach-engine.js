@@ -9,13 +9,20 @@
  * The coach acts as a trusted advisor, not just a recommendation engine.
  */
 
-const { createClient } = require('@supabase/supabase-js');
-const OpenAI = require('openai');
+import { createClient } from '@supabase/supabase-js';
+import OpenAI from 'openai';
 
 const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY);
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
+
+let _openai = null;
+function getOpenAI() {
+  if (!_openai) {
+    _openai = new OpenAI({
+      apiKey: process.env.OPENAI_API_KEY,
+    });
+  }
+  return _openai;
+}
 
 class AICoachEngine {
   /**
@@ -195,7 +202,7 @@ class AICoachEngine {
         { role: 'user', content: userMessage }
       ];
 
-      const response = await openai.chat.completions.create({
+      const response = await getOpenAI().chat.completions.create({
         model: 'gpt-4-turbo',
         messages,
         temperature: 0.7,
@@ -371,7 +378,7 @@ Generate ONE specific, actionable recommendation that:
 
 Format as: [RECOMMENDATION] [TIME_FRAME] [SUCCESS_METRIC] [WHY_IT_MATTERS]`;
 
-      const response = await openai.chat.completions.create({
+      const response = await getOpenAI().chat.completions.create({
         model: 'gpt-4-turbo',
         messages: [
           {
@@ -530,7 +537,7 @@ ${messages
 
 Format: INSIGHTS: [2-3 bullets] NEXT_STEPS: [2-3 actions]`;
 
-      const summaryResponse = await openai.chat.completions.create({
+      const summaryResponse = await getOpenAI().chat.completions.create({
         model: 'gpt-4-turbo',
         messages: [
           {
@@ -624,4 +631,4 @@ Format: INSIGHTS: [2-3 bullets] NEXT_STEPS: [2-3 actions]`;
   }
 }
 
-module.exports = AICoachEngine;
+export default AICoachEngine;

@@ -8,12 +8,12 @@
  * - Viewing forecast accuracy and confidence
  */
 
-const PredictionEngine = require('./prediction-engine');
-const { createClient } = require('@supabase/supabase-js');
+import PredictionEngine from './prediction-engine.js';
+import { createClient } from '@supabase/supabase-js';
 
 const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY);
 
-module.exports = async (req, res) => {
+export default async function handler(req, res) {
   // Enable CORS
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, OPTIONS');
@@ -316,4 +316,4 @@ module.exports = async (req, res) => {
       service: 'prediction-engine'
     });
   }
-};
+}

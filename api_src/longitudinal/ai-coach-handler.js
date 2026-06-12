@@ -5,8 +5,8 @@
  * Routes requests to appropriate handler based on method and path.
  */
 
-const { createClient } = require('@supabase/supabase-js');
-const AICoachEngine = require('./ai-coach-engine');
+import { createClient } from '@supabase/supabase-js';
+import AICoachEngine from './ai-coach-engine.js';
 
 const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY);
 
@@ -21,7 +21,7 @@ function getUserId(req) {
 
 // ============= MAIN HANDLER =============
 
-module.exports = async (req, res) => {
+export default async function aiCoachHandler(req, res) {
   try {
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, OPTIONS');

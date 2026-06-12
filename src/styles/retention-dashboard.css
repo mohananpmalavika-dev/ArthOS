@@ -1,0 +1,422 @@
+/* ===== RETENTION DASHBOARD STYLES ===== */
+
+.retention-dashboard {
+  width: min(1400px, calc(100% - 64px));
+  margin: 0 auto;
+  padding: 56px 0;
+}
+
+.retention-dashboard.loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+}
+
+.retention-dashboard.loading p {
+  color: var(--muted);
+  font-size: 16px;
+}
+
+.retention-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 20px;
+  margin-bottom: 48px;
+  padding-bottom: 24px;
+  border-bottom: 1px solid var(--border);
+}
+
+.retention-header h2 {
+  color: var(--text);
+  font-size: 42px;
+  font-weight: 900;
+  font-family: var(--display);
+}
+
+.retention-header .subtitle {
+  color: var(--muted);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 0 18px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
+  background: rgba(255, 255, 255, 0.055);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 160ms ease;
+}
+
+.btn-secondary:hover {
+  border-color: var(--cyan);
+  background: rgba(98, 228, 209, 0.08);
+  color: var(--cyan);
+  box-shadow: 0 8px 20px rgba(98, 228, 209, 0.15);
+}
+
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 0 22px;
+  border: 1px solid var(--purple);
+  border-radius: 8px;
+  color: #ffffff;
+  background: var(--purple);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 12px 24px rgba(99, 102, 241, 0.3);
+  transition: all 160ms ease;
+}
+
+.btn-primary:hover {
+  background: var(--violet);
+  border-color: var(--violet);
+  box-shadow: 0 16px 32px rgba(99, 102, 241, 0.4);
+  transform: translateY(-2px);
+}
+
+/* KPI Card */
+.retention-kpi {
+  margin-bottom: 48px;
+}
+
+.kpi-card {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 24px;
+  align-items: center;
+  padding: 32px;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background:
+    linear-gradient(135deg, rgba(98, 228, 209, 0.08), rgba(139, 92, 246, 0.05)),
+    var(--surface);
+}
+
+.kpi-card.success {
+  border-color: rgba(115, 240, 191, 0.3);
+}
+
+.kpi-card.warning {
+  border-color: rgba(244, 178, 85, 0.3);
+}
+
+.kpi-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 64px;
+  height: 64px;
+  border-radius: 12px;
+  background: rgba(98, 228, 209, 0.1);
+  color: var(--cyan);
+}
+
+.kpi-content h3 {
+  color: var(--text);
+  font-size: 18px;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.kpi-metric {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.kpi-metric {
+  color: var(--text);
+  font-family: var(--display);
+  font-size: 42px;
+  font-weight: 900;
+}
+
+.target {
+  color: var(--muted);
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.kpi-status {
+  color: var(--green);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.kpi-card.warning .kpi-status {
+  color: var(--amber);
+}
+
+/* Retention Curve */
+.retention-section {
+  margin-bottom: 48px;
+}
+
+.retention-section h3 {
+  color: var(--text);
+  font-size: 22px;
+  font-weight: 800;
+  margin-bottom: 24px;
+}
+
+.retention-curve {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 20px;
+  padding: 24px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+}
+
+.curve-bar {
+  display: grid;
+  gap: 12px;
+}
+
+.bar-label {
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.bar-value {
+  color: var(--cyan);
+  font-family: var(--display);
+  font-size: 32px;
+  font-weight: 900;
+}
+
+.bar-graph {
+  height: 24px;
+  overflow: hidden;
+  border-radius: 4px;
+  background: var(--surface-2);
+}
+
+.bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--cyan), var(--purple));
+  border-radius: inherit;
+  transition: width 400ms ease;
+}
+
+.bar-count {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+/* Stats Grid */
+.retention-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 20px;
+  margin-bottom: 48px;
+}
+
+.stat-card {
+  display: grid;
+  grid-template-columns: 60px 1fr;
+  gap: 18px;
+  align-items: center;
+  padding: 24px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+}
+
+.stat-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 60px;
+  height: 60px;
+  border-radius: 8px;
+  background: rgba(98, 228, 209, 0.1);
+  color: var(--cyan);
+}
+
+.stat-label {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.stat-value {
+  color: var(--text);
+  font-family: var(--display);
+  font-size: 28px;
+  font-weight: 900;
+  line-height: 1;
+  margin-top: 4px;
+}
+
+/* Cohort Age Breakdown */
+.cohort-age-breakdown {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 16px;
+  padding: 24px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+}
+
+.age-group {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px;
+  border-radius: 8px;
+  background: var(--surface-2);
+}
+
+.age-label {
+  color: var(--text);
+  font-weight: 700;
+}
+
+.age-count {
+  color: var(--purple);
+  font-weight: 700;
+  font-family: var(--display);
+}
+
+/* Cohort Table */
+.cohort-table-wrapper {
+  overflow-x: auto;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+}
+
+.cohort-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.cohort-table thead {
+  background: var(--surface-2);
+}
+
+.cohort-table th {
+  padding: 16px;
+  text-align: left;
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  border-bottom: 1px solid var(--border);
+}
+
+.cohort-table td {
+  padding: 16px;
+  color: var(--text);
+  font-size: 13px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.cohort-table tbody tr:hover {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.user-id {
+  font-family: monospace;
+  color: var(--muted-2);
+}
+
+.badge-success,
+.badge-pending {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.badge-success {
+  background: rgba(115, 240, 191, 0.1);
+  color: var(--green);
+  border: 1px solid rgba(115, 240, 191, 0.2);
+}
+
+.badge-pending {
+  background: rgba(244, 178, 85, 0.1);
+  color: var(--amber);
+  border: 1px solid rgba(244, 178, 85, 0.2);
+}
+
+.cohort-table-empty {
+  padding: 48px 24px;
+  text-align: center;
+  color: var(--muted);
+}
+
+.cohort-table-empty p {
+  font-size: 15px;
+  font-weight: 600;
+}
+
+/* Footer */
+.retention-footer {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  margin-top: 48px;
+  padding-top: 24px;
+  border-top: 1px solid var(--border);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .retention-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .retention-curve {
+    grid-template-columns: 1fr;
+  }
+
+  .retention-stats-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .stat-card {
+    grid-template-columns: 50px 1fr;
+  }
+
+  .cohort-table {
+    font-size: 12px;
+  }
+
+  .cohort-table th,
+  .cohort-table td {
+    padding: 12px;
+  }
+}
