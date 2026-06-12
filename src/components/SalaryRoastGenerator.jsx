@@ -1,5 +1,5 @@
 import React, { useMemo, useState, useRef, useCallback } from 'react';
-import { Copy, MessageCircle, Share2, Camera, CheckCircle, Loader2 } from 'lucide-react';
+import { Copy, MessageCircle, Share2, Camera, CheckCircle, Loader2, Link, Globe, Smartphone } from 'lucide-react';
 import { generateComparisonReport, generateInstagramCaption, generateSalaryRoast } from '../engines/salaryRoast';
 
 const FEATURED_STAT_LABELS = new Set(['Financial Health Score', 'vs National Average']);
@@ -31,10 +31,19 @@ function getBadgeClassName(color) {
   return `salary-roast-badge salary-roast-badge-${color || 'default'}`;
 }
 
+/**
+ * Check if the native Web Share API is available.
+ * Prefers it for mobile — opens system share sheet with image support.
+ */
+function supportsNativeShare() {
+  return typeof navigator !== 'undefined' && !!navigator.share;
+}
+
 export function SalaryRoastGenerator({ assessmentResult, profile }) {
-  const [showShare, setShowShare] = useState(false);
+  const [showShare, setShowShare] = useState(true); // default open for discoverability
   const [copyFeedback, setCopyFeedback] = useState('');
   const [exporting, setExporting] = useState(false);
+  const [exportBlob, setExportBlob] = useState(null); // cached blob for native share
   const [exportDone, setExportDone] = useState(false);
   const roastRef = useRef(null);
 
@@ -81,38 +90,80 @@ export function SalaryRoastGenerator({ assessmentResult, profile }) {
     setTimeout(() => setCopyFeedback(''), 2000);
   }, []);
 
+  /** Render the roast card to a canvas then return it (for both download & native share). */
+  const renderRoastCard = useCallback(async () => {
+    if (!roastRef.current) return null;
+    const html2canvas = (await import('html2canvas')).default;
+    return html2canvas(roastRef.current, {
+      backgroundColor: '#050713',
+      scale: 2,
+      useCORS: true,
+      logging: false,
+      width: roastRef.current.scrollWidth,
+      height: roastRef.current.scrollHeight,
+    });
+  }, []);
+
   const handleDownloadImage = useCallback(async () => {
     if (!roastRef.current) return;
     setExporting(true);
     setExportDone(false);
     try {
-      // Dynamically import html2canvas on first use
-      const html2canvas = (await import('html2canvas')).default;
-      const canvas = await html2canvas(roastRef.current, {
-        backgroundColor: '#050713',
-        scale: 2,
-        useCORS: true,
-        logging: false,
-        width: roastRef.current.scrollWidth,
-        height: roastRef.current.scrollHeight,
-      });
+      const canvas = await renderRoastCard();
+      if (!canvas) throw new Error('Canvas render failed');
+      const blob = await new Promise((resolve) => canvas.toBlob(resolve, 'image/png'));
+      setExportBlob(blob);
       const link = document.createElement('a');
       link.download = 'financial-roast-arthos.png';
-      link.href = canvas.toDataURL('image/png');
+      link.href = URL.createObjectURL(blob);
       link.click();
+      URL.revokeObjectURL(link.href);
       setExportDone(true);
       setCopyFeedback('Image downloaded!');
     } catch (err) {
       console.error('Image export failed:', err);
-      setCopyFeedback('Export failed – try copying text instead');
+      setCopyFeedback('Export failed – try the text share options below');
     } finally {
       setExporting(false);
       setTimeout(() => {
         setExportDone(false);
+        setExportBlob(null);
         setCopyFeedback('');
-      }, 3000);
+      }, 5000);
     }
-  }, []);
+  }, [renderRoastCard]);
+
+  /**
+   * Native Web Share — opens the OS share sheet (mobile) or browser share dialog.
+   * On mobile this is THE best UX: one tap → user's messaging app of choice.
+   * Falls back to copying share text if native not available.
+   */
+  const handleNativeShare = useCallback(async () => {
+    try {
+      // Try to share as image + text via Web Share API
+      let blob = exportBlob;
+      if (!blob && roastRef.current) {
+        const canvas = await renderRoastCard();
+        if (canvas) {
+          blob = await new Promise((resolve) => canvas.toBlob(resolve, 'image/png'));
+          setExportBlob(blob);
+        }
+      }
+      const files = blob ? [new File([blob], 'financial-roast-arthos.png', { type: 'image/png' })] : [];
+      const shareData = { text: roast?.shareText || 'Check out my Financial Roast! #ArthOS', files };
+      await navigator.share(shareData);
+      setCopyFeedback('Shared!');
+    } catch (err) {
+      if (err.name === 'AbortError') return; // user cancelled
+      // Fallback: copy share text
+      console.warn('Native share failed, falling back to clipboard:', err);
+      await handleCopyText(roast?.shareText || '', 'Share text copied!');
+    }
+  }, [exportBlob, roast, renderRoastCard, handleCopyText]);
+
+  const handleCopyLink = useCallback(async () => {
+    await handleCopyText(roast?.shareLink || 'https://arth-os.dev/roast', 'Link copied!');
+  }, [roast, handleCopyText]);
 
   if (!assessmentResult || !profile) {
     return (
@@ -262,6 +313,22 @@ export function SalaryRoastGenerator({ assessmentResult, profile }) {
 
       {showShare && (
         <section className="salary-roast-share-panel">
+          {/* 🌐 NATIVE SHARE — Mobile-first, opens OS share sheet */}
+          {supportsNativeShare() && (
+            <button
+              type="button"
+              onClick={handleNativeShare}
+              className="salary-roast-share-button salary-roast-share-button-native"
+            >
+              <Smartphone size={18} /> Share via ... (share sheet)
+            </button>
+          )}
+
+          <div className="salary-roast-share-section-label">
+            <Globe size={14} />
+            <span>Send to social & messaging</span>
+          </div>
+
           <div className="salary-roast-share-grid">
             {/* WhatsApp */}
             <button
@@ -305,6 +372,20 @@ export function SalaryRoastGenerator({ assessmentResult, profile }) {
               <MessageCircle size={18} /> Share on Twitter
             </button>
 
+            {/* Facebook */}
+            <button
+              type="button"
+              onClick={() => {
+                window.open(
+                  `https://www.facebook.com/sharer/sharer.php?u=${shareUrlEncoded}&quote=${shareTextEncoded}`,
+                  '_blank',
+                );
+              }}
+              className="salary-roast-share-button salary-roast-share-button-facebook"
+            >
+              <Globe size={18} /> Share on Facebook
+            </button>
+
             {/* LinkedIn */}
             <button
               type="button"
@@ -318,15 +399,22 @@ export function SalaryRoastGenerator({ assessmentResult, profile }) {
             >
               <Share2 size={18} /> Share on LinkedIn
             </button>
+          </div>
 
-            {/* Copy Instagram caption */}
+          <div className="salary-roast-share-section-label">
+            <Copy size={14} />
+            <span>Copy & paste</span>
+          </div>
+
+          <div className="salary-roast-share-grid">
+            {/* Copy share link */}
             <button
               type="button"
-              onClick={() => handleCopyText(instagramCaption, 'Instagram caption copied!')}
-              className="salary-roast-share-button salary-roast-share-button-caption"
+              onClick={handleCopyLink}
+              className="salary-roast-share-button salary-roast-share-button-link"
             >
-              <Copy size={18} />
-              {copyFeedback === 'Instagram caption copied!' ? 'Copied ✓' : 'Copy Instagram Caption'}
+              <Link size={18} />
+              {copyFeedback === 'Link copied!' ? 'Copied ✓' : 'Copy Share Link'}
             </button>
 
             {/* Copy share text */}
@@ -337,6 +425,16 @@ export function SalaryRoastGenerator({ assessmentResult, profile }) {
             >
               <Copy size={18} />
               {copyFeedback === 'Share text copied!' ? 'Copied ✓' : 'Copy Share Text'}
+            </button>
+
+            {/* Copy Instagram caption */}
+            <button
+              type="button"
+              onClick={() => handleCopyText(instagramCaption, 'Instagram caption copied!')}
+              className="salary-roast-share-button salary-roast-share-button-caption"
+            >
+              <Copy size={18} />
+              {copyFeedback === 'Instagram caption copied!' ? 'Copied ✓' : 'Copy Instagram Caption'}
             </button>
           </div>
 

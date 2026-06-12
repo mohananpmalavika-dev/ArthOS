@@ -1,9 +1,26 @@
 import { v2DefaultAssessment } from "../data/questionnaire-v2.js";
 
+// L02: BAST™ Processing Engine - Blueprint-compliant 40/30/30 weighting
 export const componentMaximumsV2 = {
-  behaviour: 45,
-  awareness: 30,
-  stability: 25,
+  behaviour: 40,      // 40% composite weight
+  awareness: 30,      // 30% composite weight
+  stability: 30,      // 30% composite weight
+};
+
+// Composite weights for normalization to /1000 scale
+export const compositeWeightsV2 = {
+  behaviour: 0.40,
+  awareness: 0.30,
+  stability: 0.30,
+};
+
+// Health score bands for /1000 scale
+export const healthScoreBandsV2 = {
+  critical: { min: 0, max: 199, label: 'Critical' },
+  fragile: { min: 200, max: 399, label: 'Fragile' },
+  developing: { min: 400, max: 599, label: 'Developing' },
+  resilient: { min: 600, max: 799, label: 'Resilient' },
+  sovereign: { min: 800, max: 1000, label: 'Sovereign' },
 };
 
 export function formatCurrency(value) {
@@ -377,13 +394,21 @@ function getStabilityScore(profile, behaviour) {
   const activeElasticityFactor = calculateDynamicElasticity(behaviour);
 
   const totalSavings = fixedSavings + discretionarySavings;
-  const survivalMonthsRaw =
-    monthlyExpenses > 0 && totalSavings > 0 ? totalSavings / monthlyExpenses : 0;
+  
+  // L04: Blueprint-compliant Survival Window calculation
+  // Formula: (Liquid Assets ÷ Monthly Expenses) × 30 days
+  // Liquid Assets = totalSavings, Monthly Expenses = monthlyExpenses
+  const survivalDaysRaw = monthlyExpenses > 0 && totalSavings > 0 
+    ? (totalSavings / monthlyExpenses) * 30 
+    : 0;
+  const survivalMonthsRaw = survivalDaysRaw / 30;  // Convert to months for scoring
 
   const variableExpenses = Math.max(0, monthlyExpenses - monthlyLiabilities);
   const bareMinimumBurn = monthlyLiabilities + variableExpenses * (1 - activeElasticityFactor);
-  const bareMinimumSurvivalMonthsRaw =
-    bareMinimumBurn > 0 && totalSavings > 0 ? totalSavings / bareMinimumBurn : 0;
+  const bareMinimumSurvivalDaysRaw = bareMinimumBurn > 0 && totalSavings > 0 
+    ? (totalSavings / bareMinimumBurn) * 30 
+    : 0;
+  const bareMinimumSurvivalMonthsRaw = bareMinimumSurvivalDaysRaw / 30;
 
   const fixedBufferMonths = monthlyExpenses > 0 ? fixedSavings / monthlyExpenses : 0;
   const discretionaryBufferMonths = monthlyExpenses > 0 ? discretionarySavings / monthlyExpenses : 0;
@@ -399,8 +424,10 @@ function getStabilityScore(profile, behaviour) {
 
   return {
     score: roundToOne(normalized),
-    survivalMonthsRaw,
-    bareMinimumSurvivalMonthsRaw,
+    survivalDaysRaw,                    // L04: Days as per blueprint formula
+    survivalMonthsRaw,                  // L04: Months (survivalDaysRaw / 30)
+    bareMinimumSurvivalDaysRaw,         // L04: Minimum viable survival in days
+    bareMinimumSurvivalMonthsRaw,       // L04: Minimum viable survival in months
     activeElasticityFactor,
     fixedBufferMonths,
     discretionaryBufferMonths,
@@ -687,6 +714,15 @@ function getHealthBand(score) {
   return { label: "Financially Sovereign", tone: "strong" };
 }
 
+// L02: Health band for /1000 normalized composite score
+function getHealthBandV2(score) {
+  if (score < 200) return { label: "Financially Critical", tone: "critical", band: "critical" };
+  if (score < 400) return { label: "Financially Fragile", tone: "warning", band: "fragile" };
+  if (score < 600) return { label: "Financially Developing", tone: "caution", band: "developing" };
+  if (score < 800) return { label: "Financially Resilient", tone: "steady", band: "resilient" };
+  return { label: "Financially Sovereign", tone: "strong", band: "sovereign" };
+}
+
 function getRecommendedAction(assessment, components) {
   // ONE primary action: target the lowest component; if stability is lowest and survival is low -> emergency savings.
   const lowestKey = components.sort((a, b) => a.score - b.score)[0].key;
@@ -920,11 +956,14 @@ export function calculateFinancialHealthV2(assessment) {
   );
   const blindSpot = calculateBlindSpotV2(awarenessMetrics);
 
-  const healthScore = Math.round(
-    behaviourScore + awarenessScore + stability.score,
-  );
-  const categoryBand = getHealthBand(healthScore);
+  // L02: Calculate composite health score using 40/30/30 weighting, normalized to /1000
+  const normalisedBehaviour = (behaviourScore / componentMaximumsV2.behaviour) * 1000 * compositeWeightsV2.behaviour;
+  const normalisedAwareness = (awarenessScore / componentMaximumsV2.awareness) * 1000 * compositeWeightsV2.awareness;
+  const normalisedStability = (stability.score / componentMaximumsV2.stability) * 1000 * compositeWeightsV2.stability;
+  const healthScore = Math.round(normalisedBehaviour + normalisedAwareness + normalisedStability);
+  const categoryBand = getHealthBandV2(healthScore);
 
+  // L02: Component scoring with 0-100 internal scale for diagnostic clarity
   const componentRows = [
     {
       key: "behaviour",
@@ -932,6 +971,7 @@ export function calculateFinancialHealthV2(assessment) {
       score: behaviourScore,
       max: componentMaximumsV2.behaviour,
       band: getBehaviourBand(behaviourScore),
+      compositeContribution: normalisedBehaviour,
     },
     {
       key: "awareness",
@@ -939,6 +979,7 @@ export function calculateFinancialHealthV2(assessment) {
       score: awarenessScore,
       max: componentMaximumsV2.awareness,
       band: getAwarenessBand(awarenessScore),
+      compositeContribution: normalisedAwareness,
     },
     {
       key: "stability",
@@ -946,10 +987,12 @@ export function calculateFinancialHealthV2(assessment) {
       score: stability.score,
       max: componentMaximumsV2.stability,
       band: getStabilityBand(stability.score),
+      compositeContribution: normalisedStability,
     },
   ].map((row) => ({
     ...row,
     percent: Math.round((row.score / row.max) * 100),
+    compositePercent: Math.round((row.compositeContribution / healthScore) * 100),
   }));
 
   componentRows.sort((a, b) => a.percent - b.percent);

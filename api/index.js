@@ -20,6 +20,7 @@ import remindersHandler from '../api_src/reminders.js';
 import aiCoachHandler from '../api_src/longitudinal/ai-coach-handler.js';
 import predictionEngineHandler from '../api_src/longitudinal/prediction-engine-handler.js';
 import followUpHandler from '../api_src/follow_up/follow-up-handler.js';
+import subscriptionsHandler from '../api_src/subscriptions-handler.js';
 
 const routeDefinitions = [
   { match: (pathname) => pathname === '/api/decision', handler: decisionHandler },
@@ -58,6 +59,7 @@ const routeDefinitions = [
   { match: (pathname) => pathname.startsWith('/api/coach'), handler: aiCoachHandler },
   { match: (pathname) => pathname.startsWith('/api/prediction'), handler: predictionEngineHandler },
   { match: (pathname) => pathname.startsWith('/api/follow-up'), handler: followUpHandler },
+  { match: (pathname) => pathname.startsWith('/api/subscriptions'), handler: subscriptionsHandler },
 ];
 
 function getPathname(req) {

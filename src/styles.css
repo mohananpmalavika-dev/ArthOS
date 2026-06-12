@@ -3801,3 +3801,461 @@ select:focus-visible,
     grid-template-columns: 1fr;
   }
 }
+
+/* ══════════════════════════════════════════════
+   G3 — ADAPTIVE ASSESSMENT IMPROVEMENTS
+   Express Mode · Question Context · Resume Banner
+   Step Celebration · Idle Nudge · Enhanced Progress
+   ══════════════════════════════════════════════ */
+
+/* ── Express Mode Toggle Row ── */
+.express-mode-toggle {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.express-mode-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 38px;
+  padding: 0 14px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  color: var(--ink-2);
+  background: rgba(255, 255, 255, 0.045);
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 180ms ease;
+}
+
+.express-mode-btn:hover {
+  border-color: rgba(98, 228, 209, 0.3);
+  color: var(--ink-0);
+  background: rgba(98, 228, 209, 0.07);
+}
+
+.express-mode-btn.active {
+  border-color: rgba(200, 155, 255, 0.46);
+  color: #fff;
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.92), rgba(98, 228, 209, 0.72));
+  box-shadow: 0 8px 20px rgba(98, 228, 209, 0.12);
+}
+
+.express-mode-badge {
+  padding: 3px 8px;
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.18);
+  font-size: 11px;
+  font-weight: 900;
+  white-space: nowrap;
+}
+
+.express-mode-hint {
+  color: var(--ink-3);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+/* ── Time Badges Row ── */
+.adaptive-time-badge-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.adaptive-time-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border: 1px solid rgba(98, 228, 209, 0.18);
+  border-radius: 8px;
+  color: var(--cyan);
+  background: rgba(98, 228, 209, 0.07);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.adaptive-time-badge.express {
+  border-color: rgba(200, 155, 255, 0.26);
+  color: var(--purple-light);
+  background: rgba(139, 92, 246, 0.08);
+}
+
+/* ── Question Context Tooltip ── */
+.question-context-wrapper {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  margin-left: 6px;
+}
+
+.question-context-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  color: var(--ink-3);
+  background: transparent;
+  cursor: pointer;
+  transition: all 160ms ease;
+  flex-shrink: 0;
+}
+
+.question-context-toggle:hover {
+  border-color: var(--cyan);
+  color: var(--cyan);
+  background: rgba(98, 228, 209, 0.08);
+}
+
+.question-context-tooltip {
+  position: absolute;
+  z-index: 50;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  width: 260px;
+  padding: 12px 14px;
+  border: 1px solid var(--line-cyan);
+  border-radius: 8px;
+  background: linear-gradient(135deg, rgba(10, 15, 32, 0.98), rgba(18, 12, 35, 0.96));
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.48);
+  font-size: 12px;
+  line-height: 1.5;
+  text-align: left;
+}
+
+.question-context-tooltip strong {
+  display: block;
+  margin-bottom: 6px;
+  color: var(--cyan);
+  font-size: 11px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.question-context-tooltip p {
+  color: var(--ink-2);
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.55;
+}
+
+/* ── Resume Banner ── */
+.resume-banner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 16px 20px;
+  border: 1px solid rgba(98, 228, 209, 0.22);
+  border-radius: 12px;
+  background:
+    linear-gradient(180deg, rgba(98, 228, 209, 0.1), rgba(139, 92, 246, 0.06)),
+    var(--panel);
+  box-shadow: var(--tight-shadow);
+}
+
+.resume-banner-content {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: var(--cyan);
+}
+
+.resume-banner-content svg {
+  flex-shrink: 0;
+}
+
+.resume-banner-content div {
+  display: grid;
+  gap: 4px;
+}
+
+.resume-banner-content strong {
+  color: var(--ink-0);
+  font-size: 14px;
+  font-weight: 900;
+}
+
+.resume-banner-content span {
+  color: var(--ink-2);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.resume-banner-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.resume-banner-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 38px;
+  padding: 0 16px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 170ms ease;
+}
+
+.resume-banner-btn.primary {
+  border: 1px solid rgba(200, 155, 255, 0.42);
+  color: #fff;
+  background: linear-gradient(135deg, #8b5cf6, #6d4cff);
+}
+
+.resume-banner-btn.primary:hover {
+  box-shadow: 0 8px 20px rgba(109, 76, 255, 0.26);
+  transform: translateY(-1px);
+}
+
+.resume-banner-btn.secondary {
+  border: 1px solid var(--line);
+  color: var(--ink-2);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.resume-banner-btn.secondary:hover {
+  border-color: rgba(255, 255, 255, 0.2);
+  color: var(--ink-0);
+}
+
+/* ── Step Celebration ── */
+.step-celebration {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 24px;
+  border: 1px solid rgba(98, 228, 209, 0.24);
+  border-radius: 12px;
+  background:
+    radial-gradient(circle at 30% 50%, rgba(98, 228, 209, 0.1), transparent 70%),
+    var(--panel);
+  animation: celebrationPop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes celebrationPop {
+  0% {
+    opacity: 0;
+    transform: scale(0.92);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.step-celebration-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: rgba(98, 228, 209, 0.12);
+  border: 1px solid rgba(98, 228, 209, 0.3);
+  flex-shrink: 0;
+}
+
+.step-celebration-checkmark {
+  font-size: 24px;
+  font-weight: 900;
+  color: var(--cyan);
+}
+
+.step-celebration-text {
+  display: grid;
+  gap: 4px;
+}
+
+.step-celebration-text strong {
+  color: var(--ink-0);
+  font-size: 18px;
+  font-weight: 900;
+}
+
+.step-celebration-text span {
+  color: var(--ink-2);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+/* ── Idle Nudge ── */
+.idle-nudge {
+  padding: 12px 16px;
+  border: 1px solid rgba(244, 178, 85, 0.28);
+  border-radius: 10px;
+  background: rgba(244, 178, 85, 0.07);
+  animation: nudgeFadeIn 0.3s ease;
+}
+
+.idle-nudge.stuck {
+  border-color: rgba(255, 111, 145, 0.28);
+  background: rgba(255, 111, 145, 0.08);
+}
+
+@keyframes nudgeFadeIn {
+  0% { opacity: 0; transform: translateY(6px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+.idle-nudge-content {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: rgba(255, 224, 179, 0.94);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.idle-nudge-content svg {
+  flex-shrink: 0;
+  color: #ffc107;
+}
+
+.idle-nudge.stuck .idle-nudge-content svg {
+  color: #ff6b6b;
+}
+
+.idle-nudge-content .stuck-content {
+  display: grid;
+  gap: 8px;
+}
+
+.idle-skip-btn {
+  display: inline-block;
+  margin-top: 6px;
+  padding: 6px 14px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 6px;
+  color: var(--ink-0);
+  background: rgba(255, 255, 255, 0.06);
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 160ms ease;
+}
+
+.idle-skip-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.25);
+}
+
+/* ── Enhanced Progress Bar Animation ── */
+.adaptive-q-fill {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--cyan), var(--purple));
+  transition: width 400ms cubic-bezier(0.34, 1.56, 0.64, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.adaptive-q-fill::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.2) 40%,
+    transparent 80%
+  );
+  animation: progressShimmer 2s ease-in-out infinite;
+}
+
+@keyframes progressShimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(200%); }
+}
+
+/* ── Wizard Step Completed State ── */
+.wizard-node.completed .wizard-node-marker {
+  border-color: rgba(115, 240, 191, 0.34);
+  color: var(--green);
+  background: rgba(115, 240, 191, 0.1);
+}
+
+.wizard-node-check {
+  font-size: 14px;
+  font-weight: 900;
+}
+
+/* ── Answered question rows ── */
+.question-row.answered .question-label {
+  color: var(--ink-1);
+}
+
+.question-row.answered .segmented-option.selected {
+  box-shadow: 0 8px 18px rgba(98, 228, 209, 0.1);
+}
+
+/* ── Responsive: G3 elements ── */
+@media (max-width: 768px) {
+  .express-mode-toggle {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .express-mode-btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .resume-banner {
+    flex-direction: column;
+    align-items: stretch;
+    text-align: center;
+  }
+
+  .resume-banner-content {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .resume-banner-actions {
+    justify-content: center;
+  }
+
+  .resume-banner-btn {
+    flex: 1;
+    justify-content: center;
+  }
+
+  .question-context-tooltip {
+    width: 220px;
+    left: auto;
+    right: 0;
+    transform: none;
+  }
+}
+
+@media (max-width: 540px) {
+  .step-celebration {
+    flex-direction: column;
+    text-align: center;
+    padding: 20px;
+  }
+
+  .idle-nudge-content {
+    flex-direction: column;
+    text-align: center;
+    align-items: flex-start;
+  }
+}

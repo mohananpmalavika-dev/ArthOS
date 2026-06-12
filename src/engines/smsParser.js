@@ -162,12 +162,90 @@ export function aggregateSMSSignals(transactions) {
 export function mapSignalsToBehaviour(signals) {
   if (!signals || typeof signals !== 'object') return {};
 
-  return {
+  // Behaviour mapping (Spending discipline, planning, emotional control)
+  const behaviourMapping = {
     unplannedPurchaseFreq: signals.unplannedPurchaseFreq || 'sometimes',
     spendWhenStressed: signals.spendWhenStressed || 'sometimes',
     regretImpulseFreq: signals.spendWhenBored === 'very_likely' ? 'often' : signals.spendWhenBored === 'sometimes' ? 'sometimes' : 'rarely',
     cashflowAwareness: signals.cashflowAwareness || 'sometimes',
     tracksSavingsRate: signals.totalSpendingTransactions > 8 ? 'usually' : 'not_sure',
+  };
+
+  return behaviourMapping;
+}
+
+/**
+ * Map SMS signals to Awareness dimension (self-knowledge, risk perception)
+ * Awareness: How well does user understand their spending patterns and financial status?
+ */
+export function mapSignalsToAwareness(signals) {
+  if (!signals || typeof signals !== 'object') return {};
+
+  // Awareness is indicated by:
+  // - Transaction tracking frequency (do they see/monitor their money?)
+  // - Merchant diversity (do they track multiple spending categories?)
+  // - Regularity in spending patterns (do they have consistent habits or chaotic?)
+  
+  const hasRegularTracking = signals.totalSpendingTransactions > 10;
+  const hasDiverseSpending = signals.merchantDiversity > 5;
+  const avgTxnFreq = signals.transactionFrequency || 0;
+  
+  return {
+    // Self-awareness of spending patterns
+    spendingPatternAwareness: hasRegularTracking ? 'usually' : 'sometimes',
+    // Awareness of financial categories
+    categoryAwareness: hasDiverseSpending ? 'usually' : 'sometimes',
+    // Risk perception: high frequency small spends = high risk perception (some awareness)
+    riskPerceptionAccuracy: signals.smallAmountFreq > 0.5 ? 'somewhat_aware' : 'not_aware',
+  };
+}
+
+/**
+ * Map SMS signals to Stability dimension (emergency buffer, income diversity, recovery time)
+ * Stability: How resilient is their financial buffer?
+ */
+export function mapSignalsToStability(signals) {
+  if (!signals || typeof signals !== 'object') return {};
+
+  // Stability indicators from spending patterns:
+  // - High frequency small spends = potential buffer drain
+  // - Credit vs debit ratio = how much are they borrowing vs paying?
+  // - Average transaction amount = larger avg = more stable buffer
+  
+  const avgAmount = signals.avgTransactionAmount || 0;
+  const spendFreq = signals.totalSpendingTransactions || 0;
+  
+  // If user has many small transactions, buffer is draining faster
+  const bufferDrainRisk = signals.smallAmountFreq > 0.6 ? 'high' : signals.smallAmountFreq > 0.3 ? 'medium' : 'low';
+  
+  return {
+    // Buffer sustainability: high spend frequency + small amounts = rapid drain
+    bufferDrainRisk,
+    // Average transaction size hints at spending scale
+    spendingScale: avgAmount > 2000 ? 'large' : avgAmount > 500 ? 'medium' : 'small',
+  };
+}
+
+/**
+ * Comprehensive signal aggregation including BAS dimension mapping
+ */
+export function aggregateAndMapSignalsToBasDimensions(signals) {
+  if (!signals || typeof signals !== 'object') return {};
+
+  return {
+    // Behaviour enrichment
+    behaviour: mapSignalsToBehaviour(signals),
+    // Awareness enrichment
+    awareness: mapSignalsToAwareness(signals),
+    // Stability enrichment (optional, as stability is mostly formula-driven)
+    stability: mapSignalsToStability(signals),
+    // Raw aggregated signals for reference
+    rawSignals: {
+      totalTransactions: signals.totalSpendingTransactions || 0,
+      emotionalSpends: signals.emotionalSpendCount || 0,
+      merchantDiversity: signals.merchantDiversity || 0,
+      avgTransactionAmount: signals.avgTransactionAmount || 0,
+    },
   };
 }
 

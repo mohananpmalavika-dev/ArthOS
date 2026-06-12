@@ -77,6 +77,12 @@ import FlowNavigation from "./components/FlowNavigation.jsx";
 import PeerComparisonCard from "./components/PeerComparisonCard.jsx";
 import ErrorBoundary from "./components/ErrorBoundary.jsx";
 import RetentionDashboard from "./components/RetentionDashboard.jsx";
+import CompletionDashboard from "./components/CompletionDashboard.jsx";
+import SubscriptionManagement from "./components/SubscriptionManagement.jsx";
+import FeaturePaywall from "./components/FeaturePaywall.jsx";
+import AssessmentLimitNotice from "./components/AssessmentLimitNotice.jsx";
+import { useSubscription } from "./hooks/useSubscription.js";
+import { recordAssessment, getRemainingAssessments, getLastAssessmentDate } from "./lib/assessmentUsageTracker.js";
 // Lazy-loaded feature components to reduce main bundle
 const AnalyticsDashboard = lazy(() => import("./components/AnalyticsDashboard.jsx"));
 const CognitionGraphView = lazy(() => import("./components/CognitionGraphView.jsx"));
@@ -486,6 +492,13 @@ export default function App() {
   const [notificationBadgeCount, setNotificationBadgeCount] = useState(0);
   const [newlyUnlockedMilestones, setNewlyUnlockedMilestones] = useState([]);
 
+  // Subscription & Paywall Management
+  const { tier, subscription, loading: subscriptionLoading, error: subscriptionError, checkFeature, checkAssessmentAvailable, upgradeSubscription } = useSubscription(currentUserId);
+  const [paywallFeature, setPaywallFeature] = useState(null);
+  const [showPaywall, setShowPaywall] = useState(false);
+  const [remainingAssessments, setRemainingAssessments] = useState(getRemainingAssessments('free'));
+  const [nextAvailableAssessmentDate, setNextAvailableAssessmentDate] = useState(getLastAssessmentDate());
+
   // Refresh notification badge count whenever modal opens or periodically
   const refreshNotificationCount = useCallback(() => {
     setNotificationBadgeCount(getUnreadCount());
@@ -501,6 +514,31 @@ export default function App() {
       return () => clearInterval(interval);
     }
   }, [refreshNotificationCount]);
+
+  useEffect(() => {
+    if (!isBrowser()) return;
+
+    setRemainingAssessments(getRemainingAssessments(tier));
+    setNextAvailableAssessmentDate(getLastAssessmentDate());
+  }, [tier, subscriptionLoading]);
+
+  const handleOpenPaywall = (feature) => {
+    setPaywallFeature(feature);
+    setShowPaywall(true);
+  };
+
+  const handleClosePaywall = () => {
+    setPaywallFeature(null);
+    setShowPaywall(false);
+  };
+
+  const handleUpgradeFromPaywall = async () => {
+    const success = await upgradeSubscription('plus');
+    if (success) {
+      handleClosePaywall();
+      setRemainingAssessments(getRemainingAssessments('plus'));
+    }
+  };
 
   const handleDismissMilestone = (badgeId) => {
     setNewlyUnlockedMilestones((current) => current.filter((b) => b.id !== badgeId));
@@ -961,6 +999,12 @@ export default function App() {
       console.warn("Could not save locally:", e);
     }
 
+    if (tier === 'free' && !checkAssessmentAvailable()) {
+      window.alert('Free tier assessments are limited to one per month. Upgrade to Plus for unlimited assessments.');
+      handleOpenPaywall('unlimited_assessments');
+      return;
+    }
+
     const payload = { assessment, result: calculateFinancialHealthV2(assessment) };
     if (isBrowser()) {
       if (!isOnline) {
@@ -991,6 +1035,13 @@ export default function App() {
           } else {
             setSaveState("Saved");
           }
+
+          if (tier === 'free') {
+            recordAssessment();
+            setRemainingAssessments(getRemainingAssessments('free'));
+            setNextAvailableAssessmentDate(getLastAssessmentDate());
+          }
+
           console.log("Remote save response:", resp.status, body);
         })
         .catch((err) => {
@@ -1174,16 +1225,33 @@ export default function App() {
             )}
             {showAssessmentSection && (
               <ErrorBoundary>
-                <AssessmentSection
-                  assessment={assessment}
-                  result={result}
-                  onChange={updateGroup}
-                  onSaveAssessment={saveAssessment}
-                  ui={ui}
-                  resetTrigger={resetTrigger}
+              {tier === 'free' && remainingAssessments === 0 && (
+                <AssessmentLimitNotice
+                  tier={tier}
+                  remaining={remainingAssessments}
+                  nextAvailableDate={nextAvailableAssessmentDate}
+                  onUpgradeClick={() => handleOpenPaywall('unlimited_assessments')}
                 />
-              </ErrorBoundary>
-            )}
+              )}
+              <AssessmentSection
+                assessment={assessment}
+                result={result}
+                onChange={updateGroup}
+                onSaveAssessment={saveAssessment}
+                ui={ui}
+                resetTrigger={resetTrigger}
+              />
+              {showPaywall && (
+                <FeaturePaywall
+                  isOpen={showPaywall}
+                  feature={paywallFeature}
+                  currentTier={tier}
+                  onClose={handleClosePaywall}
+                  onUpgradeClick={handleUpgradeFromPaywall}
+                />
+              )}
+            </ErrorBoundary>
+          )}
 
             {showSmsForm && activeHash === "#assessment" && (
               <section style={{ maxWidth: "1200px", margin: "20px auto", padding: "0 16px" }}>
@@ -1235,7 +1303,20 @@ export default function App() {
                     <RetentionDashboard />
                   </ErrorBoundary>
                 </Suspense>
-                
+
+                {/* Assessment Completion Rate Dashboard */}
+                <Suspense fallback={<LazyComponentFallback />}>
+                  <ErrorBoundary>
+                    <CompletionDashboard />
+                  </ErrorBoundary>
+                </Suspense>
+
+                {currentUserId && (
+                  <section className="summary-card">
+                    <SubscriptionManagement userId={currentUserId} />
+                  </section>
+                )}
+
                 {/* Digital Twin Dashboard - Flight Simulator for Financial Life */}
                 <Suspense fallback={<LazyComponentFallback />}>
                   <ErrorBoundary>

@@ -13,6 +13,7 @@ export function generatePersonalizedInsights(assessmentResult, assessment) {
     stabilityScore,
     personalityType,
     survivalMonthsRaw,
+    survivalDaysRaw,    // L04: Blueprint-compliant days calculation
     futureRiskLabel,
     lowestComponent,
     diagnosis,
@@ -104,7 +105,7 @@ export function generatePersonalizedInsights(assessmentResult, assessment) {
       insight:
         "You're one missed payment away from crisis. Any disruption (job loss, medical emergency) is a catastrophe.",
       actionable: 'Make emergency savings your ONLY financial goal for the next 60 days. Target: 1 month of expenses.',
-      signal: `Survival Window: ${Math.round(survivalMonthsRaw * 30)} days`,
+      signal: `Survival Window: ${Math.round(survivalDaysRaw || survivalMonthsRaw * 30)} days`,  // L04: Use actual days calculation
     });
   } else if (survivalMonthsRaw < 3) {
     insights.push({

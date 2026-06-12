@@ -1,13 +1,18 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState, useCallback, useMemo } from "react";
 import PropTypes from "prop-types";
 import {
   Activity,
+  AlertTriangle,
   BarChart3,
   Brain,
   ChevronLeft,
   ChevronRight,
+  Clock,
   Gauge,
+  HelpCircle,
+  RotateCcw,
   ShieldCheck,
+  Zap,
 } from "lucide-react";
 import ValidationFeedbackForm from "./ValidationFeedbackForm.jsx";
 import DecisionSimulator from "./DecisionSimulator.jsx";
@@ -26,6 +31,19 @@ import {
   archiveSession,
   buildStepTelemetryPayload,
 } from "../engines/assessmentTelemetry.js";
+import {
+  getFilteredQuestions,
+  getFilteredQuestionsWithProgress,
+  getAdaptiveMetrics,
+  estimateTotalTime,
+} from "../engines/adaptiveQuestionEngine.js";
+import {
+  saveDraft,
+  loadDraft,
+  clearDraft,
+  setupAutoSave,
+  setupBeforeUnload,
+} from "../engines/assessmentAutoSave.js";
 import { ASSESSMENT_FIELDS, ASSESSMENT_OPTIONS, ASSESSMENT_BUTTONS, ASSESSMENT_SECTIONS } from "../lib/copy.js";
 
 // Icon registry mapping icon names to actual components (replaces eval())
@@ -35,6 +53,13 @@ const ICON_REGISTRY = {
   ShieldCheck,
   Activity,
 };
+
+// ── G3: Idle detection thresholds ──
+const IDLE_NUDGE_THRESHOLD_MS = 15000;    // 15s without interaction → gentle nudge
+const IDLE_SKIP_THRESHOLD_MS = 30000;      // 30s → offer skip
+
+const STEP_STORAGE_KEY = "arth-os-wizard-step";
+const EXPRESS_MODE_KEY = "arth-os-express-mode";
 
 function ParticipantSection({ values, onChange }) {
   return (
@@ -75,7 +100,83 @@ function ParticipantSection({ values, onChange }) {
   );
 }
 
-function QuestionSection({ icon: Icon, title, score, questions, values, onChange }) {
+// ── G3: Idle Detection Hook ──
+function useIdleDetection(active, answeredKeys, onSkip) {
+  const [idleState, setIdleState] = useState(null); // null | 'nudge' | 'stuck'
+  const lastInteraction = useRef(Date.now());
+  const timerRef = useRef(null);
+
+  const resetIdle = useCallback(() => {
+    lastInteraction.current = Date.now();
+    setIdleState(null);
+    if (timerRef.current) {
+      clearTimeout(timerRef.current);
+      timerRef.current = null;
+    }
+  }, []);
+
+  // Track any interaction in the step container
+  const handleInteraction = useCallback(() => {
+    resetIdle();
+  }, [resetIdle]);
+
+  useEffect(() => {
+    if (!active) {
+      resetIdle();
+      return;
+    }
+
+    // Start timer progression: nudge at 15s, skip at 30s
+    const nudgeTimer = setTimeout(() => {
+      // Only show nudge if LESS than half the visible questions are answered
+      const answeredCount = answeredKeys.filter(k => k).length;
+      if (answeredCount < 2) {
+        setIdleState('nudge');
+      }
+    }, IDLE_NUDGE_THRESHOLD_MS);
+
+    const skipTimer = setTimeout(() => {
+      const answeredCount = answeredKeys.filter(k => k).length;
+      if (answeredCount < 1) {
+        setIdleState('stuck');
+      }
+    }, IDLE_SKIP_THRESHOLD_MS);
+
+    return () => {
+      clearTimeout(nudgeTimer);
+      clearTimeout(skipTimer);
+    };
+  }, [active, answeredKeys, resetIdle]);
+
+  return { idleState, handleInteraction };
+}
+
+function QuestionContext({ context }) {
+  const [open, setOpen] = useState(false);
+  if (!context) return null;
+
+  return (
+    <span className="question-context-wrapper">
+      <button
+        type="button"
+        className="question-context-toggle"
+        onClick={(e) => { e.stopPropagation(); setOpen((o) => !o); }}
+        aria-label="Why this matters"
+        title="Why this matters"
+      >
+        <HelpCircle size={14} />
+      </button>
+      {open && (
+        <div className="question-context-tooltip" onClick={(e) => e.stopPropagation()}>
+          <strong>Why this matters</strong>
+          <p>{context}</p>
+        </div>
+      )}
+    </span>
+  );
+}
+
+function QuestionSection({ icon: Icon, title, score, questions, values, onChange, progress, answeredKeys }) {
   return (
     <section className="panel">
       <div className="panel-heading">
@@ -86,21 +187,45 @@ function QuestionSection({ icon: Icon, title, score, questions, values, onChange
         <span>{score}</span>
       </div>
 
-      <div className="question-list">
-        {questions.map((question) => (
-          <div className="question-row" key={question.key}>
-            <label className="question-label" id={`${question.key}-label`}>
-              {question.prompt}
-            </label>
-            <SegmentedControl
-              labelledBy={`${question.key}-label`}
-              name={question.key}
-              options={question.options}
-              value={values[question.key]}
-              onChange={(value) => onChange(question.key, value)}
+      {/* ── G3: Enhanced progress bar with animated fill ── */}
+      {progress && (
+        <div className="adaptive-question-progress" aria-label="Question progress">
+          <span className="adaptive-q-counter">
+            Question {progress.current} of {progress.total}
+          </span>
+          <div className="adaptive-q-track">
+            <span
+              className="adaptive-q-fill"
+              style={{ width: `${Math.round((progress.current / progress.total) * 100)}%` }}
             />
           </div>
-        ))}
+        </div>
+      )}
+
+      <div className="question-list">
+        {questions.map((question, qi) => {
+          const isAnswered = Boolean(values[question.key]);
+          return (
+            <div
+              className={`question-row ${isAnswered ? "answered" : ""}`}
+              key={question.key}
+              data-question-key={question.key}
+            >
+              <label className="question-label" id={`${question.key}-label`}>
+                {question.prompt}
+                {/* ── G3: "Why This Matters" context tooltip ── */}
+                <QuestionContext context={question.context} />
+              </label>
+              <SegmentedControl
+                labelledBy={`${question.key}-label`}
+                name={question.key}
+                options={question.options}
+                value={values[question.key]}
+                onChange={(value) => onChange(question.key, value)}
+              />
+            </div>
+          );
+        })}
       </div>
     </section>
   );
@@ -311,6 +436,44 @@ function LiveResultSnapshot({ result }) {
   );
 }
 
+// ── G3: Step completed celebration component ──
+function StepCelebration({ stepLabel }) {
+  return (
+    <div className="step-celebration">
+      <div className="step-celebration-icon">
+        <div className="step-celebration-checkmark">✓</div>
+      </div>
+      <div className="step-celebration-text">
+        <strong>{stepLabel} complete!</strong>
+        <span>Moving to next section</span>
+      </div>
+    </div>
+  );
+}
+
+// ── G3: Resume Prompt Banner ──
+function ResumeBanner({ onResume, onDismiss }) {
+  return (
+    <div className="resume-banner">
+      <div className="resume-banner-content">
+        <RotateCcw size={18} />
+        <div>
+          <strong>Welcome back!</strong>
+          <span>You have an assessment in progress. Continue where you left off?</span>
+        </div>
+      </div>
+      <div className="resume-banner-actions">
+        <button type="button" className="resume-banner-btn primary" onClick={onResume}>
+          Resume
+        </button>
+        <button type="button" className="resume-banner-btn secondary" onClick={onDismiss}>
+          Start Fresh
+        </button>
+      </div>
+    </div>
+  );
+}
+
 const incomeStabilityOptions = [
   ...ASSESSMENT_OPTIONS.incomeStability,
 ];
@@ -320,9 +483,58 @@ const dependentsOptions = [
 ];
 
 export default function AssessmentSection({ assessment, result, onChange, onSaveAssessment, ui, resetTrigger }) {
+  // ── G3: Express Mode State ──
+  const [expressMode, setExpressMode] = useState(() => {
+    try {
+      return window.localStorage.getItem(EXPRESS_MODE_KEY) === "true";
+    } catch {
+      return false;
+    }
+  });
+
+  const toggleExpressMode = useCallback(() => {
+    setExpressMode((prev) => {
+      const next = !prev;
+      try {
+        window.localStorage.setItem(EXPRESS_MODE_KEY, String(next));
+      } catch {}
+      return next;
+    });
+  }, []);
+
+  // ── G3: Resume draft support ──
+  const [showResumeBanner, setShowResumeBanner] = useState(false);
+  const [resumeRestore, setResumeRestore] = useState(null);
+
+  // ── Adaptive Question Engine: compute visible (filtered) questions ──
+  const adaptation = React.useMemo(() => {
+    const behaviour = getFilteredQuestionsWithProgress(
+      'behaviour', ui.behaviourQuestions, assessment.behaviour,
+      Object.keys(assessment.behaviour), { expressMode }
+    );
+    const awareness = getFilteredQuestionsWithProgress(
+      'awareness', ui.awarenessQuestions, assessment.awareness,
+      Object.keys(assessment.awareness), { expressMode }
+    );
+    const habits = getFilteredQuestionsWithProgress(
+      'habits', ui.habitsQuestions, assessment.habits,
+      Object.keys(assessment.habits), { expressMode }
+    );
+    const estimatedTime = estimateTotalTime(assessment, {
+      behaviourQuestions: ui.behaviourQuestions,
+      awarenessQuestions: ui.awarenessQuestions,
+      habitsQuestions: ui.habitsQuestions,
+    }, { expressMode });
+    return { behaviour, awareness, habits, estimatedTime };
+  }, [
+    assessment.behaviour, assessment.awareness, assessment.habits,
+    ui.behaviourQuestions, ui.awarenessQuestions, ui.habitsQuestions,
+    expressMode,
+  ]);
+
   const [currentStep, setCurrentStep] = useState(() => {
     try {
-      const saved = window.localStorage.getItem("arth-os-wizard-step");
+      const saved = window.localStorage.getItem(STEP_STORAGE_KEY);
       return saved ? Math.min(parseInt(saved, 10), 4) : 0;
     } catch (error) {
       console.warn("Could not restore wizard step:", error);
@@ -332,11 +544,95 @@ export default function AssessmentSection({ assessment, result, onChange, onSave
   const [showFeedback, setShowFeedback] = useState(false);
   const [validationErrors, setValidationErrors] = useState([]);
 
+  // ── G3: Step celebration state ──
+  const [celebration, setCelebration] = useState(null); // { stepLabel, visible }
+
+  // ── G3: Auto-Save setup refs ──
+  const stateRef = useRef({ assessment, currentStep, expressMode });
+  stateRef.current = { assessment, currentStep, expressMode };
+
+  // Debounced save on answer change
+  const debouncedSave = useMemo(() => {
+    let timer = null;
+    let lastCall = 0;
+    return (step) => {
+      const now = Date.now();
+      if (now - lastCall >= 2000) {
+        lastCall = now;
+        saveDraft(stateRef.current.assessment, step, stateRef.current.expressMode);
+      } else {
+        if (timer) clearTimeout(timer);
+        timer = setTimeout(() => {
+          lastCall = Date.now();
+          saveDraft(stateRef.current.assessment, step, stateRef.current.expressMode);
+        }, 2000);
+      }
+    };
+  }, []);
+
+  // Setup auto-save on mount
+  useEffect(() => {
+    const cleanupAutoSave = setupAutoSave(() => stateRef.current);
+    const cleanupBeforeUnload = setupBeforeUnload(() => stateRef.current);
+    return () => {
+      cleanupAutoSave();
+      cleanupBeforeUnload();
+    };
+  }, []);
+
+  // ── G3: Check for resume draft on mount ──
+  useEffect(() => {
+    const draft = loadDraft();
+    if (draft && draft.currentStep > 0 && !draft.assessment.participant?.name) {
+      // Only show if there's meaningful progress (step > 0) and no fresh start
+      setShowResumeBanner(true);
+      setResumeRestore(draft);
+    }
+  }, []);
+
+  const handleResume = useCallback(() => {
+    if (resumeRestore) {
+      // Restore the draft state — the parent will handle setting assessment
+      // via the onChange callback approach
+      setCurrentStep(resumeRestore.currentStep);
+      if (resumeRestore.expressMode !== undefined) {
+        setExpressMode(resumeRestore.expressMode);
+      }
+      // Import the draft values back into the assessment
+      if (resumeRestore.assessment) {
+        // Restore each section
+        const draft = resumeRestore.assessment;
+        Object.keys(draft).forEach((group) => {
+          if (typeof draft[group] === 'object' && draft[group] !== null) {
+            Object.keys(draft[group]).forEach((key) => {
+              if (draft[group][key] !== undefined && draft[group][key] !== '') {
+                onChange(group, key, draft[group][key]);
+              }
+            });
+          }
+        });
+      }
+    }
+    setShowResumeBanner(false);
+    setResumeRestore(null);
+    // Archive orphaned telemetry session
+    startAssessmentSession();
+    recordStepEntry(currentStep, totalSteps);
+  }, [resumeRestore, onChange]);
+
+  const handleDismissResume = useCallback(() => {
+    setShowResumeBanner(false);
+    setResumeRestore(null);
+    clearDraft();
+  }, []);
+
   const handleFieldChange = (group, key, value) => {
     if (validationErrors.length) {
       setValidationErrors([]);
     }
     onChange(group, key, value);
+    // Save draft on answer
+    saveDraft(stateRef.current.assessment, stateRef.current.currentStep, stateRef.current.expressMode);
   };
 
   const validateCurrentStep = () => {
@@ -354,6 +650,7 @@ export default function AssessmentSection({ assessment, result, onChange, onSave
       errors.push("⚠️ Enter a valid email address.");
     }
 
+    // Validate only VISIBLE (non-skipped) questions for adaptive assessment
     const addMissingAnswer = (question, group) => {
       if (!assessment[group]?.[question.key]) {
         errors.push(`⚠️ Answer: "${question.prompt}"`);
@@ -361,11 +658,11 @@ export default function AssessmentSection({ assessment, result, onChange, onSave
     };
 
     if (currentStep === 0) {
-      ui.behaviourQuestions.forEach((question) => addMissingAnswer(question, "behaviour"));
+      adaptation.behaviour.visible.forEach((question) => addMissingAnswer(question, "behaviour"));
     }
 
     if (currentStep === 1) {
-      ui.awarenessQuestions.forEach((question) => addMissingAnswer(question, "awareness"));
+      adaptation.awareness.visible.forEach((question) => addMissingAnswer(question, "awareness"));
     }
 
     if (currentStep === 2) {
@@ -407,7 +704,7 @@ export default function AssessmentSection({ assessment, result, onChange, onSave
     }
 
     if (currentStep === 3 && mode === "v2") {
-      ui.habitsQuestions.forEach((question) => addMissingAnswer(question, "habits"));
+      adaptation.habits.visible.forEach((question) => addMissingAnswer(question, "habits"));
     }
 
     return errors;
@@ -432,6 +729,8 @@ export default function AssessmentSection({ assessment, result, onChange, onSave
     if (resetTrigger !== undefined) {
       setCurrentStep(0);
       setShowFeedback(false);
+      setCelebration(null);
+      clearDraft();
     }
   }, [resetTrigger]);
 
@@ -447,10 +746,12 @@ export default function AssessmentSection({ assessment, result, onChange, onSave
   const handleStepChange = (newStep) => {
     setCurrentStep(newStep);
     try {
-      window.localStorage.setItem("arth-os-wizard-step", String(newStep));
+      window.localStorage.setItem(STEP_STORAGE_KEY, String(newStep));
     } catch (e) {
       console.warn("Could not persist step:", e);
     }
+    // Save draft on step change
+    saveDraft(stateRef.current.assessment, newStep, stateRef.current.expressMode);
   };
 
   const handleNext = async () => {
@@ -478,8 +779,14 @@ export default function AssessmentSection({ assessment, result, onChange, onSave
     // Mark current step as completed in telemetry
     markStepCompleted(currentStep);
 
+    // ── G3: Show step celebration before transitioning ──
     if (currentStep < totalSteps - 1) {
-      handleStepChange(currentStep + 1);
+      const stepLabel = steps[currentStep]?.label || `Step ${currentStep + 1}`;
+      setCelebration({ stepLabel, visible: true });
+      setTimeout(() => {
+        setCelebration(null);
+        handleStepChange(currentStep + 1);
+      }, 1200);
       return;
     }
 
@@ -488,12 +795,21 @@ export default function AssessmentSection({ assessment, result, onChange, onSave
       // Mark full assessment as completed for telemetry, archive session
       markAssessmentCompleted();
       archiveSession();
+      clearDraft(); // Clear draft on completion
 
       const payload = buildAnonymousTelemetryPayload(result, assessment);
       
       // Append step-level telemetry data to the existing payload
       const stepTelemetry = buildStepTelemetryPayload();
       payload.step_telemetry = stepTelemetry.step_telemetry;
+
+      // Append adaptive question metrics for completion-rate analysis
+      const adaptiveMetrics = getAdaptiveMetrics(assessment, {
+        behaviourQuestions: ui.behaviourQuestions,
+        awarenessQuestions: ui.awarenessQuestions,
+        habitsQuestions: ui.habitsQuestions,
+      }, { expressMode });
+      payload.adaptive_metrics = adaptiveMetrics;
 
       await dispatchAnonymousTelemetry(payload, "/api/telemetry");
       if (typeof onSaveAssessment === "function") {
@@ -506,7 +822,25 @@ export default function AssessmentSection({ assessment, result, onChange, onSave
     }
   };
 
-  const handlePrev = () => handleStepChange(Math.max(currentStep - 1, 0));
+  const handlePrev = () => {
+    if (currentStep > 0) {
+      handleStepChange(Math.max(currentStep - 1, 0));
+    }
+  };
+
+  // ── Collect answered keys for idle detection ──
+  const answeredKeys = useMemo(() => {
+    if (currentStep === 0) return Object.values(assessment.behaviour || {});
+    if (currentStep === 1) return Object.values(assessment.awareness || {});
+    if (currentStep === 2) return Object.values(assessment.profile || {});
+    if (currentStep === 3) return Object.values(assessment.habits || {});
+    return [];
+  }, [currentStep, assessment]);
+
+  // ── G3: Callback to skip a question user is stuck on ──
+  const handleSkipStuckQuestion = useCallback(() => {
+    setValidationErrors([]);
+  }, []);
 
   return (
     <section className="assessment-section" id="assessment">
@@ -519,11 +853,55 @@ export default function AssessmentSection({ assessment, result, onChange, onSave
           Complete the guided assessment step-by-step. The intelligence metrics panel
           updates instantly in real time.
         </p>
+
+        {/* ── G3: Express Mode Toggle ── */}
+        <div className="express-mode-toggle">
+          <button
+            type="button"
+            className={`express-mode-btn ${expressMode ? "active" : ""}`}
+            onClick={toggleExpressMode}
+            aria-pressed={expressMode}
+          >
+            <Zap size={16} />
+            <span>Express Mode</span>
+            {expressMode && <span className="express-mode-badge">⚡ ~{Math.max(1, adaptation.estimatedTime)} min</span>}
+          </button>
+          {expressMode && (
+            <span className="express-mode-hint">
+              Showing highest-impact questions only. You can switch back anytime.
+            </span>
+          )}
+        </div>
+
+        <div className="adaptive-time-badge-row">
+          {adaptation.estimatedTime > 0 && (
+            <div className="adaptive-time-badge">
+              <Clock size={14} />
+              <span>~{adaptation.estimatedTime} min</span>
+            </div>
+          )}
+          {expressMode && (
+            <div className="adaptive-time-badge express">
+              <Zap size={14} />
+              <span>Express: {Math.max(1, Math.round(adaptation.estimatedTime * 0.6))} min estimate</span>
+            </div>
+          )}
+        </div>
       </div>
 
       <div className="workspace">
         <section className="form-stack" aria-label="Financial health assessment">
-          {!showFeedback && (
+          {/* ── G3: Resume Banner ── */}
+          {showResumeBanner && (
+            <ResumeBanner onResume={handleResume} onDismiss={handleDismissResume} />
+          )}
+
+          {/* G3: Step Celebration Overlay */}
+          {celebration && celebration.visible && (
+            <StepCelebration stepLabel={celebration.stepLabel} />
+          )}
+
+          {!showFeedback && !celebration?.visible && (
             <div className="wizard-progress-track" aria-label="Assessment progress">
               {steps.map((step, idx) => (
                 <WizardStep
@@ -533,12 +911,15 @@ export default function AssessmentSection({ assessment, result, onChange, onSave
                   isActive={idx <= currentStep}
                   isCurrent={idx === currentStep}
                   isLast={idx === steps.length - 1}
+                  isCompleted={idx < currentStep}
                 />
               ))}
             </div>
           )}
 
-          <ParticipantSection values={assessment.participant} onChange={handleFieldChange} />
+          {!showFeedback && !celebration?.visible && (
+            <ParticipantSection values={assessment.participant} onChange={(key, value) => handleFieldChange("participant", key, value)} />
+          )}
 
           {validationErrors.length > 0 && (
             <div className="validation-alert" role="alert">
@@ -551,48 +932,76 @@ export default function AssessmentSection({ assessment, result, onChange, onSave
             </div>
           )}
 
-          {!showFeedback && currentStep === 0 && (
-            <QuestionSection
-              icon={Brain}
-              title="Psychology"
-              score={`${result.behaviourScore}/${ui.componentMaximums.behaviour}`}
-              questions={ui.behaviourQuestions}
-              values={assessment.behaviour}
-              onChange={(key, value) => onChange("behaviour", key, value)}
-            />
+          {!showFeedback && currentStep === 0 && !celebration?.visible && (
+            <>
+              <QuestionSection
+                icon={Brain}
+                title="Psychology"
+                score={`${result.behaviourScore}/${ui.componentMaximums.behaviour}`}
+                questions={adaptation.behaviour.visible}
+                values={assessment.behaviour}
+                onChange={(key, value) => handleFieldChange("behaviour", key, value)}
+                progress={{ current: adaptation.behaviour.currentQ, total: adaptation.behaviour.totalQ }}
+                answeredKeys={answeredKeys}
+              />
+              {adaptation.behaviour.totalSaved > 0 && (
+                <div className="adaptive-skip-banner">
+                  <span className="adaptive-skip-badge">✂️ {adaptation.behaviour.totalSaved} skipped</span>
+                  <span className="adaptive-skip-reason">Based on your answers — fewer questions, same accuracy.</span>
+                </div>
+              )}
+            </>
           )}
 
-          {!showFeedback && currentStep === 1 && (
-            <QuestionSection
-              icon={BarChart3}
-              title="Clarity"
-              score={`${result.awarenessScore}/${ui.componentMaximums.awareness}`}
-              questions={ui.awarenessQuestions}
-              values={assessment.awareness}
-              onChange={(key, value) => onChange("awareness", key, value)}
-            />
+          {!showFeedback && currentStep === 1 && !celebration?.visible && (
+            <>
+              <QuestionSection
+                icon={BarChart3}
+                title="Clarity"
+                score={`${result.awarenessScore}/${ui.componentMaximums.awareness}`}
+                questions={adaptation.awareness.visible}
+                values={assessment.awareness}
+                onChange={(key, value) => handleFieldChange("awareness", key, value)}
+                answeredKeys={answeredKeys}
+              />
+              {adaptation.awareness.totalSaved > 0 && (
+                <div className="adaptive-skip-banner">
+                  <span className="adaptive-skip-badge">✂️ {adaptation.awareness.totalSaved} skipped</span>
+                  <span className="adaptive-skip-reason">You've got this covered — fewer questions, same accuracy.</span>
+                </div>
+              )}
+            </>
           )}
 
-          {!showFeedback && currentStep === 2 && (
+          {!showFeedback && currentStep === 2 && !celebration?.visible && (
             <ProfileSection
               values={assessment.profile}
               score={`${result.stabilityScore}/${ui.componentMaximums.stability}`}
-              onChange={handleFieldChange}
+              onChange={(group, key, value) => handleFieldChange("profile", key, value)}
             />
           )}
 
-          {!showFeedback && currentStep === 3 && mode === "v2" && (
-            <QuestionSection
-              icon={Activity}
-              title="Habits"
-              score={`${result.habits.habitScore}/100`}
-              questions={ui.habitsQuestions}
-              values={assessment.habits}
-              onChange={handleFieldChange}
-            />
+          {!showFeedback && currentStep === 3 && mode === "v2" && !celebration?.visible && (
+            <>
+              <QuestionSection
+                icon={Activity}
+                title="Habits"
+                score={`${result.habits.habitScore}/100`}
+                questions={adaptation.habits.visible}
+                values={assessment.habits}
+                onChange={(key, value) => handleFieldChange("habits", key, value)}
+                answeredKeys={answeredKeys}
+              />
+              {adaptation.habits.totalSaved > 0 && (
+                <div className="adaptive-skip-banner">
+                  <span className="adaptive-skip-badge">✂️ {adaptation.habits.totalSaved} skipped</span>
+                  <span className="adaptive-skip-reason">On top of it — fewer questions, same accuracy.</span>
+                </div>
+              )}
+            </>
           )}
 
-          {!showFeedback && (
+          {!showFeedback && !celebration?.visible && (
             <div className="wizard-nav-footer">
               <button type="button" className="wizard-secondary-btn" onClick={handlePrev} disabled={currentStep === 0}>
                 <ChevronLeft size={16} />
@@ -604,6 +1013,11 @@ export default function AssessmentSection({ assessment, result, onChange, onSave
                 {!isLastStep && <ChevronRight size={16} />}
               </button>
             </div>
+          )}
+
+          {/* ── G3: Idle nudges ── */}
+          {!showFeedback && !celebration?.visible && (
+            <IdleNudgeArea active={currentStep < totalSteps - 1} answeredKeys={answeredKeys} onSkip={handleSkipStuckQuestion} />
           )}
 
           {showFeedback && (
@@ -647,15 +1061,87 @@ export default function AssessmentSection({ assessment, result, onChange, onSave
   );
 }
 
-function WizardStep({ step, index, isActive, isCurrent, isLast }) {
+// ── G3: Idle Nudge Component ──
+function IdleNudgeArea({ active, answeredKeys, onSkip }) {
+  const [idleState, setIdleState] = useState(null);
+  const timerRef = useRef(null);
+  const skipTimerRef = useRef(null);
+
+  useEffect(() => {
+    if (!active) {
+      setIdleState(null);
+      return;
+    }
+
+    const answeredCount = answeredKeys.filter(Boolean).length;
+
+    // Nudge after 15s if very few answers
+    timerRef.current = setTimeout(() => {
+      if (answeredCount < 2) {
+        setIdleState('nudge');
+      }
+    }, IDLE_NUDGE_THRESHOLD_MS);
+
+    // Skip offer after 30s if no answers
+    skipTimerRef.current = setTimeout(() => {
+      if (answeredCount < 1) {
+        setIdleState('stuck');
+      }
+    }, IDLE_SKIP_THRESHOLD_MS);
+
+    return () => {
+      clearTimeout(timerRef.current);
+      clearTimeout(skipTimerRef.current);
+    };
+  }, [active, answeredKeys]);
+
+  // Reset state when enough answers come in
+  useEffect(() => {
+    const answeredCount = answeredKeys.filter(Boolean).length;
+    if (answeredCount >= 2) {
+      setIdleState(null);
+    }
+  }, [answeredKeys]);
+
+  if (!idleState) return null;
+
+  return (
+    <div className={`idle-nudge ${idleState === 'stuck' ? 'stuck' : ''}`}>
+      {idleState === 'nudge' && (
+        <div className="idle-nudge-content">
+          <AlertTriangle size={14} />
+          <span>Not sure? Take your time — there's no wrong answer.</span>
+        </div>
+      )}
+      {idleState === 'stuck' && (
+        <div className="idle-nudge-content stuck-content">
+          <AlertTriangle size={14} />
+          <div>
+            <span>Having trouble? You can skip this question and come back later.</span>
+            <button type="button" className="idle-skip-btn" onClick={onSkip}>
+              Skip this question
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function WizardStep({ step, index, isActive, isCurrent, isLast, isCompleted }) {
   const StepIcon = step.icon;
 
   return (
     <div
-      className={`wizard-node ${isActive ? "active" : ""} ${isCurrent ? "current" : ""}`}
+      className={`wizard-node ${isActive ? "active" : ""} ${isCurrent ? "current" : ""} ${isCompleted ? "completed" : ""}`}
     >
       <div className="wizard-node-marker">
-        <StepIcon size={13} />
+        {/* ── G3: Completed steps show checkmark ── */}
+        {isCompleted ? (
+          <span className="wizard-node-check">✓</span>
+        ) : (
+          <StepIcon size={13} />
+        )}
         <span>{index + 1}</span>
       </div>
       <span className="wizard-node-label">{step.label}</span>
