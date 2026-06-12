@@ -5,7 +5,6 @@
 
 -- Enable required extensions
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
-CREATE EXTENSION IF NOT EXISTS "jsonb_utils" CASCADE;
 
 -- 1. Money Beliefs - Core financial beliefs extracted from user behavior and assessments
 CREATE TABLE IF NOT EXISTS money_beliefs (

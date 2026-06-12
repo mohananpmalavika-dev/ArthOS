@@ -12,6 +12,7 @@ import {
 import ValidationFeedbackForm from "./ValidationFeedbackForm.jsx";
 import DecisionSimulator from "./DecisionSimulator.jsx";
 import InsightNarrative from "./InsightNarrative.jsx";
+import SurvivalHero from "./SurvivalHero.jsx";
 import {
   buildAnonymousTelemetryPayload,
   dispatchAnonymousTelemetry,
@@ -593,6 +594,10 @@ export default function AssessmentSection({ assessment, result, onChange, onSave
           {result && result.healthScore !== undefined && (
             <div className="result-stack-inner">
               <LiveResultSnapshot result={result} />
+
+              {/* Blueprint key moment: Survival Engine right after assessment completion */}
+              <SurvivalHero survivalMonths={result.survivalMonthsRaw} />
+
               <InsightNarrative result={result} assessment={assessment} />
               <DecisionSimulator
                 id="simulator"

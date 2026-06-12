@@ -17,6 +17,7 @@ import b2bWebhooksHandler from '../api_src/b2b/webhooks.js';
 import userScoreHandler from '../api_src/user/[userId]/score.js';
 import userRiskHandler from '../api_src/user/[userId]/risk.js';
 import remindersHandler from '../api_src/reminders.js';
+import aiCoachHandler from '../api_src/longitudinal/ai-coach-handler.js';
 
 const routeDefinitions = [
   { match: (pathname) => pathname === '/api/decision', handler: decisionHandler },
@@ -52,6 +53,7 @@ const routeDefinitions = [
     getParams: (match) => ({ userId: match[1] }),
   },
   { match: (pathname) => pathname === '/api/reminders' || pathname.startsWith('/api/reminders/'), handler: remindersHandler },
+  { match: (pathname) => pathname.startsWith('/api/coach'), handler: aiCoachHandler },
 ];
 
 function getPathname(req) {
