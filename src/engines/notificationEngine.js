@@ -118,11 +118,37 @@ export function notifyMilestoneUnlock(badge) {
   });
 }
 
+// --- Streak notifications ---
+
+/**
+ * Notify about a streak milestone being reached (3, 7, 14, 30 days).
+ */
+export function notifyStreakMilestone(streakDays) {
+  const messages = {
+    3:  { body: "3-day check-in streak! You're building a healthy habit.", icon: "🌱" },
+    7:  { body: "7-day check-in streak! A full week of financial awareness.", icon: "🌿" },
+    14: { body: "14-day check-in streak! Two weeks of consistent tracking.", icon: "🌳" },
+    30: { body: "30-day check-in streak! You're a financial discipline master!", icon: "🏆" },
+  };
+
+  const msg = messages[streakDays];
+  if (!msg) return false;
+
+  addNotification({
+    title: `Streak Milestone: ${streakDays} Days!`,
+    body: msg.body,
+    type: "streak",
+    icon: msg.icon,
+  });
+  return true;
+}
+
 // --- Checkin reminders ---
 
 /**
  * Check if the user has checked in recently (within N days).
- * If not, return a notification suggesting a checkin.
+ * If not, add a notification suggesting a checkin.
+ * Returns true if a reminder was added.
  */
 export function checkCheckinReminder(lastCheckinDate, daysThreshold = 2) {
   if (!lastCheckinDate) {
