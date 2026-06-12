@@ -68,6 +68,7 @@ import { checkAndUnlockMilestones } from "./engines/milestoneEngine.js";
 import { getUnreadCount, addNotification, notifyNewMilestones, checkCheckinReminder } from "./engines/notificationEngine.js";
 import BadgeDisplay from "./components/BadgeDisplay.jsx";
 import NotificationPanel from "./components/NotificationPanel.jsx";
+import FlowNavigation from "./components/FlowNavigation.jsx";
 import PeerComparisonCard from "./components/PeerComparisonCard.jsx";
 import ErrorBoundary from "./components/ErrorBoundary.jsx";
 // Lazy-loaded feature components to reduce main bundle
@@ -859,10 +860,12 @@ export default function App() {
     },
   };
 
+  const reportRoutes = ["#reports", "#cognition", "#simulator", "#decisions", "#memory", "#history"];
   const isWorkflowRoute = activeHash === "#assessment" || activeHash === "#simulator";
-  const isReportsRoute = activeHash === "#reports";
-  const showHeroSection = !isWorkflowRoute && !isReportsRoute;
-  const showAssessmentSection = !isReportsRoute;
+  const isReportsRoute = reportRoutes.includes(activeHash);
+  const showHeroSection = activeHash === "#home" || activeHash === "#intelligence" || (!isWorkflowRoute && !isReportsRoute);
+  const showAssessmentSection = activeHash === "#assessment";
+  const showReportsSection = isReportsRoute;
 
 
 
@@ -1014,6 +1017,23 @@ export default function App() {
         user={user}
         onOpenAuth={() => setShowAuthModal(true)}
         onLogout={logout}
+        notificationBadgeCount={notificationBadgeCount}
+        onToggleNotification={() => setShowNotificationPanel((prev) => !prev)}
+      />
+
+      {!showAuthModal && (
+        <FlowNavigation
+          activeHash={activeHash}
+          onNavigate={(hash) => {
+            setActiveHash(hash);
+            window.location.hash = hash;
+          }}
+        />
+      )}
+
+      <NotificationPanel
+        isOpen={showNotificationPanel}
+        onClose={() => setShowNotificationPanel(false)}
       />
 
       {showOnboarding && (
@@ -1102,7 +1122,8 @@ export default function App() {
             )}
 
 
-            <section className="assessment-summary-grid" id="reports">
+            {showReportsSection && (
+            <section className="assessment-summary-grid flow-report-grid" id="reports">
               <div className="summary-main-column">
                 <Suspense fallback={<LazyComponentFallback />}>
                   <ErrorBoundary>
@@ -1127,7 +1148,7 @@ export default function App() {
                     assessmentResult={result}
                   />
                 </section>
-                <section className="summary-card premium-report-block">
+                <section className="summary-card premium-report-block" id="cognition">
                   <div className="premium-report-block-header">
                     <h2 className="premium-report-block-title">🧠 Cognition & Future Risk</h2>
                     <p className="premium-report-block-subtitle">
@@ -1429,8 +1450,10 @@ export default function App() {
                 </div>
               </section>
             </section>
+            )}
 
-            <div style={{ maxWidth: "1200px", margin: "0 auto", padding: "0 16px" }}>
+            {showReportsSection && (
+            <div className="flow-insights-section" id="insights">
               <div className="diagnostics-grid">
                 <SurvivalHero survivalMonths={result.survivalMonthsRaw} />
                 <CognitionGapCard perceived={result.awarenessGapDisplay} actual={result.survivalMonthsDisplay} />
@@ -1463,6 +1486,7 @@ export default function App() {
                 </div>
               </section>
             </div>
+            )}
           </>
         )}
       </main>
@@ -1725,6 +1749,8 @@ function Header({
   user,
   onOpenAuth,
   onLogout,
+  notificationBadgeCount = 0,
+  onToggleNotification,
 }) {
 
   return (
@@ -1757,9 +1783,9 @@ function Header({
         <button type="button" className="model-icon-btn" title="Search">
           <Search size={18} />
         </button>
-        <button type="button" className="model-icon-btn notification-btn" title="Notifications">
+        <button type="button" className="model-icon-btn notification-btn" title="Notifications" onClick={onToggleNotification}>
           <Bell size={18} />
-          <span />
+          {notificationBadgeCount > 0 && <span className="notification-badge-dot">{notificationBadgeCount}</span>}
         </button>
         <button type="button" className="model-icon-btn" title="Export report as PDF" onClick={onExport}>
           <Download size={18} />

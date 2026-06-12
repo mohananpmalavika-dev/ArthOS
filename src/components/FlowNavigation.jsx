@@ -6,7 +6,8 @@ import {
   Brain,
   Target,
   Users,
-  Settings,
+  GitBranch,
+  History,
 } from 'lucide-react';
 
 export default function FlowNavigation({ activeHash, onNavigate }) {
@@ -21,7 +22,7 @@ export default function FlowNavigation({ activeHash, onNavigate }) {
     {
       id: 'assessment',
       hash: '#assessment',
-      label: 'Assessment',
+      label: 'Assess',
       icon: ClipboardList,
       description: 'Financial Health Quiz',
     },
@@ -47,6 +48,21 @@ export default function FlowNavigation({ activeHash, onNavigate }) {
       description: 'What-If Scenarios',
     },
     {
+      id: 'decisions',
+      hash: '#decisions',
+      label: 'Decisions',
+      icon: GitBranch,
+      description: 'Decision Ledger',
+    },
+    {
+      id: 'memory',
+      hash: '#memory',
+      label: 'Memory',
+      icon: History,
+      description: 'Timeline & History',
+      aliases: ['#history'],
+    },
+    {
       id: 'b2b',
       hash: '#b2b',
       label: 'Partners',
@@ -57,7 +73,8 @@ export default function FlowNavigation({ activeHash, onNavigate }) {
 
   const isActive = (hash) => {
     const currentHash = activeHash || '#home';
-    return currentHash === hash;
+    const item = navItems.find((navItem) => navItem.hash === hash);
+    return currentHash === hash || item?.aliases?.includes(currentHash);
   };
 
   const handleNavClick = (hash) => {

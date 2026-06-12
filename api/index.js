@@ -16,6 +16,7 @@ import b2bValidateKeyHandler from '../api_src/b2b/validate-key.js';
 import b2bWebhooksHandler from '../api_src/b2b/webhooks.js';
 import userScoreHandler from '../api_src/user/[userId]/score.js';
 import userRiskHandler from '../api_src/user/[userId]/risk.js';
+import remindersHandler from '../api_src/reminders.js';
 
 const routeDefinitions = [
   { match: (pathname) => pathname === '/api/decision', handler: decisionHandler },
