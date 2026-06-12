@@ -83,6 +83,7 @@ const FinancialTwin = lazy(() => import("./components/FinancialTwin.jsx"));
 const UserHistory = lazy(() => import("./components/UserHistory.jsx"));
 const TraitMatrixVisualizer = lazy(() => import("./components/TraitMatrixVisualizer.jsx"));
 const DigitalTwinDashboard = lazy(() => import("./components/DigitalTwinDashboard.jsx"));
+const PredictionEngineDashboard = lazy(() => import("./components/PredictionEngineDashboard.jsx"));
 // Always-needed components (in main bundle)
 import OnboardingOverlay from "./components/OnboardingOverlay.jsx";
 import AssessmentSection from "./components/AssessmentSection.jsx";
@@ -1098,6 +1099,12 @@ export default function App() {
               userId={effectiveUserId}
               assessment={assessment}
             />
+          </Suspense>
+        ) : activeHash === "#predictions" ? (
+          <Suspense fallback={<LazyComponentFallback />}>
+            <ErrorBoundary>
+              <PredictionEngineDashboard userId={effectiveUserId} />
+            </ErrorBoundary>
           </Suspense>
         ) : activeHash === "#admin" ? (
           <AdminSection

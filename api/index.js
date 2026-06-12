@@ -18,6 +18,7 @@ import userScoreHandler from '../api_src/user/[userId]/score.js';
 import userRiskHandler from '../api_src/user/[userId]/risk.js';
 import remindersHandler from '../api_src/reminders.js';
 import aiCoachHandler from '../api_src/longitudinal/ai-coach-handler.js';
+import predictionEngineHandler from '../api_src/longitudinal/prediction-engine-handler.js';
 
 const routeDefinitions = [
   { match: (pathname) => pathname === '/api/decision', handler: decisionHandler },
@@ -54,6 +55,7 @@ const routeDefinitions = [
   },
   { match: (pathname) => pathname === '/api/reminders' || pathname.startsWith('/api/reminders/'), handler: remindersHandler },
   { match: (pathname) => pathname.startsWith('/api/coach'), handler: aiCoachHandler },
+  { match: (pathname) => pathname.startsWith('/api/prediction'), handler: predictionEngineHandler },
 ];
 
 function getPathname(req) {

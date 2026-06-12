@@ -6,6 +6,7 @@ export const NAV_ITEMS = [
   { label: "Simulator", href: "#simulator" },
   { label: "Decisions", href: "#decisions" },
   { label: "Memory", href: "#memory" },
+  { label: "Predictions", href: "#predictions" },
   { label: "Partners", href: "#b2b" },
 ];
 
