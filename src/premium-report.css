@@ -480,64 +480,154 @@
   }
 }
 
-:root{
-  --premium-report-kicker:rgba(98,228,209,.74);
-  --premium-report-text:rgba(238,242,255,.94);
-  --premium-report-muted:rgba(184,190,214,.86);
-  --premium-report-border:rgba(98,228,209,.18);
-  --premium-report-bg:rgba(10,15,32,.76);
-  --premium-report-tile-bg:rgba(13,18,36,.88);
-  --premium-report-success-border:rgba(115,240,191,.34);
-  --premium-report-success-gradient-start:rgba(115,240,191,.12);
-  --premium-report-success-gradient-end:rgba(139,92,246,.12);
-  --premium-report-panel-bg:rgba(9,14,30,.9);
-  --premium-report-success-text:rgba(225,255,247,.96);
-  --premium-report-shadow:rgba(0,0,0,.3);
-  --premium-report-summary-bg-start:rgba(24,26,42,.9);
-  --premium-report-summary-bg-end:rgba(8,13,28,.96);
-  --premium-report-summary-bg-fill:rgba(8,13,28,.94);
-  --premium-report-summary-radial-cyan:rgba(98,228,209,.12);
-  --premium-report-summary-radial-amber:rgba(139,92,246,.16);
-  --premium-report-white-03:rgba(255,255,255,.035);
-  --premium-report-white-04:rgba(255,255,255,.045);
-  --premium-report-white-05:rgba(255,255,255,.055);
-  --premium-report-white-06:rgba(255,255,255,.065);
-  --premium-report-white-07:rgba(255,255,255,.075);
-  --premium-report-white-08:rgba(255,255,255,.09);
-  --premium-report-white-10:rgba(255,255,255,.1);
-  --premium-report-white-12:rgba(255,255,255,.12);
-  --premium-report-white-14:rgba(255,255,255,.14);
-  --premium-report-white-16:rgba(255,255,255,.16);
-  --premium-report-white-18:rgba(98,228,209,.2);
-  --premium-report-white-22:rgba(98,228,209,.24);
-  --premium-report-white-24:rgba(98,228,209,.26);
-  --premium-report-white-28:rgba(98,228,209,.3);
-  --premium-report-white-32:rgba(98,228,209,.34);
-  --premium-report-white-032:rgba(255,255,255,.032);
-  --premium-report-white-035:rgba(255,255,255,.035);
-  --premium-report-white-045:rgba(255,255,255,.045);
-  --premium-report-white-055:rgba(255,255,255,.055);
-  --premium-report-surface-dark:rgba(4,8,20,.34);
-  --premium-report-hero-border:rgba(98,228,209,.24);
-  --premium-report-hero-gradient-cyan:rgba(98,228,209,.13);
-  --premium-report-hero-gradient-purple:rgba(139,92,246,.17);
-  --premium-report-hero-gradient-amber:rgba(244,178,85,.08);
-  --premium-report-notice-border:rgba(244,178,85,.28);
-  --premium-report-notice-bg:rgba(244,178,85,.08);
-  --premium-report-warning-text:rgba(255,224,179,.95);
-  --premium-report-hero-copy:rgba(231,236,255,.84);
-  --premium-report-hero-copy-muted:rgba(231,236,255,.74);
-  --premium-report-muted-85:rgba(184,190,214,.85);
-  --premium-report-muted-88:rgba(184,190,214,.88);
-  --premium-report-muted-90:rgba(184,190,214,.9);
-  --premium-report-muted-92:rgba(184,190,214,.92);
-  --premium-report-graph-legend:rgba(184,190,214,.95);
-  --premium-report-graph-header:rgba(98,228,209,.88);
-  --premium-report-graph-node:rgba(238,226,255,.92);
-  --premium-report-notes-text:rgba(246,248,255,.94);
-  --premium-report-strong-white:#fbf8ff;
-  --premium-report-strong-white-96:rgba(251,248,255,.96);
-  --premium-report-risk-border:rgba(255,111,145,.36);
-  --premium-report-opportunity-border:rgba(115,240,191,.36);
-  --premium-report-info-border:rgba(98,228,209,.34);
+/* ===== FORECAST MODEL CARD (Multi-Model Ensemble) ===== */
+.forecast-model-badge{
+  display:flex;
+  flex-wrap:wrap;
+  align-items:center;
+  gap:10px;
+  padding:14px 18px;
+  margin-bottom:18px;
+  border:1px solid var(--premium-report-white-12);
+  border-radius:14px;
+  background:linear-gradient(135deg,rgba(139,92,246,.08),rgba(98,228,209,.06));
+  color:var(--premium-report-muted-90);
+  font-size:13px;
+  font-weight:700;
+}
+.forecast-model-badge strong{
+  color:var(--white);
+}
+.forecast-model-badge-meta{
+  margin-left:auto;
+  font-size:12px;
+  color:var(--premium-report-kicker);
+}
+
+.forecast-model-toggle{
+  margin-top:16px;
+}
+.forecast-model-toggle-btn{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  padding:10px 16px;
+  border:1px solid var(--premium-report-white-12);
+  border-radius:10px;
+  background:var(--premium-report-white-04);
+  color:var(--premium-report-muted-90);
+  font-size:13px;
+  font-weight:750;
+  cursor:pointer;
+  transition:all 160ms ease;
+}
+.forecast-model-toggle-btn:hover{
+  background:var(--premium-report-white-08);
+  border-color:var(--premium-report-white-18);
+  color:var(--white);
+}
+
+.forecast-model-details{
+  margin-top:16px;
+  padding:18px;
+  border:1px solid var(--premium-report-white-08);
+  border-radius:14px;
+  background:var(--premium-report-white-03);
+}
+
+.forecast-model-table{
+  display:grid;
+  gap:2px;
+}
+.forecast-model-table-header,
+.forecast-model-table-row{
+  display:grid;
+  grid-template-columns:1.5fr 0.6fr 0.6fr 0.6fr 0.6fr 0.8fr;
+  gap:8px;
+  align-items:center;
+  padding:10px 12px;
+  font-size:12px;
+}
+.forecast-model-table-header{
+  color:var(--premium-report-kicker);
+  font-weight:850;
+  text-transform:uppercase;
+  letter-spacing:.04em;
+  border-bottom:1px solid var(--premium-report-white-08);
+}
+.forecast-model-table-row{
+  color:var(--premium-report-muted-90);
+  font-weight:700;
+  border-radius:8px;
+  transition:background 140ms ease;
+}
+.forecast-model-table-row:hover{
+  background:var(--premium-report-white-06);
+}
+.forecast-model-row-best{
+  background:rgba(115,240,191,.06);
+  border:1px solid rgba(115,240,191,.16);
+}
+
+.forecast-ensemble-list{
+  display:grid;
+  gap:8px;
+}
+.forecast-ensemble-row{
+  display:grid;
+  grid-template-columns:1.2fr 1fr 0.5fr 0.8fr;
+  gap:10px;
+  align-items:center;
+  padding:8px 12px;
+  font-size:12px;
+  font-weight:700;
+  color:var(--premium-report-muted-90);
+}
+.forecast-ensemble-bar-track{
+  height:8px;
+  border-radius:999px;
+  background:var(--premium-report-white-06);
+  overflow:hidden;
+}
+.forecast-ensemble-bar-fill{
+  height:100%;
+  border-radius:inherit;
+  background:linear-gradient(90deg,var(--purple),var(--cyan));
+  transition:width 300ms ease;
+}
+.forecast-ensemble-weight{
+  color:var(--white);
+  font-weight:900;
+}
+.forecast-ensemble-rmse{
+  color:var(--premium-report-muted);
+}
+.forecast-ensemble-summary{
+  display:flex;
+  align-items:flex-start;
+  gap:8px;
+  margin-top:14px;
+  padding:12px;
+  border:1px solid var(--premium-report-white-08);
+  border-radius:10px;
+  background:var(--premium-report-white-04);
+  color:var(--premium-report-muted-90);
+  font-size:12px;
+  font-weight:700;
+  line-height:1.45;
+}
+.forecast-ensemble-summary strong{
+  color:var(--white);
+}
+
+@media (max-width:980px){
+  .forecast-model-table-header,
+  .forecast-model-table-row{
+    grid-template-columns:1.2fr 0.5fr 0.5fr 0.5fr 0.5fr 0.6fr;
+    font-size:11px;
+  }
+  .forecast-ensemble-row{
+    grid-template-columns:1fr 1fr 0.4fr 0.7fr;
+    font-size:11px;
+  }
 }

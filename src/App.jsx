@@ -1,4 +1,4 @@
-import React, { memo, useEffect, useMemo, useState, lazy, Suspense, useCallback } from "react";
+import React, { memo, useEffect, useMemo, useState, lazy, Suspense, useCallback, startTransition } from "react";
 import { useAuth } from "./context/AuthContext.jsx";
 import LoginPage from "./pages/LoginPage.jsx";
 import RegisterPage from "./pages/RegisterPage.jsx";
@@ -94,6 +94,7 @@ import EmotionalTriggersCard from "./components/EmotionalTriggersCard.jsx";
 import MoneyBeliefsCard from "./components/MoneyBeliefsCard.jsx";
 import { SalaryRoastGenerator } from "./components/SalaryRoastGenerator.jsx";
 import { ScenarioForecast } from "./components/ScenarioForecast.jsx";
+import { ForecastModelCard } from "./components/ForecastModelCard.jsx";
 import { EnhancedInsightNarrative } from "./components/EnhancedInsightNarrative.jsx";
 import DecisionSimulator from "./components/DecisionSimulator.jsx";
 import { ConsequenceForecastCard } from "./components/ConsequenceForecastCard.jsx";
@@ -578,7 +579,7 @@ export default function App() {
   }, [assessment.profile, assessment.behaviour]);
 
   useEffect(() => {
-    const handleHashChange = () => setActiveHash(window.location.hash || "#home");
+    const handleHashChange = () => startTransition(() => setActiveHash(window.location.hash || "#home"));
     window.addEventListener("hashchange", handleHashChange);
     return () => window.removeEventListener("hashchange", handleHashChange);
   }, []);
@@ -948,7 +949,7 @@ export default function App() {
     if (adminCredentials.username === "ankit" && adminCredentials.password === "admin") {
       setAdminLoggedIn(true);
       setAdminLoginError("");
-      setActiveHash("#admin");
+      startTransition(() => setActiveHash("#admin"));
       return;
     }
 
@@ -1041,8 +1042,10 @@ export default function App() {
         <FlowNavigation
           activeHash={activeHash}
           onNavigate={(hash) => {
-            setActiveHash(hash);
-            window.location.hash = hash;
+            startTransition(() => {
+              setActiveHash(hash);
+              window.location.hash = hash;
+            });
           }}
         />
       )}
@@ -1160,11 +1163,22 @@ export default function App() {
                 <section className="summary-card">
                   <div className="premium-report-section-header">
                     <h2 className="premium-report-section-title">📊 Financial Forecast</h2>
+                    <p className="premium-report-block-subtitle">GBM Monte Carlo projections with stress test scenarios.</p>
                   </div>
                   <ScenarioForecast
                     profile={assessment.profile}
                     assessmentResult={result}
+                    predictionEngineForecast={predictionEngineForecast}
                   />
+                </section>
+                <section className="summary-card">
+                  <div className="premium-report-section-header">
+                    <h2 className="premium-report-section-title">🤖 Multi-Model Ensemble Forecast</h2>
+                    <p className="premium-report-block-subtitle">
+                      Auto-selected best model from ARIMA · Holt-Winters · Bayesian Structural · Ensemble
+                    </p>
+                  </div>
+                  <ForecastModelCard forecast={predictionEngineForecast} />
                 </section>
                 <section className="summary-card premium-report-block" id="cognition">
                   <div className="premium-report-block-header">
