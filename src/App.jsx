@@ -99,6 +99,7 @@ import { ConsequenceForecastCard } from "./components/ConsequenceForecastCard.js
 import { InterventionsPrescriptionCard } from "./components/InterventionsPrescriptionCard.jsx";
 import { StrategicMetricsCard } from "./components/StrategicMetricsCard.jsx";
 import DailyCheckinForm from "./components/DailyCheckinForm.jsx";
+import ReminderPreferences from "./components/ReminderPreferences.jsx";
 import DecisionHistory from "./components/DecisionHistory.jsx";
 import RecordDecision from "./components/RecordDecision.jsx";
 import { AreaChart, Area, XAxis, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
@@ -1473,6 +1474,7 @@ export default function App() {
                 stability={assessment?.stability}
               />
               <DailyCheckinForm onCheckin={handleDailyCheckin} />
+              <ReminderPreferences userId={currentUserId} />
               <section id="decisions" className="summary-card premium-report-block decision-overview-section">
                 <div className="premium-report-block-header">
                   <h2 className="premium-report-block-title">Decisions</h2>

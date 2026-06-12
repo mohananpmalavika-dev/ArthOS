@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import { CheckCircle2, Calendar, TrendingUp } from "lucide-react";
 import {
   loadWeeklyCheckins,
@@ -6,6 +6,9 @@ import {
   calculateConsecutiveStreak,
   countRecentCheckins,
 } from "../engines/financialMemoryEngine.js";
+import { scheduleStreakReminder } from "./ReminderPreferences.jsx";
+import { loadPrefs } from "../lib/reminderPrefs.js";
+import { useAuth } from "../context/AuthContext.jsx";
 
 /**
  * Daily Cognition Loop Component
@@ -15,6 +18,7 @@ import {
  * Key insight: Users care about progress, not absolute scores
  */
 export default function DailyCheckinForm({ onCheckin }) {
+  const { user } = useAuth();
   const [responses, setResponses] = useState({});
   const [checkinComplete, setCheckinComplete] = useState(false);
   const [todayCheckinExists, setTodayCheckinExists] = useState(false);
@@ -127,6 +131,16 @@ export default function DailyCheckinForm({ onCheckin }) {
       setTimeout(() => {
         setCheckinComplete(false);
       }, 3000);
+
+      // Fire streak reminder if user hit a milestone streak
+      const newStreak = calculateConsecutiveStreak(updated);
+      const prefs = loadPrefs();
+      if (prefs.enabled && prefs.streakNudges && [3, 7, 14, 30].includes(newStreak)) {
+        const userId = user?.id;
+        if (userId) {
+          scheduleStreakReminder(userId, newStreak);
+        }
+      }
     } catch (error) {
       console.warn("Could not save checkin:", error);
     }

@@ -69,6 +69,10 @@ input {
   font: inherit;
 }
 
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
 button {
   cursor: pointer;
 }
