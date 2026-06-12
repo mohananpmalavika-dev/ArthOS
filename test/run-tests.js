@@ -18,9 +18,7 @@ import { detectTriggers, identifyTriggerPatterns } from '../src/engines/emotiona
 import { compareAlternatives, simulateCounterfactual } from '../src/engines/counterfactualEngine.js';
 import { FinancialMindProfile } from '../src/lib/FinancialMindProfile.js';
 import { integrations, registerProvider, ProviderRegistry } from '../src/lib/integrations.js';
-import decisionHandler from '../api/decision.js';
-import riskScoreHandler from '../api/risk-score.js';
-import riskOpportunityHandler from '../api/risk-opportunity.js';
+import { decision as decisionHandler, riskScore as riskScoreHandler, riskOpportunity as riskOpportunityHandler } from '../api/index.js';
 import { scoreDecision, decisionTrend } from '../src/engines/decisionIntelligence.js';
 
 function mockRes() {

@@ -55,7 +55,9 @@ function buildApiRoutes() {
       const segments = [...routePrefix.split("/").filter(Boolean)];
       if (fileBase) segments.push(fileBase);
       const route = "/" + segments.map(normalizeSegment).join("/");
-      const matcher = createRouteMatcher(route);
+      const matcher = fileBase === "" && route === "/api"
+        ? (pathname) => pathname === "/api" || pathname.startsWith("/api/")
+        : createRouteMatcher(route);
       routes.push({ route, matcher, fullPath });
     }
   };
