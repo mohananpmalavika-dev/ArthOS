@@ -42,6 +42,7 @@ import {
   loadScoreHistory,
   loadWeeklyCheckins,
   getProgressSummary,
+  calculateConsecutiveStreak,
 } from "./engines/financialMemoryEngine.js";
 import { buildTrajectoryNarrative } from "./engines/trajectoryNarrativeEngine.js";
 import { buildFinancialTwinScenarios } from "./engines/financialTwinEngine.js";

@@ -17,7 +17,7 @@ import {
   dispatchAnonymousTelemetry,
   dispatchAnonymousFeedbackEvent,
 } from "../lib/scoring-v2.js";
-import { ASSESSMENT_FIELDS, ASSESSMENT_OPTIONS, ASSESSMENT_BUTTONS } from "../lib/copy.js";
+import { ASSESSMENT_FIELDS, ASSESSMENT_OPTIONS, ASSESSMENT_BUTTONS, ASSESSMENT_SECTIONS } from "../lib/copy.js";
 
 function ParticipantSection({ values, onChange }) {
   return (
