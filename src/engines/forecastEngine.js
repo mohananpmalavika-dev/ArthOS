@@ -8,7 +8,15 @@
  * Blueprint spec: "Forecasts future financial states and scenario simulations"
  * v2: Basic Monte Carlo with fixed volatility
  * v3: GBM + stochastic volatility + regime detection + bootstrapped confidence
+ * v4: Multi-model prediction engine (ARIMA, Holt-Winters, Bayesian, Ensemble)
+ *     — kept GBM methods for backward compatibility
+ *     — new predictionEngineForecastHealth uses sophisticated multi-model approach
  */
+
+import {
+  predictionEngineForecastHealth,
+  generatePrediction,
+} from './predictionEngine.js';
 
 function clamp(value) {
   if (typeof value !== 'number' || Number.isNaN(value)) return 0;

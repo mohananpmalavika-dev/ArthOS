@@ -49,6 +49,7 @@ import { buildFinancialTwinScenarios } from "./engines/financialTwinEngine.js";
 import { buildCognitionProfile } from "./engines/cognitionEngine.js";
 import { evaluateHabitProgress } from "./engines/habitEngine.js";
 import { forecastHealth, detectFutureRisk } from "./engines/forecastEngine.js";
+import { predictionEngineForecastHealth } from "./engines/predictionEngine.js";
 import { calculateConfidence } from "./engines/confidenceEngine.js";
 import { generateAlerts } from "./engines/riskOpportunityEngine.js";
 import { detectBiases as detectCognitiveBiases, calculateRiskCalibration } from "./engines/biasEngine.js";
@@ -709,6 +710,20 @@ export default function App() {
       decisionHistoryCount,
     );
   }, [result.healthScore, habitProgress.score, scoreHistory.length, decisionHistoryCount]);
+
+  // New: Prediction Engine (multi-model ensemble) forecasts
+  const predictionEngineForecast = useMemo(() => {
+    try {
+      return predictionEngineForecastHealth(
+        result.healthScore,
+        scoreHistory.map((s) => s.score || s),
+        assessment.profile,
+        12 // monthly seasonality
+      );
+    } catch (e) {
+      return null;
+    }
+  }, [result.healthScore, scoreHistory, assessment.profile]);
   const memoryInsight = useMemo(() => generateMemoryInsight(weeklyCheckins), [weeklyCheckins]);
   const opportunity = useMemo(() => opportunityForecast(assessment.profile), [assessment.profile]);
   const goalEvolution = useMemo(

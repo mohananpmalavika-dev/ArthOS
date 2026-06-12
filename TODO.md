@@ -28,11 +28,11 @@
 
 ## Phase 6: Email/SMS Reminder Trigger System
 - [x] Create API endpoint for reminder scheduling — `api_src/reminders.js` exists with full CRUD + trigger/delivery engine, now wired into `api/index.js` route definitions
-- [ ] Build reminder preference UI — **MISSING**: No frontend component for users to set reminder preferences (channel, time, frequency)
-- [ ] Wire reminder triggers to checkin/streak logic — **MISSING**: No calls to reminders API from checkin submissions or streak detection path
+- [x] Build reminder preference UI — `ReminderPreferences.jsx` with channel/time/frequency toggles, streak nudges, score alerts, milestone alerts; saved to localStorage + API; rendered in reports section via `App.jsx`
+- [x] Wire reminder triggers to checkin/streak logic — `DailyCheckinForm.jsx` calls `scheduleStreakReminder()` on streak milestones; exports `useCheckinReminderScheduler` hook
 
 ## Phase 7: Polish & Verification
-- [ ] Test all components render correctly
-- [ ] Verify milestone detection edge cases
-- [ ] Confirm notification badges update correctly
-- [ ] Build passes without errors
+- [x] Test all components render correctly (manual)
+- [x] Verify milestone detection edge cases (manual)
+- [x] Confirm notification badges update correctly (manual)
+- [x] Build passes without errors (`npm run build` succeeds)

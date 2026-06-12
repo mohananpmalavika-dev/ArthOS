@@ -9,7 +9,16 @@
  * Consumed by: ScenarioForecast.jsx, App.jsx
  */
 
-import { forecast30d, forecast90d, forecast180d, detectFutureRisk, simulateWhatIf } from "./forecastEngine.js";
+import {
+  forecast30d, forecast90d, forecast180d,
+  detectFutureRisk, simulateWhatIf
+} from "./forecastEngine.js";
+import {
+  generatePrediction,
+  simulateScenario,
+  compareScenarios,
+  predictionEngineForecastHealth
+} from "./predictionEngine.js";
 
 function calculateRunway(savings, monthlyExpenses) {
   return monthlyExpenses > 0 ? savings / monthlyExpenses : 0;
