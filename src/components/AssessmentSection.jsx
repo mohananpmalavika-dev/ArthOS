@@ -19,6 +19,14 @@ import {
 } from "../lib/scoring-v2.js";
 import { ASSESSMENT_FIELDS, ASSESSMENT_OPTIONS, ASSESSMENT_BUTTONS, ASSESSMENT_SECTIONS } from "../lib/copy.js";
 
+// Icon registry mapping icon names to actual components (replaces eval())
+const ICON_REGISTRY = {
+  Brain,
+  BarChart3,
+  ShieldCheck,
+  Activity,
+};
+
 function ParticipantSection({ values, onChange }) {
   return (
     <div className="participant-card">
@@ -405,8 +413,8 @@ export default function AssessmentSection({ assessment, result, onChange, onSave
 
   const mode = result?.mode || "v2";
   const steps = [
-    ...ASSESSMENT_SECTIONS.filter(s => !s.conditional).map(s => ({ ...s, icon: eval(s.icon) })),
-    ...(mode === "v2" ? [ASSESSMENT_SECTIONS.find(s => s.conditional)].filter(Boolean).map(s => ({ ...s, icon: Activity })) : []),
+    ...ASSESSMENT_SECTIONS.filter(s => !s.conditional).map(s => ({ ...s, icon: ICON_REGISTRY[s.icon] || Activity })),
+    ...(mode === "v2" ? [ASSESSMENT_SECTIONS.find(s => s.conditional)].filter(Boolean).map(s => ({ ...s, icon: ICON_REGISTRY[s.icon] || Activity })) : []),
   ];
 
   const totalSteps = steps.length;
