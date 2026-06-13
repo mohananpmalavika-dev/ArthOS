@@ -21,80 +21,38 @@ export default function B2BPartnerPortal({ userId = "demo", assessment = {} }) {
   const sdk = useMemo(() => new ArthOSSDK(""), []);
 
   return (
-    <div style={{ maxWidth: 1200, margin: "0 auto", padding: "24px 16px" }}>
+    <div className="partner-portal-container">
       {/* Header */}
-      <div style={{ marginBottom: 24 }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 8 }}>
-          <span style={{ fontSize: 28 }}>🤝</span>
-          <div>
-            <h1 style={{ fontSize: 24, fontWeight: 800, margin: 0, color: "var(--text-strong)" }}>
-              ARTH.OS Partner Portal
-            </h1>
-            <p style={{ margin: "4px 0 0", color: "var(--gray-600)", fontSize: 14 }}>
-              B2B Partner Program · Embedded Finance Intelligence Layer · Revenue Share
-            </p>
+      <div className="partner-header">
+        <div className="partner-header-top">
+          <span className="partner-header-icon">🤝</span>
+          <div className="partner-header-content">
+            <h1>ARTH.OS Partner Portal</h1>
+            <p>B2B Partner Program · Embedded Finance Intelligence Layer · Revenue Share</p>
           </div>
         </div>
         {/* Registered Partner Badge */}
         {registeredApiKey && (
-          <div
-            style={{
-              padding: "10px 16px",
-              backgroundColor: "var(--green-50)",
-              borderRadius: 8,
-              border: "1px solid var(--green-100)",
-              fontSize: 13,
-              color: "var(--green-800)",
-              marginBottom: 8,
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center"
-            }}
-          >
+          <div className="partner-status-badge">
             <span>
               <strong>🔑 Active Partner:</strong> {registeredPartnerId} ·{" "}
               <strong>{registeredTier.charAt(0).toUpperCase() + registeredTier.slice(1)}</strong>{" "}
               plan
             </span>
-            <span style={{ fontSize: 11, color: "var(--green-600)" }}>
-              API key saved in session
-            </span>
+            <span style={{ fontSize: 11 }}>API key saved in session</span>
           </div>
         )}
-        <div
-          style={{
-            padding: "12px 16px",
-            backgroundColor: "var(--green-50)",
-            borderRadius: 8,
-            border: "1px solid var(--green-100)",
-            fontSize: 13,
-            color: "var(--green-800)"
-          }}
-        >
-          <strong>Blueprint §19:</strong> Full B2B2C monetization path live. Partners get API keys,
-          manage webhooks, subscribe to plans, track revenue share, and embed financial
-          intelligence.
-        </div>
+        
       </div>
 
       {/* Tabs */}
-      <div style={{ display: "flex", gap: 4, flexWrap: "wrap", marginBottom: 24 }}>
+      <div className="partner-tabs-container">
         {tabs.map(tab => (
           <button
             key={tab.id}
             type="button"
             onClick={() => setActiveTab(tab.id)}
-            style={{
-              padding: "10px 18px",
-              backgroundColor: activeTab === tab.id ? "var(--teal-700)" : "var(--surface-light)",
-              color: activeTab === tab.id ? "var(--white)" : "var(--gray-700)",
-              borderRadius: 8,
-              border: "none",
-              cursor: "pointer",
-              fontWeight: activeTab === tab.id ? 700 : 500,
-              fontSize: 13,
-              transition: "all 0.15s"
-            }}
+            className={`partner-tab-button ${activeTab === tab.id ? "active" : ""}`}
           >
             {tab.label}
           </button>
@@ -102,6 +60,7 @@ export default function B2BPartnerPortal({ userId = "demo", assessment = {} }) {
       </div>
 
       {/* Tab Content */}
+      <div className="partner-tab-content">
       {activeTab === "overview" && <OverviewTab />}
       {activeTab === "register" && (
         <RegisterTab
@@ -137,6 +96,7 @@ export default function B2BPartnerPortal({ userId = "demo", assessment = {} }) {
         <AdminTab sdk={sdk} adminKey={adminKey} onSetAdminKey={setAdminKey} />
       )}
       {activeTab === "docs" && <DocsTab />}
+      </div>
     </div>
   );
 }
@@ -147,14 +107,12 @@ function OverviewTab() {
   const tiers = Object.entries(PARTNER_TIERS);
 
   return (
-    <div>
+    <div className="partner-overview-section">
       <div style={{ marginBottom: 24 }}>
-        <h2
-          style={{ fontSize: 20, fontWeight: 700, margin: "0 0 8px", color: "var(--text-strong)" }}
-        >
+        <h2 className="partner-section-title">
           Why Become a Partner?
         </h2>
-        <p style={{ color: "var(--gray-600)", fontSize: 14, lineHeight: 1.6 }}>
+        <p className="partner-section-description">
           ARTH.OS is a behavioral finance intelligence layer. By integrating our API, your product
           gains the ability to{" "}
           <strong>
@@ -166,33 +124,14 @@ function OverviewTab() {
       </div>
 
       {/* Use Cases */}
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
-          gap: 16,
-          marginBottom: 32
-        }}
-      >
+      <div className="partner-usecases-grid">
         {B2B_USE_CASES.map(item => (
           <div
             key={item.title}
-            style={{
-              padding: 16,
-              backgroundColor: "var(--surface-light)",
-              borderRadius: 12,
-              border: "1px solid var(--gray-300)"
-            }}
+            className="partner-usecase-card"
           >
             <div style={{ fontSize: 24, marginBottom: 8 }}>{item.icon}</div>
-            <h3
-              style={{
-                fontSize: 14,
-                fontWeight: 700,
-                margin: "0 0 6px",
-                color: "var(--text-strong)"
-              }}
-            >
+            <h3 className="partner-section-title" style={{ fontSize: 14, marginBottom: 6 }}>
               {item.title}
             </h3>
             <p style={{ fontSize: 13, color: "var(--gray-600)", margin: 0, lineHeight: 1.5 }}>
@@ -203,19 +142,11 @@ function OverviewTab() {
       </div>
 
       {/* Revenue Model Callout */}
-      <div
-        style={{
-          padding: 16,
-          backgroundColor: "var(--blue-50)",
-          borderRadius: 12,
-          border: "1px solid var(--blue-100)",
-          marginBottom: 24
-        }}
-      >
-        <h3 style={{ fontSize: 15, fontWeight: 700, margin: "0 0 8px", color: "var(--blue-800)" }}>
+      <div className="partner-revenue-callout">
+        <h3 className="partner-revenue-title">
           💰 B2B2C Revenue Share Model
         </h3>
-        <p style={{ fontSize: 13, color: "var(--blue-700)", lineHeight: 1.6, margin: 0 }}>
+        <p className="partner-revenue-desc">
           ARTH.OS takes a percentage of partner revenue generated through the intelligence layer.
           The more you earn, the lower the share. Starter: 15%, Pro: 10%, Enterprise: 5%. Monthly
           subscriptions start from $299/mo.
@@ -223,47 +154,15 @@ function OverviewTab() {
       </div>
 
       {/* Pricing Comparison */}
-      <h2
-        style={{ fontSize: 20, fontWeight: 700, margin: "0 0 16px", color: "var(--text-strong)" }}
-      >
+      <h2 className="partner-section-title">
         Plans & Pricing
       </h2>
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
-          gap: 16,
-          marginBottom: 24
-        }}
-      >
+      <div className="partner-pricing-grid">
         {tiers.map(([key, tier]) => (
           <div
             key={key}
-            style={{
-              padding: 20,
-              backgroundColor: key === "pro" ? "var(--green-50)" : "var(--white)",
-              borderRadius: 12,
-              border: `2px solid ${key === "pro" ? "var(--green-700)" : "var(--gray-300)"}`,
-              position: "relative"
-            }}
+            className={`partner-tier-card ${key === "pro" ? "tier-featured" : ""}`}
           >
-            {key === "pro" && (
-              <div
-                style={{
-                  position: "absolute",
-                  top: -10,
-                  right: 12,
-                  padding: "2px 10px",
-                  backgroundColor: "var(--green-700)",
-                  color: "var(--white)",
-                  borderRadius: 12,
-                  fontSize: 11,
-                  fontWeight: 700
-                }}
-              >
-                Popular
-              </div>
-            )}
             <h3
               style={{
                 fontSize: 16,
@@ -389,139 +288,84 @@ function RegisterTab({ sdk, onRegistered }) {
   }));
 
   return (
-    <div
-      style={{
-        maxWidth: 500,
-        padding: 24,
-        backgroundColor: "var(--white)",
-        borderRadius: 12,
-        border: "1px solid var(--gray-300)"
-      }}
-    >
-      <h2
-        style={{ fontSize: 18, fontWeight: 700, margin: "0 0 16px", color: "var(--text-strong)" }}
-      >
+    <div className="partner-register-form-container">
+      <h2 className="partner-register-title">
         Register as an ARTH.OS Partner
       </h2>
       <form onSubmit={handleRegister} style={{ display: "grid", gap: 12 }}>
-        <input
-          type="text"
-          placeholder={B2B_FORM_FIELDS.companyName.placeholder}
-          required
-          value={form.name}
-          onChange={e => setForm({ ...form, name: e.target.value })}
-          style={inputStyle}
-        />
-        <input
-          type="email"
-          placeholder={B2B_FORM_FIELDS.contactEmail.placeholder}
-          required
-          value={form.email}
-          onChange={e => setForm({ ...form, email: e.target.value })}
-          style={inputStyle}
-        />
-        <select
-          value={form.tier}
-          onChange={e => setForm({ ...form, tier: e.target.value })}
-          style={inputStyle}
-        >
-          {tierOptions.map(opt => (
-            <option key={opt.value} value={opt.value}>
-              {opt.label}
-            </option>
-          ))}
-        </select>
-        <div>
-          <label
-            style={{
-              fontSize: 12,
-              fontWeight: 600,
-              color: "var(--gray-600)",
-              marginBottom: 4,
-              display: "block"
-            }}
+        <div className="partner-form-group">
+          <input
+            type="text"
+            placeholder={B2B_FORM_FIELDS.companyName.placeholder}
+            required
+            value={form.name}
+            onChange={e => setForm({ ...form, name: e.target.value })}
+            className="partner-form-input"
+          />
+        </div>
+        <div className="partner-form-group">
+          <input
+            type="email"
+            placeholder={B2B_FORM_FIELDS.contactEmail.placeholder}
+            required
+            value={form.email}
+            onChange={e => setForm({ ...form, email: e.target.value })}
+            className="partner-form-input"
+          />
+        </div>
+        <div className="partner-form-group">
+          <select
+            value={form.tier}
+            onChange={e => setForm({ ...form, tier: e.target.value })}
+            className="partner-form-select"
           >
+            {tierOptions.map(opt => (
+              <option key={opt.value} value={opt.value}>
+                {opt.label}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <label className="partner-form-label">
             Billing Cycle
           </label>
-          <div style={{ display: "flex", gap: 8 }}>
+          <div className="partner-form-toggle">
             {["monthly", "annual"].map(cycle => (
               <button
                 type="button"
                 key={cycle}
                 onClick={() => setForm({ ...form, billingCycle: cycle })}
-                style={{
-                  flex: 1,
-                  padding: "8px 12px",
-                  borderRadius: 6,
-                  border: `2px solid ${form.billingCycle === cycle ? "var(--teal-700)" : "var(--gray-300)"}`,
-                  backgroundColor: form.billingCycle === cycle ? "var(--teal-50)" : "var(--white)",
-                  color: form.billingCycle === cycle ? "var(--teal-700)" : "var(--gray-600)",
-                  fontWeight: form.billingCycle === cycle ? 700 : 500,
-                  cursor: "pointer",
-                  fontSize: 12
-                }}
+                className={`partner-form-toggle-btn ${form.billingCycle === cycle ? "active" : ""}`}
               >
                 {cycle === "monthly" ? "Monthly" : "Annual (save 17%)"}
               </button>
             ))}
           </div>
         </div>
-        <input
-          type="text"
-          placeholder={B2B_FORM_FIELDS.useCase.placeholder}
-          value={form.useCase}
-          onChange={e => setForm({ ...form, useCase: e.target.value })}
-          style={inputStyle}
-        />
-        <button
-          type="submit"
-          disabled={loading}
-          style={{
-            padding: 12,
-            backgroundColor: "var(--blue-700)",
-            color: "var(--white)",
-            borderRadius: 8,
-            border: "none",
-            cursor: "pointer",
-            fontWeight: 700,
-            fontSize: 14
-          }}
-        >
+        <div className="partner-form-group">
+          <input
+            type="text"
+            placeholder={B2B_FORM_FIELDS.useCase.placeholder}
+            value={form.useCase}
+            onChange={e => setForm({ ...form, useCase: e.target.value })}
+            className="partner-form-input"
+          />
+        </div>
+
+        <button type="submit" disabled={loading} className="partner-form-submit">
           {loading ? "Registering..." : "Register & Get API Key"}
         </button>
       </form>
 
-      {error && (
-        <div
-          style={{
-            marginTop: 12,
-            padding: 10,
-            backgroundColor: "var(--red-50)",
-            borderRadius: 8,
-            color: "var(--red-700)",
-            fontSize: 13
-          }}
-        >
-          {error}
-        </div>
-      )}
+      {error && <div className="partner-alert partner-alert-error">{error}</div>}
 
       {result && (
-        <div
-          style={{
-            marginTop: 16,
-            padding: 16,
-            backgroundColor: "var(--green-50)",
-            borderRadius: 8,
-            border: "1px solid var(--green-100)"
-          }}
-        >
-          <div
-            style={{ fontSize: 14, fontWeight: 700, color: "var(--green-700)", marginBottom: 12 }}
-          >
+        <div className="partner-alert partner-alert-success">
+          <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 12 }}>
             ✅ Partner Registered Successfully
           </div>
-          <div style={{ fontSize: 13, color: "var(--green-800)", display: "grid", gap: 6 }}>
+          <div className="partner-result-box">
             <div>
               <strong>Partner ID:</strong> {result.partner.id}
             </div>
@@ -547,34 +391,17 @@ function RegisterTab({ sdk, onRegistered }) {
             <div>
               <strong>API Key:</strong>
             </div>
-            <code
-              style={{
-                display: "block",
-                padding: 10,
-                backgroundColor: "var(--gray-900)",
-                color: "var(--gray-50)",
-                borderRadius: 6,
-                fontSize: 12,
-                wordBreak: "break-all",
-                userSelect: "all"
-              }}
-            >
+            <code className="partner-result-key">
               {result.apiKey}
             </code>
             <button
               type="button"
-              onClick={() => navigator.clipboard.writeText(result.apiKey)}
-              style={{
-                padding: "6px 12px",
-                backgroundColor: "var(--teal-700)",
-                color: "var(--white)",
-                border: "none",
-                borderRadius: 6,
-                cursor: "pointer",
-                fontSize: 12,
-                fontWeight: 600,
-                marginTop: 4
+              onClick={() => {
+                navigator.clipboard.writeText(result.apiKey);
+                alert("API Key copied!");
               }}
+              className="partner-form-submit"
+              style={{ marginTop: 8, padding: "6px 12px", fontSize: 12 }}
             >
               Copy API Key
             </button>
@@ -615,21 +442,11 @@ function ValidateKeyTab({ defaultApiKey }) {
   };
 
   return (
-    <div
-      style={{
-        maxWidth: 600,
-        padding: 24,
-        backgroundColor: "var(--white)",
-        borderRadius: 12,
-        border: "1px solid var(--gray-300)"
-      }}
-    >
-      <h2
-        style={{ fontSize: 18, fontWeight: 700, margin: "0 0 16px", color: "var(--text-strong)" }}
-      >
+    <div className="partner-register-form-container">
+      <h2 className="partner-register-title">
         ✓ Validate API Key
       </h2>
-      <p style={{ fontSize: 13, color: "var(--gray-600)", marginBottom: 16 }}>
+      <p style={{ fontSize: 13, color: "var(--ink-2)", marginBottom: 16 }}>
         Check that your API key is valid and see your plan details, rate limits, and usage.
       </p>
       <div style={{ display: "flex", gap: 8, marginBottom: 12 }}>
@@ -638,64 +455,32 @@ function ValidateKeyTab({ defaultApiKey }) {
           placeholder={B2B_FORM_FIELDS.apiKey.placeholder}
           value={apiKey}
           onChange={e => setApiKey(e.target.value)}
-          style={{ ...inputStyle, flex: 1 }}
+          className="partner-form-input"
+          style={{ flex: 1 }}
         />
         <button
           type="button"
           disabled={validating || !apiKey}
           onClick={handleValidate}
-          style={{
-            padding: "10px 20px",
-            backgroundColor: apiKey ? "var(--teal-700)" : "var(--gray-300)",
-            color: "var(--white)",
-            borderRadius: 8,
-            border: "none",
-            cursor: apiKey ? "pointer" : "not-allowed",
-            fontWeight: 700
-          }}
+          className="partner-form-submit"
         >
           {validating ? "..." : "Validate"}
         </button>
       </div>
 
       {error && (
-        <div
-          style={{
-            padding: 10,
-            backgroundColor: "var(--red-50)",
-            borderRadius: 8,
-            color: "var(--red-700)",
-            fontSize: 13,
-            marginBottom: 12
-          }}
-        >
+        <div className="partner-alert partner-alert-error">
           {error}
         </div>
       )}
 
       {result && result.valid && (
         <div>
-          <div
-            style={{
-              padding: 12,
-              backgroundColor: "var(--green-50)",
-              borderRadius: 8,
-              border: "1px solid var(--green-100)",
-              marginBottom: 16
-            }}
-          >
-            <div style={{ fontSize: 14, fontWeight: 700, color: "var(--green-700)" }}>
+          <div className="partner-alert partner-alert-success">
+            <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 8 }}>
               ✅ Valid API Key
             </div>
-            <div
-              style={{
-                fontSize: 12,
-                color: "var(--green-800)",
-                marginTop: 8,
-                display: "grid",
-                gap: 4
-              }}
-            >
+            <div style={{ fontSize: 12, color: "var(--ink-0)", display: "grid", gap: 4 }}>
               <div>
                 <strong>Partner:</strong> {result.partner.name} ({result.partner.email})
               </div>
@@ -719,95 +504,37 @@ function ValidateKeyTab({ defaultApiKey }) {
             </div>
           </div>
 
-          <div
-            style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 16 }}
-          >
-            <div
-              style={{
-                padding: 12,
-                backgroundColor: "var(--surface-light)",
-                borderRadius: 8,
-                border: "1px solid var(--gray-300)"
-              }}
-            >
-              <div
-                style={{
-                  fontSize: 11,
-                  color: "var(--gray-500)",
-                  textTransform: "uppercase",
-                  marginBottom: 4
-                }}
-              >
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 16 }}>
+            <div className="partner-metric-box">
+              <div className="partner-metric-label">
                 Rate Limit (per minute)
               </div>
-              <div style={{ fontSize: 18, fontWeight: 700, color: "var(--text-strong)" }}>
+              <div style={{ fontSize: 18, fontWeight: 700, color: "var(--ink-0)" }}>
                 {result.rateLimit.remaining}/{result.rateLimit.perMinute}
               </div>
             </div>
-            <div
-              style={{
-                padding: 12,
-                backgroundColor: "var(--surface-light)",
-                borderRadius: 8,
-                border: "1px solid var(--gray-300)"
-              }}
-            >
-              <div
-                style={{
-                  fontSize: 11,
-                  color: "var(--gray-500)",
-                  textTransform: "uppercase",
-                  marginBottom: 4
-                }}
-              >
+            <div className="partner-metric-box">
+              <div className="partner-metric-label">
                 Monthly Limit
               </div>
-              <div style={{ fontSize: 18, fontWeight: 700, color: "var(--text-strong)" }}>
+              <div style={{ fontSize: 18, fontWeight: 700, color: "var(--ink-0)" }}>
                 {result.rateLimit.monthlyRemaining.toLocaleString()}/
                 {result.rateLimit.perMonth.toLocaleString()}
               </div>
             </div>
-            <div
-              style={{
-                padding: 12,
-                backgroundColor: "var(--surface-light)",
-                borderRadius: 8,
-                border: "1px solid var(--gray-300)"
-              }}
-            >
-              <div
-                style={{
-                  fontSize: 11,
-                  color: "var(--gray-500)",
-                  textTransform: "uppercase",
-                  marginBottom: 4
-                }}
-              >
+            <div className="partner-metric-box">
+              <div className="partner-metric-label">
                 Total Requests
               </div>
-              <div style={{ fontSize: 18, fontWeight: 700, color: "var(--text-strong)" }}>
+              <div style={{ fontSize: 18, fontWeight: 700, color: "var(--ink-0)" }}>
                 {result.usage.totalRequests.toLocaleString()}
               </div>
             </div>
-            <div
-              style={{
-                padding: 12,
-                backgroundColor: "var(--surface-light)",
-                borderRadius: 8,
-                border: "1px solid var(--gray-300)"
-              }}
-            >
-              <div
-                style={{
-                  fontSize: 11,
-                  color: "var(--gray-500)",
-                  textTransform: "uppercase",
-                  marginBottom: 4
-                }}
-              >
+            <div className="partner-metric-box">
+              <div className="partner-metric-label">
                 Active Users
               </div>
-              <div style={{ fontSize: 18, fontWeight: 700, color: "var(--text-strong)" }}>
+              <div style={{ fontSize: 18, fontWeight: 700, color: "var(--ink-0)" }}>
                 {result.usage.activeUsersThisMonth}
               </div>
             </div>
@@ -875,102 +602,65 @@ function QueryTab({ sdk, userId, assessment, defaultApiKey }) {
   };
 
   return (
-    <div>
-      <div
-        style={{
-          maxWidth: 600,
-          padding: 24,
-          backgroundColor: "var(--white)",
-          borderRadius: 12,
-          border: "1px solid var(--gray-300)"
-        }}
-      >
-        <h2
-          style={{ fontSize: 18, fontWeight: 700, margin: "0 0 16px", color: "var(--text-strong)" }}
+    <div className="partner-query-form-container">
+      <h2 className="partner-register-title">
+        Query Embedded Finance Intelligence
+      </h2>
+      <p style={{ fontSize: 13, color: "var(--ink-2)", marginBottom: 16 }}>
+        Use your API key to query the intelligence layer. The response includes health score, risk
+        profile, cognitive biases, emotional triggers, and more — based on your plan tier.
+      </p>
+
+      <div style={{ display: "flex", gap: 8, marginBottom: 12 }}>
+        <input
+          type="text"
+          placeholder={B2B_FORM_FIELDS.apiKey.placeholder}
+          value={apiKey}
+          onChange={e => setApiKey(e.target.value)}
+          className="partner-form-input"
+          style={{ flex: 1 }}
+        />
+        <button
+          type="button"
+          disabled={loading || !apiKey}
+          onClick={handleQuery}
+          className="partner-form-submit"
         >
-          Query Embedded Finance Intelligence
-        </h2>
-        <p style={{ fontSize: 13, color: "var(--gray-600)", marginBottom: 16 }}>
-          Use your API key to query the intelligence layer. The response includes health score, risk
-          profile, cognitive biases, emotional triggers, and more — based on your plan tier.
-        </p>
-
-        <div style={{ display: "flex", gap: 8, marginBottom: 12 }}>
-          <input
-            type="text"
-            placeholder={B2B_FORM_FIELDS.apiKey.placeholder}
-            value={apiKey}
-            onChange={e => setApiKey(e.target.value)}
-            style={{ ...inputStyle, flex: 1 }}
-          />
-          <button
-            type="button"
-            disabled={loading || !apiKey}
-            onClick={handleQuery}
-            style={{
-              padding: "10px 20px",
-              backgroundColor: apiKey ? "var(--blue-700)" : "var(--gray-300)",
-              color: "var(--white)",
-              borderRadius: 8,
-              border: "none",
-              cursor: apiKey ? "pointer" : "not-allowed",
-              fontWeight: 700
-            }}
-          >
-            {loading ? "..." : "Query"}
-          </button>
-        </div>
-
-        {error && (
-          <div
-            style={{
-              padding: 10,
-              backgroundColor: "var(--red-50)",
-              borderRadius: 8,
-              color: "var(--red-700)",
-              fontSize: 13,
-              marginBottom: 12
-            }}
-          >
-            {error}
-          </div>
-        )}
-
-        {result && (
-          <div>
-            <div
-              style={{
-                padding: 12,
-                backgroundColor: "var(--surface-light)",
-                borderRadius: 8,
-                marginBottom: 12,
-                fontSize: 12,
-                color: "var(--gray-600)"
-              }}
-            >
-              Plan: <strong>{result.usage?.plan}</strong> · Requests this month:{" "}
-              <strong>{result.usage?.requestsThisMonth}</strong> · Rate limit:{" "}
-              <strong>
-                {result.usage?.rateLimit?.remaining}/{result.usage?.rateLimit?.perMinute}
-              </strong>{" "}
-              per min
-            </div>
-            <pre
-              style={{
-                fontSize: 11,
-                backgroundColor: "var(--gray-900)",
-                color: "var(--gray-50)",
-                padding: 16,
-                borderRadius: 8,
-                overflowX: "auto",
-                maxHeight: 500
-              }}
-            >
-              {JSON.stringify(result, null, 2)}
-            </pre>
-          </div>
-        )}
+          {loading ? "..." : "Query"}
+        </button>
       </div>
+
+      {error && (
+        <div className="partner-alert partner-alert-error">
+          {error}
+        </div>
+      )}
+
+      {result && (
+        <div className="partner-result-box">
+          <div style={{ fontSize: 12, color: "var(--ink-2)", marginBottom: 12 }}>
+            Plan: <strong>{result.usage?.plan}</strong> · Requests this month:{" "}
+            <strong>{result.usage?.requestsThisMonth}</strong> · Rate limit:{" "}
+            <strong>
+              {result.usage?.rateLimit?.remaining}/{result.usage?.rateLimit?.perMinute}
+            </strong>{" "}
+            per min
+          </div>
+          <pre
+            style={{
+              fontSize: 11,
+              backgroundColor: "var(--gray-900)",
+              color: "var(--gray-50)",
+              padding: 16,
+              borderRadius: 8,
+              overflowX: "auto",
+              maxHeight: 500
+            }}
+          >
+            {JSON.stringify(result, null, 2)}
+          </pre>
+        </div>
+      )}
     </div>
   );
 }
@@ -1029,77 +719,37 @@ function BillingTab({ defaultApiKey, registeredTier, sdk, onUpgrade }) {
   };
 
   return (
-    <div>
-      <div
-        style={{
-          maxWidth: 700,
-          padding: 24,
-          backgroundColor: "var(--white)",
-          borderRadius: 12,
-          border: "1px solid var(--gray-300)",
-          marginBottom: 20
-        }}
-      >
-        <h2
-          style={{ fontSize: 18, fontWeight: 700, margin: "0 0 16px", color: "var(--text-strong)" }}
-        >
+    <div className="partner-billing-section">
+      <div className="partner-register-form-container">
+        <h2 className="partner-register-title">
           💰 Billing & Plan Management
         </h2>
         {!apiKey ? (
-          <p style={{ fontSize: 13, color: "var(--gray-500)" }}>
+          <p style={{ fontSize: 13, color: "var(--ink-2)" }}>
             Register a partner first to manage your billing and upgrade your plan.
           </p>
         ) : (
           <>
-            <div
-              style={{
-                padding: 12,
-                backgroundColor: "var(--blue-50)",
-                borderRadius: 8,
-                border: "1px solid var(--blue-100)",
-                marginBottom: 16
-              }}
-            >
-              <div style={{ fontSize: 13, color: "var(--blue-800)" }}>
-                <strong>Current Plan:</strong> {PARTNER_TIERS[selectedTier]?.name || "Free"} ·{" "}
-                <strong>${PARTNER_TIERS[selectedTier]?.monthlyPrice || 0}/mo</strong>
+            <div className="partner-alert partner-alert-info" style={{ marginBottom: 16 }}>
+              <div style={{ fontSize: 13, fontWeight: 600, color: "var(--cyan)" }}>
+                Current Plan: {PARTNER_TIERS[selectedTier]?.name || "Free"} · $
+                {PARTNER_TIERS[selectedTier]?.monthlyPrice || 0}/mo
               </div>
-              <div style={{ fontSize: 12, color: "var(--blue-600)", marginTop: 4 }}>
-                {PARTNER_TIERS[selectedTier]?.features.length} features ·{" "}
+              <div style={{ fontSize: 12, color: "var(--ink-2)", marginTop: 4 }}>
+                {PARTNER_TIERS[selectedTier]?.features.length} features · 
                 {PARTNER_TIERS[selectedTier]?.rateLimit.requestsPerMinute} req/min · Revenue share:{" "}
                 {PARTNER_TIERS[selectedTier]?.revenueSharePct || 0}%
               </div>
             </div>
 
-            <h3
-              style={{
-                fontSize: 14,
-                fontWeight: 700,
-                margin: "0 0 12px",
-                color: "var(--text-strong)"
-              }}
-            >
-              Change Plan
-            </h3>
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
-                gap: 12
-              }}
-            >
+            <h3 className="partner-form-label" style={{ marginBottom: 12 }}>Change Plan</h3>
+            <div className="partner-pricing-grid">
               {tiers.map(([key, tier]) => {
                 const isCurrent = key === selectedTier;
                 return (
                   <div
                     key={key}
-                    style={{
-                      padding: 16,
-                      borderRadius: 10,
-                      border: `2px solid ${isCurrent ? "var(--teal-700)" : "var(--gray-300)"}`,
-                      backgroundColor: isCurrent ? "var(--teal-50)" : "var(--white)",
-                      position: "relative"
-                    }}
+                    className={`partner-tier-card ${isCurrent ? "tier-current" : ""}`}
                   >
                     {isCurrent && (
                       <div
@@ -1108,8 +758,8 @@ function BillingTab({ defaultApiKey, registeredTier, sdk, onUpgrade }) {
                           top: -8,
                           right: 10,
                           padding: "1px 8px",
-                          backgroundColor: "var(--teal-700)",
-                          color: "var(--white)",
+                          backgroundColor: "var(--cyan)",
+                          color: "var(--ink-0)",
                           borderRadius: 8,
                           fontSize: 10,
                           fontWeight: 700
@@ -1118,30 +768,14 @@ function BillingTab({ defaultApiKey, registeredTier, sdk, onUpgrade }) {
                         Current
                       </div>
                     )}
-                    <h4
-                      style={{
-                        fontSize: 14,
-                        fontWeight: 700,
-                        margin: "0 0 4px",
-                        color: "var(--text-strong)"
-                      }}
-                    >
+                    <h4 style={{ fontSize: 14, fontWeight: 700, margin: "0 0 4px", color: "var(--ink-0)" }}>
                       {tier.name}
                     </h4>
-                    <div
-                      style={{
-                        fontSize: 18,
-                        fontWeight: 800,
-                        color: "var(--text-strong)",
-                        marginBottom: 4
-                      }}
-                    >
+                    <div style={{ fontSize: 18, fontWeight: 800, color: "var(--ink-0)", marginBottom: 4 }}>
                       {tier.monthlyPrice === 0 ? "Free" : `$${tier.monthlyPrice}`}
-                      <span style={{ fontSize: 10, fontWeight: 400, color: "var(--gray-500)" }}>
-                        /mo
-                      </span>
+                      <span style={{ fontSize: 10, fontWeight: 400, color: "var(--ink-2)" }}>/mo</span>
                     </div>
-                    <div style={{ fontSize: 11, color: "var(--gray-500)", marginBottom: 8 }}>
+                    <div style={{ fontSize: 11, color: "var(--ink-2)", marginBottom: 8 }}>
                       {tier.rateLimit.requestsPerMinute} req/min ·{" "}
                       {tier.rateLimit.requestsPerMonth.toLocaleString()} req/mo ·{" "}
                       {tier.maxUsers === Infinity ? "∞" : tier.maxUsers.toLocaleString()} users
@@ -1156,17 +790,8 @@ function BillingTab({ defaultApiKey, registeredTier, sdk, onUpgrade }) {
                         type="button"
                         disabled={upgrading}
                         onClick={() => handleUpgrade(key)}
-                        style={{
-                          width: "100%",
-                          padding: "8px 0",
-                          backgroundColor: "var(--blue-700)",
-                          color: "var(--white)",
-                          borderRadius: 6,
-                          border: "none",
-                          cursor: "pointer",
-                          fontWeight: 600,
-                          fontSize: 12
-                        }}
+                        className="partner-form-submit"
+                        style={{ width: "100%", marginTop: 8 }}
                       >
                         {upgrading
                           ? "..."
@@ -1183,35 +808,13 @@ function BillingTab({ defaultApiKey, registeredTier, sdk, onUpgrade }) {
             </div>
 
             {upgradeResult && (
-              <div
-                style={{
-                  marginTop: 16,
-                  padding: 12,
-                  backgroundColor: "var(--green-50)",
-                  borderRadius: 8,
-                  border: "1px solid var(--green-100)"
-                }}
-              >
-                <div style={{ fontSize: 13, fontWeight: 700, color: "var(--green-700)" }}>
-                  ✅ Upgraded to {upgradeResult.name} (${upgradeResult.price}/mo)
-                </div>
-                <div style={{ fontSize: 12, color: "var(--green-600)", marginTop: 4 }}>
-                  Your plan has been updated. New features and rate limits are active immediately.
-                </div>
+              <div className="partner-alert partner-alert-success" style={{ marginTop: 16 }}>
+                ✅ Upgraded to {upgradeResult.name} (${upgradeResult.price}/mo) — New features and rate limits are active immediately.
               </div>
             )}
 
             {upgradeError && (
-              <div
-                style={{
-                  marginTop: 16,
-                  padding: 10,
-                  backgroundColor: "var(--red-50)",
-                  borderRadius: 8,
-                  color: "var(--red-700)",
-                  fontSize: 13
-                }}
-              >
+              <div className="partner-alert partner-alert-error" style={{ marginTop: 16 }}>
                 {upgradeError}
               </div>
             )}
@@ -1220,21 +823,9 @@ function BillingTab({ defaultApiKey, registeredTier, sdk, onUpgrade }) {
       </div>
 
       {/* Revenue Share Calculator */}
-      <div
-        style={{
-          maxWidth: 700,
-          padding: 24,
-          backgroundColor: "var(--white)",
-          borderRadius: 12,
-          border: "1px solid var(--gray-300)"
-        }}
-      >
-        <h3
-          style={{ fontSize: 15, fontWeight: 700, margin: "0 0 12px", color: "var(--text-strong)" }}
-        >
-          📊 Revenue Share Calculator
-        </h3>
-        <p style={{ fontSize: 13, color: "var(--gray-600)", marginBottom: 16 }}>
+      <div className="partner-register-form-container">
+        <h3 className="partner-register-title" style={{ fontSize: 16 }}>📊 Revenue Share Calculator</h3>
+        <p style={{ fontSize: 13, color: "var(--ink-2)", marginBottom: 16 }}>
           Estimate how much ARTH.OS would earn from your partner revenue at different plan tiers.
         </p>
         <RevenueShareCalculator currentTier={selectedTier} />
@@ -1253,11 +844,7 @@ function RevenueShareCalculator({ currentTier }) {
   return (
     <div>
       <div style={{ marginBottom: 12 }}>
-        <label
-          style={{ fontSize: 12, color: "var(--gray-600)", display: "block", marginBottom: 4 }}
-        >
-          Your monthly revenue from intelligence layer ($)
-        </label>
+        <label className="partner-form-label">Your monthly revenue from intelligence layer ($)</label>
         <input
           type="range"
           min={0}
@@ -1267,59 +854,29 @@ function RevenueShareCalculator({ currentTier }) {
           onChange={e => setPartnerRevenue(Number(e.target.value))}
           style={{ width: "100%" }}
         />
-        <div style={{ fontSize: 20, fontWeight: 700, color: "var(--text-strong)", marginTop: 4 }}>
+        <div style={{ fontSize: 20, fontWeight: 700, color: "var(--ink-0)", marginTop: 4 }}>
           ${partnerRevenue.toLocaleString()}
         </div>
       </div>
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12 }}>
-        <div
-          style={{
-            padding: 12,
-            backgroundColor: "var(--surface-light)",
-            borderRadius: 8,
-            border: "1px solid var(--gray-300)",
-            textAlign: "center"
-          }}
-        >
-          <div style={{ fontSize: 11, color: "var(--gray-500)", textTransform: "uppercase" }}>
-            Revenue Share
-          </div>
-          <div style={{ fontSize: 16, fontWeight: 700, color: "var(--red-700)" }}>{pct}%</div>
+        <div className="partner-metric-box">
+          <div className="partner-metric-label">Revenue Share</div>
+          <div style={{ fontSize: 16, fontWeight: 700, color: "var(--cyan)" }}>{pct}%</div>
         </div>
-        <div
-          style={{
-            padding: 12,
-            backgroundColor: "var(--surface-light)",
-            borderRadius: 8,
-            border: "1px solid var(--gray-300)",
-            textAlign: "center"
-          }}
-        >
-          <div style={{ fontSize: 11, color: "var(--gray-500)", textTransform: "uppercase" }}>
-            ARTH.OS Share
-          </div>
+        <div className="partner-metric-box">
+          <div className="partner-metric-label">ARTH.OS Share</div>
           <div style={{ fontSize: 16, fontWeight: 700, color: "var(--orange-700)" }}>
             ${Math.round(arthosShare).toLocaleString()}
           </div>
         </div>
-        <div
-          style={{
-            padding: 12,
-            backgroundColor: "var(--surface-light)",
-            borderRadius: 8,
-            border: "1px solid var(--gray-300)",
-            textAlign: "center"
-          }}
-        >
-          <div style={{ fontSize: 11, color: "var(--gray-500)", textTransform: "uppercase" }}>
-            Your Net
-          </div>
+        <div className="partner-metric-box">
+          <div className="partner-metric-label">Your Net</div>
           <div style={{ fontSize: 16, fontWeight: 700, color: "var(--green-700)" }}>
             ${Math.round(partnerNet).toLocaleString()}
           </div>
         </div>
       </div>
-      <div style={{ marginTop: 12, fontSize: 11, color: "var(--gray-500)" }}>
+      <div style={{ marginTop: 12, fontSize: 11, color: "var(--ink-2)" }}>
         Based on your current <strong>{tierConfig.name}</strong> plan ({pct}% revenue share).
         Upgrade to Pro (10%) or Enterprise (5%) to keep more.
       </div>
@@ -1425,28 +982,15 @@ function WebhooksTab({ defaultApiKey, registeredPartnerId }) {
 
   return (
     <div>
-      <div
-        style={{
-          maxWidth: 600,
-          padding: 24,
-          backgroundColor: "var(--white)",
-          borderRadius: 12,
-          border: "1px solid var(--gray-300)",
-          marginBottom: 20
-        }}
-      >
-        <h2
-          style={{ fontSize: 18, fontWeight: 700, margin: "0 0 16px", color: "var(--text-strong)" }}
-        >
-          🔔 Webhook Management
-        </h2>
-        <p style={{ fontSize: 13, color: "var(--gray-600)", marginBottom: 16 }}>
+      <div className="partner-query-form-container">
+        <h2 className="partner-register-title">🔔 Webhook Management</h2>
+        <p style={{ fontSize: 13, color: "var(--ink-2)", marginBottom: 16 }}>
           Receive real-time events when partners register, usage thresholds are hit, invoices are
           created, and more.
         </p>
 
         {!apiKey || !partnerId ? (
-          <p style={{ fontSize: 13, color: "var(--gray-500)" }}>
+          <p style={{ fontSize: 13, color: "var(--ink-2)" }}>
             Register a partner first and enter your API key and Partner ID to manage webhooks.
           </p>
         ) : (
@@ -1507,36 +1051,8 @@ function WebhooksTab({ defaultApiKey, registeredPartnerId }) {
               </button>
             </div>
 
-            {error && (
-              <div
-                style={{
-                  padding: 10,
-                  backgroundColor: "var(--red-50)",
-                  borderRadius: 8,
-                  color: "var(--red-700)",
-                  fontSize: 13,
-                  marginBottom: 12
-                }}
-              >
-                {error}
-              </div>
-            )}
-
-            {result && (
-              <div
-                style={{
-                  padding: 10,
-                  backgroundColor: "var(--green-50)",
-                  borderRadius: 8,
-                  border: "1px solid var(--green-100)",
-                  marginBottom: 16
-                }}
-              >
-                <div style={{ fontSize: 13, fontWeight: 700, color: "var(--green-700)" }}>
-                  ✅ {result.message}
-                </div>
-              </div>
-            )}
+            {error && <div className="partner-alert partner-alert-error">{error}</div>}
+            {result && <div className="partner-alert partner-alert-success">✅ {result.message}</div>}
 
             {/* Webhook list */}
             {webhooks.length > 0 && (
@@ -1708,21 +1224,11 @@ function AdminTab({ sdk, adminKey, onSetAdminKey }) {
 
   return (
     <div>
-      <div
-        style={{
-          maxWidth: 800,
-          padding: 24,
-          backgroundColor: "var(--white)",
-          borderRadius: 12,
-          border: "1px solid var(--gray-300)"
-        }}
-      >
-        <h2
-          style={{ fontSize: 18, fontWeight: 700, margin: "0 0 16px", color: "var(--text-strong)" }}
-        >
+      <div className="partner-query-form-container">
+        <h2 className="partner-register-title">
           🔐 Admin Panel
         </h2>
-        <p style={{ fontSize: 13, color: "var(--gray-600)", marginBottom: 16 }}>
+        <p style={{ fontSize: 13, color: "var(--ink-2)", marginBottom: 16 }}>
           View partner analytics, manage tiers, and monitor usage and revenue. Requires the admin
           API key.
         </p>
@@ -1733,37 +1239,21 @@ function AdminTab({ sdk, adminKey, onSetAdminKey }) {
             placeholder={B2B_FORM_FIELDS.adminApiKey.placeholder}
             value={keyInput}
             onChange={e => setKeyInput(e.target.value)}
-            style={{ ...inputStyle, flex: 1, fontFamily: "monospace" }}
+            className="partner-form-input"
+            style={{ flex: 1, fontFamily: "monospace" }}
           />
           <button
             type="button"
             disabled={loading || !keyInput}
             onClick={handleFetch}
-            style={{
-              padding: "10px 20px",
-              backgroundColor: keyInput ? "var(--red-700)" : "var(--gray-300)",
-              color: "var(--white)",
-              borderRadius: 8,
-              border: "none",
-              cursor: keyInput ? "pointer" : "not-allowed",
-              fontWeight: 700
-            }}
+            className="partner-form-submit"
           >
             {loading ? "..." : "Fetch Analytics"}
           </button>
         </div>
 
         {error && (
-          <div
-            style={{
-              padding: 10,
-              backgroundColor: "var(--red-50)",
-              borderRadius: 8,
-              color: "var(--red-700)",
-              fontSize: 13,
-              marginBottom: 12
-            }}
-          >
+          <div className="partner-alert partner-alert-error">
             {error}
           </div>
         )}
@@ -1915,17 +1405,8 @@ function AdminTab({ sdk, adminKey, onSetAdminKey }) {
 function DocsTab() {
   return (
     <div style={{ display: "grid", gap: 24, maxWidth: 800 }}>
-      <div
-        style={{
-          padding: 24,
-          backgroundColor: "var(--white)",
-          borderRadius: 12,
-          border: "1px solid var(--gray-300)"
-        }}
-      >
-        <h2
-          style={{ fontSize: 18, fontWeight: 700, margin: "0 0 16px", color: "var(--text-strong)" }}
-        >
+      <div className="partner-query-form-container">
+        <h2 className="partner-register-title">
           📖 SDK Documentation
         </h2>
 

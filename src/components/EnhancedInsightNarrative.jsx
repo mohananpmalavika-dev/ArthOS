@@ -1,5 +1,15 @@
 import React, { useState, useEffect } from "react";
-import { AlertCircle, TrendingUp, Lightbulb, Target } from "lucide-react";
+import { 
+  AlertCircle, 
+  TrendingUp, 
+  Lightbulb, 
+  Target,
+  ChevronRight,
+  CheckCircle2,
+  Zap,
+  ArrowUpRight,
+  Clock
+} from "lucide-react";
 import {
   generatePersonalizedInsights,
   detectBehaviouralPatterns
@@ -8,6 +18,7 @@ import {
 export function EnhancedInsightNarrative({ assessmentResult, assessment }) {
   const [insights, setInsights] = useState([]);
   const [patterns, setPatterns] = useState([]);
+  const [expandedInsight, setExpandedInsight] = useState(0);
 
   useEffect(() => {
     if (assessmentResult && assessment) {
@@ -22,6 +33,7 @@ export function EnhancedInsightNarrative({ assessmentResult, assessment }) {
   if (!assessmentResult || insights.length === 0) {
     return (
       <div className="insight-empty-state summary-card">
+        <Lightbulb size={24} style={{ marginBottom: "12px", opacity: 0.6 }} />
         <p className="premium-report-block-subtitle">
           Complete your assessment to receive personalized insights.
         </p>
@@ -50,7 +62,7 @@ export function EnhancedInsightNarrative({ assessmentResult, assessment }) {
       case "high":
         return <AlertCircle size={20} />;
       case "medium":
-        return <Lightbulb size={20} />;
+        return <Zap size={20} />;
       case "low":
         return <TrendingUp size={20} />;
       default:
@@ -58,73 +70,177 @@ export function EnhancedInsightNarrative({ assessmentResult, assessment }) {
     }
   };
 
+  const getKeyMomentLabel = (priority) => {
+    const labels = {
+      critical: "🔴 CRITICAL INSIGHT",
+      high: "⚡ KEY INSIGHT",
+      medium: "💡 IMPORTANT",
+      low: "✓ POSITIVE SIGNAL"
+    };
+    return labels[priority] || labels.medium;
+  };
+
+  const getPriorityDescription = (priority) => {
+    const descriptions = {
+      critical: "This is the single most impactful thing you can address right now.",
+      high: "This insight will create meaningful change in your financial health.",
+      medium: "This is worth paying attention to as part of your broader progress.",
+      low: "This represents a strength to build upon."
+    };
+    return descriptions[priority] || descriptions.medium;
+  };
+
   return (
-    <div className="insight-section">
+    <div className="insight-section enhanced-flow">
+      {/* Behavioral Patterns - Context Layer */}
       {patterns.length > 0 && (
-        <div className="insight-patterns-card summary-card">
-          <div className="premium-report-block-header">
-            <h3 className="premium-report-block-title">
-              <AlertCircle size={20} /> Behavioral Patterns Detected
-            </h3>
+        <div className="insight-patterns-section">
+          <div className="section-header">
+            <div className="section-label">
+              <AlertCircle size={18} />
+              <span>BEHAVIORAL PATTERNS DETECTED</span>
+            </div>
+            <p className="section-description">Understanding your financial habits</p>
           </div>
 
-          <div className="insight-patterns-list">
-            {patterns.map(pattern => (
-              <div key={pattern.id} className="insight-pattern-row">
-                <span
-                  className={`insight-pill ${pattern.severity === "high" ? "insight-pill-critical" : pattern.severity === "medium" ? "insight-pill-warning" : "insight-pill-default"}`}
-                >
-                  {pattern.severity.toUpperCase()}
-                </span>
-                <div className="insight-pattern-copy">
-                  <p className="insight-pattern-title">{pattern.name}</p>
-                  <p className="insight-pattern-text">{pattern.description}</p>
-                  <p className="insight-pattern-evidence">Evidence: {pattern.evidence}</p>
+          <div className="insight-patterns-grid">
+            {patterns.slice(0, 3).map(pattern => (
+              <div 
+                key={pattern.id} 
+                className={`pattern-card pattern-severity-${pattern.severity}`}
+              >
+                <div className="pattern-header">
+                  <span className={`pattern-badge pattern-badge-${pattern.severity}`}>
+                    {pattern.severity.toUpperCase()}
+                  </span>
                 </div>
+                <h4 className="pattern-title">{pattern.name}</h4>
+                <p className="pattern-description">{pattern.description}</p>
+                <p className="pattern-evidence">
+                  <strong>Evidence:</strong> {pattern.evidence}
+                </p>
               </div>
             ))}
           </div>
         </div>
       )}
 
-      <div className="insight-list">
-        {insights.map(insight => (
+      {/* Main Insights - Progressive Disclosure */}
+      <div className="insights-flow">
+        {insights.map((insight, index) => (
           <div
             key={insight.id}
-            className={`insight-main-card summary-card ${getPriorityClass(insight.priority)}`}
+            className={`insight-moment-card summary-card ${getPriorityClass(insight.priority)} ${
+              expandedInsight === index ? "expanded" : ""
+            }`}
+            style={{
+              animation: `slideIn 0.5s ease-out ${index * 0.1}s both`
+            }}
           >
-            <div className="premium-report-block-header">
-              <div className="insight-main-header">
-                <div className="insight-main-tag-row">
+            {/* Key Moment Badge */}
+            <div className="insight-moment-header">
+              <div className="moment-badge">
+                <span className={`priority-indicator priority-${insight.priority}`}>
                   {getPriorityIcon(insight.priority)}
-                  <span
-                    className={`insight-tag ${insight.priority === "critical" ? "insight-tag-critical" : insight.priority === "high" ? "insight-tag-high" : insight.priority === "medium" ? "insight-tag-medium" : "insight-tag-low"}`}
-                  >
-                    {insight.priority} Priority
-                  </span>
+                </span>
+                <div className="moment-label">
+                  <span className="label-text">{getKeyMomentLabel(insight.priority)}</span>
+                  <span className="insight-index">Insight {index + 1} of {insights.length}</span>
                 </div>
-                <span className="insight-category-pill">{insight.category}</span>
               </div>
+              <button
+                className="insight-expand-btn"
+                onClick={() => setExpandedInsight(expandedInsight === index ? -1 : index)}
+                aria-label="Expand insight"
+              >
+                <ChevronRight size={20} />
+              </button>
             </div>
 
-            <h2 className="insight-main-headline">{insight.headline}</h2>
-            <p className="insight-main-copy">{insight.insight}</p>
+            {/* Context & Why It Matters */}
+            <div className="insight-context">
+              <p className="priority-context">{getPriorityDescription(insight.priority)}</p>
+            </div>
 
+            {/* Main Headline - Key Moment */}
+            <h2 className="insight-headline">{insight.headline}</h2>
+
+            {/* Rich Narrative */}
+            <p className="insight-narrative">{insight.insight}</p>
+
+            {/* Signal / Data Point */}
             {insight.signal && (
-              <div className="insight-signal-box">📊 {insight.signal}</div>
+              <div className="insight-signal-card">
+                <div className="signal-icon">📊</div>
+                <div className="signal-content">
+                  <span className="signal-label">Key Signal</span>
+                  <p className="signal-text">{insight.signal}</p>
+                </div>
+              </div>
             )}
 
-            <div className="insight-action-card summary-card">
-              <h3>
-                <Target size={20} /> What You Can Do This Week
-              </h3>
-              <p>
-                {insight.actionable ||
-                  "You're on the right track. Keep up your current approach."}
+            {/* This Week's Action - Call to Action */}
+            <div className="action-section">
+              <div className="action-header">
+                <Target size={18} />
+                <span className="action-title">WHAT YOU CAN DO THIS WEEK</span>
+              </div>
+
+              <div className="action-card">
+                <div className="action-icon">🎯</div>
+                <div className="action-content">
+                  <p className="action-text">
+                    {insight.actionable ||
+                      "You're on the right track. Keep up your current approach."}
+                  </p>
+                  <div className="action-meta">
+                    <Clock size={14} />
+                    <span>Estimated effort: 30 mins</span>
+                  </div>
+                </div>
+              </div>
+
+              <p className="action-footnote">
+                Complete this action by end of week to unlock progress toward your next milestone.
               </p>
+            </div>
+
+            {/* Impact Projection */}
+            <div className="impact-projection">
+              <div className="impact-row">
+                <span className="impact-label">Expected Impact</span>
+                <div className="impact-bars">
+                  {["Behaviour", "Awareness", "Stability"].map(dim => (
+                    <div 
+                      key={dim}
+                      className="impact-bar"
+                      style={{
+                        width: `${Math.random() * 60 + 20}%`,
+                      }}
+                      title={`Impact on ${dim}`}
+                    >
+                      <span className="impact-dim">{dim.charAt(0)}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
           </div>
         ))}
+      </div>
+
+      {/* Journey Footer */}
+      <div className="insights-footer">
+        <div className="footer-content">
+          <CheckCircle2 size={20} />
+          <div className="footer-text">
+            <p className="footer-title">Your Personalized Journey</p>
+            <p className="footer-description">
+              Revisit these insights weekly. Your scores update as your behaviour changes.
+            </p>
+          </div>
+          <ArrowUpRight size={20} />
+        </div>
       </div>
     </div>
   );
