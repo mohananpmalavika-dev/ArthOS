@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import PropTypes from "prop-types";
 import { CheckCircle2, AlertCircle, Target } from "lucide-react";
+import CollapsiblePanel from "./CollapsiblePanel.jsx";
 
 /**
  * SingleRecommendedAction — delivers ONE single highest-impact action
@@ -99,15 +100,13 @@ function SingleRecommendedAction({ result, assessment }) {
   }, [engaged, completed, lowestComponent, trackingKey]);
 
   return (
-    <section className="single-action-card">
-      <div className="result-heading">
-        <Target size={19} />
-        <div>
-          <h2>Your Next Move</h2>
-          <span>The single action with maximum impact</span>
-        </div>
-      </div>
-
+    <CollapsiblePanel
+      className="single-action-card"
+      headerClassName="result-heading"
+      title="Your Next Move"
+      subtitle="The single action with maximum impact"
+      icon={<Target size={19} />}
+    >
       <div className="action-container">
         <div className="action-headline-block">
           <h3>{action.headline}</h3>
@@ -167,7 +166,7 @@ function SingleRecommendedAction({ result, assessment }) {
           </div>
         )}
       </div>
-    </section>
+    </CollapsiblePanel>
   );
 }
 

@@ -178,6 +178,7 @@ import AdminSection from "./components/AdminSection.jsx";
 import ReminderPreferences from "./components/ReminderPreferences.jsx";
 import DecisionHistory from "./components/DecisionHistory.jsx";
 import RecordDecision from "./components/RecordDecision.jsx";
+import CollapsiblePanel from "./components/CollapsiblePanel.jsx";
 import { AreaChart, Area, XAxis, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
 import "./premium-report.css";
 import "./styles/retention-dashboard.css";
@@ -1443,13 +1444,27 @@ export default function App() {
                     </ErrorBoundary>
                   </Suspense>
 
-                  <section className="summary-card">
+                  <CollapsiblePanel
+                    className="summary-card"
+                    headerClassName="premium-report-section-header"
+                    titleClassName="premium-report-section-title"
+                    title="Financial Roast"
+                    icon={<Zap size={20} />}
+                  >
                     <div className="premium-report-section-header">
                       <h2 className="premium-report-section-title">🔥 Financial Roast</h2>
                     </div>
                     <SalaryRoastGenerator assessmentResult={result} profile={assessment.profile} />
-                  </section>
-                  <section className="summary-card">
+                  </CollapsiblePanel>
+                  <CollapsiblePanel
+                    className="summary-card"
+                    headerClassName="premium-report-section-header"
+                    titleClassName="premium-report-section-title"
+                    subtitleClassName="premium-report-block-subtitle"
+                    title="Financial Forecast"
+                    subtitle="GBM Monte Carlo projections with stress test scenarios."
+                    icon={<BarChart3 size={20} />}
+                  >
                     <div className="premium-report-section-header">
                       <h2 className="premium-report-section-title">📊 Financial Forecast</h2>
                       <p className="premium-report-block-subtitle">
@@ -1461,8 +1476,16 @@ export default function App() {
                       assessmentResult={result}
                       predictionEngineForecast={predictionEngineForecast}
                     />
-                  </section>
-                  <section className="summary-card">
+                  </CollapsiblePanel>
+                  <CollapsiblePanel
+                    className="summary-card"
+                    headerClassName="premium-report-section-header"
+                    titleClassName="premium-report-section-title"
+                    subtitleClassName="premium-report-block-subtitle"
+                    title="Multi-Model Ensemble Forecast"
+                    subtitle="Auto-selected best model from ARIMA, Holt-Winters, Bayesian Structural, and Ensemble."
+                    icon={<Brain size={20} />}
+                  >
                     <div className="premium-report-section-header">
                       <h2 className="premium-report-section-title">
                         🤖 Multi-Model Ensemble Forecast
@@ -1473,7 +1496,7 @@ export default function App() {
                       </p>
                     </div>
                     <ForecastModelCard forecast={predictionEngineForecast} />
-                  </section>
+                  </CollapsiblePanel>
                   <section className="summary-card premium-report-block" id="cognition">
                     <div className="premium-report-block-header">
                       <h2 className="premium-report-block-title">🧠 Cognition & Future Risk</h2>
@@ -1871,7 +1894,15 @@ export default function App() {
                 </section>
 
                 <section className="summary-span">
-                  <div className="summary-card premium-report-block" style={{ padding: "24px" }}>
+                  <CollapsiblePanel
+                    className="summary-card premium-report-block"
+                    headerClassName="premium-report-block-header"
+                    titleClassName="premium-report-block-title"
+                    subtitleClassName="premium-report-block-subtitle"
+                    title={INSIGHT_TITLES.narrativeTitle}
+                    subtitle={INSIGHT_TITLES.narrativeSubtitle}
+                    icon={<Sparkles size={20} />}
+                  >
                     <div className="premium-report-block-header">
                       <h2 className="premium-report-block-title">
                         {INSIGHT_TITLES.narrativeTitle}
@@ -1883,7 +1914,7 @@ export default function App() {
                     <ErrorBoundary>
                       <EnhancedInsightNarrative assessmentResult={result} assessment={assessment} />
                     </ErrorBoundary>
-                  </div>
+                  </CollapsiblePanel>
                 </section>
                 </section>
               </>
@@ -1912,9 +1943,15 @@ export default function App() {
                 />
                 <DailyCheckinForm onCheckin={handleDailyCheckin} />
                 <ReminderPreferences userId={currentUserId} />
-                <section
+                <CollapsiblePanel
                   id="decisions"
                   className="summary-card premium-report-block decision-overview-section"
+                  headerClassName="premium-report-block-header"
+                  titleClassName="premium-report-block-title"
+                  subtitleClassName="premium-report-block-subtitle"
+                  title="Decisions"
+                  subtitle="Track your choices, review recent outcomes, and keep decision-making aligned to your financial goals."
+                  icon={<Target size={20} />}
                 >
                   <div className="premium-report-block-header">
                     <h2 className="premium-report-block-title">Decisions</h2>
@@ -1932,7 +1969,7 @@ export default function App() {
                       }}
                     />
                   </div>
-                </section>
+                </CollapsiblePanel>
               </div>
             )}
           </>
@@ -2034,14 +2071,13 @@ function UpgradeJourney({ result, currentScore }) {
   ];
 
   return (
-    <section className="journey-card">
-      <div className="result-heading">
-        <TrendingUp size={19} />
-        <div>
-          <h2>Progress Journey</h2>
-          <span>How your financial strength is trending</span>
-        </div>
-      </div>
+    <CollapsiblePanel
+      className="journey-card"
+      headerClassName="result-heading"
+      title="Progress Journey"
+      subtitle="How your financial strength is trending"
+      icon={<TrendingUp size={19} />}
+    >
       <div className="journey-chart-wrapper">
         <ResponsiveContainer width="100%" height={250}>
           <AreaChart data={journeyData} margin={{ top: 10, right: 0, left: 0, bottom: 0 }}>
@@ -2069,7 +2105,7 @@ function UpgradeJourney({ result, currentScore }) {
           </AreaChart>
         </ResponsiveContainer>
       </div>
-    </section>
+    </CollapsiblePanel>
   );
 }
 
