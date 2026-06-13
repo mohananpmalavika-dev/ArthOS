@@ -43,6 +43,7 @@ export default function B2BPartnerPortal({ userId = "demo", assessment = {} }) {
           </div>
         )}
         
+            
       </div>
 
       {/* Tabs */}
@@ -130,11 +131,11 @@ function OverviewTab() {
             key={item.title}
             className="partner-usecase-card"
           >
-            <div style={{ fontSize: 24, marginBottom: 8 }}>{item.icon}</div>
-            <h3 className="partner-section-title" style={{ fontSize: 14, marginBottom: 6 }}>
+            <div className="partner-usecase-icon">{item.icon}</div>
+            <h3 className="partner-usecase-title">
               {item.title}
             </h3>
-            <p style={{ fontSize: 13, color: "var(--gray-600)", margin: 0, lineHeight: 1.5 }}>
+            <p className="partner-usecase-desc">
               {item.desc}
             </p>
           </div>
@@ -168,7 +169,7 @@ function OverviewTab() {
                 fontSize: 16,
                 fontWeight: 700,
                 margin: "0 0 4px",
-                color: "var(--text-strong)"
+                color: "var(--text)"
               }}
             >
               {tier.name}
@@ -177,37 +178,37 @@ function OverviewTab() {
               style={{
                 fontSize: 24,
                 fontWeight: 800,
-                color: "var(--text-strong)",
+                color: "var(--text)",
                 marginBottom: 12
               }}
             >
               {tier.monthlyPrice === 0 ? "Free" : `$${tier.monthlyPrice}`}
-              <span style={{ fontSize: 12, fontWeight: 400, color: "var(--gray-500)" }}>/mo</span>
+              <span style={{ fontSize: 12, fontWeight: 400, color: "var(--ink-3)" }}>/mo</span>
             </div>
             {tier.annualPrice > 0 && (
-              <div style={{ fontSize: 11, color: "var(--green-700)", marginBottom: 8 }}>
+              <div style={{ fontSize: 11, color: "var(--green)", marginBottom: 8 }}>
                 ${tier.annualPrice}/yr{" "}
                 <strong>
                   (save ${(tier.monthlyPrice * 12 - tier.annualPrice).toLocaleString()})
                 </strong>
               </div>
             )}
-            <div style={{ fontSize: 12, color: "var(--gray-600)", marginBottom: 4 }}>
+            <div style={{ fontSize: 12, color: "var(--ink-2)", marginBottom: 4 }}>
               <strong>{tier.rateLimit.requestsPerMinute}</strong> req/min ·{" "}
               <strong>{tier.rateLimit.requestsPerMonth.toLocaleString()}</strong> req/mo
             </div>
-            <div style={{ fontSize: 12, color: "var(--gray-600)", marginBottom: 4 }}>
+            <div style={{ fontSize: 12, color: "var(--ink-2)", marginBottom: 4 }}>
               Up to{" "}
               <strong>
                 {tier.maxUsers === Infinity ? "unlimited" : tier.maxUsers.toLocaleString()}
               </strong>{" "}
               users
             </div>
-            <div style={{ fontSize: 12, color: "var(--gray-600)", marginBottom: 4 }}>
+            <div style={{ fontSize: 12, color: "var(--ink-2)", marginBottom: 4 }}>
               <strong>{tier.apiKeys}</strong> API keys
             </div>
             {tier.revenueSharePct > 0 && (
-              <div style={{ fontSize: 12, color: "var(--red-700)", marginBottom: 8 }}>
+              <div style={{ fontSize: 12, color: "var(--coral)", marginBottom: 8 }}>
                 Revenue share: <strong>{tier.revenueSharePct}%</strong>
               </div>
             )}
@@ -216,7 +217,7 @@ function OverviewTab() {
                 style={{
                   fontSize: 11,
                   fontWeight: 600,
-                  color: "var(--gray-500)",
+                  color: "var(--ink-3)",
                   marginBottom: 6,
                   textTransform: "uppercase"
                 }}
@@ -228,7 +229,7 @@ function OverviewTab() {
                   key={f}
                   style={{
                     fontSize: 12,
-                    color: "var(--green-800)",
+                    color: "var(--green)",
                     padding: "2px 0",
                     display: "flex",
                     alignItems: "center",
