@@ -1,5 +1,9 @@
 {
   "name": "arth-os-financial-health",
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist",
+  "installCommand": "npm install",
+  "public": true,
   "headers": [
     {
       "source": "(.*)",
@@ -23,6 +27,10 @@
     {
       "source": "/api/(.*)",
       "destination": "/api/index.js"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
     }
   ]
 }
