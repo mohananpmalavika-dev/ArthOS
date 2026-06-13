@@ -111,6 +111,7 @@ import { EnhancedInsightNarrative } from "./components/EnhancedInsightNarrative.
 import SingleMostImportantInsight from "./components/SingleMostImportantInsight.jsx";
 import ActionFollowUpPanel from "./components/ActionFollowUpPanel.jsx";
 import DecisionSimulator from "./components/DecisionSimulator.jsx";
+import ExportPDF from "./components/ExportPDF.jsx";
 import { ConsequenceForecastCard } from "./components/ConsequenceForecastCard.jsx";
 import { InterventionsPrescriptionCard } from "./components/InterventionsPrescriptionCard.jsx";
 import { StrategicMetricsCard } from "./components/StrategicMetricsCard.jsx";
@@ -138,7 +139,7 @@ import {
   ADMIN_LABELS,
   INTELLIGENCE_ROWS,
   BUSINESS_CARDS,
-} from "./lib/copy.js";
+} from "./lib/copy.ts";
 
 
 const STORAGE_KEY = "arth-os-assessment";
@@ -1290,6 +1291,11 @@ export default function App() {
                     <SingleMostImportantInsight assessmentResult={result} assessment={assessment} />
                   </ErrorBoundary>
                 </Suspense>
+
+                {/* PDF EXPORT — Save Results */}
+                <section className="summary-card">
+                  <ExportPDF result={result} assessmentData={assessment} />
+                </section>
                 
                 {/* ACTION FOLLOW-UP PANEL — Day 7 & Day 30 Check-Ins */}
                 <Suspense fallback={<LazyComponentFallback />}>

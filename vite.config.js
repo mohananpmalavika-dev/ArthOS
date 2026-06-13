@@ -184,6 +184,9 @@ function createApiPlugin() {
 export default defineConfig({
   base: "./",
   plugins: [react(), createApiPlugin()],
+  optimizeDeps: {
+    exclude: ["@sentry/react"], // Optional dependency - skip pre-bundling
+  },
   test: {
     // Vitest configuration
     globals: true,
@@ -198,6 +201,9 @@ export default defineConfig({
     sourcemap: false,
     chunkSizeWarningLimit: 600,
     rollupOptions: {
+      external: [
+        "@sentry/react", // Optional error monitoring - not included in bundle
+      ],
       output: {
         manualChunks: {
           // Vendor libraries - split large dependencies

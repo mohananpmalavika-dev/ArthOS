@@ -44,7 +44,7 @@ import {
   setupAutoSave,
   setupBeforeUnload,
 } from "../engines/assessmentAutoSave.js";
-import { ASSESSMENT_FIELDS, ASSESSMENT_OPTIONS, ASSESSMENT_BUTTONS, ASSESSMENT_SECTIONS } from "../lib/copy.js";
+import { ASSESSMENT_FIELDS, ASSESSMENT_OPTIONS, ASSESSMENT_BUTTONS, ASSESSMENT_SECTIONS } from "../lib/copy.ts";
 
 // Icon registry mapping icon names to actual components (replaces eval())
 const ICON_REGISTRY = {
@@ -960,7 +960,7 @@ export default function AssessmentSection({ assessment, result, onChange, onSave
             <ProfileSection
               values={assessment.profile}
               score={`${result.stabilityScore}/${ui.componentMaximums.stability}`}
-              onChange={(group, key, value) => handleFieldChange("profile", key, value)}
+              onChange={(key, value) => handleFieldChange("profile", key, value)}
             />
           )}
 

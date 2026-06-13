@@ -1,7 +1,7 @@
 import React, { useMemo, useState, useEffect, useCallback } from "react";
 import { ArthOSSDK } from "../lib/ArthOSSDK.js";
 import { PARTNER_TIERS } from "../lib/b2bPartnerEngine.js";
-import { B2B_TABS, B2B_USE_CASES, B2B_FORM_FIELDS, VALIDATION_FIELDS, COMMON_ACTIONS } from "../lib/copy.js";
+import { B2B_TABS, B2B_USE_CASES, B2B_FORM_FIELDS, VALIDATION_FIELDS, COMMON_ACTIONS } from "../lib/copy.ts";
 
 const tabs = B2B_TABS;
 
