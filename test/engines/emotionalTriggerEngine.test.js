@@ -204,7 +204,7 @@ describe('emotionalTriggerEngine.js - Emotional Trigger Detection', () => {
       const triggers = detectTriggers(highStressUser);
       const patterns = identifyTriggerPatterns(triggers, mockHistory);
 
-      expect(triggers.stress).toBe(true);
+      expect(triggers.stressSpending).toBeGreaterThan(0);
       expect(patterns).toBeDefined();
     });
 
@@ -296,8 +296,8 @@ describe('emotionalTriggerEngine.js - Emotional Trigger Detection', () => {
       const triggers = detectTriggers(emotionalProfile);
       const patterns = identifyTriggerPatterns(triggers, mockHistory);
 
-      expect(triggers.emotional).toBe(true);
-      expect(triggers.stress).toBe(true);
+      expect(triggers.anxietyAvoidance).toBeGreaterThan(0);
+      expect(triggers.stressSpending).toBeGreaterThan(0);
       expect(patterns.dominantTrigger).toBeDefined();
     });
 

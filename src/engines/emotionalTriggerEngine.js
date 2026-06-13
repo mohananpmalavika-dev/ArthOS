@@ -11,7 +11,8 @@
 import { getEmotionalTriggers, buildCognitionProfile } from "./cognitionEngine.js";
 export { getEmotionalTriggers, buildCognitionProfile };
 export const detectTriggers = (user = {}) => {
-  const raw = getEmotionalTriggers(user, []).triggers;
+  const safe = user || {};
+  const raw = getEmotionalTriggers(safe, []).triggers;
   // Normalize to legacy key names so EmotionalTriggersCard works without changes
   return {
     stressSpending: raw.stress || 0,

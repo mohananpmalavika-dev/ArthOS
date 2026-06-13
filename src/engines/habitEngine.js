@@ -1,5 +1,6 @@
 export function evaluateHabitProgress(history = []) {
-  const last4Weeks = history.slice(-4);
+  const safe = history || [];
+  const last4Weeks = safe.slice(-4);
   const consistency = last4Weeks.filter(x => x.completed).length;
 
   return {

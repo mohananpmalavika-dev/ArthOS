@@ -672,25 +672,29 @@ class BehaviorEvolutionEngine {
  * Main API: Builds a complete digital twin with all components
  */
 export function buildCompleteTwin(assessment = {}, profile = {}, history = {}) {
-  if (!assessment.healthScore) {
+  const safeAssessment = assessment || {};
+  const safeProfile = profile || {};
+  const safeHistory = history || {};
+
+  if (!safeAssessment.healthScore) {
     return null;
   }
 
   // Initialize continuous state
   const initialState = new FinancialState(0, {
-    income: profile.monthlyIncome || 0,
-    expenses: profile.monthlyExpense || profile.monthlySpending || 0,
-    savings: (profile.emergencySavingsFixed || 0) + (profile.emergencySavingsDiscretionary || 0),
-    debt: profile.totalDebt || 0,
-    runway: assessment.survivalMonthsRaw || 0,
-    healthScore: assessment.healthScore || 50,
+    income: safeProfile.monthlyIncome || 0,
+    expenses: safeProfile.monthlyExpense || safeProfile.monthlySpending || 0,
+    savings: (safeProfile.emergencySavingsFixed || 0) + (safeProfile.emergencySavingsDiscretionary || 0),
+    debt: safeProfile.totalDebt || 0,
+    runway: safeAssessment.survivalMonthsRaw || 0,
+    healthScore: safeAssessment.healthScore || 50,
     savingsRate:
-      (profile.monthlyIncome || 1) > 0
-        ? (profile.monthlySavings || 0) / (profile.monthlyIncome || 1)
+      (safeProfile.monthlyIncome || 1) > 0
+        ? (safeProfile.monthlySavings || 0) / (safeProfile.monthlyIncome || 1)
         : 0,
-    savingsDiscipline: Math.min(1, (assessment.behavioralTraits?.discipline || 0.3) / 100),
+    savingsDiscipline: Math.min(1, (safeAssessment.behavioralTraits?.discipline || 0.3) / 100),
     spendingElasticity: 0.4,
-    impulseProbability: Math.max(0, 1 - (assessment.impulseControl || 50) / 100)
+    impulseProbability: Math.max(0, 1 - (safeAssessment.impulseControl || 50) / 100)
   });
 
   // Initialize behavior evolution
@@ -707,7 +711,7 @@ export function buildCompleteTwin(assessment = {}, profile = {}, history = {}) {
   const twin = {
     id: `twin_${Date.now()}`,
     createdAt: new Date().toISOString(),
-    userId: profile.userId || "unknown",
+    userId: safeProfile.userId || "unknown",
 
     // Core state
     currentState: initialState,
@@ -723,12 +727,12 @@ export function buildCompleteTwin(assessment = {}, profile = {}, history = {}) {
 
     // Metadata
     metadata: {
-      healthScore: assessment.healthScore,
-      runway: assessment.survivalMonthsRaw,
+      healthScore: safeAssessment.healthScore,
+      runway: safeAssessment.survivalMonthsRaw,
       confidence: 0.65, // Increases with more behavioral data
-      dataPoints: history.assessments?.length || 0,
+      dataPoints: safeHistory.assessments?.length || 0,
       imprecisionReason:
-        (history.assessments?.length || 0) < 10 ? "Insufficient behavioral history" : "Data rich"
+        (safeHistory.assessments?.length || 0) < 10 ? "Insufficient behavioral history" : "Data rich"
     },
 
     // Methods to interact with the twin

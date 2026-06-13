@@ -338,7 +338,8 @@ function weightedScore(sourceValues, map) {
  * Returns belief dimension scores, credible intervals, and drift analysis.
  */
 export function analyzeMoneyBeliefs(responses = {}, priorBeliefs = null) {
-  const rawScores = weightedScore(responses, BELIEF_MAP);
+  const safe = responses || {};
+  const rawScores = weightedScore(safe, BELIEF_MAP);
 
   // Apply Bayesian update if prior beliefs are provided
   const beliefScores = {};

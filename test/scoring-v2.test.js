@@ -281,8 +281,8 @@ describe("scoring-v2: Financial Health Calculation", () => {
     const result = calculateFinancialHealthV2(mockAssessment);
     result.componentRows.forEach(component => {
       expect(component).toHaveProperty("band");
-      expect(component.band).toHaveProperty("label");
-      expect(typeof component.band.label).toBe("string");
+      expect(typeof component.band).toBe("string");
+      expect(component.band.length).toBeGreaterThan(0);
     });
   });
 
@@ -388,7 +388,7 @@ describe("scoring-v2: Edge Cases", () => {
     };
     const result = calculateFinancialHealthV2(perfect);
     expect(result.healthScore).toBeGreaterThan(700); // Should be resilient or sovereign
-    expect(result.categoryBand.label).toContain("Resilient");
+    expect(result.categoryBand.label).toMatch(/Resilient|Sovereign/);
   });
 });
 

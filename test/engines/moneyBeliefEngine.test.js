@@ -165,9 +165,11 @@ describe('moneyBeliefEngine.js - Money Belief Analysis', () => {
   describe('belief categorization by personality type', () => {
     it('should classify security-focused beliefs', () => {
       const securityFocusedBehavior = {
-        emotionalMoneyLevel: 'not_emotional',
-        presentFutureMindset: 'secure_future',
-        avoidBalanceDuringStress: true
+        emotionalMoneyLevel: 20, // Low emotional spending
+        presentFutureMindset: 30, // Conservative, future-focused
+        avoidBalanceDuringStress: true,
+        moneySecurity: 80, // High security focus
+        fearOfPoverty: 75
       };
 
       const beliefs = analyzeMoneyBeliefs(securityFocusedBehavior);
@@ -216,8 +218,10 @@ describe('moneyBeliefEngine.js - Money Belief Analysis', () => {
 
     it('should predict debt attitude from beliefs', () => {
       const debtAvoidanceBehavior = {
-        presentFutureMindset: 'extreme_discipline',
-        emotionalMoneyLevel: 'not_emotional'
+        presentFutureMindset: 20, // Extreme discipline = very future-focused
+        emotionalMoneyLevel: 15, // Not emotional
+        scarcityVsAbundance: 70, // High scarcity mindset
+        investmentInterest: 30 // Low investment interest
       };
 
       const beliefs = analyzeMoneyBeliefs(debtAvoidanceBehavior);
@@ -265,10 +269,12 @@ describe('moneyBeliefEngine.js - Money Belief Analysis', () => {
   describe('end-to-end belief analysis', () => {
     it('should analyze builder personality beliefs', () => {
       const builderBehavior = {
-        presentFutureMindset: 'extreme_discipline',
-        emotionalMoneyLevel: 'not_emotional',
-        plannedPurchasesOnly: 'always',
-        impulseWaitRule: 'always'
+        presentFutureMindset: 20, // Extreme discipline
+        emotionalMoneyLevel: 10, // Not emotional
+        plannedPurchasesOnly: 100, // Always planned
+        impulseWaitRule: 100, // Always wait before impulse purchase
+        moneySecurity: 80, // High security focus
+        fearOfPoverty: 75
       };
 
       const beliefs = analyzeMoneyBeliefs(builderBehavior);

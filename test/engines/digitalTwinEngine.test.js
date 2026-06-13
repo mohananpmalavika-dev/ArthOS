@@ -291,6 +291,6 @@ describe('digitalTwinEngine.js - Digital Twin Simulation', () => {
       
       // Twin should have timeline for comparison
       expect(twin.stateTimeline).toBeDefined();
-    });}
+    });
   });
 });
