@@ -9,6 +9,7 @@ import memoryHandler from '../api_src/memory.js';
 import authLoginHandler from '../api_src/auth/login.js';
 import authRegisterHandler from '../api_src/auth/register.js';
 import authMeHandler from '../api_src/auth/me.js';
+import emailVerifyHandler from '../api_src/auth/email-verify.js';
 import b2bAdminHandler from '../api_src/b2b/admin.js';
 import b2bIntelligenceHandler from '../api_src/b2b/intelligence.js';
 import b2bRegisterHandler from '../api_src/b2b/register.js';
@@ -45,6 +46,8 @@ const routeDefinitions = [
   { match: (pathname) => pathname === '/api/auth/login', handler: authLoginHandler },
   { match: (pathname) => pathname === '/api/auth/register', handler: authRegisterHandler },
   { match: (pathname) => pathname === '/api/auth/me', handler: authMeHandler },
+  { match: (pathname) => pathname === '/api/auth/verify-email', handler: emailVerifyHandler },
+  { match: (pathname) => pathname === '/api/auth/resend-verify', handler: emailVerifyHandler },
   { match: (pathname) => pathname === '/api/b2b/intelligence', handler: b2bIntelligenceHandler },
   { match: (pathname) => pathname === '/api/b2b/register', handler: b2bRegisterHandler },
   { match: (pathname) => pathname === '/api/b2b/validate-key', handler: b2bValidateKeyHandler },

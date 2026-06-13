@@ -83,15 +83,14 @@ function verifyStripeSignature(req, rawBody) {
   return true;
 }
 
-async function handler(req, res, params) {
+async function handler(req, res) {
   const pathname = req.url?.split('?')[0] || '';
   const method = req.method?.toUpperCase();
 
   try {
     // POST /api/subscriptions/create
     if (method === 'POST' && pathname === '/api/subscriptions/create') {
-      const bodyData = await parseBody(req);
-      const { userId, email, name, planId } = bodyData.parsed;
+      const { userId, email, name, planId } = req.body || {};
 
       if (!userId || !email) {
         return res.status(400).json({ error: 'Missing userId or email' });
@@ -113,8 +112,7 @@ async function handler(req, res, params) {
     const upgradeMatch = /^\/api\/subscriptions\/([^/]+)\/upgrade$/.exec(pathname);
     if (method === 'POST' && upgradeMatch) {
       const userId = upgradeMatch[1];
-      const bodyData = await parseBody(req);
-      const { planId } = bodyData.parsed;
+      const { planId } = req.body || {};
 
       if (!planId) {
         return res.status(400).json({ error: 'Missing planId' });

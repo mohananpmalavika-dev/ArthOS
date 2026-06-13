@@ -108,7 +108,7 @@ export async function query(sql, params = []) {
     // For Supabase RPC or raw SQL through stored procedures
 // For Supabase RPC — try exec_sql if available, otherwise fallback
 try {
-  const { data, error } = await supabase.rpc('exec_sql', { sql_text: pgSql });
+  const { data, error } = await supabase.rpc('exec_sql', { sql_text: sql });
   if (error) throw error;
   return data || [];
 } catch (rpcErr) {

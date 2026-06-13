@@ -55,7 +55,7 @@ export async function getOrCreateStripeCustomer(userId, email, name) {
   try {
     // Check if user already has a Stripe customer ID
     const result = await query(
-      'SELECT stripe_customer_id FROM users WHERE id = ?',
+      'SELECT stripe_customer_id FROM users WHERE id = $1',
       [userId]
     );
 
@@ -75,7 +75,7 @@ export async function getOrCreateStripeCustomer(userId, email, name) {
 
       // Save Stripe customer ID to database
       await query(
-        'UPDATE users SET stripe_customer_id = ? WHERE id = ?',
+        'UPDATE users SET stripe_customer_id = $1 WHERE id = $2',
         [customerId, userId]
       );
     }
@@ -103,7 +103,7 @@ export async function createSubscription(userId, email, name, planId = 'plus') {
     // For free tier, just update database without Stripe
     if (planId === 'free') {
       await query(
-        'UPDATE users SET subscription_tier = ?, subscription_status = ? WHERE id = ?',
+        'UPDATE users SET subscription_tier = $1, subscription_status = $2 WHERE id = $3',
         ['free', 'active', userId]
       );
 
@@ -133,7 +133,7 @@ export async function createSubscription(userId, email, name, planId = 'plus') {
     // Save subscription to database
     await query(
       `INSERT INTO subscriptions (user_id, stripe_subscription_id, stripe_customer_id, tier, status, current_period_start, current_period_end)
-       VALUES (?, ?, ?, ?, ?, ?, ?)`,
+       VALUES ($1, $2, $3, $4, $5, $6, $7)`,
       [
         userId,
         subscription.id,
@@ -166,7 +166,7 @@ export async function getActiveSubscription(userId) {
     const result = await query(
       `SELECT tier, status, stripe_subscription_id, current_period_start, current_period_end, created_at
        FROM subscriptions 
-       WHERE user_id = ? AND status IN ('active', 'trialing')
+       WHERE user_id = $1 AND status IN ('active', 'trialing')
        ORDER BY created_at DESC
        LIMIT 1`,
       [userId]
@@ -228,7 +228,7 @@ export async function upgradeSubscription(userId, newPlanId) {
     // If upgrading from free to plus
     if (current.tier === 'free' && newPlanId === 'plus') {
       const customerId = await query(
-        'SELECT stripe_customer_id FROM users WHERE id = ?',
+        'SELECT stripe_customer_id FROM users WHERE id = $1',
         [userId]
       );
 
@@ -247,7 +247,7 @@ export async function upgradeSubscription(userId, newPlanId) {
 
       await query(
         `INSERT INTO subscriptions (user_id, stripe_subscription_id, stripe_customer_id, tier, status, current_period_start, current_period_end)
-         VALUES (?, ?, ?, ?, ?, ?, ?)`,
+         VALUES ($1, $2, $3, $4, $5, $6, $7)`,
         [
           userId,
           subscription.id,
@@ -280,7 +280,7 @@ export async function upgradeSubscription(userId, newPlanId) {
       });
 
       await query(
-        'UPDATE subscriptions SET tier = ? WHERE stripe_subscription_id = ?',
+        'UPDATE subscriptions SET tier = $1 WHERE stripe_subscription_id = $2',
         [newPlanId, current.subscriptionId]
       );
 
@@ -319,7 +319,7 @@ export async function cancelSubscription(userId) {
       await getStripe().subscriptions.del(current.subscriptionId);
 
       await query(
-        'UPDATE subscriptions SET status = ? WHERE stripe_subscription_id = ?',
+        'UPDATE subscriptions SET status = $1 WHERE stripe_subscription_id = $2',
         ['canceled', current.subscriptionId]
       );
 
@@ -392,7 +392,7 @@ async function handleSubscriptionUpdated(subscription) {
 
     // Verify subscription exists in database
     const result = await query(
-      'SELECT user_id, status FROM subscriptions WHERE stripe_subscription_id = ?',
+      'SELECT user_id, status FROM subscriptions WHERE stripe_subscription_id = $1',
       [subscription.id]
     );
 
@@ -406,11 +406,11 @@ async function handleSubscriptionUpdated(subscription) {
     // Update subscription details in database
     await query(
       `UPDATE subscriptions 
-       SET status = ?, 
-           current_period_start = ?, 
-           current_period_end = ?,
+       SET status = $1, 
+           current_period_start = $2, 
+           current_period_end = $3,
            updated_at = NOW()
-       WHERE stripe_subscription_id = ?`,
+       WHERE stripe_subscription_id = $4`,
       [
         subscription.status,
         new Date(subscription.current_period_start * 1000),
@@ -444,7 +444,7 @@ async function handleSubscriptionDeleted(subscription) {
 
     // Soft delete: mark as canceled and set end date to now
     const result = await query(
-      'SELECT user_id FROM subscriptions WHERE stripe_subscription_id = ?',
+      'SELECT user_id FROM subscriptions WHERE stripe_subscription_id = $1',
       [subscription.id]
     );
 
@@ -460,7 +460,7 @@ async function handleSubscriptionDeleted(subscription) {
        SET status = 'canceled', 
            current_period_end = NOW(),
            updated_at = NOW()
-       WHERE stripe_subscription_id = ?`,
+       WHERE stripe_subscription_id = $1`,
       [subscription.id]
     );
 
@@ -482,7 +482,7 @@ async function handlePaymentSucceeded(invoice) {
 
     // Update subscription status to active (in case it was past_due)
     const subResult = await query(
-      'SELECT user_id FROM subscriptions WHERE stripe_subscription_id = ?',
+      'SELECT user_id FROM subscriptions WHERE stripe_subscription_id = $1',
       [invoice.subscription]
     );
 
@@ -497,7 +497,7 @@ async function handlePaymentSucceeded(invoice) {
       `UPDATE subscriptions 
        SET status = 'active',
            updated_at = NOW()
-       WHERE stripe_subscription_id = ?`,
+       WHERE stripe_subscription_id = $1`,
       [invoice.subscription]
     );
 
@@ -522,7 +522,7 @@ async function handlePaymentFailed(invoice) {
 
     // Update subscription status to past_due
     const subResult = await query(
-      'SELECT user_id FROM subscriptions WHERE stripe_subscription_id = ?',
+      'SELECT user_id FROM subscriptions WHERE stripe_subscription_id = $1',
       [invoice.subscription]
     );
 
@@ -537,7 +537,7 @@ async function handlePaymentFailed(invoice) {
       `UPDATE subscriptions 
        SET status = 'past_due',
            updated_at = NOW()
-       WHERE stripe_subscription_id = ?`,
+       WHERE stripe_subscription_id = $1`,
       [invoice.subscription]
     );
 
@@ -557,7 +557,7 @@ async function handleCustomerDeleted(customer) {
 
     // Find all subscriptions for this customer and mark as canceled
     const subscriptions = await query(
-      'SELECT id, stripe_subscription_id FROM subscriptions WHERE stripe_customer_id = ?',
+      'SELECT id, stripe_subscription_id FROM subscriptions WHERE stripe_customer_id = $1',
       [customer.id]
     );
 
@@ -571,7 +571,7 @@ async function handleCustomerDeleted(customer) {
         `UPDATE subscriptions 
          SET status = 'canceled', 
              updated_at = NOW()
-         WHERE id = ?`,
+         WHERE id = $1`,
         [sub.id]
       );
       console.log(`✅ Canceled subscription ${sub.stripe_subscription_id} (local ID ${sub.id})`);
