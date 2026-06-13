@@ -128,7 +128,6 @@ export default async function followUpHandler(req, res) {
       }
       return;
     }
-    }
 
     // POST /api/follow-up/day-30/respond — Record Day 30 response
     if (pathname === '/api/follow-up/day-30/respond' && req.method === 'POST') {
