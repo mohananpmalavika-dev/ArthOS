@@ -330,6 +330,50 @@ function ProductFlowMap({ activeHash = "#home", result }) {
 
 function ReportsFlowHeader({ result, decisionHistoryCount, memoryTimeline }) {
   const score = normalizeScore(result);
+  const reportSections = [
+    {
+      href: "#reports",
+      label: "Signal",
+      caption: "Score and export",
+      icon: Sparkles
+    },
+    {
+      href: "#forecast",
+      label: "Forecast",
+      caption: "Runway and scenarios",
+      icon: BarChart3
+    },
+    {
+      href: "#cognition",
+      label: "Cognition",
+      caption: "Bias and calibration",
+      icon: Brain
+    },
+    {
+      href: "#simulator",
+      label: "Simulate",
+      caption: "What-if choices",
+      icon: Target
+    },
+    {
+      href: "#memory",
+      label: "Memory",
+      caption: "Learning timeline",
+      icon: Network
+    },
+    {
+      href: "#insights",
+      label: "Action",
+      caption: "Next move",
+      icon: ThumbsUp
+    },
+    {
+      href: "#decisions",
+      label: "Decisions",
+      caption: "Decision ledger",
+      icon: Save
+    }
+  ];
   const reportMetrics = [
     {
       label: "Health score",
@@ -356,12 +400,32 @@ function ReportsFlowHeader({ result, decisionHistoryCount, memoryTimeline }) {
   return (
     <section className="flow-report-hero" aria-labelledby="report-flow-title">
       <div className="flow-report-copy">
-        <span>Intelligence report</span>
-        <h1 id="report-flow-title">A connected view of financial behavior, risk, and next action.</h1>
+        <div className="report-eyebrow-row">
+          <span>Intelligence report</span>
+          <span>Professional flow</span>
+        </div>
+        <h1 id="report-flow-title">Financial behavior, risk, and next action in one readable flow.</h1>
         <p>
-          Your report now moves from the strongest signal into forecast, cognition, simulation,
-          decision history, and memory.
+          Start with the strongest signal, then move through forecast, cognition, simulation,
+          decision history, and memory without losing context.
         </p>
+        <nav className="report-menu-flow" aria-label="Report sections">
+          {reportSections.map((section, index) => {
+            const Icon = section.icon;
+            return (
+              <a href={section.href} className="report-menu-step" key={section.href}>
+                <span className="report-menu-index">{String(index + 1).padStart(2, "0")}</span>
+                <span className="report-menu-icon">
+                  <Icon size={18} />
+                </span>
+                <span className="report-menu-copy">
+                  <strong>{section.label}</strong>
+                  <small>{section.caption}</small>
+                </span>
+              </a>
+            );
+          })}
+        </nav>
       </div>
       <div className="flow-kpi-strip">
         {reportMetrics.map(metric => (
@@ -1457,6 +1521,7 @@ export default function App() {
                     <SalaryRoastGenerator assessmentResult={result} profile={assessment.profile} />
                   </CollapsiblePanel>
                   <CollapsiblePanel
+                    id="forecast"
                     className="summary-card"
                     headerClassName="premium-report-section-header"
                     titleClassName="premium-report-section-title"

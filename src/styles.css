@@ -6200,3 +6200,931 @@ main {
     grid-template-columns: 1fr;
   }
 }
+
+/* ══════════════════════════════════════════════
+   PROFESSIONAL REPORT FLOW REDESIGN
+   Keeps the existing ARTH.OS color system; improves hierarchy and readability.
+   ══════════════════════════════════════════════ */
+
+.flow-report-hero,
+.flow-report-grid,
+.flow-insights-section {
+  font-family: "Segoe UI", Inter, Roboto, Arial, system-ui, sans-serif;
+  font-size: 17px;
+  line-height: 1.55;
+}
+
+.flow-report-hero {
+  grid-template-columns: minmax(420px, 0.92fr) minmax(420px, 0.72fr);
+  gap: 22px;
+  margin-top: 34px;
+}
+
+.flow-report-copy,
+.flow-kpi-strip {
+  border-color: rgba(98, 228, 209, 0.18);
+  background:
+    linear-gradient(140deg, rgba(98, 228, 209, 0.07), transparent 34%),
+    linear-gradient(310deg, rgba(139, 92, 246, 0.075), transparent 46%),
+    linear-gradient(180deg, rgba(8, 12, 26, 0.98), rgba(5, 8, 19, 0.99));
+}
+
+.flow-report-copy {
+  gap: 18px;
+  padding: clamp(28px, 3vw, 42px);
+}
+
+.report-eyebrow-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.report-eyebrow-row span,
+.flow-report-copy > span {
+  width: fit-content;
+  min-height: 30px;
+  padding: 6px 10px;
+  border: 1px solid rgba(98, 228, 209, 0.2);
+  border-radius: var(--radius-xs);
+  color: var(--cyan);
+  background: rgba(98, 228, 209, 0.065);
+  font-size: 12px;
+  font-weight: 900;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.report-eyebrow-row span + span {
+  border-color: rgba(139, 92, 246, 0.22);
+  color: var(--purple-light);
+  background: rgba(139, 92, 246, 0.075);
+}
+
+.flow-report-copy h1 {
+  max-width: 900px;
+  color: var(--ink-0);
+  font-size: clamp(38px, 4vw, 60px);
+  line-height: 1.03;
+  letter-spacing: 0;
+  text-wrap: balance;
+}
+
+.flow-report-copy p {
+  max-width: 78ch;
+  color: var(--ink-1);
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1.65;
+}
+
+.report-menu-flow {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 8px;
+  padding: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.075);
+  border-radius: var(--radius-sm);
+  background: rgba(0, 0, 0, 0.18);
+}
+
+.report-menu-step {
+  position: relative;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 7px 9px;
+  min-width: 0;
+  min-height: 92px;
+  padding: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.075);
+  border-radius: var(--radius-xs);
+  color: var(--ink-1);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(0, 0, 0, 0.16)),
+    rgba(255, 255, 255, 0.018);
+}
+
+.report-menu-step::after {
+  position: absolute;
+  right: -9px;
+  top: 50%;
+  width: 8px;
+  height: 1px;
+  content: "";
+  background: rgba(98, 228, 209, 0.18);
+}
+
+.report-menu-step:last-child::after {
+  display: none;
+}
+
+.report-menu-step:hover {
+  border-color: rgba(98, 228, 209, 0.28);
+  color: var(--ink-0);
+  background:
+    linear-gradient(180deg, rgba(98, 228, 209, 0.085), rgba(139, 92, 246, 0.045)),
+    rgba(255, 255, 255, 0.02);
+  opacity: 1;
+}
+
+.report-menu-index {
+  grid-column: 1 / -1;
+  color: var(--ink-3);
+  font-family: var(--display);
+  font-size: 11px;
+  font-weight: 950;
+}
+
+.report-menu-icon {
+  display: grid;
+  width: 34px;
+  height: 34px;
+  place-items: center;
+  border: 1px solid rgba(98, 228, 209, 0.15);
+  border-radius: var(--radius-xs);
+  color: var(--cyan);
+  background: rgba(98, 228, 209, 0.06);
+}
+
+.report-menu-copy {
+  min-width: 0;
+}
+
+.report-menu-copy strong {
+  display: block;
+  overflow: hidden;
+  color: var(--ink-0);
+  font-size: 15px;
+  font-weight: 950;
+  line-height: 1.15;
+  text-overflow: ellipsis;
+}
+
+.report-menu-copy small {
+  display: block;
+  margin-top: 4px;
+  color: var(--ink-3);
+  font-size: 12px;
+  font-weight: 750;
+  line-height: 1.25;
+}
+
+.flow-kpi-strip {
+  gap: 12px;
+  padding: 14px;
+}
+
+.flow-kpi-card {
+  min-height: 154px;
+  padding: 18px;
+  border-color: rgba(255, 255, 255, 0.085);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(0, 0, 0, 0.2)),
+    rgba(255, 255, 255, 0.024);
+}
+
+.flow-kpi-card span {
+  color: var(--ink-3);
+  font-size: 12px;
+  font-weight: 950;
+  text-transform: uppercase;
+}
+
+.flow-kpi-card strong {
+  margin: 18px 0 10px;
+  font-size: clamp(30px, 3vw, 42px);
+  line-height: 1;
+}
+
+.flow-kpi-card small {
+  color: var(--ink-2);
+  font-size: 13px;
+  font-weight: 750;
+}
+
+.flow-report-grid {
+  position: relative;
+  grid-template-columns: minmax(0, 1fr) minmax(360px, 0.34fr);
+  gap: 26px;
+  padding-top: 28px;
+}
+
+.summary-main-column {
+  position: relative;
+  display: grid;
+  gap: 24px;
+  counter-reset: reportStage;
+}
+
+.summary-main-column::before {
+  position: absolute;
+  top: 8px;
+  bottom: 8px;
+  left: 13px;
+  width: 1px;
+  content: "";
+  background: linear-gradient(180deg, rgba(98, 228, 209, 0.32), rgba(139, 92, 246, 0.14), transparent);
+}
+
+.summary-main-column > .summary-card,
+.summary-main-column > .collapsible-panel,
+.summary-main-column > .premium-report-block,
+.summary-main-column > section,
+.summary-main-column > div {
+  position: relative;
+  margin-left: 34px;
+}
+
+.summary-main-column > .summary-card::before,
+.summary-main-column > .collapsible-panel::before,
+.summary-main-column > .premium-report-block::before,
+.summary-main-column > section::before,
+.summary-main-column > div::before {
+  position: absolute;
+  top: 22px;
+  left: -34px;
+  z-index: 2;
+  display: grid;
+  width: 28px;
+  height: 28px;
+  place-items: center;
+  border: 1px solid rgba(98, 228, 209, 0.25);
+  border-radius: var(--radius-xs);
+  color: var(--cyan);
+  background: rgba(8, 12, 26, 0.98);
+  box-shadow: 0 0 0 5px rgba(5, 7, 19, 0.92);
+  counter-increment: reportStage;
+  content: counter(reportStage);
+  font-family: var(--display);
+  font-size: 11px;
+  font-weight: 950;
+}
+
+.summary-card,
+.premium-metric-tile,
+.result-card,
+.panel,
+.single-action-card,
+.journey-card,
+.peer-comparison-card,
+.reminder-preferences-card {
+  border-radius: var(--radius-sm);
+}
+
+.summary-card,
+.premium-metric-tile,
+.result-card,
+.panel {
+  font-size: 16px;
+}
+
+.premium-report-section-title,
+.premium-report-block-title,
+.single-insight-title,
+.panel-heading h2,
+.result-heading h2 {
+  color: var(--ink-0);
+  font-size: clamp(22px, 2vw, 28px);
+  line-height: 1.16;
+}
+
+.premium-report-block-subtitle,
+.premium-metric-desc,
+.premium-metric-longtext,
+.action-reason,
+.archetype-guidance,
+.microgola-text,
+.narrative-copy,
+.forecast-card-note {
+  color: var(--ink-2);
+  font-size: 16px;
+  line-height: 1.65;
+}
+
+.premium-metric-kicker,
+.metric-label,
+.impact-label {
+  font-size: 12px;
+  font-weight: 950;
+}
+
+.premium-metric-value {
+  font-size: clamp(28px, 3vw, 38px);
+}
+
+.premium-metric-value-compact {
+  font-size: 20px;
+  line-height: 1.3;
+}
+
+.assessment-summary-sidebar {
+  top: 142px;
+  gap: 18px;
+}
+
+.assessment-summary-sidebar > * {
+  border-color: rgba(98, 228, 209, 0.13);
+}
+
+.flow-insights-section {
+  display: grid;
+  gap: 24px;
+  margin-top: 28px;
+  padding-bottom: 78px;
+}
+
+.flow-insights-section::before {
+  display: block;
+  width: 100%;
+  padding: 0 2px 8px;
+  color: var(--ink-3);
+  content: "Action layer";
+  font-size: 13px;
+  font-weight: 950;
+  text-transform: uppercase;
+}
+
+.flow-insights-section > .diagnostics-grid {
+  padding: 12px;
+  border: 1px solid rgba(98, 228, 209, 0.11);
+  border-radius: var(--radius);
+  background: rgba(255, 255, 255, 0.018);
+}
+
+.diagnostics-grid {
+  gap: 18px;
+}
+
+.decision-section-grid {
+  grid-template-columns: minmax(0, 1fr) minmax(340px, 0.78fr);
+  gap: 18px;
+}
+
+.app-nav-tabs {
+  gap: 10px;
+  padding-block: 12px;
+  border-bottom-color: rgba(98, 228, 209, 0.13);
+}
+
+.app-nav-tab {
+  min-height: 58px;
+  min-width: 132px;
+  padding: 9px 12px;
+  font-size: 14px;
+}
+
+.app-nav-tab-label {
+  font-size: 15px;
+  font-weight: 900;
+}
+
+.app-nav-tab small {
+  max-width: 150px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+@media (max-width: 1200px) {
+  .flow-report-hero,
+  .flow-report-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .report-menu-flow {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .report-menu-step::after {
+    display: none;
+  }
+
+  .assessment-summary-sidebar {
+    position: static;
+  }
+}
+
+@media (max-width: 760px) {
+  .flow-report-hero,
+  .assessment-summary-grid,
+  .flow-insights-section {
+    width: calc(100% - 24px);
+  }
+
+  .flow-report-copy h1 {
+    font-size: 34px;
+  }
+
+  .flow-report-copy p {
+    font-size: 16px;
+  }
+
+  .report-menu-flow,
+  .flow-kpi-strip,
+  .diagnostics-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .summary-main-column::before,
+  .summary-main-column > .summary-card::before,
+  .summary-main-column > .collapsible-panel::before,
+  .summary-main-column > .premium-report-block::before,
+  .summary-main-column > section::before,
+  .summary-main-column > div::before {
+    display: none;
+  }
+
+  .summary-main-column > .summary-card,
+  .summary-main-column > .collapsible-panel,
+  .summary-main-column > .premium-report-block,
+  .summary-main-column > section,
+  .summary-main-column > div {
+    margin-left: 0;
+  }
+
+  .premium-report-section-title,
+  .premium-report-block-title,
+  .single-insight-title,
+  .panel-heading h2,
+  .result-heading h2 {
+    font-size: 22px;
+  }
+
+  .app-nav-tab {
+    min-width: 124px;
+  }
+}
+
+/* ══════════════════════════════════════════════
+   REPORT MODULE DETAIL POLISH
+   ══════════════════════════════════════════════ */
+
+.consequence-forecast-card,
+.interventions-prescription-card,
+.strategic-metrics-card,
+.trait-matrix-card {
+  display: grid;
+  gap: 18px;
+  padding: 24px;
+  border: 1px solid rgba(98, 228, 209, 0.14);
+  border-radius: var(--radius-sm);
+  background:
+    linear-gradient(140deg, rgba(98, 228, 209, 0.04), transparent 34%),
+    linear-gradient(180deg, rgba(7, 11, 24, 0.98), rgba(5, 8, 19, 0.985));
+  box-shadow: var(--shadow-lg), inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+.trajectory-warning,
+.dqi-constraint,
+.readiness-recommendation,
+.interventions-reasoning,
+.forecast-cta,
+.trait-insights {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  padding: 14px 16px;
+  border: 1px solid rgba(98, 228, 209, 0.13);
+  border-radius: var(--radius-xs);
+  color: var(--ink-1);
+  background: rgba(98, 228, 209, 0.045);
+}
+
+.trajectory-warning.warning-critical,
+.trajectory-warning.warning-high,
+.dqi-constraint {
+  border-color: rgba(255, 111, 145, 0.22);
+  background: rgba(255, 111, 145, 0.06);
+}
+
+.trajectory-warning strong,
+.dqi-constraint strong,
+.readiness-recommendation strong,
+.interventions-reasoning p,
+.forecast-cta p {
+  color: var(--ink-0);
+  font-size: 16px;
+  font-weight: 900;
+  line-height: 1.45;
+}
+
+.trajectory-warning p,
+.dqi-constraint p,
+.readiness-recommendation p,
+.rec-impact,
+.forecast-narrative,
+.trait-insights li {
+  color: var(--ink-2);
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.6;
+}
+
+.forecast-chart-container {
+  min-height: 320px;
+  padding: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.075);
+  border-radius: var(--radius-xs);
+  background: rgba(0, 0, 0, 0.18);
+}
+
+.forecast-metrics {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.forecast-metric,
+.metric-column,
+.intervention-card,
+.trait-item {
+  min-width: 0;
+  padding: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius-xs);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(0, 0, 0, 0.18)),
+    rgba(255, 255, 255, 0.018);
+}
+
+.forecast-metric .metric-value {
+  display: block;
+  margin-top: 8px;
+  color: var(--ink-0);
+  font-family: var(--display);
+  font-size: 34px;
+  font-weight: 950;
+  line-height: 1;
+}
+
+.forecast-metric .metric-value.decline {
+  color: var(--coral);
+}
+
+.forecast-metric .metric-value.stable,
+.forecast-metric .metric-value.current {
+  color: var(--cyan);
+}
+
+.forecast-narrative {
+  display: grid;
+  gap: 10px;
+}
+
+.consequence-text {
+  color: var(--ink-0);
+  font-size: 17px;
+  font-weight: 850;
+  line-height: 1.55;
+}
+
+.decay-rate-text,
+.forecast-footnote {
+  color: var(--ink-2);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.interventions-list,
+.intervention-group,
+.interventions-grid {
+  display: grid;
+  gap: 14px;
+}
+
+.interventions-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.intervention-group-title,
+.metric-column-title,
+.trait-insights h4 {
+  color: var(--ink-0);
+  font-size: 18px;
+  font-weight: 950;
+  line-height: 1.2;
+}
+
+.intervention-card {
+  cursor: pointer;
+  transition: border-color 160ms ease, background 160ms ease, transform 160ms ease;
+}
+
+.intervention-card:hover {
+  border-color: rgba(98, 228, 209, 0.25);
+  background:
+    linear-gradient(180deg, rgba(98, 228, 209, 0.06), rgba(0, 0, 0, 0.18)),
+    rgba(255, 255, 255, 0.02);
+  transform: translateY(-1px);
+}
+
+.intervention-card.primary {
+  border-color: rgba(139, 92, 246, 0.2);
+}
+
+.intervention-card.completed {
+  border-color: rgba(115, 240, 191, 0.24);
+}
+
+.intervention-header,
+.intervention-meta,
+.interventions-progress {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.intervention-title {
+  color: var(--ink-0);
+  font-size: 16px;
+  font-weight: 900;
+  line-height: 1.3;
+}
+
+.intervention-impact,
+.intervention-meta-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--cyan);
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.intervention-meta {
+  justify-content: flex-start;
+  margin-top: 10px;
+  flex-wrap: wrap;
+}
+
+.intervention-description,
+.no-interventions {
+  margin-top: 12px;
+  color: var(--ink-2);
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.6;
+}
+
+.intervention-button {
+  margin-top: 12px;
+  min-height: 38px;
+  padding: 0 14px;
+  border: 1px solid rgba(98, 228, 209, 0.24);
+  border-radius: var(--radius-xs);
+  color: var(--ink-0);
+  background: rgba(98, 228, 209, 0.09);
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.interventions-progress {
+  align-items: center;
+  padding: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.075);
+  border-radius: var(--radius-xs);
+  color: var(--ink-2);
+  background: rgba(0, 0, 0, 0.18);
+  font-size: 14px;
+  font-weight: 850;
+}
+
+.progress-bar,
+.breakdown-bar,
+.trait-meter .meter-bar {
+  height: 8px;
+  overflow: hidden;
+  border-radius: var(--radius-pill);
+  background: rgba(255, 255, 255, 0.075);
+}
+
+.interventions-progress .progress-bar {
+  flex: 1 1 220px;
+}
+
+.progress-fill,
+.breakdown-fill,
+.meter-fill {
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--cyan), var(--purple));
+}
+
+.metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.dqi-score-display,
+.readiness-score-display,
+.archetype-banner {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 14px;
+  align-items: center;
+  padding: 14px;
+  border: 1px solid rgba(98, 228, 209, 0.11);
+  border-radius: var(--radius-xs);
+  background: rgba(0, 0, 0, 0.16);
+}
+
+.dqi-score-circle,
+.readiness-score-circle {
+  display: grid;
+  width: 92px;
+  aspect-ratio: 1;
+  place-items: center;
+  border: 1px solid rgba(98, 228, 209, 0.25);
+  border-radius: 50%;
+  background:
+    radial-gradient(circle, rgba(98, 228, 209, 0.11), rgba(139, 92, 246, 0.04) 68%),
+    rgba(0, 0, 0, 0.22);
+}
+
+.dqi-score-number,
+.readiness-score-number {
+  color: var(--ink-0);
+  font-family: var(--display);
+  font-size: 34px;
+  font-weight: 950;
+  line-height: 1;
+}
+
+.dqi-score-max,
+.readiness-score-max {
+  color: var(--ink-3);
+  font-size: 12px;
+  font-weight: 850;
+}
+
+.dqi-band,
+.readiness-band {
+  display: inline-flex;
+  width: fit-content;
+  min-height: 30px;
+  align-items: center;
+  padding: 0 10px;
+  border: 1px solid rgba(98, 228, 209, 0.18);
+  border-radius: var(--radius-pill);
+  color: var(--cyan);
+  background: rgba(98, 228, 209, 0.06);
+  font-size: 12px;
+  font-weight: 950;
+}
+
+.dqi-meaning,
+.readiness-meaning,
+.dqi-narrative,
+.readiness-narrative {
+  margin-top: 10px;
+  color: var(--ink-2);
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.6;
+}
+
+.dqi-breakdown,
+.readiness-breakdown {
+  display: grid;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.breakdown-item {
+  display: grid;
+  grid-template-columns: minmax(120px, 0.6fr) minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: center;
+}
+
+.breakdown-label,
+.breakdown-value {
+  color: var(--ink-2);
+  font-size: 12px;
+  font-weight: 850;
+}
+
+.breakdown-value {
+  color: var(--ink-0);
+}
+
+.trait-matrix-card {
+  color: var(--ink-1);
+}
+
+.archetype-banner {
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+
+.archetype-name strong {
+  display: block;
+  color: var(--ink-0);
+  font-size: 22px;
+  font-weight: 950;
+}
+
+.archetype-name span,
+.score-label {
+  display: block;
+  color: var(--ink-3);
+  font-size: 12px;
+  font-weight: 850;
+  text-transform: uppercase;
+}
+
+.score-value {
+  display: block;
+  margin-top: 4px;
+  color: var(--cyan);
+  font-family: var(--display);
+  font-size: 34px;
+  font-weight: 950;
+  line-height: 1;
+}
+
+.traits-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.trait-header {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 10px;
+  align-items: flex-start;
+}
+
+.trait-icon-wrapper {
+  display: grid;
+  width: 38px;
+  height: 38px;
+  place-items: center;
+  border-radius: var(--radius-xs);
+}
+
+.trait-header h4 {
+  color: var(--ink-0);
+  font-size: 16px;
+  font-weight: 950;
+  line-height: 1.25;
+}
+
+.trait-header p,
+.trait-interpretation {
+  margin-top: 5px;
+  color: var(--ink-2);
+  font-size: 13px;
+  font-weight: 750;
+  line-height: 1.45;
+}
+
+.trait-meter {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: center;
+  margin-top: 14px;
+}
+
+.meter-label {
+  color: var(--ink-0);
+  font-size: 13px;
+  font-weight: 950;
+}
+
+.trait-insights {
+  display: grid;
+}
+
+.trait-insights ul {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding-left: 18px;
+}
+
+.trait-insights strong {
+  color: var(--ink-0);
+}
+
+@media (max-width: 980px) {
+  .forecast-metrics,
+  .interventions-grid,
+  .metrics-grid,
+  .traits-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .breakdown-item {
+    grid-template-columns: 1fr;
+  }
+
+  .dqi-score-display,
+  .readiness-score-display,
+  .archetype-banner {
+    grid-template-columns: 1fr;
+  }
+}
