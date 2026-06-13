@@ -1,6 +1,6 @@
 /**
  * OG Tags Generator
- * 
+ *
  * Generates Open Graph tags for social media preview optimization
  * When a roast is shared on WhatsApp, Twitter, etc., these tags determine
  * the preview card that appears (title, description, image)
@@ -10,12 +10,18 @@ export function generateOGTags(payload) {
   const { score, personality } = payload;
 
   // Extract metadata from payload
-  const emoji = score >= 75 ? '🚀' : score >= 50 ? '⚡' : '🔥';
-  const sentiment = score >= 75 ? 'Crushing It' : score >= 50 ? 'Getting By' : 'In Trouble';
+  const emoji = score >= 75 ? "🚀" : score >= 50 ? "⚡" : "🔥";
+  const sentiment = score >= 75 ? "Crushing It" : score >= 50 ? "Getting By" : "In Trouble";
 
   const title = `My Financial Roast: ${emoji} Score ${score}/100 (${personality})`;
   const description = `I just discovered my financial personality is ${personality}. My health score: ${score}/100. The roast? Brutal. Accurate. Eye-opening. What's yours?`;
-  const keywords = ['financial-health', 'money-management', 'financial-personality', 'roast', personality.toLowerCase()].join(',');
+  const keywords = [
+    "financial-health",
+    "money-management",
+    "financial-personality",
+    "roast",
+    personality.toLowerCase()
+  ].join(",");
 
   // Generate a data URL image (simple colored card with text)
   // In production, this could be a dynamic image service
@@ -28,23 +34,23 @@ export function generateOGTags(payload) {
     keywords,
 
     // Open Graph tags (Facebook, LinkedIn, WhatsApp preview)
-    'og:title': title,
-    'og:description': description,
-    'og:type': 'website',
-    'og:image': imageUrl,
-    'og:image:width': '1200',
-    'og:image:height': '630',
-    'og:locale': 'en_US',
+    "og:title": title,
+    "og:description": description,
+    "og:type": "website",
+    "og:image": imageUrl,
+    "og:image:width": "1200",
+    "og:image:height": "630",
+    "og:locale": "en_US",
 
     // Twitter card tags
-    'twitter:card': 'summary_large_image',
-    'twitter:title': title,
-    'twitter:description': description,
-    'twitter:image': imageUrl,
+    "twitter:card": "summary_large_image",
+    "twitter:title": title,
+    "twitter:description": description,
+    "twitter:image": imageUrl,
 
     // Additional meta tags
-    'theme-color': getThemeColor(score),
-    'color-scheme': 'dark',
+    "theme-color": getThemeColor(score),
+    "color-scheme": "dark"
   };
 }
 
@@ -56,18 +62,18 @@ export function injectOGTags(payload) {
   const tags = generateOGTags(payload);
 
   Object.entries(tags).forEach(([key, value]) => {
-    if (key === 'title') {
+    if (key === "title") {
       document.title = value;
     } else {
       const metaTag = document.querySelector(`meta[property="${key}"], meta[name="${key}"]`);
-      const tagName = key.startsWith('og:') || key.startsWith('twitter:') ? 'property' : 'name';
+      const tagName = key.startsWith("og:") || key.startsWith("twitter:") ? "property" : "name";
 
       if (metaTag) {
-        metaTag.setAttribute('content', value);
+        metaTag.setAttribute("content", value);
       } else {
-        const newMeta = document.createElement('meta');
+        const newMeta = document.createElement("meta");
         newMeta.setAttribute(tagName, key);
-        newMeta.setAttribute('content', value);
+        newMeta.setAttribute("content", value);
         document.head.appendChild(newMeta);
       }
     }
@@ -77,8 +83,8 @@ export function injectOGTags(payload) {
   const canonicalUrl = window.location.href;
   let canonical = document.querySelector('link[rel="canonical"]');
   if (!canonical) {
-    canonical = document.createElement('link');
-    canonical.rel = 'canonical';
+    canonical = document.createElement("link");
+    canonical.rel = "canonical";
     document.head.appendChild(canonical);
   }
   canonical.href = canonicalUrl;
@@ -92,10 +98,15 @@ function generateSocialImage(score, personality) {
   // For MVP, return a placeholder URL
   // In production, would call an image generation service
   // e.g., `https://og-image-service.com/roast/${score}/${personality}`
-  
+
   // For now, return a gradient-based data URL
-  const emoji = score >= 75 ? '🚀' : score >= 50 ? '⚡' : '🔥';
-  const bgColor = score >= 75 ? 'from-green-600 to-emerald-600' : score >= 50 ? 'from-yellow-600 to-orange-600' : 'from-red-600 to-orange-600';
+  const emoji = score >= 75 ? "🚀" : score >= 50 ? "⚡" : "🔥";
+  const bgColor =
+    score >= 75
+      ? "from-green-600 to-emerald-600"
+      : score >= 50
+        ? "from-yellow-600 to-orange-600"
+        : "from-red-600 to-orange-600";
 
   // Return a simple gradient card representation
   // This would be replaced by actual image generation in production
@@ -106,9 +117,13 @@ function generateSocialImage(score, personality) {
  * Get theme color based on score
  */
 function getThemeColor(score) {
-  if (score >= 75) return '#10b981'; // emerald
-  if (score >= 50) return '#f59e0b'; // amber
-  return '#ef4444'; // red
+  if (score >= 75) {
+    return "#10b981";
+  } // emerald
+  if (score >= 50) {
+    return "#f59e0b";
+  } // amber
+  return "#ef4444"; // red
 }
 
 /**
@@ -125,15 +140,15 @@ export function generateHTMLPreview(payload) {
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>${tags.title}</title>
   <meta name="description" content="${tags.description}">
-  <meta property="og:title" content="${tags['og:title']}">
-  <meta property="og:description" content="${tags['og:description']}">
+  <meta property="og:title" content="${tags["og:title"]}">
+  <meta property="og:description" content="${tags["og:description"]}">
   <meta property="og:type" content="website">
-  <meta property="og:image" content="${tags['og:image']}">
+  <meta property="og:image" content="${tags["og:image"]}">
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="${tags['twitter:title']}">
-  <meta name="twitter:description" content="${tags['twitter:description']}">
-  <meta name="twitter:image" content="${tags['twitter:image']}">
-  <meta name="theme-color" content="${tags['theme-color']}">
+  <meta name="twitter:title" content="${tags["twitter:title"]}">
+  <meta name="twitter:description" content="${tags["twitter:description"]}">
+  <meta name="twitter:image" content="${tags["twitter:image"]}">
+  <meta name="theme-color" content="${tags["theme-color"]}">
   <link rel="canonical" href="${window.location.href}">
   <style>
     body {

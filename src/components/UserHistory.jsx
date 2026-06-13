@@ -10,12 +10,9 @@ import {
   YAxis,
   CartesianGrid,
   Tooltip,
-  ResponsiveContainer,
+  ResponsiveContainer
 } from "recharts";
-import {
-  getScoreProgression,
-  getProgressSummary,
-} from "../engines/financialMemoryEngine.js";
+import { getScoreProgression, getProgressSummary } from "../engines/financialMemoryEngine.js";
 
 export default function UserHistory({ currentScore, personalityType, className }) {
   const [history, setHistory] = useState([]);
@@ -38,16 +35,14 @@ export default function UserHistory({ currentScore, personalityType, className }
     if (currentScore !== undefined && currentScore !== null) {
       try {
         const today = new Date().toISOString().split("T")[0]; // YYYY-MM-DD
-        
+
         // Check if we already have a score for today
         const todayEntry = history.find(h => h.date === today);
-        
+
         let updated;
         if (todayEntry) {
           // Update today's entry
-          updated = history.map(h => 
-            h.date === today ? { ...h, score: currentScore } : h
-          );
+          updated = history.map(h => (h.date === today ? { ...h, score: currentScore } : h));
         } else {
           // Add new entry
           updated = [...history, { date: today, score: currentScore }];
@@ -64,21 +59,23 @@ export default function UserHistory({ currentScore, personalityType, className }
   // Filter history by timespan
   const filteredHistory = getScoreProgression(history, timespan);
   const progressSummary = getProgressSummary(filteredHistory);
-  
+
   // Calculate statistics
   const getStats = () => {
-    if (!filteredHistory.length) return { avg: 0, min: 0, max: 0, trend: 0 };
-    
+    if (!filteredHistory.length) {
+      return { avg: 0, min: 0, max: 0, trend: 0 };
+    }
+
     const scores = filteredHistory.map(h => h.score);
     const avg = Math.round(scores.reduce((a, b) => a + b, 0) / scores.length);
     const min = Math.min(...scores);
     const max = Math.max(...scores);
-    
+
     // Trend: compare first to last
     const first = scores[0];
     const last = scores[scores.length - 1];
     const trend = last - first;
-    
+
     return { avg, min, max, trend };
   };
 
@@ -100,13 +97,19 @@ export default function UserHistory({ currentScore, personalityType, className }
         <>
           {/* Timespan selector */}
           <div className="history-timespan-tabs">
-            {["week", "month", "quarter", "all"].map((span) => (
+            {["week", "month", "quarter", "all"].map(span => (
               <button
                 key={span}
                 className={`timespan-tab ${timespan === span ? "active" : ""}`}
                 onClick={() => setTimespan(span)}
               >
-                {span === "week" ? "7D" : span === "month" ? "30D" : span === "quarter" ? "90D" : "All"}
+                {span === "week"
+                  ? "7D"
+                  : span === "month"
+                    ? "30D"
+                    : span === "quarter"
+                      ? "90D"
+                      : "All"}
               </button>
             ))}
           </div>
@@ -133,7 +136,9 @@ export default function UserHistory({ currentScore, personalityType, className }
 
           {/* Trend indicator */}
           {hasTrend && (
-            <div className={`history-trend ${progressSummary.improvement > 0 ? "positive" : "negative"}`}>
+            <div
+              className={`history-trend ${progressSummary.improvement > 0 ? "positive" : "negative"}`}
+            >
               <TrendingUp size={16} />
               <span>
                 {progressSummary.periodLabel} since {progressSummary.startDate}
@@ -143,7 +148,8 @@ export default function UserHistory({ currentScore, personalityType, className }
 
           <div className="history-summary-note">
             <p>
-              {progressSummary.periodLabel}. Your score moved from {filteredHistory[0]?.score || 0} to {filteredHistory[filteredHistory.length - 1]?.score || 0}.
+              {progressSummary.periodLabel}. Your score moved from {filteredHistory[0]?.score || 0}{" "}
+              to {filteredHistory[filteredHistory.length - 1]?.score || 0}.
             </p>
           </div>
 
@@ -155,24 +161,22 @@ export default function UserHistory({ currentScore, personalityType, className }
                   <CartesianGrid strokeDasharray="3 3" stroke="var(--black-10)" />
                   <XAxis
                     dataKey="date"
-                    tickFormatter={(date) =>
+                    tickFormatter={date =>
                       new Date(date).toLocaleDateString("en-IN", {
                         month: "short",
-                        day: "numeric",
+                        day: "numeric"
                       })
                     }
                     tick={{ fontSize: 12 }}
                   />
                   <YAxis domain={[0, 100]} tick={{ fontSize: 12 }} />
                   <Tooltip
-                    formatter={(value) => [Math.round(value), "Score"]}
-                    labelFormatter={(date) =>
-                      new Date(date).toLocaleDateString("en-IN")
-                    }
+                    formatter={value => [Math.round(value), "Score"]}
+                    labelFormatter={date => new Date(date).toLocaleDateString("en-IN")}
                     contentStyle={{
                       backgroundColor: "var(--white-95)",
                       border: "1px solid var(--gray-100)",
-                      borderRadius: "6px",
+                      borderRadius: "6px"
                     }}
                   />
                   <Line
@@ -194,22 +198,31 @@ export default function UserHistory({ currentScore, personalityType, className }
               <span className="timeline-label">Score Timeline</span>
               <span className="timeline-count">{filteredHistory.length} assessments</span>
             </div>
-            
+
             <div className="timeline-bars">
               {filteredHistory.map((entry, idx) => {
                 const isLatest = idx === filteredHistory.length - 1;
                 const maxScore = Math.max(...filteredHistory.map(h => h.score), 100);
                 const barHeight = (entry.score / maxScore) * 100;
-                
+
                 return (
-                  <div key={entry.date} className="timeline-bar-wrapper" title={`${entry.date}: ${entry.score}`}>
+                  <div
+                    key={entry.date}
+                    className="timeline-bar-wrapper"
+                    title={`${entry.date}: ${entry.score}`}
+                  >
                     <div
                       className={`timeline-bar ${isLatest ? "latest" : ""}`}
                       style={{ height: `${barHeight}%` }}
                     >
                       <span className="bar-score">{entry.score}</span>
                     </div>
-                    <span className="bar-date">{new Date(entry.date).toLocaleDateString("en-IN", { month: "short", day: "numeric" })}</span>
+                    <span className="bar-date">
+                      {new Date(entry.date).toLocaleDateString("en-IN", {
+                        month: "short",
+                        day: "numeric"
+                      })}
+                    </span>
                   </div>
                 );
               })}
@@ -220,12 +233,17 @@ export default function UserHistory({ currentScore, personalityType, className }
           <div className="history-recent">
             <span className="recent-label">Recent Scores</span>
             <div className="recent-list">
-              {filteredHistory.slice(-5).reverse().map((entry) => (
-                <div key={entry.date} className="recent-item">
-                  <span className="recent-date">{new Date(entry.date).toLocaleDateString("en-IN")}</span>
-                  <span className="recent-score">{entry.score}</span>
-                </div>
-              ))}
+              {filteredHistory
+                .slice(-5)
+                .reverse()
+                .map(entry => (
+                  <div key={entry.date} className="recent-item">
+                    <span className="recent-date">
+                      {new Date(entry.date).toLocaleDateString("en-IN")}
+                    </span>
+                    <span className="recent-score">{entry.score}</span>
+                  </div>
+                ))}
             </div>
           </div>
         </>

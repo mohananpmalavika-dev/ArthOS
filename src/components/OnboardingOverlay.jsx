@@ -1,5 +1,15 @@
 import React, { useState } from "react";
-import { Activity, BarChart3, ShieldCheck, Sparkles, Download, ChevronDown, Lock, Clock, AlertCircle } from "lucide-react";
+import {
+  Activity,
+  BarChart3,
+  ShieldCheck,
+  Sparkles,
+  Download,
+  ChevronDown,
+  Lock,
+  Clock,
+  AlertCircle
+} from "lucide-react";
 
 export default function OnboardingOverlay({ onComplete }) {
   const [expandedStep, setExpandedStep] = useState(null);
@@ -12,7 +22,8 @@ export default function OnboardingOverlay({ onComplete }) {
       duration: "~1 min",
       icon: Activity,
       description: "Tell us about yourself",
-      details: "We'll collect your name, age, and email. This helps personalize your experience and allows us to send you insights.",
+      details:
+        "We'll collect your name, age, and email. This helps personalize your experience and allows us to send you insights."
     },
     {
       id: "behaviour",
@@ -20,7 +31,8 @@ export default function OnboardingOverlay({ onComplete }) {
       duration: "~4 mins",
       icon: BarChart3,
       description: "Your spending & impulse patterns",
-      details: "We ask about your spending habits, impulse control, and how you respond to financial stress. These behavioral insights reveal your financial decision-making patterns.",
+      details:
+        "We ask about your spending habits, impulse control, and how you respond to financial stress. These behavioral insights reveal your financial decision-making patterns."
     },
     {
       id: "awareness",
@@ -28,7 +40,8 @@ export default function OnboardingOverlay({ onComplete }) {
       duration: "~3 mins",
       icon: ShieldCheck,
       description: "Financial knowledge & tracking",
-      details: "Understand your financial literacy level and how well you track your money. Awareness is the foundation of financial control.",
+      details:
+        "Understand your financial literacy level and how well you track your money. Awareness is the foundation of financial control."
     },
     {
       id: "profile",
@@ -36,7 +49,8 @@ export default function OnboardingOverlay({ onComplete }) {
       duration: "~4 mins",
       icon: Download,
       description: "Income, expenses, savings, debt",
-      details: "Enter your monthly income, expenses, savings, emergency fund, debt levels, and dependents. All numbers stay secure—we never store personal details.",
+      details:
+        "Enter your monthly income, expenses, savings, emergency fund, debt levels, and dependents. All numbers stay secure—we never store personal details."
     },
     {
       id: "summary",
@@ -44,30 +58,39 @@ export default function OnboardingOverlay({ onComplete }) {
       duration: "~3 mins",
       icon: Sparkles,
       description: "Health score & recommendations",
-      details: "Get your personalized health score, see blindspot analysis, and receive tailored action recommendations.",
-    },
+      details:
+        "Get your personalized health score, see blindspot analysis, and receive tailored action recommendations."
+    }
   ];
 
   const privacyGuarantees = [
     {
       icon: Lock,
       title: "Zero PII Stored",
-      description: "We only store numeric scores, ratios, and dates. Never names, emails, or account details.",
+      description:
+        "We only store numeric scores, ratios, and dates. Never names, emails, or account details."
     },
     {
       icon: ShieldCheck,
       title: "Local-First Design",
-      description: "Your assessment data is saved in your browser first. Optional cloud sync only with your consent.",
+      description:
+        "Your assessment data is saved in your browser first. Optional cloud sync only with your consent."
     },
     {
       icon: AlertCircle,
       title: "Anonymous Telemetry",
-      description: "Usage data sent to improve ARTH.OS contains only scores and timestamps, no identifiable info.",
-    },
+      description:
+        "Usage data sent to improve ARTH.OS contains only scores and timestamps, no identifiable info."
+    }
   ];
 
   return (
-    <div className="onboarding-overlay" role="dialog" aria-modal="true" aria-labelledby="onboarding-title">
+    <div
+      className="onboarding-overlay"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="onboarding-title"
+    >
       <div className="onboarding-card">
         <div className="onboarding-header">
           <div className="onboarding-icon">
@@ -85,7 +108,7 @@ export default function OnboardingOverlay({ onComplete }) {
             <Clock size={16} /> What's included in this assessment
           </h3>
           <div className="onboarding-steps">
-            {assessmentSteps.map((step) => {
+            {assessmentSteps.map(step => {
               const Icon = step.icon;
               const isExpanded = expandedStep === step.id;
               return (
@@ -111,7 +134,11 @@ export default function OnboardingOverlay({ onComplete }) {
                     <p className="step-description">{step.description}</p>
                   </button>
                   {isExpanded && (
-                    <div className="step-details" role="region" aria-label={`Details for ${step.title}`}>
+                    <div
+                      className="step-details"
+                      role="region"
+                      aria-label={`Details for ${step.title}`}
+                    >
                       {step.details}
                     </div>
                   )}
@@ -151,8 +178,9 @@ export default function OnboardingOverlay({ onComplete }) {
               })}
               <div className="privacy-note">
                 <p>
-                  <strong>Your data is yours.</strong> We respect your privacy and give you full control over what gets saved. 
-                  See our Privacy Policy for details on retention, deletion, and data portability.
+                  <strong>Your data is yours.</strong> We respect your privacy and give you full
+                  control over what gets saved. See our Privacy Policy for details on retention,
+                  deletion, and data portability.
                 </p>
               </div>
             </div>

@@ -1,12 +1,12 @@
 /**
  * Assessment Usage Tracker
  * Tracks assessment count per month to enforce tier-based limits
- * 
+ *
  * Free tier: 1x/month
  * Plus+: Unlimited
  */
 
-const STORAGE_KEY = 'arth_assessment_usage';
+const STORAGE_KEY = "arth_assessment_usage";
 
 /**
  * @typedef {Object} AssessmentUsage
@@ -21,7 +21,7 @@ const STORAGE_KEY = 'arth_assessment_usage';
 function getCurrentMonth() {
   const now = new Date();
   const year = now.getFullYear();
-  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const month = String(now.getMonth() + 1).padStart(2, "0");
   return `${year}-${month}`;
 }
 
@@ -30,19 +30,23 @@ function getCurrentMonth() {
  */
 export function getMonthlyUsage() {
   try {
-    if (typeof window === 'undefined') return null;
+    if (typeof window === "undefined") {
+      return null;
+    }
 
     const data = localStorage.getItem(STORAGE_KEY);
-    if (!data) return null;
+    if (!data) {
+      return null;
+    }
 
     const usage = JSON.parse(data);
     const currentMonth = getCurrentMonth();
 
     // Find current month's usage
-    const monthlyUsage = usage.find((u) => u.month === currentMonth);
+    const monthlyUsage = usage.find(u => u.month === currentMonth);
     return monthlyUsage || { month: currentMonth, count: 0, dates: [] };
   } catch (error) {
-    console.error('Error reading assessment usage:', error);
+    console.error("Error reading assessment usage:", error);
     return null;
   }
 }
@@ -52,7 +56,9 @@ export function getMonthlyUsage() {
  */
 export function recordAssessment() {
   try {
-    if (typeof window === 'undefined') return false;
+    if (typeof window === "undefined") {
+      return false;
+    }
 
     const currentMonth = getCurrentMonth();
     let usageHistory = [];
@@ -64,7 +70,7 @@ export function recordAssessment() {
     }
 
     // Find or create current month entry
-    let monthEntry = usageHistory.find((u) => u.month === currentMonth);
+    let monthEntry = usageHistory.find(u => u.month === currentMonth);
     if (!monthEntry) {
       monthEntry = { month: currentMonth, count: 0, dates: [] };
       usageHistory.push(monthEntry);
@@ -81,7 +87,7 @@ export function recordAssessment() {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(usageHistory));
     return true;
   } catch (error) {
-    console.error('Error recording assessment:', error);
+    console.error("Error recording assessment:", error);
     return false;
   }
 }
@@ -89,12 +95,16 @@ export function recordAssessment() {
 /**
  * Check if user can take another assessment (for free tier)
  */
-export function canTakeAnotherAssessment(tier = 'free') {
+export function canTakeAnotherAssessment(tier = "free") {
   // Plus and above have unlimited assessments
-  if (tier !== 'free') return true;
+  if (tier !== "free") {
+    return true;
+  }
 
   const usage = getMonthlyUsage();
-  if (!usage) return true; // Default to allowing if no data
+  if (!usage) {
+    return true;
+  } // Default to allowing if no data
 
   // Free tier: max 1 per month
   return usage.count < 1;
@@ -103,11 +113,15 @@ export function canTakeAnotherAssessment(tier = 'free') {
 /**
  * Get remaining assessments for this month
  */
-export function getRemainingAssessments(tier = 'free') {
-  if (tier !== 'free') return null; // Unlimited
+export function getRemainingAssessments(tier = "free") {
+  if (tier !== "free") {
+    return null;
+  } // Unlimited
 
   const usage = getMonthlyUsage();
-  if (!usage) return 1;
+  if (!usage) {
+    return 1;
+  }
 
   const limit = 1;
   return Math.max(0, limit - usage.count);
@@ -118,7 +132,9 @@ export function getRemainingAssessments(tier = 'free') {
  */
 export function getLastAssessmentDate() {
   const usage = getMonthlyUsage();
-  if (!usage || usage.dates.length === 0) return null;
+  if (!usage || usage.dates.length === 0) {
+    return null;
+  }
 
   return new Date(usage.dates[usage.dates.length - 1]);
 }
@@ -127,7 +143,9 @@ export function getLastAssessmentDate() {
  * Clear assessment data (for testing)
  */
 export function clearAssessmentData() {
-  if (typeof window === 'undefined') return;
+  if (typeof window === "undefined") {
+    return;
+  }
   localStorage.removeItem(STORAGE_KEY);
 }
 
@@ -137,5 +155,5 @@ export default {
   canTakeAnotherAssessment,
   getRemainingAssessments,
   getLastAssessmentDate,
-  clearAssessmentData,
+  clearAssessmentData
 };

@@ -1,5 +1,9 @@
 import React, { useMemo } from "react";
-import { generatePeerDistribution, getPeerSummary, getPercentileEmoji } from "../engines/peerComparisonEngine.js";
+import {
+  generatePeerDistribution,
+  getPeerSummary,
+  getPercentileEmoji
+} from "../engines/peerComparisonEngine.js";
 import { BarChart, Bar, XAxis, ResponsiveContainer, YAxis, Tooltip, Cell } from "recharts";
 import { Users } from "lucide-react";
 
@@ -9,7 +13,9 @@ import { Users } from "lucide-react";
  */
 export default function PeerComparisonCard({ userScore }) {
   const peerData = useMemo(() => {
-    if (userScore == null || userScore <= 0) return null;
+    if (userScore == null || userScore <= 0) {
+      return null;
+    }
     return generatePeerDistribution(userScore);
   }, [userScore]);
 
@@ -62,9 +68,9 @@ export default function PeerComparisonCard({ userScore }) {
                 background: "var(--surface-2)",
                 border: "1px solid var(--border)",
                 borderRadius: 8,
-                fontSize: 12,
+                fontSize: 12
               }}
-              formatter={(value) => [`${value} users`, "Count"]}
+              formatter={value => [`${value} users`, "Count"]}
             />
             <Bar dataKey="count" radius={[4, 4, 0, 0]}>
               {buckets.map((entry, index) => {

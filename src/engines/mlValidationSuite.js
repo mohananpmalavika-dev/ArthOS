@@ -18,8 +18,8 @@ import {
   calculateMetrics,
   calculateR2,
   calculateRMSE,
-  calculateMAE,
-} from './mlIntegration.js';
+  calculateMAE
+} from "./mlIntegration.js";
 
 /**
  * Generate synthetic training datasets matching real user patterns
@@ -36,7 +36,7 @@ class DatasetGenerator {
       impulseRisk: [],
       savingsConsistency: [],
       stressSpending: [],
-      archetypeType: [],
+      archetypeType: []
     };
 
     for (let i = 0; i < size; i++) {
@@ -53,9 +53,13 @@ class DatasetGenerator {
       y.savingsConsistency.push(savingsRate > 0.2 ? 1 : 0);
       y.stressSpending.push(stressLevel > 70 && impulseBias > 50 ? 1 : 0);
       y.archetypeType.push(
-        savingsRate > 0.3 ? 'saver' :
-        impulseBias > 70 ? 'spender' :
-        stressLevel > 60 ? 'avoider' : 'planner'
+        savingsRate > 0.3
+          ? "saver"
+          : impulseBias > 70
+            ? "spender"
+            : stressLevel > 60
+              ? "avoider"
+              : "planner"
       );
     }
 
@@ -78,7 +82,13 @@ class DatasetGenerator {
       const sessionDuration = Math.random() * 60;
       const actionCompletion = Math.random();
 
-      X.push([daysSinceSignup, assessmentCount, lastEngagementDays, sessionDuration, actionCompletion]);
+      X.push([
+        daysSinceSignup,
+        assessmentCount,
+        lastEngagementDays,
+        sessionDuration,
+        actionCompletion
+      ]);
 
       // Churn probability: low engagement + high days since activity = likely churn
       const churnProba = (lastEngagementDays / 90) * 0.7 + (1 - actionCompletion) * 0.3;
@@ -99,13 +109,13 @@ class DatasetGenerator {
     // Cluster 1: Savers (low spend, high savings)
     for (let i = 0; i < size / 3; i++) {
       X.push([
-        5000 + Math.random() * 2000,  // income
-        2000 + Math.random() * 1000,  // expense
-        0.5 + Math.random() * 0.3,    // savings rate
-        20 + Math.random() * 20,      // impulse bias (low)
-        30 + Math.random() * 20,      // risk aversion (high)
+        5000 + Math.random() * 2000, // income
+        2000 + Math.random() * 1000, // expense
+        0.5 + Math.random() * 0.3, // savings rate
+        20 + Math.random() * 20, // impulse bias (low)
+        30 + Math.random() * 20 // risk aversion (high)
       ]);
-      y.push('saver');
+      y.push("saver");
     }
 
     // Cluster 2: Spenders (high spend, low savings)
@@ -115,9 +125,9 @@ class DatasetGenerator {
         3000 + Math.random() * 1500,
         0.1 + Math.random() * 0.2,
         70 + Math.random() * 25,
-        40 + Math.random() * 20,
+        40 + Math.random() * 20
       ]);
-      y.push('spender');
+      y.push("spender");
     }
 
     // Cluster 3: Planners (moderate spend, consistent behavior)
@@ -127,9 +137,9 @@ class DatasetGenerator {
         2500 + Math.random() * 1000,
         0.3 + Math.random() * 0.2,
         40 + Math.random() * 25,
-        50 + Math.random() * 20,
+        50 + Math.random() * 20
       ]);
-      y.push('planner');
+      y.push("planner");
     }
 
     return { X, y };
@@ -145,7 +155,7 @@ class DatasetGenerator {
     const y = {
       runwayMonths: [],
       goalAchievementProba: [],
-      portfolioGrowthRate: [],
+      portfolioGrowthRate: []
     };
 
     for (let i = 0; i < size; i++) {
@@ -158,8 +168,8 @@ class DatasetGenerator {
       X.push([income, expenses, savings, investmentRate, riskProfile]);
 
       // Calculate outcomes
-      const runway = savings > 0 ? (income * 3) / (expenses) : 3;
-      const goalAchievement = (investmentRate * 0.5 + (riskProfile / 100) * 0.5);
+      const runway = savings > 0 ? (income * 3) / expenses : 3;
+      const goalAchievement = investmentRate * 0.5 + (riskProfile / 100) * 0.5;
       const portfolioGrowth = investmentRate * (0.05 + (riskProfile / 100) * 0.1);
 
       y.runwayMonths.push(Math.min(runway, 60));
@@ -179,19 +189,27 @@ class MetricsCalculator {
    * Classification metrics: accuracy, precision, recall, F1
    */
   static classificationMetrics(yTrue, yPred) {
-    let tp = 0, fp = 0, tn = 0, fn = 0;
+    let tp = 0,
+      fp = 0,
+      tn = 0,
+      fn = 0;
 
     for (let i = 0; i < yTrue.length; i++) {
-      if (yTrue[i] === 1 && yPred[i] === 1) tp++;
-      else if (yTrue[i] === 1 && yPred[i] === 0) fn++;
-      else if (yTrue[i] === 0 && yPred[i] === 1) fp++;
-      else tn++;
+      if (yTrue[i] === 1 && yPred[i] === 1) {
+        tp++;
+      } else if (yTrue[i] === 1 && yPred[i] === 0) {
+        fn++;
+      } else if (yTrue[i] === 0 && yPred[i] === 1) {
+        fp++;
+      } else {
+        tn++;
+      }
     }
 
     const accuracy = (tp + tn) / (tp + tn + fp + fn);
     const precision = tp / (tp + fp) || 0;
     const recall = tp / (tp + fn) || 0;
-    const f1 = 2 * (precision * recall) / (precision + recall) || 0;
+    const f1 = (2 * (precision * recall)) / (precision + recall) || 0;
 
     return { accuracy, precision, recall, f1, tp, tn, fp, fn };
   }
@@ -208,7 +226,7 @@ class MetricsCalculator {
     const yMean = yTrue.reduce((a, b) => a + b, 0) / yTrue.length;
     const ssTotal = yTrue.reduce((sum, y) => sum + Math.pow(y - yMean, 2), 0);
     const ssRes = yTrue.reduce((sum, y, i) => sum + Math.pow(y - yPred[i], 2), 0);
-    const r2 = 1 - (ssRes / ssTotal);
+    const r2 = 1 - ssRes / ssTotal;
 
     return { r2, rmse, mae, mse };
   }
@@ -224,7 +242,7 @@ class MetricsCalculator {
     let silhouetteSum = 0;
     for (let i = 0; i < n; i++) {
       const label = labels[i];
-      
+
       // Distance to same cluster (within-cluster)
       let withinDistance = 0;
       let withinCount = 0;
@@ -272,14 +290,14 @@ export class MLValidator {
    * Validate behavior prediction models
    */
   async validateBehaviorModels() {
-    console.log('🔬 Validating Behavior Prediction Models...');
+    console.log("🔬 Validating Behavior Prediction Models...");
     const { X, y } = DatasetGenerator.generateBehaviorDataset(200);
 
     const results = {
       impulseSpending: [],
       savingsConsistency: [],
       stressSpending: [],
-      archetypeEvolution: [],
+      archetypeEvolution: []
     };
 
     // Test impulse spending prediction
@@ -287,11 +305,11 @@ export class MLValidator {
       try {
         const pred = predictImpulseSpendingRisk({
           impulseBias: x[3],
-          spendingPattern: x[1] / x[0],
+          spendingPattern: x[1] / x[0]
         });
         return pred > 0.5 ? 1 : 0;
       } catch (e) {
-        console.error('Impulse prediction error:', e.message);
+        console.error("Impulse prediction error:", e.message);
         return 0;
       }
     });
@@ -304,7 +322,7 @@ export class MLValidator {
       try {
         const pred = predictSavingsConsistency({
           savingsRate: x[2],
-          historicalVariance: Math.random() * 0.2,
+          historicalVariance: Math.random() * 0.2
         });
         return pred > 0.5 ? 1 : 0;
       } catch (e) {
@@ -312,7 +330,10 @@ export class MLValidator {
       }
     });
 
-    const savingsMetrics = MetricsCalculator.classificationMetrics(y.savingsConsistency, savingsPreds);
+    const savingsMetrics = MetricsCalculator.classificationMetrics(
+      y.savingsConsistency,
+      savingsPreds
+    );
     results.savingsConsistency = savingsMetrics;
 
     // Test stress spending
@@ -320,7 +341,7 @@ export class MLValidator {
       try {
         const pred = predictStressSpending({
           stressLevel: x[4],
-          impulseBias: x[3],
+          impulseBias: x[3]
         });
         return pred > 0.5 ? 1 : 0;
       } catch (e) {
@@ -339,7 +360,7 @@ export class MLValidator {
    * Validate churn prediction models
    */
   async validateChurnModels() {
-    console.log('🔬 Validating Churn Prediction Models...');
+    console.log("🔬 Validating Churn Prediction Models...");
     const { X, y } = DatasetGenerator.generateChurnDataset(200);
 
     const churnPreds = X.map(x => {
@@ -349,11 +370,11 @@ export class MLValidator {
           assessmentCount: x[1],
           lastEngagementDays: x[2],
           sessionDuration: x[3],
-          actionCompletion: x[4],
+          actionCompletion: x[4]
         });
         return pred > 0.5 ? 1 : 0;
       } catch (e) {
-        console.error('Churn prediction error:', e.message);
+        console.error("Churn prediction error:", e.message);
         return 0;
       }
     });
@@ -367,30 +388,39 @@ export class MLValidator {
    * Validate clustering models
    */
   async validateClusteringModels() {
-    console.log('🔬 Validating Clustering Models...');
+    console.log("🔬 Validating Clustering Models...");
     const { X, y } = DatasetGenerator.generateClusteringDataset(200);
 
     const clusterResults = X.map((x, i) => {
       try {
-        return clusterUser({
-          monthlyIncome: x[0],
-          monthlyExpense: x[1],
-          savingsRate: x[2],
-          impulseBias: x[3],
-          riskAversion: x[4],
-        }, {});
+        return clusterUser(
+          {
+            monthlyIncome: x[0],
+            monthlyExpense: x[1],
+            savingsRate: x[2],
+            impulseBias: x[3],
+            riskAversion: x[4]
+          },
+          {}
+        );
       } catch (e) {
-        return { cluster: 'unknown' };
+        return { cluster: "unknown" };
       }
     });
 
     // Calculate accuracy (% correctly clustered)
     const correct = clusterResults.filter((res, i) => {
-      const predicted = res.cluster?.name || 'unknown';
-      const mapped = predicted === y[i] ? true :
-                     (predicted === 'high_savings' && y[i] === 'saver') ? true :
-                     (predicted === 'high_spending' && y[i] === 'spender') ? true :
-                     (predicted === 'moderate' && y[i] === 'planner') ? true : false;
+      const predicted = res.cluster?.name || "unknown";
+      const mapped =
+        predicted === y[i]
+          ? true
+          : predicted === "high_savings" && y[i] === "saver"
+            ? true
+            : predicted === "high_spending" && y[i] === "spender"
+              ? true
+              : predicted === "moderate" && y[i] === "planner"
+                ? true
+                : false;
       return mapped;
     }).length;
 
@@ -399,7 +429,7 @@ export class MLValidator {
     this.results.clusteringModels = {
       accuracy,
       samplesCorrect: correct,
-      totalSamples: X.length,
+      totalSamples: X.length
     };
 
     return this.results.clusteringModels;
@@ -409,7 +439,7 @@ export class MLValidator {
    * Validate financial outcome models
    */
   async validateFinancialOutcomeModels() {
-    console.log('🔬 Validating Financial Outcome Models...');
+    console.log("🔬 Validating Financial Outcome Models...");
     const { X, y } = DatasetGenerator.generateFinancialOutcomeDataset(200);
 
     // Test runway prediction
@@ -418,7 +448,7 @@ export class MLValidator {
         return predictRunwayDepletionRisk({
           income: x[0],
           expenses: x[1],
-          savings: x[2],
+          savings: x[2]
         });
       } catch (e) {
         return 12;
@@ -430,12 +460,14 @@ export class MLValidator {
     // Test goal achievement prediction
     const goalPreds = X.map(x => {
       try {
-        return predictGoalAchievement({
-          monthlyIncome: x[0],
-          savingsRate: x[3],
-          investmentProfile: x[4],
-          timeHorizon: 36,
-        }) / 100;
+        return (
+          predictGoalAchievement({
+            monthlyIncome: x[0],
+            savingsRate: x[3],
+            investmentProfile: x[4],
+            timeHorizon: 36
+          }) / 100
+        );
       } catch (e) {
         return 0.5;
       }
@@ -445,7 +477,7 @@ export class MLValidator {
 
     this.results.financialOutcomeModels = {
       runway: runwayMetrics,
-      goalAchievement: goalMetrics,
+      goalAchievement: goalMetrics
     };
 
     return this.results.financialOutcomeModels;
@@ -455,9 +487,9 @@ export class MLValidator {
    * Run full validation suite
    */
   async runFullValidation() {
-    console.log('\n═══════════════════════════════════════');
-    console.log('🚀 ML VALIDATION SUITE - Starting...');
-    console.log('═══════════════════════════════════════\n');
+    console.log("\n═══════════════════════════════════════");
+    console.log("🚀 ML VALIDATION SUITE - Starting...");
+    console.log("═══════════════════════════════════════\n");
 
     const startTime = Date.now();
 
@@ -469,14 +501,14 @@ export class MLValidator {
 
       const duration = (Date.now() - startTime) / 1000;
 
-      console.log('\n═══════════════════════════════════════');
-      console.log('✅ VALIDATION COMPLETE');
-      console.log('═══════════════════════════════════════');
+      console.log("\n═══════════════════════════════════════");
+      console.log("✅ VALIDATION COMPLETE");
+      console.log("═══════════════════════════════════════");
       console.log(`Duration: ${duration.toFixed(2)}s\n`);
 
       return this.generateReport();
     } catch (error) {
-      console.error('❌ Validation failed:', error);
+      console.error("❌ Validation failed:", error);
       throw error;
     }
   }
@@ -493,11 +525,11 @@ export class MLValidator {
           behaviorPrediction: 4,
           churnPrediction: 1,
           clustering: 1,
-          financialOutcomes: 2,
-        },
+          financialOutcomes: 2
+        }
       },
       results: this.results,
-      interpretations: this.interpretResults(),
+      interpretations: this.interpretResults()
     };
   }
 
@@ -509,47 +541,51 @@ export class MLValidator {
 
     // Behavior Models
     if (this.results.behaviorModels) {
-      const avg = (this.results.behaviorModels.impulseSpending.f1 +
-                   this.results.behaviorModels.savingsConsistency.f1 +
-                   this.results.behaviorModels.stressSpending.f1) / 3;
+      const avg =
+        (this.results.behaviorModels.impulseSpending.f1 +
+          this.results.behaviorModels.savingsConsistency.f1 +
+          this.results.behaviorModels.stressSpending.f1) /
+        3;
       interpretations.push({
-        component: 'Behavior Prediction',
+        component: "Behavior Prediction",
         avgF1Score: avg.toFixed(3),
-        status: avg > 0.7 ? '✅ PASS' : '⚠️ NEEDS TUNING',
-        note: `Average F1 score of ${(avg * 100).toFixed(1)}% across 3 behavior models`,
+        status: avg > 0.7 ? "✅ PASS" : "⚠️ NEEDS TUNING",
+        note: `Average F1 score of ${(avg * 100).toFixed(1)}% across 3 behavior models`
       });
     }
 
     // Churn Models
     if (this.results.churnModels) {
       interpretations.push({
-        component: 'Churn Prediction',
-        accuracy: (this.results.churnModels.accuracy * 100).toFixed(1) + '%',
+        component: "Churn Prediction",
+        accuracy: (this.results.churnModels.accuracy * 100).toFixed(1) + "%",
         f1Score: this.results.churnModels.f1.toFixed(3),
-        status: this.results.churnModels.f1 > 0.65 ? '✅ PASS' : '⚠️ NEEDS TUNING',
-        note: `Detects at-risk users with ${(this.results.churnModels.recall * 100).toFixed(1)}% recall`,
+        status: this.results.churnModels.f1 > 0.65 ? "✅ PASS" : "⚠️ NEEDS TUNING",
+        note: `Detects at-risk users with ${(this.results.churnModels.recall * 100).toFixed(1)}% recall`
       });
     }
 
     // Clustering
     if (this.results.clusteringModels) {
       interpretations.push({
-        component: 'User Clustering',
-        accuracy: (this.results.clusteringModels.accuracy * 100).toFixed(1) + '%',
-        status: this.results.clusteringModels.accuracy > 0.8 ? '✅ PASS' : '⚠️ NEEDS TUNING',
-        note: `Successfully segments ${this.results.clusteringModels.samplesCorrect}/${this.results.clusteringModels.totalSamples} test cases`,
+        component: "User Clustering",
+        accuracy: (this.results.clusteringModels.accuracy * 100).toFixed(1) + "%",
+        status: this.results.clusteringModels.accuracy > 0.8 ? "✅ PASS" : "⚠️ NEEDS TUNING",
+        note: `Successfully segments ${this.results.clusteringModels.samplesCorrect}/${this.results.clusteringModels.totalSamples} test cases`
       });
     }
 
     // Financial Outcomes
     if (this.results.financialOutcomeModels) {
-      const avgR2 = (this.results.financialOutcomeModels.runway.r2 +
-                     this.results.financialOutcomeModels.goalAchievement.r2) / 2;
+      const avgR2 =
+        (this.results.financialOutcomeModels.runway.r2 +
+          this.results.financialOutcomeModels.goalAchievement.r2) /
+        2;
       interpretations.push({
-        component: 'Financial Outcome Prediction',
+        component: "Financial Outcome Prediction",
         avgR2: avgR2.toFixed(3),
-        status: avgR2 > 0.65 ? '✅ PASS' : '⚠️ NEEDS TUNING',
-        note: `Explains ${(avgR2 * 100).toFixed(1)}% of variance in financial outcomes`,
+        status: avgR2 > 0.65 ? "✅ PASS" : "⚠️ NEEDS TUNING",
+        note: `Explains ${(avgR2 * 100).toFixed(1)}% of variance in financial outcomes`
       });
     }
 

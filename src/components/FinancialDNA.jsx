@@ -3,16 +3,27 @@ import { ShieldCheck } from "lucide-react";
 import { componentMaximumsV2 } from "../lib/scoring-v2.js";
 
 export default function FinancialDNA({ result }) {
-  if (!result) return null;
+  if (!result) {
+    return null;
+  }
 
-  const behaviourPct = Math.min(100, Math.round((result.behaviourScore / componentMaximumsV2.behaviour) * 100));
-  const awarenessPct = Math.min(100, Math.round((result.awarenessScore / componentMaximumsV2.awareness) * 100));
-  const stabilityPct = Math.min(100, Math.round((result.stabilityScore / componentMaximumsV2.stability) * 100));
+  const behaviourPct = Math.min(
+    100,
+    Math.round((result.behaviourScore / componentMaximumsV2.behaviour) * 100)
+  );
+  const awarenessPct = Math.min(
+    100,
+    Math.round((result.awarenessScore / componentMaximumsV2.awareness) * 100)
+  );
+  const stabilityPct = Math.min(
+    100,
+    Math.round((result.stabilityScore / componentMaximumsV2.stability) * 100)
+  );
 
   const dnaMetrics = [
     { label: "Behavioral Control", value: behaviourPct },
     { label: "Awareness Clarity", value: awarenessPct },
-    { label: "Financial Stability", value: stabilityPct },
+    { label: "Financial Stability", value: stabilityPct }
   ];
 
   return (
@@ -25,7 +36,7 @@ export default function FinancialDNA({ result }) {
         </div>
       </div>
       <div className="dna-grid">
-        {dnaMetrics.map((item) => (
+        {dnaMetrics.map(item => (
           <div className="dna-item" key={item.label}>
             <div>
               <span>{item.label}</span>

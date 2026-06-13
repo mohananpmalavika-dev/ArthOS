@@ -1,6 +1,6 @@
 /**
  * AI Coach Chat Interface
- * 
+ *
  * Real-time conversation interface with ARTH.OS Financial Coach.
  * Features:
  * - Live conversation with GPT-powered coach
@@ -9,7 +9,7 @@
  * - Session management
  */
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from "react";
 import {
   MessageCircle,
   Send,
@@ -24,21 +24,21 @@ import {
   Clock,
   Loader,
   Star
-} from 'lucide-react';
+} from "lucide-react";
 
 const AICoachrInterface = ({ userId }) => {
   // Session state
   const [sessionId, setSessionId] = useState(null);
   const [messages, setMessages] = useState([]);
-  const [inputMessage, setInputMessage] = useState('');
+  const [inputMessage, setInputMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [sessionActive, setSessionActive] = useState(false);
 
   // Memory and preferences
   const [coachMemory, setCoachMemory] = useState(null);
   const [preferences, setPreferences] = useState({
-    coachingStyle: 'compassionate',
-    responseLength: 'detailed'
+    coachingStyle: "compassionate",
+    responseLength: "detailed"
   });
 
   // UI state
@@ -46,14 +46,14 @@ const AICoachrInterface = ({ userId }) => {
   const [showRecommendations, setShowRecommendations] = useState(false);
   const [recommendations, setRecommendations] = useState([]);
   const [analytics, setAnalytics] = useState(null);
-  const [coachGreeting, setCoachGreeting] = useState('');
+  const [coachGreeting, setCoachGreeting] = useState("");
 
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
 
   // Scroll to bottom on new messages
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
   // Load coaching memory on mount
@@ -72,13 +72,13 @@ const AICoachrInterface = ({ userId }) => {
         setCoachMemory(data.memory);
         if (data.memory) {
           setPreferences({
-            coachingStyle: data.memory.preferred_coaching_style || 'compassionate',
-            responseLength: data.memory.response_length_preference || 'detailed'
+            coachingStyle: data.memory.preferred_coaching_style || "compassionate",
+            responseLength: data.memory.response_length_preference || "detailed"
           });
         }
       }
     } catch (error) {
-      console.error('Error loading coaching memory:', error);
+      console.error("Error loading coaching memory:", error);
     }
   };
 
@@ -92,7 +92,7 @@ const AICoachrInterface = ({ userId }) => {
         setAnalytics(data.analytics);
       }
     } catch (error) {
-      console.error('Error loading analytics:', error);
+      console.error("Error loading analytics:", error);
     }
   };
 
@@ -100,9 +100,9 @@ const AICoachrInterface = ({ userId }) => {
   const startSession = async (primaryConcern = null) => {
     setIsLoading(true);
     try {
-      const res = await fetch('/api/coach/sessions', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const res = await fetch("/api/coach/sessions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ userId, primaryConcern })
       });
 
@@ -118,8 +118,8 @@ const AICoachrInterface = ({ userId }) => {
         if (data.coachGreeting) {
           setMessages([
             {
-              id: 'greeting',
-              type: 'coach',
+              id: "greeting",
+              type: "coach",
               content: data.coachGreeting,
               timestamp: new Date().toISOString()
             }
@@ -127,56 +127,67 @@ const AICoachrInterface = ({ userId }) => {
         }
       }
     } catch (error) {
-      console.error('Error starting session:', error);
-      alert('Failed to start coaching session');
+      console.error("Error starting session:", error);
+      alert("Failed to start coaching session");
     } finally {
       setIsLoading(false);
     }
   };
 
   // Send message
-  const sendMessage = async (e) => {
+  const sendMessage = async e => {
     e.preventDefault();
-    if (!inputMessage.trim() || !sessionId) return;
+    if (!inputMessage.trim() || !sessionId) {
+      return;
+    }
 
     const userMessage = inputMessage;
-    setInputMessage('');
+    setInputMessage("");
     setIsLoading(true);
 
     // Add user message to UI
-    setMessages(prev => [...prev, {
-      id: Date.now().toString(),
-      type: 'user',
-      content: userMessage,
-      timestamp: new Date().toISOString()
-    }]);
+    setMessages(prev => [
+      ...prev,
+      {
+        id: Date.now().toString(),
+        type: "user",
+        content: userMessage,
+        timestamp: new Date().toISOString()
+      }
+    ]);
 
     try {
       const res = await fetch(`/api/coach/sessions/${sessionId}/messages`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ userId, message: userMessage })
       });
 
       const data = await res.json();
 
       if (data.success) {
-        setMessages(prev => [...prev, {
-          id: Date.now().toString() + 'coach',
-          type: 'coach',
-          content: data.coachResponse,
-          confidence: data.tokensUsed,
-          timestamp: new Date().toISOString()
-        }]);
+        setMessages(prev => [
+          ...prev,
+          {
+            id: Date.now().toString() + "coach",
+            type: "coach",
+            content: data.coachResponse,
+            confidence: data.tokensUsed,
+            timestamp: new Date().toISOString()
+          }
+        ]);
       }
     } catch (error) {
-      console.error('Error sending message:', error);
-      setMessages(prev => [...prev, {
-        id: Date.now().toString() + 'error',
-        type: 'error',
-        content: 'Sorry, I encountered an error. Please try again.',
-        timestamp: new Date().toISOString()
-      }]);
+      console.error("Error sending message:", error);
+      setMessages(prev => [
+        ...prev,
+        {
+          id: Date.now().toString() + "error",
+          type: "error",
+          content: "Sorry, I encountered an error. Please try again.",
+          timestamp: new Date().toISOString()
+        }
+      ]);
     } finally {
       setIsLoading(false);
       inputRef.current?.focus();
@@ -185,13 +196,15 @@ const AICoachrInterface = ({ userId }) => {
 
   // Generate recommendation
   const generateRecommendation = async () => {
-    if (!sessionId) return;
+    if (!sessionId) {
+      return;
+    }
 
     setIsLoading(true);
     try {
       const res = await fetch(`/api/coach/sessions/${sessionId}/recommendations`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ userId })
       });
 
@@ -202,7 +215,7 @@ const AICoachrInterface = ({ userId }) => {
         setShowRecommendations(true);
       }
     } catch (error) {
-      console.error('Error generating recommendation:', error);
+      console.error("Error generating recommendation:", error);
     } finally {
       setIsLoading(false);
     }
@@ -210,13 +223,15 @@ const AICoachrInterface = ({ userId }) => {
 
   // End session
   const endSession = async (satisfactionScore = null) => {
-    if (!sessionId) return;
+    if (!sessionId) {
+      return;
+    }
 
     setIsLoading(true);
     try {
       const res = await fetch(`/api/coach/sessions/${sessionId}/end`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ userId, userSatisfactionScore: satisfactionScore })
       });
 
@@ -234,7 +249,7 @@ const AICoachrInterface = ({ userId }) => {
         alert(`Session Summary:\n\n${data.summary}`);
       }
     } catch (error) {
-      console.error('Error ending session:', error);
+      console.error("Error ending session:", error);
     } finally {
       setIsLoading(false);
     }
@@ -243,9 +258,9 @@ const AICoachrInterface = ({ userId }) => {
   // Update preferences
   const updatePreferences = async () => {
     try {
-      await fetch('/api/coach/memory', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+      await fetch("/api/coach/memory", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           userId,
           preferredCoachingStyle: preferences.coachingStyle,
@@ -256,7 +271,7 @@ const AICoachrInterface = ({ userId }) => {
       setShowSettings(false);
       loadCoachingMemory();
     } catch (error) {
-      console.error('Error updating preferences:', error);
+      console.error("Error updating preferences:", error);
     }
   };
 
@@ -273,7 +288,9 @@ const AICoachrInterface = ({ userId }) => {
               </div>
               <div>
                 <h1 className="text-4xl font-bold text-gray-900">ARTH.OS Financial Coach</h1>
-                <p className="text-gray-600 mt-1">Your AI-powered financial advisor powered by your cognition data</p>
+                <p className="text-gray-600 mt-1">
+                  Your AI-powered financial advisor powered by your cognition data
+                </p>
               </div>
             </div>
           </div>
@@ -284,12 +301,12 @@ const AICoachrInterface = ({ userId }) => {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
               {[
-                { concern: 'Spending Control', emoji: '💰', desc: 'Control your spending habits' },
-                { concern: 'Savings Building', emoji: '🏦', desc: 'Build sustainable savings' },
-                { concern: 'Debt Reduction', emoji: '📉', desc: 'Create a debt repayment plan' },
-                { concern: 'Investment Strategy', emoji: '📈', desc: 'Invest wisely for growth' },
-                { concern: 'Belief Reframing', emoji: '🧠', desc: 'Challenge limiting beliefs' },
-                { concern: 'General Guidance', emoji: '🎯', desc: 'General financial advice' }
+                { concern: "Spending Control", emoji: "💰", desc: "Control your spending habits" },
+                { concern: "Savings Building", emoji: "🏦", desc: "Build sustainable savings" },
+                { concern: "Debt Reduction", emoji: "📉", desc: "Create a debt repayment plan" },
+                { concern: "Investment Strategy", emoji: "📈", desc: "Invest wisely for growth" },
+                { concern: "Belief Reframing", emoji: "🧠", desc: "Challenge limiting beliefs" },
+                { concern: "General Guidance", emoji: "🎯", desc: "General financial advice" }
               ].map(option => (
                 <button
                   key={option.concern}
@@ -309,7 +326,7 @@ const AICoachrInterface = ({ userId }) => {
               disabled={isLoading}
               className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg font-semibold transition disabled:opacity-50"
             >
-              {isLoading ? 'Starting...' : 'Start Free-Form Session'}
+              {isLoading ? "Starting..." : "Start Free-Form Session"}
             </button>
           </div>
 
@@ -325,7 +342,9 @@ const AICoachrInterface = ({ userId }) => {
                 </div>
 
                 <div className="text-center p-4 bg-green-50 rounded">
-                  <p className="text-3xl font-bold text-green-600">{analytics.totalRecommendations}</p>
+                  <p className="text-3xl font-bold text-green-600">
+                    {analytics.totalRecommendations}
+                  </p>
                   <p className="text-sm text-gray-600 mt-1">Recommendations</p>
                 </div>
 
@@ -336,7 +355,7 @@ const AICoachrInterface = ({ userId }) => {
 
                 <div className="text-center p-4 bg-orange-50 rounded">
                   <p className="text-3xl font-bold text-orange-600">
-                    {analytics.averageUserSatisfaction || 'N/A'}
+                    {analytics.averageUserSatisfaction || "N/A"}
                   </p>
                   <p className="text-sm text-gray-600 mt-1">Avg Satisfaction</p>
                 </div>
@@ -370,10 +389,7 @@ const AICoachrInterface = ({ userId }) => {
           >
             <Settings size={20} className="text-gray-600" />
           </button>
-          <button
-            onClick={() => endSession()}
-            className="p-2 hover:bg-red-100 rounded transition"
-          >
+          <button onClick={() => endSession()} className="p-2 hover:bg-red-100 rounded transition">
             <X size={20} className="text-red-600" />
           </button>
         </div>
@@ -387,10 +403,12 @@ const AICoachrInterface = ({ userId }) => {
 
             <div className="grid grid-cols-2 gap-4 mb-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Coaching Style</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Coaching Style
+                </label>
                 <select
                   value={preferences.coachingStyle}
-                  onChange={(e) => setPreferences({ ...preferences, coachingStyle: e.target.value })}
+                  onChange={e => setPreferences({ ...preferences, coachingStyle: e.target.value })}
                   className="w-full border border-gray-300 rounded px-3 py-2"
                 >
                   <option value="compassionate">Compassionate & Supportive</option>
@@ -401,10 +419,12 @@ const AICoachrInterface = ({ userId }) => {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Response Length</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Response Length
+                </label>
                 <select
                   value={preferences.responseLength}
-                  onChange={(e) => setPreferences({ ...preferences, responseLength: e.target.value })}
+                  onChange={e => setPreferences({ ...preferences, responseLength: e.target.value })}
                   className="w-full border border-gray-300 rounded px-3 py-2"
                 >
                   <option value="concise">Concise</option>
@@ -427,21 +447,26 @@ const AICoachrInterface = ({ userId }) => {
       {/* Messages Area */}
       <div className="flex-1 overflow-y-auto p-6">
         <div className="max-w-4xl mx-auto space-y-4">
-          {messages.map((msg) => (
-            <div key={msg.id} className={`flex ${msg.type === 'user' ? 'justify-end' : 'justify-start'}`}>
+          {messages.map(msg => (
+            <div
+              key={msg.id}
+              className={`flex ${msg.type === "user" ? "justify-end" : "justify-start"}`}
+            >
               <div
                 className={`max-w-lg px-4 py-3 rounded-lg ${
-                  msg.type === 'user'
-                    ? 'bg-blue-600 text-white rounded-br-none'
-                    : msg.type === 'error'
-                    ? 'bg-red-100 text-red-800 rounded-bl-none'
-                    : 'bg-gray-100 text-gray-900 rounded-bl-none'
+                  msg.type === "user"
+                    ? "bg-blue-600 text-white rounded-br-none"
+                    : msg.type === "error"
+                      ? "bg-red-100 text-red-800 rounded-bl-none"
+                      : "bg-gray-100 text-gray-900 rounded-bl-none"
                 }`}
               >
                 <p className="text-sm">{msg.content}</p>
-                <p className={`text-xs mt-1 ${
-                  msg.type === 'user' ? 'text-blue-100' : 'text-gray-500'
-                }`}>
+                <p
+                  className={`text-xs mt-1 ${
+                    msg.type === "user" ? "text-blue-100" : "text-gray-500"
+                  }`}
+                >
                   {new Date(msg.timestamp).toLocaleTimeString()}
                 </p>
               </div>
@@ -482,13 +507,17 @@ const AICoachrInterface = ({ userId }) => {
                 </div>
 
                 <div className="text-xs text-gray-600 space-y-1">
-                  <p><strong>Priority:</strong> {rec.priority_level}</p>
-                  <p><strong>Timeframe:</strong> {rec.time_frame}</p>
+                  <p>
+                    <strong>Priority:</strong> {rec.priority_level}
+                  </p>
+                  <p>
+                    <strong>Timeframe:</strong> {rec.time_frame}
+                  </p>
                 </div>
 
                 <select
                   value={rec.recommendation_status}
-                  onChange={(e) => updateRecommendationStatus(rec.id, e.target.value)}
+                  onChange={e => updateRecommendationStatus(rec.id, e.target.value)}
                   className="w-full text-xs border border-gray-300 rounded mt-2 px-2 py-1"
                 >
                   <option value="offered">Offered</option>
@@ -510,7 +539,7 @@ const AICoachrInterface = ({ userId }) => {
               ref={inputRef}
               type="text"
               value={inputMessage}
-              onChange={(e) => setInputMessage(e.target.value)}
+              onChange={e => setInputMessage(e.target.value)}
               placeholder="Ask your coach anything about your finances..."
               disabled={isLoading}
               className="flex-1 border border-gray-300 rounded-lg px-4 py-3 disabled:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -549,7 +578,7 @@ const AICoachrInterface = ({ userId }) => {
               onClick={() => setShowRecommendations(!showRecommendations)}
               className="text-blue-600 hover:underline"
             >
-              {showRecommendations ? 'Hide' : 'Show'} recommendations
+              {showRecommendations ? "Hide" : "Show"} recommendations
             </button>
           </div>
         </div>
@@ -562,12 +591,12 @@ const AICoachrInterface = ({ userId }) => {
 async function updateRecommendationStatus(recommendationId, status) {
   try {
     await fetch(`/api/coach/recommendations/${recommendationId}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ status })
     });
   } catch (error) {
-    console.error('Error updating recommendation:', error);
+    console.error("Error updating recommendation:", error);
   }
 }
 

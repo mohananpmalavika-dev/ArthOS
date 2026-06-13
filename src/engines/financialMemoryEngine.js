@@ -35,40 +35,46 @@ function isBrowser() {
 }
 
 function safeRead(key) {
-  if (!isBrowser()) return null;
+  if (!isBrowser()) {
+    return null;
+  }
   try {
     const raw = window.localStorage.getItem(key);
     return raw ? JSON.parse(raw) : null;
   } catch (error) {
-    console.error('[financialMemoryEngine] Failed to parse localStorage data:', {
+    console.error("[financialMemoryEngine] Failed to parse localStorage data:", {
       key,
-      error: error?.message,
+      error: error?.message
     });
     return null;
   }
 }
 
 function safeWrite(key, value) {
-  if (!isBrowser()) return;
+  if (!isBrowser()) {
+    return;
+  }
   try {
     window.localStorage.setItem(key, JSON.stringify(value));
   } catch (error) {
-    console.error('[financialMemoryEngine] Failed to persist financial memory:', {
+    console.error("[financialMemoryEngine] Failed to persist financial memory:", {
       key,
       error: error?.message,
-      code: error?.code,
+      code: error?.code
     });
   }
 }
 
 function safeRemove(key) {
-  if (!isBrowser()) return;
+  if (!isBrowser()) {
+    return;
+  }
   try {
     window.localStorage.removeItem(key);
   } catch (error) {
-    console.error('[financialMemoryEngine] Failed to remove financial memory:', {
+    console.error("[financialMemoryEngine] Failed to remove financial memory:", {
       key,
-      error: error?.message,
+      error: error?.message
     });
   }
 }
@@ -89,22 +95,28 @@ async function apiPost(endpoint, payload, retries = 2) {
       const resp = await fetch(`${API_BASE}${endpoint}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
+        body: JSON.stringify(payload)
       });
-      if (resp.ok) return true;
-      if (resp.status >= 400 && resp.status < 500) return false; // Client errors don't retry
+      if (resp.ok) {
+        return true;
+      }
+      if (resp.status >= 400 && resp.status < 500) {
+        return false;
+      } // Client errors don't retry
     } catch (error) {
       lastError = error;
       if (attempt === retries) {
         // Final attempt exhausted
-        console.warn('[financialMemoryEngine] apiPost retries exhausted:', {
+        console.warn("[financialMemoryEngine] apiPost retries exhausted:", {
           endpoint,
           attempts: attempt + 1,
-          error: error?.message,
+          error: error?.message
         });
       }
     }
-    if (attempt < retries) await new Promise((r) => setTimeout(r, 1000 * Math.pow(2, attempt)));
+    if (attempt < retries) {
+      await new Promise(r => setTimeout(r, 1000 * Math.pow(2, attempt)));
+    }
   }
   return false;
 }
@@ -112,12 +124,14 @@ async function apiPost(endpoint, payload, retries = 2) {
 async function apiGet(endpoint) {
   try {
     const resp = await fetch(`${API_BASE}${endpoint}`);
-    if (!resp.ok) return null;
+    if (!resp.ok) {
+      return null;
+    }
     return await resp.json();
   } catch (error) {
-    console.error('[financialMemoryEngine] Failed to fetch from API:', {
+    console.error("[financialMemoryEngine] Failed to fetch from API:", {
       endpoint,
-      error: error?.message,
+      error: error?.message
     });
     return null;
   }
@@ -137,7 +151,7 @@ export function appendEvent(eventType, payload) {
     payload,
     id: `evt_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
     timestamp: new Date().toISOString(),
-    version: 1,
+    version: 1
   };
   safeAppend(EVENT_LOG_KEY, entry);
   return entry;
@@ -148,17 +162,19 @@ export function appendEvent(eventType, payload) {
  */
 export function queryEvents(eventType, opts = {}) {
   const log = safeRead(EVENT_LOG_KEY) || [];
-  let filtered = eventType ? log.filter((e) => e.eventType === eventType) : log;
+  let filtered = eventType ? log.filter(e => e.eventType === eventType) : log;
 
   if (opts.from) {
     const from = new Date(opts.from);
-    filtered = filtered.filter((e) => new Date(e.timestamp) >= from);
+    filtered = filtered.filter(e => new Date(e.timestamp) >= from);
   }
   if (opts.to) {
     const to = new Date(opts.to);
-    filtered = filtered.filter((e) => new Date(e.timestamp) <= to);
+    filtered = filtered.filter(e => new Date(e.timestamp) <= to);
   }
-  if (opts.limit) filtered = filtered.slice(-opts.limit);
+  if (opts.limit) {
+    filtered = filtered.slice(-opts.limit);
+  }
 
   return filtered.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
 }
@@ -168,9 +184,7 @@ export function queryEvents(eventType, opts = {}) {
  */
 export function replayEvents(modelBuilder, eventTypes = null) {
   const log = safeRead(EVENT_LOG_KEY) || [];
-  const relevant = eventTypes
-    ? log.filter((e) => eventTypes.includes(e.eventType))
-    : log;
+  const relevant = eventTypes ? log.filter(e => eventTypes.includes(e.eventType)) : log;
   return modelBuilder(relevant);
 }
 
@@ -193,7 +207,9 @@ export function enqueueSync(endpoint, payload) {
  */
 export async function processSyncQueue() {
   const queue = safeRead(PENDING_SYNC_KEY) || [];
-  if (queue.length === 0) return { processed: 0, failed: 0 };
+  if (queue.length === 0) {
+    return { processed: 0, failed: 0 };
+  }
 
   const results = [];
   const remaining = [];
@@ -210,10 +226,10 @@ export async function processSyncQueue() {
 
   safeWrite(PENDING_SYNC_KEY, remaining);
   return {
-    processed: results.filter((r) => r.status === "synced").length,
-    failed: results.filter((r) => r.status === "failed").length,
+    processed: results.filter(r => r.status === "synced").length,
+    failed: results.filter(r => r.status === "failed").length,
     remaining: remaining.length,
-    results,
+    results
   };
 }
 
@@ -247,7 +263,9 @@ export function lastSyncTime() {
 export function hasUnsyncedChanges() {
   const meta = getSyncMeta();
   const log = safeRead(EVENT_LOG_KEY) || [];
-  if (log.length === 0) return false;
+  if (log.length === 0) {
+    return false;
+  }
   const lastEvent = log[log.length - 1];
   return !meta.lastSync || new Date(lastEvent.timestamp) > new Date(meta.lastSync);
 }
@@ -267,15 +285,17 @@ export function persistScoreHistory(history) {
 }
 
 export async function appendScoreHistory(healthScore, userId = null) {
-  if (healthScore === undefined || healthScore === null) return loadScoreHistory();
+  if (healthScore === undefined || healthScore === null) {
+    return loadScoreHistory();
+  }
 
   const history = loadScoreHistory();
   const today = new Date().toISOString().split("T")[0];
   const roundedScore = Math.round(Number(healthScore) || 0);
 
-  const existing = history.find((entry) => entry.date === today);
+  const existing = history.find(entry => entry.date === today);
   const updated = existing
-    ? history.map((entry) => (entry.date === today ? { ...entry, score: roundedScore } : entry))
+    ? history.map(entry => (entry.date === today ? { ...entry, score: roundedScore } : entry))
     : [...history, { date: today, score: roundedScore }];
 
   persistScoreHistory(updated);
@@ -283,24 +303,34 @@ export async function appendScoreHistory(healthScore, userId = null) {
 
   if (userId) {
     const ok = await apiPost("/memory/score", { userId, score: roundedScore, date: today });
-    if (!ok) enqueueSync("/memory/score", { userId, score: roundedScore, date: today });
+    if (!ok) {
+      enqueueSync("/memory/score", { userId, score: roundedScore, date: today });
+    }
   }
 
   return updated;
 }
 
 export function getScoreProgression(history, timespan = "all") {
-  if (!Array.isArray(history)) return [];
-  if (timespan === "all") return history;
+  if (!Array.isArray(history)) {
+    return [];
+  }
+  if (timespan === "all") {
+    return history;
+  }
 
   const now = new Date();
   const cutoff = new Date(now);
 
-  if (timespan === "week") cutoff.setDate(now.getDate() - 7);
-  else if (timespan === "month") cutoff.setMonth(now.getMonth() - 1);
-  else if (timespan === "quarter") cutoff.setMonth(now.getMonth() - 3);
+  if (timespan === "week") {
+    cutoff.setDate(now.getDate() - 7);
+  } else if (timespan === "month") {
+    cutoff.setMonth(now.getMonth() - 1);
+  } else if (timespan === "quarter") {
+    cutoff.setMonth(now.getMonth() - 3);
+  }
 
-  return history.filter((item) => new Date(item.date) >= cutoff);
+  return history.filter(item => new Date(item.date) >= cutoff);
 }
 
 export function getProgressSummary(history) {
@@ -317,9 +347,10 @@ export function getProgressSummary(history) {
     improvement,
     startDate: first.date,
     endDate: last.date,
-    periodLabel: sorted.length === 1
-      ? `1 assessment, ${improvement >= 0 ? "+" : ""}${improvement} points`
-      : `${sorted.length} assessments, ${improvement >= 0 ? "+" : ""}${improvement} points`,
+    periodLabel:
+      sorted.length === 1
+        ? `1 assessment, ${improvement >= 0 ? "+" : ""}${improvement} points`
+        : `${sorted.length} assessments, ${improvement >= 0 ? "+" : ""}${improvement} points`
   };
 }
 
@@ -337,7 +368,9 @@ export function persistAssessmentHistory(history) {
 }
 
 export async function appendAssessmentHistory(entry, userId = null) {
-  if (!isBrowser()) return loadAssessmentHistory();
+  if (!isBrowser()) {
+    return loadAssessmentHistory();
+  }
 
   const history = loadAssessmentHistory();
   const today = new Date().toISOString().split("T")[0];
@@ -347,12 +380,12 @@ export async function appendAssessmentHistory(entry, userId = null) {
     personalityType: entry.personalityType || "Unknown",
     stabilityMonths: entry.survivalMonthsRaw || 0,
     awarenessScore: entry.awarenessScore || 0,
-    behaviourSummary: entry.behaviourSummary || {},
+    behaviourSummary: entry.behaviourSummary || {}
   };
 
-  const existing = history.find((item) => item.date === today);
+  const existing = history.find(item => item.date === today);
   const updated = existing
-    ? history.map((item) => (item.date === today ? { ...item, ...created } : item))
+    ? history.map(item => (item.date === today ? { ...item, ...created } : item))
     : [...history, created];
 
   persistAssessmentHistory(updated);
@@ -360,7 +393,9 @@ export async function appendAssessmentHistory(entry, userId = null) {
 
   if (userId) {
     const ok = await apiPost("/memory/assessment", { userId, ...created });
-    if (!ok) enqueueSync("/memory/assessment", { userId, ...created });
+    if (!ok) {
+      enqueueSync("/memory/assessment", { userId, ...created });
+    }
   }
 
   return updated;
@@ -380,15 +415,17 @@ export function persistWeeklyCheckins(checkins) {
 }
 
 export async function appendWeeklyCheckin(checkin, userId = null) {
-  if (!isBrowser()) return loadWeeklyCheckins();
+  if (!isBrowser()) {
+    return loadWeeklyCheckins();
+  }
 
   const checkins = loadWeeklyCheckins();
   const today = new Date().toISOString().split("T")[0];
   const entry = { date: today, ...checkin };
 
-  const existing = checkins.find((item) => item.date === today);
+  const existing = checkins.find(item => item.date === today);
   const updated = existing
-    ? checkins.map((item) => (item.date === today ? { ...item, ...entry } : item))
+    ? checkins.map(item => (item.date === today ? { ...item, ...entry } : item))
     : [...checkins, entry];
 
   persistWeeklyCheckins(updated);
@@ -396,25 +433,31 @@ export async function appendWeeklyCheckin(checkin, userId = null) {
 
   if (userId) {
     const ok = await apiPost("/memory/checkin", { userId, ...entry });
-    if (!ok) enqueueSync("/memory/checkin", { userId, ...entry });
+    if (!ok) {
+      enqueueSync("/memory/checkin", { userId, ...entry });
+    }
   }
 
   return updated;
 }
 
 export function countRecentCheckins(checkins, days = 7) {
-  if (!Array.isArray(checkins)) return 0;
+  if (!Array.isArray(checkins)) {
+    return 0;
+  }
   const cutoff = new Date();
   cutoff.setDate(cutoff.getDate() - days);
-  return checkins.filter((item) => new Date(item.date) >= cutoff).length;
+  return checkins.filter(item => new Date(item.date) >= cutoff).length;
 }
 
 export function calculateConsecutiveStreak(checkins) {
-  if (!Array.isArray(checkins) || checkins.length === 0) return 0;
+  if (!Array.isArray(checkins) || checkins.length === 0) {
+    return 0;
+  }
 
   const sorted = [...checkins].sort((a, b) => new Date(b.date) - new Date(a.date));
   let streak = 0;
-  let expectedDate = new Date();
+  const expectedDate = new Date();
 
   for (const checkin of sorted) {
     const checkinDate = new Date(checkin.date);
@@ -423,7 +466,9 @@ export function calculateConsecutiveStreak(checkins) {
       expectedDate.setDate(expectedDate.getDate() - 1);
       continue;
     }
-    if (checkinDate < expectedDate) break;
+    if (checkinDate < expectedDate) {
+      break;
+    }
   }
 
   return streak;
@@ -435,7 +480,9 @@ export function calculateConsecutiveStreak(checkins) {
 
 export function loadFinancialMemory(userId = null) {
   const local = safeRead(FINANCIAL_MEMORY_KEY);
-  return Array.isArray(local) ? local.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp)) : [];
+  return Array.isArray(local)
+    ? local.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
+    : [];
 }
 
 export function persistFinancialMemory(memory) {
@@ -443,13 +490,15 @@ export function persistFinancialMemory(memory) {
 }
 
 export async function addFinancialMemoryEvent(event, userId = null) {
-  if (!isBrowser()) return [];
+  if (!isBrowser()) {
+    return [];
+  }
 
   const memory = loadFinancialMemory();
   const entry = {
     ...event,
     id: event.id || `mem_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
-    timestamp: event.timestamp || new Date().toISOString(),
+    timestamp: event.timestamp || new Date().toISOString()
   };
 
   memory.push(entry);
@@ -458,7 +507,9 @@ export async function addFinancialMemoryEvent(event, userId = null) {
 
   if (userId) {
     const ok = await apiPost("/memory/event", { userId, event: entry });
-    if (!ok) enqueueSync("/memory/event", { userId, event: entry });
+    if (!ok) {
+      enqueueSync("/memory/event", { userId, event: entry });
+    }
   }
 
   return memory;
@@ -467,16 +518,18 @@ export async function addFinancialMemoryEvent(event, userId = null) {
 export function getFinancialMemoryTimeline(userId = null, limit = 50) {
   const memory = loadFinancialMemory();
   if (userId) {
-    apiGet(`/memory/events?userId=${userId}`).then((remote) => {
-      if (remote && Array.isArray(remote.events) && remote.events.length > memory.length) {
-        persistFinancialMemory(remote.events);
-      }
-    }).catch((error) => {
-      console.warn('[financialMemoryEngine] Failed to sync financial memory from server:', {
-        userId,
-        error: error?.message,
+    apiGet(`/memory/events?userId=${userId}`)
+      .then(remote => {
+        if (remote && Array.isArray(remote.events) && remote.events.length > memory.length) {
+          persistFinancialMemory(remote.events);
+        }
+      })
+      .catch(error => {
+        console.warn("[financialMemoryEngine] Failed to sync financial memory from server:", {
+          userId,
+          error: error?.message
+        });
       });
-    });
   }
   return memory.slice(0, limit);
 }
@@ -487,7 +540,9 @@ export function getFinancialMemoryTimeline(userId = null, limit = 50) {
 
 export function loadGoalHistory() {
   const local = safeRead(GOAL_HISTORY_KEY);
-  return Array.isArray(local) ? local.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp)) : [];
+  return Array.isArray(local)
+    ? local.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
+    : [];
 }
 
 export function persistGoalHistory(goals) {
@@ -499,7 +554,7 @@ export async function trackGoalEvolution(previousGoal, currentGoal, userId = nul
     changed: previousGoal !== currentGoal,
     previousGoal,
     currentGoal,
-    timestamp: new Date().toISOString(),
+    timestamp: new Date().toISOString()
   };
 
   const history = loadGoalHistory();
@@ -510,12 +565,14 @@ export async function trackGoalEvolution(previousGoal, currentGoal, userId = nul
   if (userId && change.changed) {
     try {
       const ok = await apiPost("/memory/goal", { userId, ...change });
-      if (!ok) enqueueSync("/memory/goal", { userId, ...change });
+      if (!ok) {
+        enqueueSync("/memory/goal", { userId, ...change });
+      }
     } catch (error) {
-      console.error('[financialMemoryEngine] Failed to sync goal change:', {
+      console.error("[financialMemoryEngine] Failed to sync goal change:", {
         userId,
         changeId: change?.id,
-        error: error?.message,
+        error: error?.message
       });
       enqueueSync("/memory/goal", { userId, ...change });
     }
@@ -530,7 +587,9 @@ export async function trackGoalEvolution(previousGoal, currentGoal, userId = nul
 
 export function loadTwinSnapshots() {
   const local = safeRead(TWIN_SNAPSHOT_KEY);
-  return Array.isArray(local) ? local.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp)) : [];
+  return Array.isArray(local)
+    ? local.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
+    : [];
 }
 
 export function persistTwinSnapshots(snapshots) {
@@ -538,13 +597,15 @@ export function persistTwinSnapshots(snapshots) {
 }
 
 export async function saveTwinSnapshot(snapshot, userId = null) {
-  if (!isBrowser()) return [];
+  if (!isBrowser()) {
+    return [];
+  }
 
   const snapshots = loadTwinSnapshots();
   const entry = {
     ...snapshot,
     id: `twin_${Date.now()}`,
-    timestamp: new Date().toISOString(),
+    timestamp: new Date().toISOString()
   };
 
   snapshots.push(entry);
@@ -554,12 +615,14 @@ export async function saveTwinSnapshot(snapshot, userId = null) {
   if (userId) {
     try {
       const ok = await apiPost("/memory/twin", { userId, snapshot: entry });
-      if (!ok) enqueueSync("/memory/twin", { userId, snapshot: entry });
+      if (!ok) {
+        enqueueSync("/memory/twin", { userId, snapshot: entry });
+      }
     } catch (error) {
-      console.error('[financialMemoryEngine] Failed to sync digital twin:', {
+      console.error("[financialMemoryEngine] Failed to sync digital twin:", {
         userId,
         snapshotId: entry?.id,
-        error: error?.message,
+        error: error?.message
       });
       enqueueSync("/memory/twin", { userId, snapshot: entry });
     }
@@ -578,7 +641,9 @@ export async function saveTwinSnapshot(snapshot, userId = null) {
  */
 async function apiPostAuthorized(endpoint, payload, authToken, retries = 2) {
   const headers = { "Content-Type": "application/json" };
-  if (authToken) headers["Authorization"] = `Bearer ${authToken}`;
+  if (authToken) {
+    headers["Authorization"] = `Bearer ${authToken}`;
+  }
 
   let lastError = null;
   for (let attempt = 0; attempt <= retries; attempt++) {
@@ -586,22 +651,28 @@ async function apiPostAuthorized(endpoint, payload, authToken, retries = 2) {
       const resp = await fetch(`${API_BASE}${endpoint}`, {
         method: "POST",
         headers,
-        body: JSON.stringify(payload),
+        body: JSON.stringify(payload)
       });
-      if (resp.ok) return true;
-      if (resp.status >= 400 && resp.status < 500) return false;
+      if (resp.ok) {
+        return true;
+      }
+      if (resp.status >= 400 && resp.status < 500) {
+        return false;
+      }
     } catch (error) {
       lastError = error;
       if (attempt === retries) {
         // Final attempt exhausted
-        console.warn('[financialMemoryEngine] apiPostAuthorized retries exhausted:', {
+        console.warn("[financialMemoryEngine] apiPostAuthorized retries exhausted:", {
           endpoint,
           attempts: attempt + 1,
-          error: error?.message,
+          error: error?.message
         });
       }
     }
-    if (attempt < retries) await new Promise((r) => setTimeout(r, 1000 * Math.pow(2, attempt)));
+    if (attempt < retries) {
+      await new Promise(r => setTimeout(r, 1000 * Math.pow(2, attempt)));
+    }
   }
   return false;
 }
@@ -612,7 +683,9 @@ async function apiPostAuthorized(endpoint, payload, authToken, retries = 2) {
  * Also flushes the pending sync queue.
  */
 export async function syncAllToServer(userId, authToken) {
-  if (!userId || !isBrowser()) return { success: false, reason: "no_user" };
+  if (!userId || !isBrowser()) {
+    return { success: false, reason: "no_user" };
+  }
 
   const post = (endpoint, payload) => apiPostAuthorized(endpoint, payload, authToken);
 
@@ -623,7 +696,7 @@ export async function syncAllToServer(userId, authToken) {
     memory: false,
     goals: false,
     twins: false,
-    pendingQueue: false,
+    pendingQueue: false
   };
 
   // Flush pending sync queue first
@@ -631,22 +704,37 @@ export async function syncAllToServer(userId, authToken) {
   results.pendingQueue = queueResult.processed > 0 || queueResult.failed === 0;
 
   const scoreHistory = loadScoreHistory();
-  if (scoreHistory.length) results.scoreHistory = await post("/memory/sync/scores", { userId, data: scoreHistory });
+  if (scoreHistory.length) {
+    results.scoreHistory = await post("/memory/sync/scores", { userId, data: scoreHistory });
+  }
 
   const assessmentHistory = loadAssessmentHistory();
-  if (assessmentHistory.length) results.assessmentHistory = await post("/memory/sync/assessments", { userId, data: assessmentHistory });
+  if (assessmentHistory.length) {
+    results.assessmentHistory = await post("/memory/sync/assessments", {
+      userId,
+      data: assessmentHistory
+    });
+  }
 
   const checkins = loadWeeklyCheckins();
-  if (checkins.length) results.checkins = await post("/memory/sync/checkins", { userId, data: checkins });
+  if (checkins.length) {
+    results.checkins = await post("/memory/sync/checkins", { userId, data: checkins });
+  }
 
   const memory = loadFinancialMemory();
-  if (memory.length) results.memory = await post("/memory/sync/events", { userId, data: memory });
+  if (memory.length) {
+    results.memory = await post("/memory/sync/events", { userId, data: memory });
+  }
 
   const goals = loadGoalHistory();
-  if (goals.length) results.goals = await post("/memory/sync/goals", { userId, data: goals });
+  if (goals.length) {
+    results.goals = await post("/memory/sync/goals", { userId, data: goals });
+  }
 
   const twins = loadTwinSnapshots();
-  if (twins.length) results.twins = await post("/memory/sync/twins", { userId, data: twins });
+  if (twins.length) {
+    results.twins = await post("/memory/sync/twins", { userId, data: twins });
+  }
 
   // Update sync metadata
   setSyncMeta({ lastSync: new Date().toISOString(), version: (getSyncMeta().version || 0) + 1 });
@@ -685,6 +773,6 @@ export function getMemoryStatus() {
     eventLogCount: (safeRead(EVENT_LOG_KEY) || []).length,
     pendingSyncCount: pendingSyncCount(),
     lastSync: lastSyncTime(),
-    hasUnsynced: hasUnsyncedChanges(),
+    hasUnsynced: hasUnsyncedChanges()
   };
 }

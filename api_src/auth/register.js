@@ -2,8 +2,7 @@
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { hasDatabaseConfig, insertIntoTable } from "../dbClient.js";
-
-const JWT_SECRET = process.env.JWT_SECRET || "arthos-dev-secret-change-in-production";
+import { JWT_CONFIG } from "./jwt.js";
 
 export default async function handler(req, res) {
   if (req.method !== "POST") {
@@ -32,8 +31,8 @@ export default async function handler(req, res) {
     if (!hasDatabaseConfig()) {
       const token = jwt.sign(
         { userId: cleanedEmail, email: cleanedEmail, name: name || cleanedEmail.split("@")[0] },
-        JWT_SECRET,
-        { expiresIn: "30d" },
+        JWT_CONFIG.secret,
+        { expiresIn: JWT_CONFIG.expiresIn },
       );
 
       return res.status(201).json({
@@ -51,6 +50,7 @@ export default async function handler(req, res) {
       email: cleanedEmail,
       name: name || cleanedEmail.split("@")[0],
       password_hash: hashedPassword,
+      email_verified: false,
       created_at: new Date().toISOString(),
     };
 
@@ -64,15 +64,28 @@ export default async function handler(req, res) {
     }
 
     const userId = data?.[0]?.id || cleanedEmail;
+
+    // Generate email verification token
+    const verificationToken = jwt.sign(
+      { userId, email: cleanedEmail, purpose: "email_verification" },
+      JWT_CONFIG.secret,
+      { expiresIn: "24h" },
+    );
+
     const token = jwt.sign(
       { userId, email: cleanedEmail, name: name || cleanedEmail.split("@")[0] },
-      JWT_SECRET,
-      { expiresIn: "30d" },
+      JWT_CONFIG.secret,
+      { expiresIn: JWT_CONFIG.expiresIn },
     );
+
+    console.log(`[Auth] User registered: ${cleanedEmail} (email verification required)`);
+    console.log(`[Auth] Verification token (would be emailed): ${verificationToken.substring(0, 20)}...`);
 
     return res.status(201).json({
       user: { id: userId, email: cleanedEmail, name: name || cleanedEmail.split("@")[0] },
       token,
+      emailVerificationRequired: true,
+      message: "Registration successful. Please verify your email to access all features.",
     });
   } catch (err) {
     console.error("[Auth] Register error:", err);

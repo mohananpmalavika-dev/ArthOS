@@ -24,7 +24,9 @@ export default function ConsentBanner() {
     setShowBanner(false);
   };
 
-  if (!showBanner) return null;
+  if (!showBanner) {
+    return null;
+  }
 
   return (
     <div className="consent-banner" role="banner" aria-label="Privacy and data consent">
@@ -32,15 +34,29 @@ export default function ConsentBanner() {
         <div>
           <h3>Privacy & Data</h3>
           <p>
-            We collect anonymous financial health scores and behavioral insights to help improve your financial decisions.
-            <strong> No personally identifiable information (PII)</strong> is stored — only numeric scores, categories, and ratios.
+            We collect anonymous financial health scores and behavioral insights to help improve
+            your financial decisions.
+            <strong> No personally identifiable information (PII)</strong> is stored — only numeric
+            scores, categories, and ratios.
           </p>
           <div className="consent-links">
-            <a href="#privacy" onClick={(e) => { e.preventDefault(); alert("Privacy policy would open here"); }}>
+            <a
+              href="#privacy"
+              onClick={e => {
+                e.preventDefault();
+                alert("Privacy policy would open here");
+              }}
+            >
               Privacy Policy
             </a>
             <span className="separator">•</span>
-            <a href="#terms" onClick={(e) => { e.preventDefault(); alert("Terms would open here"); }}>
+            <a
+              href="#terms"
+              onClick={e => {
+                e.preventDefault();
+                alert("Terms would open here");
+              }}
+            >
               Terms
             </a>
           </div>

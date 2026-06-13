@@ -1,11 +1,15 @@
-import React, { useState } from 'react';
-import { TrendingUp, TrendingDown, AlertTriangle, CheckCircle, Calendar } from 'lucide-react';
-import { forecastScenarios, simulateDecisionImpact, estimateCashflowBreakdown } from '../engines/scenarioForecast';
+import React, { useState } from "react";
+import { TrendingUp, TrendingDown, AlertTriangle, CheckCircle, Calendar } from "lucide-react";
+import {
+  forecastScenarios,
+  simulateDecisionImpact,
+  estimateCashflowBreakdown
+} from "../engines/scenarioForecast";
 
 export function ScenarioForecast({ profile, assessmentResult }) {
   const [selectedDecision, setSelectedDecision] = useState(null);
   const [decisionAmount, setDecisionAmount] = useState(5000);
-  const [decisionType, setDecisionType] = useState('savings_increase');
+  const [decisionType, setDecisionType] = useState("savings_increase");
 
   if (!profile || !assessmentResult) {
     return (
@@ -17,20 +21,32 @@ export function ScenarioForecast({ profile, assessmentResult }) {
 
   const forecast = forecastScenarios(profile);
   const cashflow = estimateCashflowBreakdown(profile);
-  const decisionImpact = selectedDecision ? simulateDecisionImpact(profile, selectedDecision) : null;
+  const decisionImpact = selectedDecision
+    ? simulateDecisionImpact(profile, selectedDecision)
+    : null;
 
-  if (!forecast) return null;
+  if (!forecast) {
+    return null;
+  }
 
-  const getStatusIcon = (status) => {
-    if (status === 'improving') return <TrendingUp size={20} className="forecast-status-icon forecast-status-positive" />;
-    if (status === 'deteriorating') return <TrendingDown size={20} className="forecast-status-icon forecast-status-negative" />;
+  const getStatusIcon = status => {
+    if (status === "improving") {
+      return <TrendingUp size={20} className="forecast-status-icon forecast-status-positive" />;
+    }
+    if (status === "deteriorating") {
+      return <TrendingDown size={20} className="forecast-status-icon forecast-status-negative" />;
+    }
     return <CheckCircle size={20} className="forecast-status-icon forecast-status-neutral" />;
   };
 
-  const getStatusClass = (status) => {
-    if (status === 'improving') return 'forecast-card forecast-card-positive';
-    if (status === 'deteriorating') return 'forecast-card forecast-card-negative';
-    return 'forecast-card forecast-card-neutral';
+  const getStatusClass = status => {
+    if (status === "improving") {
+      return "forecast-card forecast-card-positive";
+    }
+    if (status === "deteriorating") {
+      return "forecast-card forecast-card-negative";
+    }
+    return "forecast-card forecast-card-neutral";
   };
 
   return (
@@ -38,22 +54,30 @@ export function ScenarioForecast({ profile, assessmentResult }) {
       <div className="forecast-header">
         <div>
           <h3>Financial Forecast</h3>
-          <p>Live runway, cashflow and scenario insights presented in the same premium page style.</p>
+          <p>
+            Live runway, cashflow and scenario insights presented in the same premium page style.
+          </p>
         </div>
       </div>
 
       <div className="premium-report-grid premium-report-grid-3 forecast-summary-grid">
         <div className="premium-metric-tile">
           <div className="premium-metric-kicker">Emergency Savings</div>
-          <div className="premium-metric-value">₹{Math.round(forecast.baseline.currentSavings / 1000)}K</div>
+          <div className="premium-metric-value">
+            ₹{Math.round(forecast.baseline.currentSavings / 1000)}K
+          </div>
         </div>
         <div className="premium-metric-tile">
           <div className="premium-metric-kicker">Survival Window</div>
-          <div className="premium-metric-value">{Math.round(forecast.baseline.currentRunway * 10) / 10} months</div>
+          <div className="premium-metric-value">
+            {Math.round(forecast.baseline.currentRunway * 10) / 10} months
+          </div>
         </div>
         <div className="premium-metric-tile">
           <div className="premium-metric-kicker">Monthly Net</div>
-          <div className={`premium-metric-value ${forecast.baseline.monthlyNetIncome >= 0 ? 'forecast-positive' : 'forecast-negative'}`}>
+          <div
+            className={`premium-metric-value ${forecast.baseline.monthlyNetIncome >= 0 ? "forecast-positive" : "forecast-negative"}`}
+          >
             ₹{Math.round(forecast.baseline.monthlyNetIncome / 1000)}K
           </div>
         </div>
@@ -72,15 +96,21 @@ export function ScenarioForecast({ profile, assessmentResult }) {
           </div>
           <div className="premium-metric-tile">
             <div className="premium-metric-kicker">Discretionary Spending</div>
-            <div className="premium-metric-value">₹{Math.round(cashflow.discretionary / 1000)}K</div>
+            <div className="premium-metric-value">
+              ₹{Math.round(cashflow.discretionary / 1000)}K
+            </div>
           </div>
           <div className="premium-metric-tile">
             <div className="premium-metric-kicker">Debt Repayment</div>
-            <div className="premium-metric-value">₹{Math.round(cashflow.debtRepayment / 1000)}K</div>
+            <div className="premium-metric-value">
+              ₹{Math.round(cashflow.debtRepayment / 1000)}K
+            </div>
           </div>
           <div className="premium-metric-tile premium-metric-tile-wide">
             <div className="premium-metric-kicker">Available for Savings</div>
-            <div className="premium-metric-value">₹{Math.round(cashflow.savingsOpportunity / 1000)}K ({cashflow.savingsPercentage}%)</div>
+            <div className="premium-metric-value">
+              ₹{Math.round(cashflow.savingsOpportunity / 1000)}K ({cashflow.savingsPercentage}%)
+            </div>
           </div>
         </div>
       </div>
@@ -88,7 +118,7 @@ export function ScenarioForecast({ profile, assessmentResult }) {
       <div className="forecast-subsection">
         <div className="forecast-subsection-title">30 / 90 / 180-Day Forecasts</div>
         <div className="premium-report-grid premium-report-grid-3 forecast-scenarios-grid">
-          {forecast.scenarios.map((scenario) => (
+          {forecast.scenarios.map(scenario => (
             <div key={scenario.days} className={getStatusClass(scenario.status)}>
               <div className="forecast-card-header">
                 <div className="forecast-card-title">
@@ -105,7 +135,13 @@ export function ScenarioForecast({ profile, assessmentResult }) {
                 <div className="forecast-detail-card">
                   <span>Projected Savings</span>
                   <strong>₹{Math.round(scenario.projectedSavings / 1000)}K</strong>
-                  <small>{scenario.projectedSavings >= forecast.baseline.currentSavings ? '+' : ''}₹{Math.round((scenario.projectedSavings - forecast.baseline.currentSavings) / 1000)}K difference</small>
+                  <small>
+                    {scenario.projectedSavings >= forecast.baseline.currentSavings ? "+" : ""}₹
+                    {Math.round(
+                      (scenario.projectedSavings - forecast.baseline.currentSavings) / 1000
+                    )}
+                    K difference
+                  </small>
                 </div>
                 <div className="forecast-detail-card">
                   <span>Runway</span>
@@ -115,7 +151,11 @@ export function ScenarioForecast({ profile, assessmentResult }) {
                 <div className="forecast-detail-card">
                   <span>Debt Remaining</span>
                   <strong>₹{Math.round(scenario.projectedDebt / 1000)}K</strong>
-                  <small>{scenario.projectedDebt <= forecast.baseline.currentRunway * 12 ? '✓ Paid down' : 'Still owing'}</small>
+                  <small>
+                    {scenario.projectedDebt <= forecast.baseline.currentRunway * 12
+                      ? "✓ Paid down"
+                      : "Still owing"}
+                  </small>
                 </div>
               </div>
             </div>
@@ -131,10 +171,12 @@ export function ScenarioForecast({ profile, assessmentResult }) {
               <span>Stress Test</span>
             </div>
             <div className="forecast-list">
-              {forecast.risks.map((risk) => (
+              {forecast.risks.map(risk => (
                 <div key={risk.name} className="forecast-list-row">
                   <span>{risk.name}</span>
-                  <span className={`forecast-tag ${risk.impact === 'high' ? 'forecast-tag-critical' : risk.impact === 'medium' ? 'forecast-tag-warning' : 'forecast-tag-positive'}`}>
+                  <span
+                    className={`forecast-tag ${risk.impact === "high" ? "forecast-tag-critical" : risk.impact === "medium" ? "forecast-tag-warning" : "forecast-tag-positive"}`}
+                  >
                     {risk.impact.toUpperCase()}
                   </span>
                 </div>
@@ -167,7 +209,7 @@ export function ScenarioForecast({ profile, assessmentResult }) {
             <label>Decision Type</label>
             <select
               value={decisionType}
-              onChange={(e) => {
+              onChange={e => {
                 setDecisionType(e.target.value);
                 setSelectedDecision(null);
               }}
@@ -187,17 +229,19 @@ export function ScenarioForecast({ profile, assessmentResult }) {
               max="50000"
               step="1000"
               value={decisionAmount}
-              onChange={(e) => setDecisionAmount(Number(e.target.value))}
+              onChange={e => setDecisionAmount(Number(e.target.value))}
               className="forecast-range"
             />
           </div>
 
           <button
-            onClick={() => setSelectedDecision({
-              type: decisionType,
-              amount: decisionAmount,
-              duration: decisionType === 'expense' ? 'one_time' : 'recurring',
-            })}
+            onClick={() =>
+              setSelectedDecision({
+                type: decisionType,
+                amount: decisionAmount,
+                duration: decisionType === "expense" ? "one_time" : "recurring"
+              })
+            }
             className="forecast-button"
           >
             Simulate Decision
@@ -214,7 +258,10 @@ export function ScenarioForecast({ profile, assessmentResult }) {
             <div className="forecast-detail-card forecast-detail-card-highlight">
               <span>Projected Runway</span>
               <strong>{Math.round(decisionImpact.projectedState.runway * 10) / 10} months</strong>
-              <small>{decisionImpact.impact.runwayDelta > 0 ? '+' : ''}{Math.round(decisionImpact.impact.runwayDelta * 10) / 10} months change</small>
+              <small>
+                {decisionImpact.impact.runwayDelta > 0 ? "+" : ""}
+                {Math.round(decisionImpact.impact.runwayDelta * 10) / 10} months change
+              </small>
             </div>
           </div>
         )}

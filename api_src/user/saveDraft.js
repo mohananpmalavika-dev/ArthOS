@@ -1,27 +1,12 @@
 // api_src/user/saveDraft.js
 // Save assessment draft to database for authenticated user
 
-import jwt from "jsonwebtoken";
+import { extractUserFromRequest } from "../auth/jwt.js";
 import { insertIntoTable, queryTable } from "../dbClient.js";
-
-const JWT_SECRET = process.env.JWT_SECRET || "dev-secret-key";
-
-function extractUserFromToken(req) {
-  const authHeader = req.headers.authorization || "";
-  const token = authHeader.replace("Bearer ", "");
-  if (!token) return null;
-  try {
-    const decoded = jwt.verify(token, JWT_SECRET, { algorithms: ["HS256"] });
-    return { id: decoded.userId || decoded.id || decoded.email || null, email: decoded.email || null };
-  } catch (error) {
-    console.warn("[saveDraft] Invalid token:", error.message);
-    return null;
-  }
-}
 
 export default async function handler(req, res) {
   try {
-    const user = extractUserFromToken(req);
+    const user = await extractUserFromRequest(req);
     if (!user) {
       return res.status(401).json({ status: "error", error: "Unauthorized" });
     }

@@ -13,13 +13,12 @@
  *     — new predictionEngineForecastHealth uses sophisticated multi-model approach
  */
 
-import {
-  predictionEngineForecastHealth,
-  generatePrediction,
-} from './predictionEngine.js';
+import { predictionEngineForecastHealth, generatePrediction } from "./predictionEngine.js";
 
 function clamp(value) {
-  if (typeof value !== 'number' || Number.isNaN(value)) return 0;
+  if (typeof value !== "number" || Number.isNaN(value)) {
+    return 0;
+  }
   return Math.max(0, value);
 }
 
@@ -70,17 +69,17 @@ function gbmEnsemble(startValue, mu, sigma, steps, iterations = 1000, dt = 1) {
 function computePercentiles(paths, steps) {
   const percentiles = [];
   for (let t = 0; t <= steps; t++) {
-    const values = paths.map((p) => p[t]).sort((a, b) => a - b);
+    const values = paths.map(p => p[t]).sort((a, b) => a - b);
     percentiles.push({
       month: t,
       p5: values[Math.floor(0.05 * values.length)] || 0,
-      p10: values[Math.floor(0.10 * values.length)] || 0,
+      p10: values[Math.floor(0.1 * values.length)] || 0,
       p25: values[Math.floor(0.25 * values.length)] || 0,
-      p50: values[Math.floor(0.50 * values.length)] || 0,
+      p50: values[Math.floor(0.5 * values.length)] || 0,
       p75: values[Math.floor(0.75 * values.length)] || 0,
-      p90: values[Math.floor(0.90 * values.length)] || 0,
+      p90: values[Math.floor(0.9 * values.length)] || 0,
       p95: values[Math.floor(0.95 * values.length)] || 0,
-      mean: Math.round(values.reduce((a, b) => a + b, 0) / values.length),
+      mean: Math.round(values.reduce((a, b) => a + b, 0) / values.length)
     });
   }
   return percentiles;
@@ -94,16 +93,22 @@ function computePercentiles(paths, steps) {
  * Estimate volatility from historical data using EWMA.
  */
 export function estimateVolatility(history, lambda = 0.94) {
-  if (!Array.isArray(history) || history.length < 2) return 0.15;
+  if (!Array.isArray(history) || history.length < 2) {
+    return 0.15;
+  }
 
   const returns = [];
   for (let i = 1; i < history.length; i++) {
     const prev = Number(history[i - 1]) || 0;
     const curr = Number(history[i]) || 0;
-    if (prev > 0) returns.push(curr / prev - 1);
+    if (prev > 0) {
+      returns.push(curr / prev - 1);
+    }
   }
 
-  if (returns.length < 2) return 0.15;
+  if (returns.length < 2) {
+    return 0.15;
+  }
 
   let variance = 0;
   for (let i = returns.length - 1; i >= 0; i--) {
@@ -118,16 +123,22 @@ export function estimateVolatility(history, lambda = 0.94) {
  * Estimate drift from historical data.
  */
 export function estimateDrift(history) {
-  if (!Array.isArray(history) || history.length < 2) return 0;
+  if (!Array.isArray(history) || history.length < 2) {
+    return 0;
+  }
 
   const returns = [];
   for (let i = 1; i < history.length; i++) {
     const prev = Number(history[i - 1]) || 0;
     const curr = Number(history[i]) || 0;
-    if (prev > 0) returns.push(Math.log(curr / prev));
+    if (prev > 0) {
+      returns.push(Math.log(curr / prev));
+    }
   }
 
-  if (returns.length < 2) return 0;
+  if (returns.length < 2) {
+    return 0;
+  }
 
   const mean = returns.reduce((s, r) => s + r, 0) / returns.length;
   return mean;
@@ -142,16 +153,14 @@ export function estimateDrift(history) {
  */
 export function detectRegime(history) {
   if (!Array.isArray(history) || history.length < 4) {
-    return { regime: 'insufficient_data', volatility: 0.15, drift: 0 };
+    return { regime: "insufficient_data", volatility: 0.15, drift: 0 };
   }
 
   const vol = estimateVolatility(history) * 100;
   const drift = estimateDrift(history) * 100;
 
-  const regime = vol > 20 ? 'volatile'
-    : drift < -5 ? 'declining'
-    : drift > 5 ? 'improving'
-    : 'stable';
+  const regime =
+    vol > 20 ? "volatile" : drift < -5 ? "declining" : drift > 5 ? "improving" : "stable";
 
   return { regime, volatility: round2(vol), drift: round2(drift) };
 }
@@ -164,7 +173,7 @@ function regimeAdjustedVolatility(baseVolatility, regime, historyLength) {
     volatile: 1.5,
     declining: 1.3,
     improving: 0.8,
-    stable: 1.0,
+    stable: 1.0
   };
   const multiplier = regimeMultiplier[regime] || 1.0;
   const sampleError = Math.max(1, 15 - historyLength * 0.5) / 15;
@@ -180,7 +189,7 @@ function regimeAdjustedVolatility(baseVolatility, regime, historyLength) {
  */
 export function bootstrapConfidence(forecast, errors, ci = 0.95) {
   if (!Array.isArray(errors) || errors.length < 2) {
-    return { lower: forecast * 0.8, upper: forecast * 1.2, method: 'heuristic' };
+    return { lower: forecast * 0.8, upper: forecast * 1.2, method: "heuristic" };
   }
 
   const z = ci === 0.99 ? 2.576 : ci === 0.95 ? 1.96 : 1.645;
@@ -188,7 +197,7 @@ export function bootstrapConfidence(forecast, errors, ci = 0.95) {
   const variance = errors.reduce((s, e) => s + (e - mean) ** 2, 0) / errors.length;
   const se = Math.sqrt(variance);
 
-  return { lower: forecast - z * se, upper: forecast + z * se, se, method: 'bootstrap' };
+  return { lower: forecast - z * se, upper: forecast + z * se, se, method: "bootstrap" };
 }
 
 // ============================================================
@@ -211,7 +220,7 @@ function monteCarloRun(currentValue, meanChange, volatility, months, iterations 
     percentiles,
     paths: iterations > 100 ? null : paths,
     iterations,
-    finalDistribution: percentiles[percentiles.length - 1],
+    finalDistribution: percentiles[percentiles.length - 1]
   };
 }
 
@@ -225,7 +234,12 @@ function estimateHealthVolatility(historyLength, decisionsTracked, behaviourScor
   return Math.max(2, (dataVol + behaviourVol) / 2);
 }
 
-function estimateHealthMeanChange(behaviourScore, awarenessScore, stabilityScore, habitProgress = 0) {
+function estimateHealthMeanChange(
+  behaviourScore,
+  awarenessScore,
+  stabilityScore,
+  habitProgress = 0
+) {
   const behaviourDriver = (behaviourScore / 45 - 0.4) * 8;
   const awarenessDriver = (awarenessScore / 30 - 0.4) * 5;
   const stabilityDriver = (stabilityScore / 25 - 0.4) * 4;
@@ -246,7 +260,9 @@ export function forecastHealth(
   stabilityScore = 12.5,
   habitProgress = 50
 ) {
-  const meanChange = estimateHealthMeanChange(behaviourScore, awarenessScore, stabilityScore, habitProgress) + monthlyImprovement;
+  const meanChange =
+    estimateHealthMeanChange(behaviourScore, awarenessScore, stabilityScore, habitProgress) +
+    monthlyImprovement;
   let volatility = estimateHealthVolatility(historyLength, decisionsTracked, behaviourScore);
 
   // Build dummy history for regime detection (use forecast percentiles as proxy)
@@ -256,18 +272,26 @@ export function forecastHealth(
   // Apply regime-switching adjustment
   volatility = regimeAdjustedVolatility(volatility, regime.regime, historyLength);
 
-  const simulation = monteCarloRun(currentScore, meanChange / 30, volatility / Math.sqrt(30), 180, 500);
+  const simulation = monteCarloRun(
+    currentScore,
+    meanChange / 30,
+    volatility / Math.sqrt(30),
+    180,
+    500
+  );
 
-  const getHorizon = (days) => {
+  const getHorizon = days => {
     const p = simulation.percentiles[days];
-    if (!p) return null;
+    if (!p) {
+      return null;
+    }
     return {
       p5: clamp(Math.round(p.p5)),
       p25: clamp(Math.round(p.p25)),
       p50: clamp(Math.round(p.p50)),
       p75: clamp(Math.round(p.p75)),
       p95: clamp(Math.round(p.p95)),
-      mean: Math.round(p.mean),
+      mean: Math.round(p.mean)
     };
   };
 
@@ -281,7 +305,7 @@ export function forecastHealth(
     regime,
     percentiles: simulation.percentiles.filter((_, i) => i % 10 === 0),
     simulationCount: simulation.iterations,
-    generatedAt: new Date().toISOString(),
+    generatedAt: new Date().toISOString()
   };
 }
 
@@ -296,7 +320,8 @@ function calculateMonteCarloConfidence(historyLength, decisionsTracked, volatili
 // ============================================================
 
 export function detectFutureRisk(profile = {}) {
-  const savings = Number(profile.savings || profile.emergencySavings || 0) +
+  const savings =
+    Number(profile.savings || profile.emergencySavings || 0) +
     Number(profile.emergencySavingsFixed || 0) +
     Number(profile.emergencySavingsDiscretionary || 0);
   const expense = Number(profile.monthlyExpense || profile.monthlySpending || 1);
@@ -305,7 +330,7 @@ export function detectFutureRisk(profile = {}) {
   const expenseVol = expense * 0.15;
 
   if (expense <= 0) {
-    return { runway: Infinity, riskScore: 0, riskLevel: 'Low', message: 'No expenses reported.' };
+    return { runway: Infinity, riskScore: 0, riskLevel: "Low", message: "No expenses reported." };
   }
 
   const simulation = monteCarloRun(savings, netCashflow, expenseVol, 24, 500);
@@ -318,9 +343,9 @@ export function detectFutureRisk(profile = {}) {
     }
   }
 
-  const worstRunway = simulation.percentiles.find((p) => p.p10 <= 0)?.month || 24;
+  const worstRunway = simulation.percentiles.find(p => p.p10 <= 0)?.month || 24;
   const riskScore = clamp(Math.round(100 - (medianRunway / 24) * 100));
-  const level = riskScore > 70 ? 'High' : riskScore > 40 ? 'Medium' : 'Low';
+  const level = riskScore > 70 ? "High" : riskScore > 40 ? "Medium" : "Low";
 
   return {
     runway: medianRunway,
@@ -330,12 +355,13 @@ export function detectFutureRisk(profile = {}) {
     worstCaseRunway: worstRunway,
     netCashflow,
     totalSavings: Math.round(savings),
-    message: medianRunway < 3
-      ? `Critical: Runway estimated at ${medianRunway} months — prioritize savings immediately.`
-      : medianRunway < 6
-        ? `Caution: Runway of ${medianRunway} months — strengthen reserves.`
-        : `Stable: Runway of ${medianRunway}+ months — maintain current trajectory.`,
-    regime: detectRegime(simulation.percentiles.map((p) => p.mean)),
+    message:
+      medianRunway < 3
+        ? `Critical: Runway estimated at ${medianRunway} months — prioritize savings immediately.`
+        : medianRunway < 6
+          ? `Caution: Runway of ${medianRunway} months — strengthen reserves.`
+          : `Stable: Runway of ${medianRunway}+ months — maintain current trajectory.`,
+    regime: detectRegime(simulation.percentiles.map(p => p.mean))
   };
 }
 
@@ -350,7 +376,13 @@ export function simulateWhatIf(profile = {}, deltaMonthlySaving = 1000) {
   const meanChange = improvement * 1.5;
   const volatility = 3 + (improvement > 0.2 ? -1 : 1);
 
-  const simulation = monteCarloRun(currentScore, meanChange / 30, volatility / Math.sqrt(30), 180, 200);
+  const simulation = monteCarloRun(
+    currentScore,
+    meanChange / 30,
+    volatility / Math.sqrt(30),
+    180,
+    200
+  );
 
   return {
     scenario: `Save Rs.${deltaMonthlySaving} more monthly`,
@@ -359,8 +391,8 @@ export function simulateWhatIf(profile = {}, deltaMonthlySaving = 1000) {
     projectedDay180: simulation.percentiles[180],
     meanChange: round2(meanChange),
     confidence: Math.min(80, Math.round(40 + deltaMonthlySaving / 200)),
-    regime: detectRegime(simulation.percentiles.map((p) => p.mean)),
-    generatedAt: new Date().toISOString(),
+    regime: detectRegime(simulation.percentiles.map(p => p.mean)),
+    generatedAt: new Date().toISOString()
   };
 }
 
@@ -377,20 +409,31 @@ export function confidenceScore(dataPoints = 0) {
 // ============================================================
 
 export function riskAlertEngine(projection) {
-  if (!Array.isArray(projection) || projection.length === 0) return [];
+  if (!Array.isArray(projection) || projection.length === 0) {
+    return [];
+  }
 
   const alerts = [];
   const minValue = Math.min(...projection);
   const maxDrop = projection[0] - minValue;
 
   if (minValue < 0) {
-    alerts.push({ level: 'critical', message: 'Projected negative balance within horizon — immediate action required.' });
+    alerts.push({
+      level: "critical",
+      message: "Projected negative balance within horizon — immediate action required."
+    });
   }
   if (maxDrop > projection[0] * 0.5) {
-    alerts.push({ level: 'high', message: `Projected balance drop of ${Math.round(maxDrop / projection[0] * 100)}% — evaluate spending trajectory.` });
+    alerts.push({
+      level: "high",
+      message: `Projected balance drop of ${Math.round((maxDrop / projection[0]) * 100)}% — evaluate spending trajectory.`
+    });
   }
-  if (projection.slice(-3).every((v) => v < projection[0] * 0.3)) {
-    alerts.push({ level: 'high', message: 'Sustained decline projected — review cash flow management.' });
+  if (projection.slice(-3).every(v => v < projection[0] * 0.3)) {
+    alerts.push({
+      level: "high",
+      message: "Sustained decline projected — review cash flow management."
+    });
   }
 
   return alerts;
@@ -402,20 +445,22 @@ export function riskAlertEngine(projection) {
 
 function forecastProbabilistic(userProfile, history, months) {
   const startValue = Number(userProfile.savings || userProfile.emergencySavings || 0) || 10000;
-  const netCashflow = Number(userProfile.monthlyIncome || 0) - Number(userProfile.monthlyExpense || userProfile.monthlySpending || 0);
+  const netCashflow =
+    Number(userProfile.monthlyIncome || 0) -
+    Number(userProfile.monthlyExpense || userProfile.monthlySpending || 0);
   const baseVol = Math.abs(netCashflow) * 0.3 + 500;
-  const regime = detectRegime(history.map((h) => h.balance || 0));
+  const regime = detectRegime(history.map(h => h.balance || 0));
   const vol = regimeAdjustedVolatility(baseVol / Math.sqrt(30), regime.regime, history.length);
 
   const sim = monteCarloRun(startValue, netCashflow / 30, vol, months, 100);
 
   return {
     horizon: months,
-    projection: sim.percentiles.slice(1).map((p) => p.mean),
+    projection: sim.percentiles.slice(1).map(p => p.mean),
     confidence: calculateMonteCarloConfidence(history.length, 0, vol),
     interval: sim.finalDistribution,
     regime,
-    generatedAt: new Date().toISOString(),
+    generatedAt: new Date().toISOString()
   };
 }
 
@@ -435,4 +480,8 @@ export function forecast180d(userProfile, history = []) {
 // SCENARIO FORECASTING (re-export)
 // ============================================================
 
-export { forecastScenarios, simulateDecisionImpact, estimateCashflowBreakdown } from './scenarioForecast.js';
+export {
+  forecastScenarios,
+  simulateDecisionImpact,
+  estimateCashflowBreakdown
+} from "./scenarioForecast.js";

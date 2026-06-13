@@ -1,9 +1,9 @@
 /**
  * Cognition Graph Visualization Dashboard
- * 
+ *
  * Interactive visualization of financial beliefs, cognitive biases, emotional
  * triggers, and decision-outcome relationships.
- * 
+ *
  * Features:
  * - Network graph visualization of belief system
  * - Cognitive bias profile
@@ -12,7 +12,7 @@
  * - Belief → Decision → Outcome causal chains
  */
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from "react";
 import {
   Brain,
   TrendingDown,
@@ -29,10 +29,10 @@ import {
   Target,
   Filter,
   RefreshCw
-} from 'lucide-react';
+} from "lucide-react";
 
 const CognitionGraphDashboard = ({ userId }) => {
-  const [activeTab, setActiveTab] = useState('beliefs');
+  const [activeTab, setActiveTab] = useState("beliefs");
   const [beliefs, setBeliefs] = useState([]);
   const [biases, setBiases] = useState([]);
   const [triggers, setTriggers] = useState([]);
@@ -50,23 +50,36 @@ const CognitionGraphDashboard = ({ userId }) => {
   const loadCognitionData = async () => {
     setLoading(true);
     try {
-      const [beliefsRes, biasesRes, triggersRes, decisionsRes, graphRes, patternsRes] = await Promise.all([
-        fetch(`/api/cognition/beliefs?userId=${userId}`).then(r => r.json()),
-        fetch(`/api/cognition/biases?userId=${userId}`).then(r => r.json()),
-        fetch(`/api/cognition/triggers?userId=${userId}`).then(r => r.json()),
-        fetch(`/api/cognition/decisions?userId=${userId}&limit=20`).then(r => r.json()),
-        fetch(`/api/cognition/graph?userId=${userId}`).then(r => r.json()),
-        fetch(`/api/cognition/patterns?userId=${userId}&months=6`).then(r => r.json())
-      ]);
+      const [beliefsRes, biasesRes, triggersRes, decisionsRes, graphRes, patternsRes] =
+        await Promise.all([
+          fetch(`/api/cognition/beliefs?userId=${userId}`).then(r => r.json()),
+          fetch(`/api/cognition/biases?userId=${userId}`).then(r => r.json()),
+          fetch(`/api/cognition/triggers?userId=${userId}`).then(r => r.json()),
+          fetch(`/api/cognition/decisions?userId=${userId}&limit=20`).then(r => r.json()),
+          fetch(`/api/cognition/graph?userId=${userId}`).then(r => r.json()),
+          fetch(`/api/cognition/patterns?userId=${userId}&months=6`).then(r => r.json())
+        ]);
 
-      if (beliefsRes.success) setBeliefs(beliefsRes.beliefs || []);
-      if (biasesRes.success) setBiases(biasesRes.biases || []);
-      if (triggersRes.success) setTriggers(triggersRes.triggers || []);
-      if (decisionsRes.success) setDecisions(decisionsRes.decisions || []);
-      if (graphRes.success) setGraph(graphRes.graph || null);
-      if (patternsRes.success) setPatterns(patternsRes.patterns || []);
+      if (beliefsRes.success) {
+        setBeliefs(beliefsRes.beliefs || []);
+      }
+      if (biasesRes.success) {
+        setBiases(biasesRes.biases || []);
+      }
+      if (triggersRes.success) {
+        setTriggers(triggersRes.triggers || []);
+      }
+      if (decisionsRes.success) {
+        setDecisions(decisionsRes.decisions || []);
+      }
+      if (graphRes.success) {
+        setGraph(graphRes.graph || null);
+      }
+      if (patternsRes.success) {
+        setPatterns(patternsRes.patterns || []);
+      }
     } catch (error) {
-      console.error('Failed to load cognition data:', error);
+      console.error("Failed to load cognition data:", error);
     } finally {
       setLoading(false);
     }
@@ -90,7 +103,9 @@ const CognitionGraphDashboard = ({ userId }) => {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-4xl font-bold text-gray-900 mb-2">Your Financial Cognition</h1>
-            <p className="text-gray-600">Understand the beliefs, biases, and patterns shaping your financial decisions</p>
+            <p className="text-gray-600">
+              Understand the beliefs, biases, and patterns shaping your financial decisions
+            </p>
           </div>
           <button
             onClick={loadCognitionData}
@@ -106,11 +121,11 @@ const CognitionGraphDashboard = ({ userId }) => {
         <div className="bg-white rounded-lg shadow mb-6 overflow-hidden">
           <div className="flex border-b flex-wrap">
             {[
-              { id: 'beliefs', label: 'Beliefs', icon: Lightbulb },
-              { id: 'biases', label: 'Cognitive Biases', icon: Brain },
-              { id: 'triggers', label: 'Emotional Triggers', icon: Heart },
-              { id: 'decisions', label: 'Decision Quality', icon: Target },
-              { id: 'graph', label: 'Knowledge Graph', icon: Network }
+              { id: "beliefs", label: "Beliefs", icon: Lightbulb },
+              { id: "biases", label: "Cognitive Biases", icon: Brain },
+              { id: "triggers", label: "Emotional Triggers", icon: Heart },
+              { id: "decisions", label: "Decision Quality", icon: Target },
+              { id: "graph", label: "Knowledge Graph", icon: Network }
             ].map(tab => {
               const Icon = tab.icon;
               return (
@@ -119,18 +134,18 @@ const CognitionGraphDashboard = ({ userId }) => {
                   onClick={() => setActiveTab(tab.id)}
                   className={`px-6 py-4 font-medium flex items-center gap-2 transition ${
                     activeTab === tab.id
-                      ? 'text-purple-600 border-b-2 border-purple-600'
-                      : 'text-gray-600 hover:text-gray-900'
+                      ? "text-purple-600 border-b-2 border-purple-600"
+                      : "text-gray-600 hover:text-gray-900"
                   }`}
                 >
                   <Icon size={18} />
                   {tab.label}
-                  {tab.id === 'beliefs' && beliefs.length > 0 && (
+                  {tab.id === "beliefs" && beliefs.length > 0 && (
                     <span className="ml-2 bg-purple-100 text-purple-600 px-2 py-1 rounded-full text-xs">
                       {beliefs.length}
                     </span>
                   )}
-                  {tab.id === 'biases' && biases.length > 0 && (
+                  {tab.id === "biases" && biases.length > 0 && (
                     <span className="ml-2 bg-red-100 text-red-600 px-2 py-1 rounded-full text-xs">
                       {biases.length}
                     </span>
@@ -141,20 +156,24 @@ const CognitionGraphDashboard = ({ userId }) => {
           </div>
 
           {/* Beliefs Tab */}
-          {activeTab === 'beliefs' && (
+          {activeTab === "beliefs" && (
             <div className="p-6">
               <h3 className="text-xl font-semibold text-gray-900 mb-4">Your Financial Beliefs</h3>
               {beliefs.length === 0 ? (
                 <div className="text-center py-12 text-gray-500">
                   <Lightbulb className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                  <p>No beliefs extracted yet. Complete assessments to reveal your belief system.</p>
+                  <p>
+                    No beliefs extracted yet. Complete assessments to reveal your belief system.
+                  </p>
                 </div>
               ) : (
                 <div className="space-y-3">
                   {beliefs.map(belief => (
                     <div
                       key={belief.id}
-                      onClick={() => setSelectedBelief(selectedBelief?.id === belief.id ? null : belief)}
+                      onClick={() =>
+                        setSelectedBelief(selectedBelief?.id === belief.id ? null : belief)
+                      }
                       className="border border-gray-200 rounded-lg p-4 hover:shadow-md cursor-pointer transition"
                     >
                       <div className="flex items-start justify-between mb-2">
@@ -173,7 +192,7 @@ const CognitionGraphDashboard = ({ userId }) => {
                             )}
                           </div>
                           <p className="text-sm text-gray-600 capitalize">
-                            {belief.belief_category} • {belief.belief_origin?.replace(/_/g, ' ')}
+                            {belief.belief_category} • {belief.belief_origin?.replace(/_/g, " ")}
                           </p>
                         </div>
                         <div className="text-right">
@@ -193,10 +212,11 @@ const CognitionGraphDashboard = ({ userId }) => {
                         <div className="mt-4 pt-4 border-t border-gray-200">
                           <p className="text-sm text-gray-700 mb-3">
                             <strong>Valence:</strong> {belief.emotional_valence} •
-                            <strong className="ml-2">Confidence:</strong> {belief.confidence_score.toFixed(0)}%
+                            <strong className="ml-2">Confidence:</strong>{" "}
+                            {belief.confidence_score.toFixed(0)}%
                           </p>
                           <p className="text-sm text-gray-600">
-                            <strong>Origin:</strong> {belief.belief_origin?.replace(/_/g, ' ')} on{' '}
+                            <strong>Origin:</strong> {belief.belief_origin?.replace(/_/g, " ")} on{" "}
                             {new Date(belief.first_detected_date).toLocaleDateString()}
                           </p>
                         </div>
@@ -209,9 +229,11 @@ const CognitionGraphDashboard = ({ userId }) => {
           )}
 
           {/* Biases Tab */}
-          {activeTab === 'biases' && (
+          {activeTab === "biases" && (
             <div className="p-6">
-              <h3 className="text-xl font-semibold text-gray-900 mb-4">Cognitive Biases Detected</h3>
+              <h3 className="text-xl font-semibold text-gray-900 mb-4">
+                Cognitive Biases Detected
+              </h3>
               {biases.length === 0 ? (
                 <div className="text-center py-12 text-gray-500">
                   <Brain className="w-12 h-12 mx-auto mb-4 opacity-50" />
@@ -220,12 +242,15 @@ const CognitionGraphDashboard = ({ userId }) => {
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {biases.map(bias => (
-                    <div key={bias.id} className="bg-gradient-to-br from-red-50 to-pink-50 rounded-lg p-4 border border-red-200">
+                    <div
+                      key={bias.id}
+                      className="bg-gradient-to-br from-red-50 to-pink-50 rounded-lg p-4 border border-red-200"
+                    >
                       <div className="flex items-start justify-between mb-2">
                         <div>
                           <p className="font-semibold text-gray-900">{bias.bias_name}</p>
                           <p className="text-xs text-gray-600 uppercase tracking-wide mt-1">
-                            {bias.bias_type.replace(/_/g, ' ')}
+                            {bias.bias_type.replace(/_/g, " ")}
                           </p>
                         </div>
                         <AlertTriangle className="w-5 h-5 text-red-600" />
@@ -249,7 +274,9 @@ const CognitionGraphDashboard = ({ userId }) => {
 
                         <div className="flex justify-between items-center pt-2">
                           <span className="text-xs text-gray-600">Instances</span>
-                          <span className="text-sm font-semibold text-gray-900">{bias.detected_instances}</span>
+                          <span className="text-sm font-semibold text-gray-900">
+                            {bias.detected_instances}
+                          </span>
                         </div>
 
                         {bias.estimated_annual_impact > 0 && (
@@ -269,40 +296,52 @@ const CognitionGraphDashboard = ({ userId }) => {
           )}
 
           {/* Triggers Tab */}
-          {activeTab === 'triggers' && (
+          {activeTab === "triggers" && (
             <div className="p-6">
               <h3 className="text-xl font-semibold text-gray-900 mb-4">Emotional Triggers</h3>
               {triggers.length === 0 ? (
                 <div className="text-center py-12 text-gray-500">
                   <Heart className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                  <p>No emotional triggers detected yet. Track more decisions to identify patterns.</p>
+                  <p>
+                    No emotional triggers detected yet. Track more decisions to identify patterns.
+                  </p>
                 </div>
               ) : (
                 <div className="space-y-3">
                   {triggers.map(trigger => (
-                    <div key={trigger.id} className="bg-blue-50 rounded-lg p-4 border border-blue-200">
+                    <div
+                      key={trigger.id}
+                      className="bg-blue-50 rounded-lg p-4 border border-blue-200"
+                    >
                       <div className="flex items-start justify-between mb-2">
                         <div>
                           <p className="font-semibold text-gray-900">{trigger.trigger_event}</p>
                           <p className="text-sm text-gray-600 mt-1">
-                            Emotion: <span className="font-medium capitalize">{trigger.trigger_emotion}</span>
+                            Emotion:{" "}
+                            <span className="font-medium capitalize">
+                              {trigger.trigger_emotion}
+                            </span>
                           </p>
                         </div>
                         <Zap className="w-5 h-5 text-blue-600" />
                       </div>
 
                       <p className="text-sm text-gray-700 mb-3">
-                        {trigger.common_behaviors?.join(', ') || 'No behaviors recorded'}
+                        {trigger.common_behaviors?.join(", ") || "No behaviors recorded"}
                       </p>
 
                       <div className="grid grid-cols-2 gap-2 text-xs">
                         <div className="bg-white rounded p-2">
                           <p className="text-gray-600">Frequency</p>
-                          <p className="font-semibold">{trigger.frequency_per_month?.toFixed(1) || 0}/month</p>
+                          <p className="font-semibold">
+                            {trigger.frequency_per_month?.toFixed(1) || 0}/month
+                          </p>
                         </div>
                         <div className="bg-white rounded p-2">
                           <p className="text-gray-600">Annual Impact</p>
-                          <p className="font-semibold">₹{(trigger.estimated_annual_impact || 0).toLocaleString()}</p>
+                          <p className="font-semibold">
+                            ₹{(trigger.estimated_annual_impact || 0).toLocaleString()}
+                          </p>
                         </div>
                       </div>
                     </div>
@@ -313,9 +352,11 @@ const CognitionGraphDashboard = ({ userId }) => {
           )}
 
           {/* Decision Quality Tab */}
-          {activeTab === 'decisions' && (
+          {activeTab === "decisions" && (
             <div className="p-6">
-              <h3 className="text-xl font-semibold text-gray-900 mb-4">Decision Quality Analysis</h3>
+              <h3 className="text-xl font-semibold text-gray-900 mb-4">
+                Decision Quality Analysis
+              </h3>
               {decisions.length === 0 ? (
                 <div className="text-center py-12 text-gray-500">
                   <Target className="w-12 h-12 mx-auto mb-4 opacity-50" />
@@ -329,7 +370,8 @@ const CognitionGraphDashboard = ({ userId }) => {
                       <p className="text-sm text-gray-600 mb-1">Avg Decision Quality</p>
                       <p className="text-3xl font-bold text-green-600">
                         {Math.round(
-                          decisions.reduce((sum, d) => sum + (d.decision_quality_score || 50), 0) / decisions.length
+                          decisions.reduce((sum, d) => sum + (d.decision_quality_score || 50), 0) /
+                            decisions.length
                         )}
                       </p>
                       <p className="text-xs text-gray-500 mt-2">/100</p>
@@ -344,7 +386,10 @@ const CognitionGraphDashboard = ({ userId }) => {
                     <div className="bg-gradient-to-br from-purple-50 to-indigo-50 rounded-lg p-4 border border-purple-200">
                       <p className="text-sm text-gray-600 mb-1">Total Amount</p>
                       <p className="text-3xl font-bold text-purple-600">
-                        ₹{decisions.reduce((sum, d) => sum + (d.decision_amount || 0), 0).toLocaleString()}
+                        ₹
+                        {decisions
+                          .reduce((sum, d) => sum + (d.decision_amount || 0), 0)
+                          .toLocaleString()}
                       </p>
                       <p className="text-xs text-gray-500 mt-2">decided</p>
                     </div>
@@ -372,17 +417,20 @@ const CognitionGraphDashboard = ({ userId }) => {
                     <h4 className="font-semibold text-gray-900 mb-3">Recent Decisions</h4>
                     <div className="space-y-2">
                       {decisions.slice(0, 5).map(decision => (
-                        <div key={decision.id} className="flex items-center justify-between p-3 bg-gray-50 rounded">
+                        <div
+                          key={decision.id}
+                          className="flex items-center justify-between p-3 bg-gray-50 rounded"
+                        >
                           <div>
                             <p className="font-medium text-gray-900">{decision.decision_title}</p>
                             <p className="text-xs text-gray-600">
-                              {new Date(decision.decision_date).toLocaleDateString()} •{' '}
+                              {new Date(decision.decision_date).toLocaleDateString()} •{" "}
                               {decision.decision_status}
                             </p>
                           </div>
                           <div className="text-right">
                             <p className="font-semibold text-gray-900">
-                              {decision.decision_quality_score?.toFixed(0) || '?'}/100
+                              {decision.decision_quality_score?.toFixed(0) || "?"}/100
                             </p>
                             <div className="w-16 bg-gray-200 rounded-full h-1.5 mt-1">
                               <div
@@ -401,7 +449,7 @@ const CognitionGraphDashboard = ({ userId }) => {
           )}
 
           {/* Graph Tab */}
-          {activeTab === 'graph' && (
+          {activeTab === "graph" && (
             <div className="p-6">
               <h3 className="text-xl font-semibold text-gray-900 mb-4">Knowledge Graph</h3>
               {!graph || !graph.nodes || graph.nodes.length === 0 ? (
@@ -416,7 +464,8 @@ const CognitionGraphDashboard = ({ userId }) => {
                 <div>
                   <div className="bg-gray-100 rounded-lg h-96 mb-4 flex items-center justify-center">
                     <p className="text-gray-600">
-                      Graph visualization: {graph.nodes?.length || 0} nodes, {graph.edges?.length || 0} connections
+                      Graph visualization: {graph.nodes?.length || 0} nodes,{" "}
+                      {graph.edges?.length || 0} connections
                     </p>
                   </div>
 
@@ -424,25 +473,25 @@ const CognitionGraphDashboard = ({ userId }) => {
                     <div className="bg-blue-50 rounded p-3">
                       <p className="text-xs text-gray-600">Beliefs</p>
                       <p className="text-2xl font-bold text-blue-600">
-                        {graph.nodes?.filter(n => n.type === 'belief').length || 0}
+                        {graph.nodes?.filter(n => n.type === "belief").length || 0}
                       </p>
                     </div>
                     <div className="bg-red-50 rounded p-3">
                       <p className="text-xs text-gray-600">Biases</p>
                       <p className="text-2xl font-bold text-red-600">
-                        {graph.nodes?.filter(n => n.type === 'bias').length || 0}
+                        {graph.nodes?.filter(n => n.type === "bias").length || 0}
                       </p>
                     </div>
                     <div className="bg-green-50 rounded p-3">
                       <p className="text-xs text-gray-600">Decisions</p>
                       <p className="text-2xl font-bold text-green-600">
-                        {graph.nodes?.filter(n => n.type === 'decision').length || 0}
+                        {graph.nodes?.filter(n => n.type === "decision").length || 0}
                       </p>
                     </div>
                     <div className="bg-purple-50 rounded p-3">
                       <p className="text-xs text-gray-600">Density</p>
                       <p className="text-2xl font-bold text-purple-600">
-                        {graph.metrics?.density ? (graph.metrics.density * 100).toFixed(1) : '0'}%
+                        {graph.metrics?.density ? (graph.metrics.density * 100).toFixed(1) : "0"}%
                       </p>
                     </div>
                   </div>

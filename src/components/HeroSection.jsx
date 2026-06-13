@@ -17,7 +17,7 @@ function buildLiveInsightCards(result, assessment) {
       title: "Behavior Pattern",
       copy: `${result.personalityType ?? "Current"} profile detected from your active responses.`,
       time: "Live now",
-      tone: "purple",
+      tone: "purple"
     },
     {
       icon: BarChart3,
@@ -26,22 +26,22 @@ function buildLiveInsightCards(result, assessment) {
         ? `Stress-spend response is currently marked ${stressPattern.replaceAll("_", " ")}.`
         : "Answer emotion prompts to reveal stress-spend patterns.",
       time: "Live now",
-      tone: "cyan",
+      tone: "cyan"
     },
     {
       icon: ShieldCheck,
       title: "Risk Exposure",
       copy: `${result.futureRiskLabel ?? "Risk"} based on your current stability inputs.`,
       time: "Live now",
-      tone: "purple",
+      tone: "purple"
     },
     {
       icon: Target,
       title: "Focus Opportunity",
       copy: `${focusLabel} is the next area to strengthen as your answers update.`,
       time: planState || impulsePattern ? "Live now" : "Needs input",
-      tone: "cyan",
-    },
+      tone: "cyan"
+    }
   ];
 }
 
@@ -57,18 +57,18 @@ export default function HeroSection({ assessment, result }) {
     {
       label: "Financial Health Behavior Score",
       value: scorePreview,
-      width: `${scorePreview}%`,
+      width: `${scorePreview}%`
     },
     {
       label: "Behavior Control",
       value: Math.round(result.behaviourScore ?? 0),
-      width: `${Math.min(100, ((result.behaviourScore ?? 0) / componentMaximumsV2.behaviour) * 100)}%`,
+      width: `${Math.min(100, ((result.behaviourScore ?? 0) / componentMaximumsV2.behaviour) * 100)}%`
     },
     {
       label: "Awareness Signal",
       value: Math.round(result.awarenessScore ?? 0),
-      width: `${Math.min(100, ((result.awarenessScore ?? 0) / componentMaximumsV2.awareness) * 100)}%`,
-    },
+      width: `${Math.min(100, ((result.awarenessScore ?? 0) / componentMaximumsV2.awareness) * 100)}%`
+    }
   ];
   const perceivedRunway = Number(result.blindSpotPerceived);
   const actualRunway = Number(result.blindSpotActual);
@@ -88,7 +88,7 @@ export default function HeroSection({ assessment, result }) {
             clearer financial decisions.
           </p>
           <div className="hero-stat-card">
-            {HERO_STATS.map((item) => (
+            {HERO_STATS.map(item => (
               <div className="metric" key={item.label}>
                 <span>{item.value}</span>
                 <label>{item.label}</label>
@@ -96,8 +96,14 @@ export default function HeroSection({ assessment, result }) {
             ))}
           </div>
           <div className="model-hero-actions">
-            {HERO_ACTIONS.map((action) => (
-              <a key={action.label} className={action.href === "#assessment" ? "model-primary-cta" : "model-secondary-cta"} href={action.href}>
+            {HERO_ACTIONS.map(action => (
+              <a
+                key={action.label}
+                className={
+                  action.href === "#assessment" ? "model-primary-cta" : "model-secondary-cta"
+                }
+                href={action.href}
+              >
                 {action.label}
                 <ArrowRight size={18} />
               </a>
@@ -142,7 +148,7 @@ export default function HeroSection({ assessment, result }) {
             )}
 
             <div className="model-metric-stack">
-              {metricRows.map((row) => (
+              {metricRows.map(row => (
                 <div className="model-metric-row" key={row.label}>
                   <div>
                     <span>{row.label}</span>
@@ -168,7 +174,9 @@ export default function HeroSection({ assessment, result }) {
           <div className="model-insights-header">
             <h2>Live Insights</h2>
             <div>
-              <a className="model-view-insights" href="#reports">View all</a>
+              <a className="model-view-insights" href="#reports">
+                View all
+              </a>
             </div>
           </div>
 
@@ -177,7 +185,9 @@ export default function HeroSection({ assessment, result }) {
               const Icon = it.icon;
               return (
                 <div className={`model-insight-card tone-${it.tone}`} key={idx}>
-                  <div className="insight-icon"><Icon size={18} /></div>
+                  <div className="insight-icon">
+                    <Icon size={18} />
+                  </div>
                   <div className="insight-content">
                     <strong>{it.title}</strong>
                     <p>{it.copy}</p>

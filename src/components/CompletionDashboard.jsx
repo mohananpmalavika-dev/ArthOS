@@ -3,10 +3,20 @@
  * Displays assessment completion metrics and drop-off analysis
  */
 
-import React, { useEffect, useState } from 'react';
-import { getCompletionRateMetrics, loadTelemetryHistory } from '../engines/assessmentTelemetry.js';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line } from 'recharts';
-import { TrendingUp, Clock, Users, AlertTriangle, Download } from 'lucide-react';
+import React, { useEffect, useState } from "react";
+import { getCompletionRateMetrics, loadTelemetryHistory } from "../engines/assessmentTelemetry.js";
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  LineChart,
+  Line
+} from "recharts";
+import { TrendingUp, Clock, Users, AlertTriangle, Download } from "lucide-react";
 
 export default function CompletionDashboard() {
   const [metrics, setMetrics] = useState(null);
@@ -25,38 +35,39 @@ export default function CompletionDashboard() {
   };
 
   const handleExportCSV = () => {
-    if (!metrics) return;
+    if (!metrics) {
+      return;
+    }
 
     const csv = [
-      ['Metric', 'Value'],
-      ['Total Sessions', metrics.totalSessions],
-      ['Completed Sessions', metrics.completedSessions],
-      ['Dropped Off Sessions', metrics.droppedOffSessions],
-      ['Completion Rate (%)', metrics.completionRate],
-      ['Drop-off Rate (%)', metrics.dropOffRate],
-      ['Average Duration (sec)', metrics.averageDurationSec],
-      ['Average Completed Steps', metrics.averageCompletedSteps],
-      ['Most Common Drop-off', metrics.mostCommonDropOff ? `Step ${metrics.mostCommonDropOff.step}: ${metrics.mostCommonDropOff.label}` : 'N/A'],
-      ['', ''],
-      ['Drop-off by Step', 'Count'],
-      ...Object.entries(metrics.dropOffByStep).map(([step, count]) => [
-        `Step ${step}`,
-        count,
-      ]),
-      ['', ''],
-      ['Device Type', 'Sessions'],
-      ...Object.entries(metrics.deviceBreakdown).map(([device, count]) => [
-        device,
-        count,
-      ]),
+      ["Metric", "Value"],
+      ["Total Sessions", metrics.totalSessions],
+      ["Completed Sessions", metrics.completedSessions],
+      ["Dropped Off Sessions", metrics.droppedOffSessions],
+      ["Completion Rate (%)", metrics.completionRate],
+      ["Drop-off Rate (%)", metrics.dropOffRate],
+      ["Average Duration (sec)", metrics.averageDurationSec],
+      ["Average Completed Steps", metrics.averageCompletedSteps],
+      [
+        "Most Common Drop-off",
+        metrics.mostCommonDropOff
+          ? `Step ${metrics.mostCommonDropOff.step}: ${metrics.mostCommonDropOff.label}`
+          : "N/A"
+      ],
+      ["", ""],
+      ["Drop-off by Step", "Count"],
+      ...Object.entries(metrics.dropOffByStep).map(([step, count]) => [`Step ${step}`, count]),
+      ["", ""],
+      ["Device Type", "Sessions"],
+      ...Object.entries(metrics.deviceBreakdown).map(([device, count]) => [device, count])
     ];
 
-    const csvContent = csv.map(row => row.map(cell => `"${cell}"`).join(',')).join('\n');
-    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const csvContent = csv.map(row => row.map(cell => `"${cell}"`).join(",")).join("\n");
+    const blob = new Blob([csvContent], { type: "text/csv" });
     const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
+    const a = document.createElement("a");
     a.href = url;
-    a.download = `completion-metrics-${new Date().toISOString().split('T')[0]}.csv`;
+    a.download = `completion-metrics-${new Date().toISOString().split("T")[0]}.csv`;
     document.body.appendChild(a);
     a.click();
     window.URL.revokeObjectURL(url);
@@ -67,7 +78,9 @@ export default function CompletionDashboard() {
     return (
       <section className="summary-card">
         <h2>📊 Assessment Completion Rate</h2>
-        <p className="text-muted">No assessment data yet. Complete your first assessment to see metrics.</p>
+        <p className="text-muted">
+          No assessment data yet. Complete your first assessment to see metrics.
+        </p>
       </section>
     );
   }
@@ -75,25 +88,27 @@ export default function CompletionDashboard() {
   // Data for drop-off by step chart
   const dropOffChartData = Object.entries(metrics.dropOffByStep).map(([step, count]) => ({
     step: `Step ${step}`,
-    count,
+    count
   }));
 
   // Data for device breakdown chart
   const deviceChartData = Object.entries(metrics.deviceBreakdown).map(([device, count]) => ({
     device: device.charAt(0).toUpperCase() + device.slice(1),
-    count,
+    count
   }));
 
   // Timeline of session completions
-  const timelineData = history.map((h, idx) => ({
-    date: h.date,
-    completed: h.completed ? 1 : 0,
-    droppedOff: h.completed ? 0 : 1,
-  })).slice(-30); // Last 30 sessions
+  const timelineData = history
+    .map((h, idx) => ({
+      date: h.date,
+      completed: h.completed ? 1 : 0,
+      droppedOff: h.completed ? 0 : 1
+    }))
+    .slice(-30); // Last 30 sessions
 
   const completionTrend = timelineData.map(d => ({
-    date: new Date(d.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-    completion: d.completed,
+    date: new Date(d.date).toLocaleDateString("en-US", { month: "short", day: "numeric" }),
+    completion: d.completed
   }));
 
   return (
@@ -120,7 +135,9 @@ export default function CompletionDashboard() {
             <div className="kpi-content">
               <div className="kpi-label">Completion Rate</div>
               <div className="kpi-value completion-value">{metrics.completionRate}%</div>
-              <div className="kpi-desc">{metrics.completedSessions} of {metrics.totalSessions} completed</div>
+              <div className="kpi-desc">
+                {metrics.completedSessions} of {metrics.totalSessions} completed
+              </div>
             </div>
           </div>
 
@@ -163,7 +180,8 @@ export default function CompletionDashboard() {
           <div className="completion-alert">
             <AlertTriangle size={18} />
             <div>
-              <strong>Most Common Drop-off:</strong> {metrics.mostCommonDropOff.label} ({metrics.mostCommonDropOff.count} users)
+              <strong>Most Common Drop-off:</strong> {metrics.mostCommonDropOff.label} (
+              {metrics.mostCommonDropOff.count} users)
             </div>
           </div>
         )}
@@ -177,7 +195,7 @@ export default function CompletionDashboard() {
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="step" />
                 <YAxis />
-                <Tooltip formatter={(value) => `${value} users`} />
+                <Tooltip formatter={value => `${value} users`} />
                 <Bar dataKey="count" fill="#ff6b6b" />
               </BarChart>
             </ResponsiveContainer>
@@ -193,7 +211,7 @@ export default function CompletionDashboard() {
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="device" />
                 <YAxis />
-                <Tooltip formatter={(value) => `${value} sessions`} />
+                <Tooltip formatter={value => `${value} sessions`} />
                 <Bar dataKey="count" fill="#00d4ff" />
               </BarChart>
             </ResponsiveContainer>
@@ -209,7 +227,7 @@ export default function CompletionDashboard() {
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="date" />
                 <YAxis />
-                <Tooltip formatter={(value) => value ? 'Completed' : 'Dropped'} />
+                <Tooltip formatter={value => (value ? "Completed" : "Dropped")} />
                 <Line type="stepAfter" dataKey="completion" stroke="#00d4ff" dot={false} />
               </LineChart>
             </ResponsiveContainer>
@@ -220,14 +238,17 @@ export default function CompletionDashboard() {
         <div className="completion-metrics-grid">
           <div className="metric-tile">
             <div className="metric-label">Avg Steps Completed</div>
-            <div className="metric-value">{metrics.averageCompletedSteps} / {metrics.totalSessions > 0 ? 'N' : '0'}</div>
+            <div className="metric-value">
+              {metrics.averageCompletedSteps} / {metrics.totalSessions > 0 ? "N" : "0"}
+            </div>
           </div>
         </div>
 
         {/* Legend */}
         <div className="completion-legend">
           <p className="text-muted">
-            This dashboard tracks assessment wizard completion rates. Track which steps users abandon to optimize the flow.
+            This dashboard tracks assessment wizard completion rates. Track which steps users
+            abandon to optimize the flow.
           </p>
         </div>
       </div>

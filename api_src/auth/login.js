@@ -2,13 +2,13 @@
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import pg from "pg";
+import { JWT_CONFIG } from "./jwt.js";
 
-const JWT_SECRET = process.env.JWT_SECRET || "arthos-dev-secret-change-in-production";
 const DATABASE_URL = process.env.DATABASE_URL;
 
 export default async function handler(req, res) {
   console.log("[login.js] Received request:", req.method, req.url);
-  
+
   if (req.method !== "POST") {
     console.log("[login.js] Invalid method:", req.method);
     return res.status(405).json({ error: "Method Not Allowed" });
@@ -28,12 +28,11 @@ export default async function handler(req, res) {
 
     // Demo mode — no real DB, create a token for dev/test
     if (!DATABASE_URL) {
-      // In demo mode any email/password combo works (for development)
       console.log("[login.js] Using demo mode, creating token for:", cleanedEmail);
       const token = jwt.sign(
         { userId: cleanedEmail, email: cleanedEmail, name: cleanedEmail.split("@")[0] },
-        JWT_SECRET,
-        { expiresIn: "30d" },
+        JWT_CONFIG.secret,
+        { expiresIn: JWT_CONFIG.expiresIn },
       );
 
       console.log("[login.js] Token created successfully");
@@ -51,7 +50,7 @@ export default async function handler(req, res) {
     });
 
     const { rows } = await pool.query(
-      `SELECT id, email, name, password_hash FROM users WHERE email = $1`,
+      `SELECT id, email, name, password_hash, email_verified FROM users WHERE email = $1`,
       [cleanedEmail],
     );
 
@@ -73,13 +72,14 @@ export default async function handler(req, res) {
 
     const token = jwt.sign(
       { userId: user.id, email: user.email, name: user.name },
-      JWT_SECRET,
-      { expiresIn: "30d" },
+      JWT_CONFIG.secret,
+      { expiresIn: JWT_CONFIG.expiresIn },
     );
 
     return res.status(200).json({
       user: { id: user.id, email: user.email, name: user.name },
       token,
+      emailVerified: !!user.email_verified,
     });
   } catch (err) {
     console.error("[Auth] Login error:", err);

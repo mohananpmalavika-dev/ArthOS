@@ -3,31 +3,9 @@
 // Now associates assessments with authenticated users via JWT token
 
 import { insertIntoTable } from "./dbClient.js";
-import jwt from "jsonwebtoken";
+import { extractUserFromRequest } from "./auth/jwt.js";
 
 const TABLE_NAME = process.env.SUPABASE_ASSESSMENTS_TABLE || "assessments";
-const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key";
-
-// Extract user ID from JWT token
-function extractUserFromToken(req) {
-  const authHeader = req.headers.authorization || "";
-  const token = authHeader.replace("Bearer ", "");
-
-  if (!token) {
-    return null;
-  }
-
-  try {
-    const decoded = jwt.verify(token, JWT_SECRET, { algorithms: ["HS256"] });
-    return {
-      id: decoded.userId || decoded.id || decoded.email || null,
-      email: decoded.email || null,
-    };
-  } catch (error) {
-    console.warn("[SaveAssessment] Invalid or missing token:", error.message);
-    return null;
-  }
-}
 
 export default async function handler(req, res) {
   if (req.method !== "POST") {
@@ -41,7 +19,7 @@ export default async function handler(req, res) {
     }
 
     // Extract authenticated user from JWT token
-    const user = extractUserFromToken(req);
+    const user = await extractUserFromRequest(req);
     console.log("[SaveAssessment] Authenticated user:", user?.id || "anonymous");
 
     // Log the incoming payload for debugging (avoid in production if PII concerns)

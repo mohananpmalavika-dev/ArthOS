@@ -3,24 +3,26 @@
  * Shows when free tier user has reached their 1x/month limit
  */
 
-import React from 'react';
-import { AlertCircle, Calendar, ArrowUp } from 'lucide-react';
+import React from "react";
+import { AlertCircle, Calendar, ArrowUp } from "lucide-react";
 
 export default function AssessmentLimitNotice({
-  tier = 'free',
+  tier = "free",
   remaining = 0,
   nextAvailableDate,
-  onUpgradeClick,
+  onUpgradeClick
 }) {
-  if (tier !== 'free' || remaining > 0) {
+  if (tier !== "free" || remaining > 0) {
     return null;
   }
 
-  const formatDate = (date) => {
-    if (!date) return 'next month';
-    return date.toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
+  const formatDate = date => {
+    if (!date) {
+      return "next month";
+    }
+    return date.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric"
     });
   };
 
@@ -33,8 +35,8 @@ export default function AssessmentLimitNotice({
       <div className="notice-content">
         <h3>You've reached your monthly assessment limit</h3>
         <p className="notice-text">
-          Free tier users can take one assessment per month. Your next assessment will be available on{' '}
-          <strong>{formatDate(nextAvailableDate)}</strong>.
+          Free tier users can take one assessment per month. Your next assessment will be available
+          on <strong>{formatDate(nextAvailableDate)}</strong>.
         </p>
 
         <div className="notice-features">
@@ -58,7 +60,11 @@ export default function AssessmentLimitNotice({
           display: flex;
           gap: 1rem;
           padding: 1.5rem;
-          background: linear-gradient(135deg, rgba(255, 193, 7, 0.1) 0%, rgba(255, 152, 0, 0.05) 100%);
+          background: linear-gradient(
+            135deg,
+            rgba(255, 193, 7, 0.1) 0%,
+            rgba(255, 152, 0, 0.05) 100%
+          );
           border: 2px solid rgba(255, 193, 7, 0.3);
           border-radius: 12px;
           margin: 1.5rem 0;

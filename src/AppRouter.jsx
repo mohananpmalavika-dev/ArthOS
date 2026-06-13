@@ -1,15 +1,15 @@
-import React from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import App from './App.jsx';
-import { RoastViewPage } from './pages/RoastViewPage.jsx';
-import LoginPage from './pages/LoginPage.jsx';
-import RegisterPage from './pages/RegisterPage.jsx';
-import ErrorBoundary from './components/ErrorBoundary.jsx';
-import { useAuth } from './context/AuthContext.jsx';
+import React from "react";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import App from "./App.jsx";
+import { RoastViewPage } from "./pages/RoastViewPage.jsx";
+import LoginPage from "./pages/LoginPage.jsx";
+import RegisterPage from "./pages/RegisterPage.jsx";
+import ErrorBoundary from "./components/ErrorBoundary.jsx";
+import { useAuth } from "./context/AuthContext.jsx";
 
 /**
  * AppRouter
- * 
+ *
  * Main router component that handles:
  * - Public roast sharing pages (/roast/:id)
  * - Auth pages (/login, /register)
@@ -21,7 +21,9 @@ function AppRouter() {
   // Show nothing while checking authentication status
   if (loading) {
     return (
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh' }}>
+      <div
+        style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100vh" }}
+      >
         <p>Loading...</p>
       </div>
     );
@@ -39,10 +41,7 @@ function AppRouter() {
           <Route path="/register" element={<RegisterPage />} />
 
           {/* Main app - shows login if not authenticated */}
-          <Route
-            path="/*"
-            element={isAuthenticated ? <App /> : <Navigate to="/login" replace />}
-          />
+          <Route path="/*" element={isAuthenticated ? <App /> : <Navigate to="/login" replace />} />
         </Routes>
       </ErrorBoundary>
     </BrowserRouter>

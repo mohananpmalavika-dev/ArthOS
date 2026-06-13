@@ -3,33 +3,47 @@
  * Shows when user tries to access a premium feature
  */
 
-import React, { useState } from 'react';
-import { Lock, X, Zap } from 'lucide-react';
-import { getFeaturePaywallMessage, getRecommendedUpgrade } from '../lib/featureGating.js';
+import React, { useState } from "react";
+import { Lock, X, Zap } from "lucide-react";
+import { getFeaturePaywallMessage, getRecommendedUpgrade } from "../lib/featureGating.js";
 
 export default function FeaturePaywall({
   isOpen,
   onClose,
   feature,
-  currentTier = 'free',
-  onUpgradeClick,
+  currentTier = "free",
+  onUpgradeClick
 }) {
-  if (!isOpen) return null;
+  if (!isOpen) {
+    return null;
+  }
 
   const message = getFeaturePaywallMessage(feature, currentTier);
   const recommendedTier = getRecommendedUpgrade(currentTier, feature);
 
   const tierPrices = {
-    plus: { name: 'Plus', price: '$12.99/mo', benefits: ['Unlimited assessments', 'Score history', 'Digital Twin'] },
-    pro: { name: 'Pro', price: '$29.99/mo', benefits: ['Plus benefits', 'Banking integration', 'AI Coach'] },
-    elite: { name: 'Elite', price: '$79.99/mo', benefits: ['Pro benefits', 'AI Coach Concierge', 'Multi-family'] },
+    plus: {
+      name: "Plus",
+      price: "$12.99/mo",
+      benefits: ["Unlimited assessments", "Score history", "Digital Twin"]
+    },
+    pro: {
+      name: "Pro",
+      price: "$29.99/mo",
+      benefits: ["Plus benefits", "Banking integration", "AI Coach"]
+    },
+    elite: {
+      name: "Elite",
+      price: "$79.99/mo",
+      benefits: ["Pro benefits", "AI Coach Concierge", "Multi-family"]
+    }
   };
 
   const recommended = tierPrices[recommendedTier];
 
   return (
     <div className="paywall-overlay" onClick={onClose}>
-      <div className="paywall-modal" onClick={(e) => e.stopPropagation()}>
+      <div className="paywall-modal" onClick={e => e.stopPropagation()}>
         <button className="paywall-close" onClick={onClose}>
           <X size={20} />
         </button>
@@ -53,7 +67,7 @@ export default function FeaturePaywall({
               <div className="tier-price">{recommended.price}</div>
 
               <ul className="tier-benefits">
-                {recommended.benefits.map((benefit) => (
+                {recommended.benefits.map(benefit => (
                   <li key={benefit}>✓ {benefit}</li>
                 ))}
               </ul>
@@ -72,7 +86,7 @@ export default function FeaturePaywall({
         )}
 
         <p className="paywall-footer">
-          Already subscribed?{' '}
+          Already subscribed?{" "}
           <button className="btn-link" onClick={onClose}>
             Close
           </button>

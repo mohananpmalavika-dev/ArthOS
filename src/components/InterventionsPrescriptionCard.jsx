@@ -77,7 +77,7 @@ export function InterventionsPrescriptionCard({ result, assessment, onAssessment
           <div className="intervention-group">
             <h3 className="intervention-group-title">Secondary Focus</h3>
             <div className="interventions-grid">
-              {interventions.secondary.map((intervention) => (
+              {interventions.secondary.map(intervention => (
                 <InterventionCard
                   key={intervention.id}
                   intervention={intervention}
@@ -102,7 +102,7 @@ export function InterventionsPrescriptionCard({ result, assessment, onAssessment
           <div
             className="progress-fill"
             style={{
-              width: `${Math.round((completedInterventions.length / Math.max(1, allInterventions.length)) * 100)}%`,
+              width: `${Math.round((completedInterventions.length / Math.max(1, allInterventions.length)) * 100)}%`
             }}
           />
         </div>
@@ -120,7 +120,7 @@ function InterventionCard({
   isCompleted,
   isExpanded,
   onToggleExpand,
-  onComplete,
+  onComplete
 }) {
   return (
     <div
@@ -131,7 +131,12 @@ function InterventionCard({
     >
       <div className="intervention-header">
         <h4 className="intervention-title">
-          {isCompleted && <CheckCircle2 size={16} style={{ display: "inline-block", marginRight: "6px", color: "var(--green-500)" }} />}
+          {isCompleted && (
+            <CheckCircle2
+              size={16}
+              style={{ display: "inline-block", marginRight: "6px", color: "var(--green-500)" }}
+            />
+          )}
           {intervention.title}
         </h4>
         <span className="intervention-impact">{intervention.impact}</span>
@@ -151,7 +156,7 @@ function InterventionCard({
       {isExpanded && (
         <>
           <p className="intervention-description">{intervention.description}</p>
-          <div className="intervention-actions" onClick={(e) => e.stopPropagation()}>
+          <div className="intervention-actions" onClick={e => e.stopPropagation()}>
             {!isCompleted && (
               <button className="intervention-button start-intervention-btn" onClick={onComplete}>
                 Start This

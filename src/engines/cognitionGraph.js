@@ -5,13 +5,19 @@ export class CognitionGraph {
   }
 
   addNode(node) {
-    if (!node || !node.id) return;
-    const exists = this.nodes.some((n) => n.id === node.id);
-    if (!exists) this.nodes.push(node);
+    if (!node || !node.id) {
+      return;
+    }
+    const exists = this.nodes.some(n => n.id === node.id);
+    if (!exists) {
+      this.nodes.push(node);
+    }
   }
 
   connect(source, target, weight = 1) {
-    if (!source || !target) return;
+    if (!source || !target) {
+      return;
+    }
     this.edges.push({ source, target, weight });
   }
 
@@ -19,7 +25,7 @@ export class CognitionGraph {
     return {
       nodes: this.nodes,
       edges: this.edges,
-      generatedAt: new Date().toISOString(),
+      generatedAt: new Date().toISOString()
     };
   }
 }
@@ -35,7 +41,7 @@ export class FinancialCognitionGraph {
   connect(from, to) {
     const edge = {
       source: from,
-      target: to,
+      target: to
     };
     this.connections.push(edge);
     return edge;

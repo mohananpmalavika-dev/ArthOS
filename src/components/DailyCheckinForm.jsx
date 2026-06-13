@@ -4,7 +4,7 @@ import {
   loadWeeklyCheckins,
   appendWeeklyCheckin,
   calculateConsecutiveStreak,
-  countRecentCheckins,
+  countRecentCheckins
 } from "../engines/financialMemoryEngine.js";
 import { scheduleStreakReminder } from "./ReminderPreferences.jsx";
 import { loadPrefs } from "../lib/reminderPrefs.js";
@@ -14,7 +14,7 @@ import { useAuth } from "../context/AuthContext.jsx";
  * Daily Cognition Loop Component
  * Quick daily check-ins that feed into behavioral tracking
  * Transforms assessment from one-time to continuous monitoring
- * 
+ *
  * Key insight: Users care about progress, not absolute scores
  */
 export default function DailyCheckinForm({ onCheckin }) {
@@ -37,7 +37,7 @@ export default function DailyCheckinForm({ onCheckin }) {
       setCheckins(loaded);
 
       const today = new Date().toDateString();
-      const todayCheckin = loaded.find((c) => new Date(c.date).toDateString() === today);
+      const todayCheckin = loaded.find(c => new Date(c.date).toDateString() === today);
       if (todayCheckin) {
         setTodayCheckinExists(true);
         setResponses(todayCheckin.responses || {});
@@ -51,9 +51,9 @@ export default function DailyCheckinForm({ onCheckin }) {
   }
 
   function handleResponse(question, value) {
-    setResponses((prev) => ({
+    setResponses(prev => ({
       ...prev,
-      [question]: value,
+      [question]: value
     }));
   }
 
@@ -63,28 +63,28 @@ export default function DailyCheckinForm({ onCheckin }) {
         responses.unplannedPurchases === "no"
           ? "never"
           : responses.unplannedPurchases === "small"
-          ? "rarely"
-          : responses.unplannedPurchases === "medium"
-          ? "sometimes"
-          : "very_frequently",
+            ? "rarely"
+            : responses.unplannedPurchases === "medium"
+              ? "sometimes"
+              : "very_frequently",
       spendWhenStressed:
         responses.stressLevel === "high"
           ? "very_likely"
           : responses.stressLevel === "moderate"
-          ? "sometimes"
-          : "rarely",
+            ? "sometimes"
+            : "rarely",
       regretImpulseFreq:
         responses.spentOnDates === "yes_unplanned"
           ? "often"
           : responses.spentOnDates === "yes_planned"
-          ? "sometimes"
-          : "rarely",
+            ? "sometimes"
+            : "rarely",
       impulseWaitRule:
         responses.completedIntention === "yes"
           ? "always"
           : responses.completedIntention === "partial"
-          ? "sometimes"
-          : "never",
+            ? "sometimes"
+            : "never"
     };
   }
 
@@ -96,8 +96,8 @@ export default function DailyCheckinForm({ onCheckin }) {
           unplannedPurchases: responses.unplannedPurchases,
           stressLevel: responses.stressLevel,
           spentOnDates: responses.spentOnDates,
-          completedIntention: responses.completedIntention,
-        },
+          completedIntention: responses.completedIntention
+        }
       };
 
       const updated = appendWeeklyCheckin(newCheckin);
@@ -109,20 +109,20 @@ export default function DailyCheckinForm({ onCheckin }) {
       if (onCheckin) {
         onCheckin({
           checkin: newCheckin,
-          behaviourUpdates: mapCheckinToBehaviourSignals(responses),
+          behaviourUpdates: mapCheckinToBehaviourSignals(responses)
         });
       }
 
       const checkinPayload = {
         type: "daily_checkin_completed",
         responses: newCheckin.responses,
-        timestamp: new Date().toISOString(),
+        timestamp: new Date().toISOString()
       };
 
       fetch("/api/telemetry", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(checkinPayload),
+        body: JSON.stringify(checkinPayload)
       }).catch(() => {
         // Offline queueing handled by API
       });
@@ -153,7 +153,11 @@ export default function DailyCheckinForm({ onCheckin }) {
     responses.completedIntention !== undefined;
 
   const behaviorBoost =
-    responses.completedIntention === "yes" ? "+2" : responses.completedIntention === "partial" ? "+1" : "0";
+    responses.completedIntention === "yes"
+      ? "+2"
+      : responses.completedIntention === "partial"
+        ? "+1"
+        : "0";
   const awarenessBoost = responses.stressLevel === "low" ? "+1" : "+0";
 
   return (
@@ -238,9 +242,7 @@ export default function DailyCheckinForm({ onCheckin }) {
               <label>How stressed did you feel today?</label>
               <div className="checkin-options">
                 <button
-                  className={`checkin-option ${
-                    responses.stressLevel === "low" ? "selected" : ""
-                  }`}
+                  className={`checkin-option ${responses.stressLevel === "low" ? "selected" : ""}`}
                   onClick={() => handleResponse("stressLevel", "low")}
                 >
                   Low
@@ -254,9 +256,7 @@ export default function DailyCheckinForm({ onCheckin }) {
                   Moderate
                 </button>
                 <button
-                  className={`checkin-option ${
-                    responses.stressLevel === "high" ? "selected" : ""
-                  }`}
+                  className={`checkin-option ${responses.stressLevel === "high" ? "selected" : ""}`}
                   onClick={() => handleResponse("stressLevel", "high")}
                 >
                   High
@@ -269,9 +269,7 @@ export default function DailyCheckinForm({ onCheckin }) {
               <label>Did you spend money on social/leisure activities?</label>
               <div className="checkin-options">
                 <button
-                  className={`checkin-option ${
-                    responses.spentOnDates === "no" ? "selected" : ""
-                  }`}
+                  className={`checkin-option ${responses.spentOnDates === "no" ? "selected" : ""}`}
                   onClick={() => handleResponse("spentOnDates", "no")}
                 >
                   No
@@ -354,7 +352,8 @@ export default function DailyCheckinForm({ onCheckin }) {
           </button>
 
           <p className="checkin-footer-text">
-            Daily check-ins help us track your behavior patterns and update your financial profile over time.
+            Daily check-ins help us track your behavior patterns and update your financial profile
+            over time.
           </p>
         </>
       )}

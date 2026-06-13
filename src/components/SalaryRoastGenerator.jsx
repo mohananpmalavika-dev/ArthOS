@@ -1,14 +1,30 @@
-import React, { useMemo, useState, useRef, useCallback } from 'react';
-import { Copy, MessageCircle, Share2, Camera, CheckCircle, Loader2, Link, Globe, Smartphone } from 'lucide-react';
-import { generateComparisonReport, generateInstagramCaption, generateSalaryRoast } from '../engines/salaryRoast';
-import { roastAnalytics } from '../lib/roastAnalytics.js';
+import React, { useMemo, useState, useRef, useCallback } from "react";
+import {
+  Copy,
+  MessageCircle,
+  Share2,
+  Camera,
+  CheckCircle,
+  Loader2,
+  Link,
+  Globe,
+  Smartphone
+} from "lucide-react";
+import {
+  generateComparisonReport,
+  generateInstagramCaption,
+  generateSalaryRoast
+} from "../engines/salaryRoast";
+import { roastAnalytics } from "../lib/roastAnalytics.js";
 
-const FEATURED_STAT_LABELS = new Set(['Financial Health Score', 'vs National Average']);
+const FEATURED_STAT_LABELS = new Set(["Financial Health Score", "vs National Average"]);
 
 function dedupeByLabel(items = []) {
   const seen = new Set();
-  return items.filter((item) => {
-    if (!item?.label || seen.has(item.label)) return false;
+  return items.filter(item => {
+    if (!item?.label || seen.has(item.label)) {
+      return false;
+    }
     seen.add(item.label);
     return true;
   });
@@ -16,20 +32,22 @@ function dedupeByLabel(items = []) {
 
 function dedupeText(items = []) {
   const seen = new Set();
-  return items.filter((item) => {
-    const value = String(item || '').trim();
-    if (!value || seen.has(value)) return false;
+  return items.filter(item => {
+    const value = String(item || "").trim();
+    if (!value || seen.has(value)) {
+      return false;
+    }
     seen.add(value);
     return true;
   });
 }
 
 function getComparisonTone(value) {
-  return Number(value) >= 0 ? 'positive' : 'negative';
+  return Number(value) >= 0 ? "positive" : "negative";
 }
 
 function getBadgeClassName(color) {
-  return `salary-roast-badge salary-roast-badge-${color || 'default'}`;
+  return `salary-roast-badge salary-roast-badge-${color || "default"}`;
 }
 
 /**
@@ -37,12 +55,12 @@ function getBadgeClassName(color) {
  * Prefers it for mobile — opens system share sheet with image support.
  */
 function supportsNativeShare() {
-  return typeof navigator !== 'undefined' && !!navigator.share;
+  return typeof navigator !== "undefined" && !!navigator.share;
 }
 
 export function SalaryRoastGenerator({ assessmentResult, profile }) {
   const [showShare, setShowShare] = useState(true); // default open for discoverability
-  const [copyFeedback, setCopyFeedback] = useState('');
+  const [copyFeedback, setCopyFeedback] = useState("");
   const [exporting, setExporting] = useState(false);
   const [exportBlob, setExportBlob] = useState(null); // cached blob for native share
   const [exportDone, setExportDone] = useState(false);
@@ -50,7 +68,7 @@ export function SalaryRoastGenerator({ assessmentResult, profile }) {
 
   const roast = useMemo(
     () => (assessmentResult && profile ? generateSalaryRoast(assessmentResult, profile) : null),
-    [assessmentResult, profile],
+    [assessmentResult, profile]
   );
 
   const comparison = useMemo(
@@ -58,7 +76,7 @@ export function SalaryRoastGenerator({ assessmentResult, profile }) {
       assessmentResult
         ? generateComparisonReport(assessmentResult.healthScore, assessmentResult.personalityType)
         : null,
-    [assessmentResult],
+    [assessmentResult]
   );
 
   const instagramCaption = useMemo(
@@ -68,15 +86,15 @@ export function SalaryRoastGenerator({ assessmentResult, profile }) {
             assessmentResult.healthScore,
             assessmentResult.personalityType,
             profile.monthlyIncome,
-            assessmentResult.survivalMonthsRaw,
+            assessmentResult.survivalMonthsRaw
           )
-        : '',
-    [assessmentResult, profile],
+        : "",
+    [assessmentResult, profile]
   );
 
   const uniqueStats = useMemo(
-    () => dedupeByLabel(roast?.stats).filter((stat) => !FEATURED_STAT_LABELS.has(stat.label)),
-    [roast],
+    () => dedupeByLabel(roast?.stats).filter(stat => !FEATURED_STAT_LABELS.has(stat.label)),
+    [roast]
   );
   const uniqueBadges = useMemo(() => dedupeByLabel(roast?.badges), [roast]);
   const uniqueRoastLines = useMemo(() => dedupeText(roast?.roastCommentary), [roast]);
@@ -86,50 +104,56 @@ export function SalaryRoastGenerator({ assessmentResult, profile }) {
       await navigator.clipboard.writeText(text);
       setCopyFeedback(label);
     } catch {
-      setCopyFeedback('Copy failed');
+      setCopyFeedback("Copy failed");
     }
-    setTimeout(() => setCopyFeedback(''), 2000);
+    setTimeout(() => setCopyFeedback(""), 2000);
   }, []);
 
   /** Render the roast card to a canvas then return it (for both download & native share). */
   const renderRoastCard = useCallback(async () => {
-    if (!roastRef.current) return null;
-    const html2canvas = (await import('html2canvas')).default;
+    if (!roastRef.current) {
+      return null;
+    }
+    const html2canvas = (await import("html2canvas")).default;
     return html2canvas(roastRef.current, {
-      backgroundColor: '#050713',
+      backgroundColor: "#050713",
       scale: 2,
       useCORS: true,
       logging: false,
       width: roastRef.current.scrollWidth,
-      height: roastRef.current.scrollHeight,
+      height: roastRef.current.scrollHeight
     });
   }, []);
 
   const handleDownloadImage = useCallback(async () => {
-    if (!roastRef.current) return;
+    if (!roastRef.current) {
+      return;
+    }
     setExporting(true);
     setExportDone(false);
     try {
       const canvas = await renderRoastCard();
-      if (!canvas) throw new Error('Canvas render failed');
-      const blob = await new Promise((resolve) => canvas.toBlob(resolve, 'image/png'));
+      if (!canvas) {
+        throw new Error("Canvas render failed");
+      }
+      const blob = await new Promise(resolve => canvas.toBlob(resolve, "image/png"));
       setExportBlob(blob);
-      const link = document.createElement('a');
-      link.download = 'financial-roast-arthos.png';
+      const link = document.createElement("a");
+      link.download = "financial-roast-arthos.png";
       link.href = URL.createObjectURL(blob);
       link.click();
       URL.revokeObjectURL(link.href);
       setExportDone(true);
-      setCopyFeedback('Image downloaded!');
+      setCopyFeedback("Image downloaded!");
     } catch (err) {
-      console.error('Image export failed:', err);
-      setCopyFeedback('Export failed – try the text share options below');
+      console.error("Image export failed:", err);
+      setCopyFeedback("Export failed – try the text share options below");
     } finally {
       setExporting(false);
       setTimeout(() => {
         setExportDone(false);
         setExportBlob(null);
-        setCopyFeedback('');
+        setCopyFeedback("");
       }, 5000);
     }
   }, [renderRoastCard]);
@@ -146,24 +170,31 @@ export function SalaryRoastGenerator({ assessmentResult, profile }) {
       if (!blob && roastRef.current) {
         const canvas = await renderRoastCard();
         if (canvas) {
-          blob = await new Promise((resolve) => canvas.toBlob(resolve, 'image/png'));
+          blob = await new Promise(resolve => canvas.toBlob(resolve, "image/png"));
           setExportBlob(blob);
         }
       }
-      const files = blob ? [new File([blob], 'financial-roast-arthos.png', { type: 'image/png' })] : [];
-      const shareData = { text: roast?.shareText || 'Check out my Financial Roast! #ArthOS', files };
+      const files = blob
+        ? [new File([blob], "financial-roast-arthos.png", { type: "image/png" })]
+        : [];
+      const shareData = {
+        text: roast?.shareText || "Check out my Financial Roast! #ArthOS",
+        files
+      };
       await navigator.share(shareData);
-      setCopyFeedback('Shared!');
+      setCopyFeedback("Shared!");
     } catch (err) {
-      if (err.name === 'AbortError') return; // user cancelled
+      if (err.name === "AbortError") {
+        return;
+      } // user cancelled
       // Fallback: copy share text
-      console.warn('Native share failed, falling back to clipboard:', err);
-      await handleCopyText(roast?.shareText || '', 'Share text copied!');
+      console.warn("Native share failed, falling back to clipboard:", err);
+      await handleCopyText(roast?.shareText || "", "Share text copied!");
     }
   }, [exportBlob, roast, renderRoastCard, handleCopyText]);
 
   const handleCopyLink = useCallback(async () => {
-    await handleCopyText(roast?.shareLink || 'https://arth-os.dev/roast', 'Link copied!');
+    await handleCopyText(roast?.shareLink || "https://arth-os.dev/roast", "Link copied!");
   }, [roast, handleCopyText]);
 
   if (!assessmentResult || !profile) {
@@ -174,10 +205,12 @@ export function SalaryRoastGenerator({ assessmentResult, profile }) {
     );
   }
 
-  if (!roast || !comparison) return null;
+  if (!roast || !comparison) {
+    return null;
+  }
 
   const comparisonTone = getComparisonTone(roast.comparisonVsAverage);
-  const shareTextEncoded = encodeURIComponent(roast.shareText + ' #ArthOS #FinancialHealth');
+  const shareTextEncoded = encodeURIComponent(roast.shareText + " #ArthOS #FinancialHealth");
   const shareUrlEncoded = encodeURIComponent(roast.shareLink);
 
   return (
@@ -209,7 +242,7 @@ export function SalaryRoastGenerator({ assessmentResult, profile }) {
               <div className={`salary-roast-tone-${comparisonTone}`}>
                 <span>vs National Average</span>
                 <strong>
-                  {roast.comparisonVsAverage >= 0 ? '+' : ''}
+                  {roast.comparisonVsAverage >= 0 ? "+" : ""}
                   {roast.comparisonVsAverage}
                 </strong>
               </div>
@@ -224,7 +257,7 @@ export function SalaryRoastGenerator({ assessmentResult, profile }) {
               <small>{uniqueBadges.length} earned</small>
             </div>
             <div className="salary-roast-badges">
-              {uniqueBadges.map((badge) => (
+              {uniqueBadges.map(badge => (
                 <span key={badge.label} className={getBadgeClassName(badge.color)}>
                   <span aria-hidden="true">{badge.icon}</span>
                   {badge.label}
@@ -250,7 +283,7 @@ export function SalaryRoastGenerator({ assessmentResult, profile }) {
         </div>
 
         <div className="salary-roast-stat-grid">
-          {uniqueStats.map((stat) => (
+          {uniqueStats.map(stat => (
             <div key={stat.label} className="salary-roast-stat">
               <span>{stat.label}</span>
               <strong>
@@ -286,7 +319,7 @@ export function SalaryRoastGenerator({ assessmentResult, profile }) {
         <button
           type="button"
           className="salary-roast-tool-button"
-          onClick={() => setShowShare((current) => !current)}
+          onClick={() => setShowShare(current => !current)}
           aria-expanded={showShare}
         >
           <Share2 size={18} />
@@ -305,7 +338,7 @@ export function SalaryRoastGenerator({ assessmentResult, profile }) {
           ) : (
             <Camera size={18} />
           )}
-          {exporting ? 'Exporting…' : exportDone ? 'Downloaded!' : 'Export card'}
+          {exporting ? "Exporting…" : exportDone ? "Downloaded!" : "Export card"}
         </button>
         {copyFeedback && !exportDone && (
           <span className="salary-roast-copy-feedback">{copyFeedback}</span>
@@ -335,11 +368,8 @@ export function SalaryRoastGenerator({ assessmentResult, profile }) {
             <button
               type="button"
               onClick={() => {
-                roastAnalytics.trackShare('whatsapp', { assessmentResult });
-                window.open(
-                  `https://wa.me/?text=${shareTextEncoded}`,
-                  '_blank',
-                );
+                roastAnalytics.trackShare("whatsapp", { assessmentResult });
+                window.open(`https://wa.me/?text=${shareTextEncoded}`, "_blank");
               }}
               className="salary-roast-share-button salary-roast-share-button-whatsapp"
             >
@@ -350,10 +380,10 @@ export function SalaryRoastGenerator({ assessmentResult, profile }) {
             <button
               type="button"
               onClick={() => {
-                roastAnalytics.trackShare('telegram', { assessmentResult });
+                roastAnalytics.trackShare("telegram", { assessmentResult });
                 window.open(
                   `https://t.me/share/url?url=${shareUrlEncoded}&text=${shareTextEncoded}`,
-                  '_blank',
+                  "_blank"
                 );
               }}
               className="salary-roast-share-button salary-roast-share-button-telegram"
@@ -365,11 +395,8 @@ export function SalaryRoastGenerator({ assessmentResult, profile }) {
             <button
               type="button"
               onClick={() => {
-                roastAnalytics.trackShare('twitter', { assessmentResult });
-                window.open(
-                  `https://twitter.com/intent/tweet?text=${shareTextEncoded}`,
-                  '_blank',
-                );
+                roastAnalytics.trackShare("twitter", { assessmentResult });
+                window.open(`https://twitter.com/intent/tweet?text=${shareTextEncoded}`, "_blank");
               }}
               className="salary-roast-share-button salary-roast-share-button-twitter"
             >
@@ -382,7 +409,7 @@ export function SalaryRoastGenerator({ assessmentResult, profile }) {
               onClick={() => {
                 window.open(
                   `https://www.facebook.com/sharer/sharer.php?u=${shareUrlEncoded}&quote=${shareTextEncoded}`,
-                  '_blank',
+                  "_blank"
                 );
               }}
               className="salary-roast-share-button salary-roast-share-button-facebook"
@@ -396,7 +423,7 @@ export function SalaryRoastGenerator({ assessmentResult, profile }) {
               onClick={() => {
                 window.open(
                   `https://www.linkedin.com/sharing/share-offsite/?url=${shareUrlEncoded}`,
-                  '_blank',
+                  "_blank"
                 );
               }}
               className="salary-roast-share-button salary-roast-share-button-linkedin"
@@ -418,38 +445,48 @@ export function SalaryRoastGenerator({ assessmentResult, profile }) {
               className="salary-roast-share-button salary-roast-share-button-link"
             >
               <Link size={18} />
-              {copyFeedback === 'Link copied!' ? 'Copied ✓' : 'Copy Share Link'}
+              {copyFeedback === "Link copied!" ? "Copied ✓" : "Copy Share Link"}
             </button>
 
             {/* Copy share text */}
             <button
               type="button"
-              onClick={() => handleCopyText(roast.shareText, 'Share text copied!')}
+              onClick={() => handleCopyText(roast.shareText, "Share text copied!")}
               className="salary-roast-share-button salary-roast-share-button-text"
             >
               <Copy size={18} />
-              {copyFeedback === 'Share text copied!' ? 'Copied ✓' : 'Copy Share Text'}
+              {copyFeedback === "Share text copied!" ? "Copied ✓" : "Copy Share Text"}
             </button>
 
             {/* Copy Instagram caption */}
             <button
               type="button"
-              onClick={() => handleCopyText(instagramCaption, 'Instagram caption copied!')}
+              onClick={() => handleCopyText(instagramCaption, "Instagram caption copied!")}
               className="salary-roast-share-button salary-roast-share-button-caption"
             >
               <Copy size={18} />
-              {copyFeedback === 'Instagram caption copied!' ? 'Copied ✓' : 'Copy Instagram Caption'}
+              {copyFeedback === "Instagram caption copied!" ? "Copied ✓" : "Copy Instagram Caption"}
             </button>
           </div>
 
           <label className="salary-roast-share-copy">
             <span>Share Text Preview</span>
-            <textarea readOnly value={roast.shareText} className="salary-roast-share-text" rows="3" />
+            <textarea
+              readOnly
+              value={roast.shareText}
+              className="salary-roast-share-text"
+              rows="3"
+            />
           </label>
 
           <label className="salary-roast-share-copy">
             <span>Instagram Caption Preview</span>
-            <textarea readOnly value={instagramCaption} className="salary-roast-share-text" rows="3" />
+            <textarea
+              readOnly
+              value={instagramCaption}
+              className="salary-roast-share-text"
+              rows="3"
+            />
           </label>
         </section>
       )}

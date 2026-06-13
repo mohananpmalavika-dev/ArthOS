@@ -21,7 +21,7 @@ function ValidationFeedbackForm({ healthScore, onSubmitFeedback }) {
     { value: "survival_months", label: "Time to Financial Crisis" },
     { value: "recommended_action", label: "Next Action to Take" },
     { value: "awareness_gap", label: "Visibility Blind Spot" },
-    { value: "personality_archetype", label: "Money Archetype Profile" },
+    { value: "personality_archetype", label: "Money Archetype Profile" }
   ];
 
   const handleSubmit = async () => {
@@ -35,7 +35,7 @@ function ValidationFeedbackForm({ healthScore, onSubmitFeedback }) {
       const feedbackPayload = {
         score_context: { health_score: healthScore },
         primary_value_driver: selectedImpact,
-        user_feedback_notes: qualitativeNote,
+        user_feedback_notes: qualitativeNote
       };
       const ok = await onSubmitFeedback(feedbackPayload);
       if (ok) {
@@ -58,7 +58,7 @@ function ValidationFeedbackForm({ healthScore, onSubmitFeedback }) {
           className="feedback-success"
           role="status"
           aria-live="polite"
-          ref={(el) => (successRef.current = el)}
+          ref={el => (successRef.current = el)}
           tabIndex={-1}
         >
           <ThumbsUp size={36} />
@@ -104,14 +104,14 @@ function ValidationFeedbackForm({ healthScore, onSubmitFeedback }) {
 
       <fieldset className="feedback-options">
         <legend>Primary Value Driver</legend>
-        {impactOptions.map((option) => (
+        {impactOptions.map(option => (
           <label key={option.value} className="feedback-option">
             <input
               type="radio"
               name="impact"
               value={option.value}
               checked={selectedImpact === option.value}
-              onChange={(e) => setSelectedImpact(e.target.value)}
+              onChange={e => setSelectedImpact(e.target.value)}
             />
             <span>{option.label}</span>
           </label>
@@ -125,7 +125,7 @@ function ValidationFeedbackForm({ healthScore, onSubmitFeedback }) {
           placeholder="Share any additional thoughts or suggestions..."
           maxLength="1000"
           value={qualitativeNote}
-          onChange={(e) => setQualitativeNote(e.target.value)}
+          onChange={e => setQualitativeNote(e.target.value)}
           rows="4"
         />
         <small>{qualitativeNote.length}/1000 characters</small>
@@ -159,7 +159,7 @@ function ValidationFeedbackForm({ healthScore, onSubmitFeedback }) {
 
 ValidationFeedbackForm.propTypes = {
   healthScore: PropTypes.number.isRequired,
-  onSubmitFeedback: PropTypes.func.isRequired,
+  onSubmitFeedback: PropTypes.func.isRequired
 };
 
 export default ValidationFeedbackForm;

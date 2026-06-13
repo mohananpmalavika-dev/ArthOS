@@ -10,30 +10,36 @@
  * and outcome metadata.
  */
 
-const DECISION_LEDGER_KEY = 'arth-os-decision-ledger';
-const API_BASE = '/api';
+const DECISION_LEDGER_KEY = "arth-os-decision-ledger";
+const API_BASE = "/api";
 
 function isBrowser() {
-  return typeof window !== 'undefined' && typeof window.localStorage !== 'undefined';
+  return typeof window !== "undefined" && typeof window.localStorage !== "undefined";
 }
 
 function safeRead() {
-  if (!isBrowser()) return {};
+  if (!isBrowser()) {
+    return {};
+  }
   try {
     const raw = window.localStorage.getItem(DECISION_LEDGER_KEY);
     return raw ? JSON.parse(raw) : {};
-  } catch { return {}; }
+  } catch {
+    return {};
+  }
 }
 
 function safeWrite(store) {
-  if (!isBrowser()) return;
+  if (!isBrowser()) {
+    return;
+  }
   try {
     window.localStorage.setItem(DECISION_LEDGER_KEY, JSON.stringify(store));
   } catch (error) {
-    console.error('[decisionLedger] Failed to persist decision ledger:', {
+    console.error("[decisionLedger] Failed to persist decision ledger:", {
       numDecisions: Object.values(store).reduce((sum, arr) => sum + arr.length, 0),
       error: error?.message,
-      code: error?.code,
+      code: error?.code
     });
   }
 }
@@ -41,15 +47,15 @@ function safeWrite(store) {
 async function apiPost(endpoint, payload) {
   try {
     const resp = await fetch(`${API_BASE}${endpoint}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
     });
     return resp.ok;
   } catch (error) {
-    console.error('[decisionLedger] Failed to sync decision to server:', {
+    console.error("[decisionLedger] Failed to sync decision to server:", {
       endpoint,
-      error: error?.message,
+      error: error?.message
     });
     return false;
   }
@@ -66,17 +72,21 @@ class DecisionLedger {
   }
 
   addDecision(userId, decision) {
-    if (!userId) return false;
-    if (!this.store[userId]) this.store[userId] = [];
+    if (!userId) {
+      return false;
+    }
+    if (!this.store[userId]) {
+      this.store[userId] = [];
+    }
     const entry = {
       id: decision.id || `dec_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
       ...decision,
       timestamp: decision.timestamp || new Date().toISOString(),
-      recordedAt: new Date().toISOString(),
+      recordedAt: new Date().toISOString()
     };
     this.store[userId].push(entry);
     this._persist();
-    apiPost('/memory/event', { userId, event: { type: 'decision', ...entry } });
+    apiPost("/memory/event", { userId, event: { type: "decision", ...entry } });
     return true;
   }
 
@@ -85,35 +95,45 @@ class DecisionLedger {
     let filtered = [...decisions];
     if (opts.fromDate) {
       const from = new Date(opts.fromDate);
-      filtered = filtered.filter((d) => new Date(d.timestamp) >= from);
+      filtered = filtered.filter(d => new Date(d.timestamp) >= from);
     }
     if (opts.toDate) {
       const to = new Date(opts.toDate);
-      filtered = filtered.filter((d) => new Date(d.timestamp) <= to);
+      filtered = filtered.filter(d => new Date(d.timestamp) <= to);
     }
     filtered.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-    if (opts.limit && opts.limit > 0) filtered = filtered.slice(0, opts.limit);
+    if (opts.limit && opts.limit > 0) {
+      filtered = filtered.slice(0, opts.limit);
+    }
     return filtered;
   }
 
   getDecision(userId, decisionId) {
     const decisions = this.store[userId] || [];
-    return decisions.find((d) => d.id === decisionId) || null;
+    return decisions.find(d => d.id === decisionId) || null;
   }
 
   deleteDecision(userId, decisionId) {
-    if (!this.store[userId]) return false;
-    const idx = this.store[userId].findIndex((d) => d.id === decisionId);
-    if (idx === -1) return false;
+    if (!this.store[userId]) {
+      return false;
+    }
+    const idx = this.store[userId].findIndex(d => d.id === decisionId);
+    if (idx === -1) {
+      return false;
+    }
     this.store[userId].splice(idx, 1);
     this._persist();
     return true;
   }
 
   updateDecision(userId, decisionId, updates) {
-    if (!this.store[userId]) return false;
-    const decision = this.store[userId].find((d) => d.id === decisionId);
-    if (!decision) return false;
+    if (!this.store[userId]) {
+      return false;
+    }
+    const decision = this.store[userId].find(d => d.id === decisionId);
+    if (!decision) {
+      return false;
+    }
     Object.assign(decision, updates, { updatedAt: new Date().toISOString() });
     this._persist();
     return true;
@@ -123,8 +143,10 @@ class DecisionLedger {
     const decisions = this.store[userId] || [];
     const grouped = {};
     for (const d of decisions) {
-      const cat = d.category || d.type || 'uncategorized';
-      if (!grouped[cat]) grouped[cat] = [];
+      const cat = d.category || d.type || "uncategorized";
+      if (!grouped[cat]) {
+        grouped[cat] = [];
+      }
       grouped[cat].push(d);
     }
     return grouped;
@@ -132,22 +154,28 @@ class DecisionLedger {
 
   getDecisionCount(userId, sinceDate = null) {
     const decisions = this.store[userId] || [];
-    if (!sinceDate) return decisions.length;
+    if (!sinceDate) {
+      return decisions.length;
+    }
     const since = new Date(sinceDate);
-    return decisions.filter((d) => new Date(d.timestamp) >= since).length;
+    return decisions.filter(d => new Date(d.timestamp) >= since).length;
   }
 
   async syncToServer(userId) {
-    if (this._syncInProgress) return { status: 'in_progress' };
+    if (this._syncInProgress) {
+      return { status: "in_progress" };
+    }
     this._syncInProgress = true;
     try {
       const decisions = this.store[userId] || [];
-      if (decisions.length === 0) return { status: 'empty' };
-      const result = await apiPost('/memory/sync/events', {
+      if (decisions.length === 0) {
+        return { status: "empty" };
+      }
+      const result = await apiPost("/memory/sync/events", {
         userId,
-        data: decisions.map((d) => ({ ...d, type: 'decision' })),
+        data: decisions.map(d => ({ ...d, type: "decision" }))
       });
-      return { status: result ? 'synced' : 'failed', count: decisions.length };
+      return { status: result ? "synced" : "failed", count: decisions.length };
     } finally {
       this._syncInProgress = false;
     }
@@ -168,9 +196,9 @@ class DecisionLedger {
     let qualityCount = 0;
     const sorted = [...decisions].sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
     for (const d of decisions) {
-      const cat = d.category || d.type || 'uncategorized';
+      const cat = d.category || d.type || "uncategorized";
       categories[cat] = (categories[cat] || 0) + 1;
-      if (typeof d.overallDecisionQuality === 'number') {
+      if (typeof d.overallDecisionQuality === "number") {
         totalQuality += d.overallDecisionQuality;
         qualityCount++;
       }
@@ -191,7 +219,7 @@ class DecisionLedger {
       avgQuality: qualityCount > 0 ? Math.round(totalQuality / qualityCount) : null,
       categories,
       streak,
-      lastDecision: sorted[0]?.timestamp || null,
+      lastDecision: sorted[0]?.timestamp || null
     };
   }
 }

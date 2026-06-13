@@ -1,7 +1,13 @@
 import React from "react";
 import { Brain, AlertCircle } from "lucide-react";
-import { calculateDecisionQualityIndex, getDecisionQualityConstraint } from "../engines/decisionQualityEngine.js";
-import { calculateFinancialReadiness, getReadinessRecommendations } from "../engines/readinessEngine.js";
+import {
+  calculateDecisionQualityIndex,
+  getDecisionQualityConstraint
+} from "../engines/decisionQualityEngine.js";
+import {
+  calculateFinancialReadiness,
+  getReadinessRecommendations
+} from "../engines/readinessEngine.js";
 
 /**
  * Decision Quality Index + Financial Readiness Display
@@ -11,8 +17,10 @@ export function StrategicMetricsCard({ result, profile, behaviour, stability }) 
   const dqi = calculateDecisionQualityIndex(result || {});
   const constraint = getDecisionQualityConstraint(result || {});
   const readiness = calculateFinancialReadiness(profile, behaviour, stability || {});
-  const recommendations = getReadinessRecommendations(readiness.readiness, readiness.componentBreakdown || {});
-
+  const recommendations = getReadinessRecommendations(
+    readiness.readiness,
+    readiness.componentBreakdown || {}
+  );
 
   return (
     <section className="summary-card premium-report-block strategic-metrics-card">
@@ -107,7 +115,9 @@ export function StrategicMetricsCard({ result, profile, behaviour, stability }) 
                   style={{ width: `${readiness.componentBreakdown?.emergencyFund || 0}%` }}
                 />
               </div>
-              <span className="breakdown-value">{readiness.componentBreakdown?.emergencyFund || 0}%</span>
+              <span className="breakdown-value">
+                {readiness.componentBreakdown?.emergencyFund || 0}%
+              </span>
             </div>
             <div className="breakdown-item">
               <span className="breakdown-label">Income Stability</span>
@@ -117,7 +127,9 @@ export function StrategicMetricsCard({ result, profile, behaviour, stability }) 
                   style={{ width: `${readiness.componentBreakdown?.incomeStability || 0}%` }}
                 />
               </div>
-              <span className="breakdown-value">{readiness.componentBreakdown?.incomeStability || 0}%</span>
+              <span className="breakdown-value">
+                {readiness.componentBreakdown?.incomeStability || 0}%
+              </span>
             </div>
             <div className="breakdown-item">
               <span className="breakdown-label">Debt Resilience</span>
@@ -127,7 +139,9 @@ export function StrategicMetricsCard({ result, profile, behaviour, stability }) 
                   style={{ width: `${readiness.componentBreakdown?.debtResilience || 0}%` }}
                 />
               </div>
-              <span className="breakdown-value">{readiness.componentBreakdown?.debtResilience || 0}%</span>
+              <span className="breakdown-value">
+                {readiness.componentBreakdown?.debtResilience || 0}%
+              </span>
             </div>
           </div>
 

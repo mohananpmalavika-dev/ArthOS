@@ -1,14 +1,23 @@
-import React, { useMemo, useState, useEffect } from 'react';
-import { Share2, Smartphone, MessageCircle, Globe, Copy, Link, ArrowRight, AlertCircle } from 'lucide-react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { SalaryRoastGenerator } from '../components/SalaryRoastGenerator.jsx';
-import { roastAnalytics } from '../lib/roastAnalytics.js';
-import { injectOGTags } from '../lib/ogTagsGenerator.js';
-import './roast-view.css';
+import React, { useMemo, useState, useEffect } from "react";
+import {
+  Share2,
+  Smartphone,
+  MessageCircle,
+  Globe,
+  Copy,
+  Link,
+  ArrowRight,
+  AlertCircle
+} from "lucide-react";
+import { useParams, useNavigate } from "react-router-dom";
+import { SalaryRoastGenerator } from "../components/SalaryRoastGenerator.jsx";
+import { roastAnalytics } from "../lib/roastAnalytics.js";
+import { injectOGTags } from "../lib/ogTagsGenerator.js";
+import "./roast-view.css";
 
 /**
  * RoastViewPage
- * 
+ *
  * Displays a shared roast from a URL (e.g., /roast/abc123).
  * This is the viral loop endpoint:
  * 1. User A shares their roast via WhatsApp/Twitter
@@ -16,7 +25,7 @@ import './roast-view.css';
  * 3. User B lands on this page
  * 4. User B sees the roast
  * 5. User B clicks "Generate Your Own" → starts assessment flow
- * 
+ *
  * The :id is base64-encoded JSON containing score & personality
  */
 export function RoastViewPage() {
@@ -24,25 +33,33 @@ export function RoastViewPage() {
   const navigate = useNavigate();
   const [decodedPayload, setDecodedPayload] = useState(null);
   const [error, setError] = useState(null);
-  const [copied, setCopied] = useState('');
+  const [copied, setCopied] = useState("");
 
   // Decode the payload from URL parameter
   useEffect(() => {
     if (!id) {
-      setError('Invalid roast link');
+      setError("Invalid roast link");
       return;
     }
 
     try {
       // Track the roast view for analytics
-      roastAnalytics.trackRoastView(id, new URLSearchParams(window.location.search).get('utm_source') || 'direct');
+      roastAnalytics.trackRoastView(
+        id,
+        new URLSearchParams(window.location.search).get("utm_source") || "direct"
+      );
 
       // Decode base64 payload (it's truncated to 8 chars for short URLs)
       // The original full payload is stored in memory/localStorage on client
       // If not available, show limited preview
       function base64DecodeUnicode(str) {
         try {
-          return decodeURIComponent(atob(str).split('').map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join(''));
+          return decodeURIComponent(
+            atob(str)
+              .split("")
+              .map(c => "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2))
+              .join("")
+          );
         } catch (e) {
           // Fallback: try direct atob if Unicode decode fails
           return atob(str);
@@ -54,14 +71,14 @@ export function RoastViewPage() {
 
       // Validate payload structure
       if (!payload.score || !payload.personality) {
-        setError('Invalid roast data');
+        setError("Invalid roast data");
         return;
       }
 
       setDecodedPayload(payload);
     } catch (err) {
-      console.error('Failed to decode roast:', err);
-      setError('Could not decode roast link. It may be expired or invalid.');
+      console.error("Failed to decode roast:", err);
+      setError("Could not decode roast link. It may be expired or invalid.");
     }
   }, [id]);
 
@@ -74,23 +91,23 @@ export function RoastViewPage() {
 
   const handleGenerateYourOwn = () => {
     // Track the CTA click for viral funnel analysis
-    roastAnalytics.trackGenerateYourOwnCTA('roast_view');
+    roastAnalytics.trackGenerateYourOwnCTA("roast_view");
 
     // Navigate to assessment with referral tracking
-    navigate('/?ref=roast-share&utm_source=viral&utm_medium=shared_roast');
-    
+    navigate("/?ref=roast-share&utm_source=viral&utm_medium=shared_roast");
+
     // Track viral activation via analytics service
-    roastAnalytics.trackRoastGenerated('unknown', 0); // Will be updated after assessment
+    roastAnalytics.trackRoastGenerated("unknown", 0); // Will be updated after assessment
   };
 
   const handleCopyLink = async () => {
     try {
       const link = window.location.href;
       await navigator.clipboard.writeText(link);
-      setCopied('link');
-      setTimeout(() => setCopied(''), 2000);
+      setCopied("link");
+      setTimeout(() => setCopied(""), 2000);
     } catch (err) {
-      console.error('Copy failed:', err);
+      console.error("Copy failed:", err);
     }
   };
 
@@ -98,10 +115,10 @@ export function RoastViewPage() {
     try {
       const text = generateShareTextFromPayload(decodedPayload);
       await navigator.clipboard.writeText(text);
-      setCopied('text');
-      setTimeout(() => setCopied(''), 2000);
+      setCopied("text");
+      setTimeout(() => setCopied(""), 2000);
     } catch (err) {
-      console.error('Copy failed:', err);
+      console.error("Copy failed:", err);
     }
   };
 
@@ -137,7 +154,7 @@ export function RoastViewPage() {
   const mockAssessment = generateMockAssessmentFromPayload(decodedPayload);
   const mockProfile = {
     monthlyIncome: 75000, // Estimated from score
-    monthlyExpenses: 55000,
+    monthlyExpenses: 55000
   };
 
   return (
@@ -148,7 +165,8 @@ export function RoastViewPage() {
           <div className="roast-view-header-badge">🔥 FINANCIAL ROAST</div>
           <h1>Your friend got roasted!</h1>
           <p className="roast-view-subheading">
-            They're a <strong>{personality}</strong> with a <strong>{score}/100</strong> financial health score.
+            They're a <strong>{personality}</strong> with a <strong>{score}/100</strong> financial
+            health score.
             <br />
             Curious about yours? It's quick, honest, and brutally accurate.
           </p>
@@ -182,9 +200,14 @@ export function RoastViewPage() {
         <div className="roast-view-share-buttons">
           <button
             onClick={() => {
-              const text = encodeURIComponent(generateShareTextFromPayload(decodedPayload) + ' ' + window.location.href);
-              window.open(`https://wa.me/?text=${text}`, '_blank');
-              roastAnalytics.trackShare('whatsapp', { score: decodedPayload.score, personality: decodedPayload.personality });
+              const text = encodeURIComponent(
+                generateShareTextFromPayload(decodedPayload) + " " + window.location.href
+              );
+              window.open(`https://wa.me/?text=${text}`, "_blank");
+              roastAnalytics.trackShare("whatsapp", {
+                score: decodedPayload.score,
+                personality: decodedPayload.personality
+              });
             }}
             className="roast-view-share-btn roast-view-share-btn-whatsapp"
           >
@@ -194,9 +217,14 @@ export function RoastViewPage() {
 
           <button
             onClick={() => {
-              const text = encodeURIComponent(generateShareTextFromPayload(decodedPayload) + ' ' + window.location.href);
-              window.open(`https://twitter.com/intent/tweet?text=${text}`, '_blank');
-              roastAnalytics.trackShare('twitter', { score: decodedPayload.score, personality: decodedPayload.personality });
+              const text = encodeURIComponent(
+                generateShareTextFromPayload(decodedPayload) + " " + window.location.href
+              );
+              window.open(`https://twitter.com/intent/tweet?text=${text}`, "_blank");
+              roastAnalytics.trackShare("twitter", {
+                score: decodedPayload.score,
+                personality: decodedPayload.personality
+              });
             }}
             className="roast-view-share-btn roast-view-share-btn-twitter"
           >
@@ -209,7 +237,7 @@ export function RoastViewPage() {
             className="roast-view-share-btn roast-view-share-btn-link"
           >
             <Link size={20} />
-            {copied === 'link' ? 'Copied!' : 'Copy Link'}
+            {copied === "link" ? "Copied!" : "Copy Link"}
           </button>
         </div>
       </section>
@@ -219,10 +247,13 @@ export function RoastViewPage() {
         <div className="roast-view-cta-card">
           <h2>Ready for Your Financial Roast? 🔥</h2>
           <p>
-            Get a personalized financial health assessment, survival window, and tailored action plan.
-            Takes just 5 minutes.
+            Get a personalized financial health assessment, survival window, and tailored action
+            plan. Takes just 5 minutes.
           </p>
-          <button onClick={handleGenerateYourOwn} className="roast-view-cta-button roast-view-cta-primary">
+          <button
+            onClick={handleGenerateYourOwn}
+            className="roast-view-cta-button roast-view-cta-primary"
+          >
             Generate Your Roast Now
             <ArrowRight size={20} />
           </button>
@@ -279,8 +310,8 @@ function generateMockAssessmentFromPayload(payload) {
     stabilityScore,
     personalityType: personality,
     survivalMonthsRaw,
-    futureRiskLabel: score >= 70 ? 'Low' : score >= 50 ? 'Medium' : 'High',
-    categoryBand: score >= 75 ? 'Resilient' : score >= 50 ? 'Developing' : 'Fragile',
+    futureRiskLabel: score >= 70 ? "Low" : score >= 50 ? "Medium" : "High",
+    categoryBand: score >= 75 ? "Resilient" : score >= 50 ? "Developing" : "Fragile"
   };
 }
 
@@ -294,7 +325,7 @@ function generateShareTextFromPayload(payload) {
     `I just got my Financial Roast 🔥 I'm a ${personality} with a ${score}/100 score! What about you?`,
     `My financial health score: ${score}/100. I'm a ${personality}. Check out yours! 👇`,
     `Just got brutally honest feedback about my finances. I'm a ${personality}. This is eye-opening! 🔥`,
-    `Financial Roast reveals I'm a ${personality} (${score}/100). Curious about your score?`,
+    `Financial Roast reveals I'm a ${personality} (${score}/100). Curious about your score?`
   ];
 
   return templates[Math.floor(Math.random() * templates.length)];
@@ -306,9 +337,9 @@ function generateShareTextFromPayload(payload) {
 function trackViralShare(platform) {
   console.log(`[Analytics] Viral share: ${platform}`);
   if (window.gtag) {
-    window.gtag('event', 'roast_viral_share', {
+    window.gtag("event", "roast_viral_share", {
       platform,
-      platform_type: 'social',
+      platform_type: "social"
     });
   }
 }

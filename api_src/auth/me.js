@@ -1,7 +1,6 @@
 // api/auth/me.js
 import jwt from "jsonwebtoken";
-
-const JWT_SECRET = process.env.JWT_SECRET || "arthos-dev-secret-change-in-production";
+import { JWT_CONFIG } from "./jwt.js";
 
 export default async function handler(req, res) {
   if (req.method !== "GET") {
@@ -16,7 +15,7 @@ export default async function handler(req, res) {
 
     const token = authHeader.split(" ")[1];
 
-    const decoded = jwt.verify(token, JWT_SECRET);
+    const decoded = jwt.verify(token, JWT_CONFIG.secret);
 
     return res.status(200).json({
       user: {

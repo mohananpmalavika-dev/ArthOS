@@ -1,27 +1,29 @@
 /**
  * Assessment Telemetry Engine
- * 
+ *
  * Tracks step-level analytics for the assessment wizard:
  * - Step entries/exits with timestamps
  * - Time spent per step
  * - Drop-off point (last step before abandonment)
  * - Completion events
- * 
+ *
  * All data is stored in localStorage and batched into the anonymous telemetry pipeline.
  * Privacy-first: No PII, no precise timestamps (day-level aggregation).
  */
 
-const TELEMETRY_STORAGE_KEY = 'arth-os-assessment-telemetry';
-const SESSION_KEY = 'arth-os-assessment-session';
+const TELEMETRY_STORAGE_KEY = "arth-os-assessment-telemetry";
+const SESSION_KEY = "arth-os-assessment-session";
 
 function isBrowser() {
-  return typeof window !== 'undefined';
+  return typeof window !== "undefined";
 }
 
 function hasLocalStorage() {
-  if (!isBrowser()) return false;
+  if (!isBrowser()) {
+    return false;
+  }
   try {
-    return typeof window.localStorage !== 'undefined';
+    return typeof window.localStorage !== "undefined";
   } catch {
     return false;
   }
@@ -36,7 +38,9 @@ function hasLocalStorage() {
  * Resets any previous incomplete session.
  */
 export function startAssessmentSession() {
-  if (!hasLocalStorage()) return;
+  if (!hasLocalStorage()) {
+    return;
+  }
 
   const session = {
     sessionId: `sess_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
@@ -46,7 +50,7 @@ export function startAssessmentSession() {
     totalSteps: 0,
     steps: [],
     completed: false,
-    deviceType: getDeviceType(),
+    deviceType: getDeviceType()
   };
 
   try {
@@ -64,7 +68,9 @@ export function startAssessmentSession() {
  * @param {number} totalSteps - total number of steps in the wizard
  */
 export function recordStepEntry(stepIndex, totalSteps) {
-  if (!hasLocalStorage()) return;
+  if (!hasLocalStorage()) {
+    return;
+  }
 
   let session = loadSession();
   if (!session) {
@@ -87,7 +93,7 @@ export function recordStepEntry(stepIndex, totalSteps) {
       stepLabel: getStepLabel(stepIndex),
       enteredAt: now,
       durationMs: 0,
-      isComplete: false,
+      isComplete: false
     });
   }
 
@@ -101,13 +107,17 @@ export function recordStepEntry(stepIndex, totalSteps) {
 
 /**
  * Mark a step as completed (user filled all required fields and pressed Next).
- * @param {number} stepIndex 
+ * @param {number} stepIndex
  */
 export function markStepCompleted(stepIndex) {
-  if (!hasLocalStorage()) return;
+  if (!hasLocalStorage()) {
+    return;
+  }
 
   const session = loadSession();
-  if (!session) return;
+  if (!session) {
+    return;
+  }
 
   const step = session.steps.find(s => s.stepIndex === stepIndex);
   if (step) {
@@ -122,10 +132,14 @@ export function markStepCompleted(stepIndex) {
  * Mark the assessment as fully completed (user pressed "Finish & Review Score").
  */
 export function markAssessmentCompleted() {
-  if (!hasLocalStorage()) return;
+  if (!hasLocalStorage()) {
+    return;
+  }
 
   const session = loadSession();
-  if (!session) return;
+  if (!session) {
+    return;
+  }
 
   const now = Date.now();
 
@@ -148,13 +162,15 @@ export function markAssessmentCompleted() {
  * Get the current session (for reading telemetry state).
  */
 export function loadSession() {
-  if (!hasLocalStorage()) return null;
+  if (!hasLocalStorage()) {
+    return null;
+  }
   try {
     const raw = window.localStorage.getItem(SESSION_KEY);
     return raw ? JSON.parse(raw) : null;
   } catch (error) {
-    console.warn('[assessmentTelemetry] Failed to load session:', {
-      error: error?.message,
+    console.warn("[assessmentTelemetry] Failed to load session:", {
+      error: error?.message
     });
     return null;
   }
@@ -164,8 +180,8 @@ function persistSession(session) {
   try {
     window.localStorage.setItem(SESSION_KEY, JSON.stringify(session));
   } catch (error) {
-    console.warn('[assessmentTelemetry] Failed to persist session:', {
-      error: error?.message,
+    console.warn("[assessmentTelemetry] Failed to persist session:", {
+      error: error?.message
     });
   }
 }
@@ -178,13 +194,15 @@ function persistSession(session) {
  * Read historical assessment telemetry events from localStorage.
  */
 export function loadTelemetryHistory() {
-  if (!hasLocalStorage()) return [];
+  if (!hasLocalStorage()) {
+    return [];
+  }
   try {
     const raw = window.localStorage.getItem(TELEMETRY_STORAGE_KEY);
     return raw ? JSON.parse(raw) : [];
   } catch (error) {
-    console.warn('[assessmentTelemetry] Failed to load telemetry history:', {
-      error: error?.message,
+    console.warn("[assessmentTelemetry] Failed to load telemetry history:", {
+      error: error?.message
     });
     return [];
   }
@@ -194,9 +212,9 @@ function persistTelemetryHistory(events) {
   try {
     window.localStorage.setItem(TELEMETRY_STORAGE_KEY, JSON.stringify(events));
   } catch (error) {
-    console.warn('[assessmentTelemetry] Failed to persist telemetry history:', {
+    console.warn("[assessmentTelemetry] Failed to persist telemetry history:", {
       numEvents: events?.length || 0,
-      error: error?.message,
+      error: error?.message
     });
   }
 }
@@ -207,14 +225,20 @@ function persistTelemetryHistory(events) {
  * the previous session was incomplete (dropped off).
  */
 export function archiveSession() {
-  if (!hasLocalStorage()) return null;
+  if (!hasLocalStorage()) {
+    return null;
+  }
 
   const session = loadSession();
-  if (!session) return null;
+  if (!session) {
+    return null;
+  }
 
   // Build a clean summary for historical storage
   const summary = buildSessionSummary(session);
-  if (!summary) return null;
+  if (!summary) {
+    return null;
+  }
 
   const history = loadTelemetryHistory();
   history.push(summary);
@@ -231,22 +255,24 @@ export function archiveSession() {
 }
 
 function buildSessionSummary(session) {
-  if (!session || !session.steps || session.steps.length === 0) return null;
+  if (!session || !session.steps || session.steps.length === 0) {
+    return null;
+  }
 
   const totalSteps = session.totalSteps || session.steps.length;
   const completedSteps = session.steps.filter(s => s.isComplete).length;
-  const totalDurationMs = session.totalDurationMs || (session.lastActivityAt - session.startedAt);
+  const totalDurationMs = session.totalDurationMs || session.lastActivityAt - session.startedAt;
 
   const stepSummaries = session.steps.map(s => ({
     step: s.stepIndex,
     label: s.stepLabel,
     durationMs: s.durationMs,
-    completed: s.isComplete,
+    completed: s.isComplete
   }));
 
   return {
     sessionId: session.sessionId,
-    date: new Date().toISOString().split('T')[0],
+    date: new Date().toISOString().split("T")[0],
     completed: session.completed,
     totalSteps,
     completedSteps,
@@ -255,7 +281,7 @@ function buildSessionSummary(session) {
     totalDurationMs,
     totalDurationSec: Math.round(totalDurationMs / 1000),
     stepDetails: stepSummaries,
-    deviceType: session.deviceType,
+    deviceType: session.deviceType
   };
 }
 
@@ -263,12 +289,14 @@ function buildSessionSummary(session) {
  * Clear the current session (e.g., after archiving or on reset).
  */
 export function clearSession() {
-  if (!hasLocalStorage()) return;
+  if (!hasLocalStorage()) {
+    return;
+  }
   try {
     window.localStorage.removeItem(SESSION_KEY);
   } catch (error) {
-    console.warn('[assessmentTelemetry] Failed to clear session:', {
-      error: error?.message,
+    console.warn("[assessmentTelemetry] Failed to clear session:", {
+      error: error?.message
     });
   }
 }
@@ -293,7 +321,7 @@ export function getCompletionRateMetrics() {
       averageCompletedSteps: 0,
       mostCommonDropOff: null,
       dropOffByStep: {},
-      deviceBreakdown: {},
+      deviceBreakdown: {}
     };
   }
 
@@ -304,30 +332,37 @@ export function getCompletionRateMetrics() {
   const dropOffRate = Math.round((droppedOffSessions / totalSessions) * 100);
 
   const durations = history.filter(s => s.totalDurationMs > 0).map(s => s.totalDurationSec);
-  const averageDurationSec = durations.length > 0
-    ? Math.round(durations.reduce((a, b) => a + b, 0) / durations.length)
-    : 0;
+  const averageDurationSec =
+    durations.length > 0 ? Math.round(durations.reduce((a, b) => a + b, 0) / durations.length) : 0;
 
   const completedStepsList = history.filter(s => s.completedSteps > 0).map(s => s.completedSteps);
-  const averageCompletedSteps = completedStepsList.length > 0
-    ? Math.round(completedStepsList.reduce((a, b) => a + b, 0) / completedStepsList.length)
-    : 0;
+  const averageCompletedSteps =
+    completedStepsList.length > 0
+      ? Math.round(completedStepsList.reduce((a, b) => a + b, 0) / completedStepsList.length)
+      : 0;
 
   // Drop-off analysis: which step do people abandon at?
   const dropOffByStep = {};
-  history.filter(s => !s.completed && s.droppedOffAt !== null).forEach(s => {
-    const step = s.droppedOffAt;
-    dropOffByStep[step] = (dropOffByStep[step] || 0) + 1;
-  });
+  history
+    .filter(s => !s.completed && s.droppedOffAt !== null)
+    .forEach(s => {
+      const step = s.droppedOffAt;
+      dropOffByStep[step] = (dropOffByStep[step] || 0) + 1;
+    });
   const dropOffEntries = Object.entries(dropOffByStep).sort((a, b) => b[1] - a[1]);
-  const mostCommonDropOff = dropOffEntries.length > 0
-    ? { step: Number(dropOffEntries[0][0]), count: dropOffEntries[0][1], label: getStepLabel(Number(dropOffEntries[0][0])) }
-    : null;
+  const mostCommonDropOff =
+    dropOffEntries.length > 0
+      ? {
+          step: Number(dropOffEntries[0][0]),
+          count: dropOffEntries[0][1],
+          label: getStepLabel(Number(dropOffEntries[0][0]))
+        }
+      : null;
 
   // Device breakdown
   const deviceBreakdown = {};
   history.forEach(s => {
-    const dt = s.deviceType || 'unknown';
+    const dt = s.deviceType || "unknown";
     deviceBreakdown[dt] = (deviceBreakdown[dt] || 0) + 1;
   });
 
@@ -341,7 +376,7 @@ export function getCompletionRateMetrics() {
     averageCompletedSteps,
     mostCommonDropOff,
     dropOffByStep,
-    deviceBreakdown,
+    deviceBreakdown
   };
 }
 
@@ -356,23 +391,29 @@ export function buildStepTelemetryPayload() {
   return {
     step_telemetry: {
       // Current session data
-      current_session: session ? {
-        current_step: session.currentStep,
-        total_steps: session.totalSteps,
-        completed: session.completed,
-        steps_recorded: session.steps.length,
-        device_type: session.deviceType,
-      } : null,
+      current_session: session
+        ? {
+            current_step: session.currentStep,
+            total_steps: session.totalSteps,
+            completed: session.completed,
+            steps_recorded: session.steps.length,
+            device_type: session.deviceType
+          }
+        : null,
       // Aggregated metrics
       aggregated: {
         total_sessions: metrics.totalSessions,
         completion_rate_pct: metrics.completionRate,
         drop_off_rate_pct: metrics.dropOffRate,
         average_duration_sec: metrics.averageDurationSec,
-        most_common_drop_off_step: metrics.mostCommonDropOff ? metrics.mostCommonDropOff.step : null,
-        most_common_drop_off_label: metrics.mostCommonDropOff ? metrics.mostCommonDropOff.label : null,
-      },
-    },
+        most_common_drop_off_step: metrics.mostCommonDropOff
+          ? metrics.mostCommonDropOff.step
+          : null,
+        most_common_drop_off_label: metrics.mostCommonDropOff
+          ? metrics.mostCommonDropOff.label
+          : null
+      }
+    }
   };
 }
 
@@ -381,16 +422,22 @@ export function buildStepTelemetryPayload() {
 // ──────────────────────────────────────────────
 
 function getStepLabel(stepIndex) {
-  const labels = ['Psychology', 'Clarity', 'Resilience', 'Habits'];
+  const labels = ["Psychology", "Clarity", "Resilience", "Habits"];
   return labels[stepIndex] || `Step ${stepIndex + 1}`;
 }
 
 function getDeviceType() {
-  if (!isBrowser()) return 'server';
-  const ua = navigator.userAgent || '';
-  if (/mobile|android|iphone|ipad|ipod/i.test(ua)) return 'mobile';
-  if (/tablet|ipad/i.test(ua)) return 'tablet';
-  return 'desktop';
+  if (!isBrowser()) {
+    return "server";
+  }
+  const ua = navigator.userAgent || "";
+  if (/mobile|android|iphone|ipad|ipod/i.test(ua)) {
+    return "mobile";
+  }
+  if (/tablet|ipad/i.test(ua)) {
+    return "tablet";
+  }
+  return "desktop";
 }
 
 // ──────────────────────────────────────────────
@@ -404,17 +451,23 @@ function getDeviceType() {
  */
 export function archiveOrphanedSession() {
   const session = loadSession();
-  if (!session) return null;
+  if (!session) {
+    return null;
+  }
 
   // If already marked completed, don't re-archive
-  if (session.completed) return null;
+  if (session.completed) {
+    return null;
+  }
 
   // Only archive if there's meaningful activity (at least one step recorded)
-  if (!session.steps || session.steps.length === 0) return null;
+  if (!session.steps || session.steps.length === 0) {
+    return null;
+  }
 
   // Check if session is stale (older than 30 minutes = abandoned)
   const staleThreshold = 30 * 60 * 1000; // 30 minutes
-  const isStale = (Date.now() - session.lastActivityAt) > staleThreshold;
+  const isStale = Date.now() - session.lastActivityAt > staleThreshold;
 
   if (isStale) {
     return archiveSession();

@@ -11,7 +11,7 @@ export default function AnalyticsDashboard({ result }) {
     futureRiskLabel,
     futureRiskScore,
     personalityType,
-    personalityReport,
+    personalityReport
   } = result;
 
   const toneColorClass = `tone-text-${categoryBand?.tone || "steady"}`;
@@ -77,8 +77,8 @@ export default function AnalyticsDashboard({ result }) {
         </div>
 
         <p className="blindspot-insight">
-          <strong>Insight:</strong> Your financial tracking clarity profile indicates
-          you may run out of liquid cash funds roughly <strong>{awarenessGapDisplay} months</strong>
+          <strong>Insight:</strong> Your financial tracking clarity profile indicates you may run
+          out of liquid cash funds roughly <strong>{awarenessGapDisplay} months</strong>
           {awarenessGapDisplay !== "0"
             ? " sooner than your mental baseline currently expects."
             : " as planned."}

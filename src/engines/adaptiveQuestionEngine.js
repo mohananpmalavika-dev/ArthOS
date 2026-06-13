@@ -54,8 +54,8 @@
 // ──────────────────────────────────────────────
 // Express Mode: which priority levels to include
 // ──────────────────────────────────────────────
-const EXPRESS_PRIORITY_LEVELS = ['critical', 'high'];
-const FULL_PRIORITY_LEVELS = ['critical', 'high', 'normal'];
+const EXPRESS_PRIORITY_LEVELS = ["critical", "high"];
+const FULL_PRIORITY_LEVELS = ["critical", "high", "normal"];
 
 // ──────────────────────────────────────────────
 // Branch Definitions
@@ -69,104 +69,79 @@ const FULL_PRIORITY_LEVELS = ['critical', 'high', 'normal'];
  */
 const BEHAVIOUR_BRANCHES = [
   {
-    gateKey: 'emotionalMoneyLevel',
-    triggerOn: ['fully_logical'],
-    skipKeys: [
-      'spendWhenBored',
-      'spendWhenStressed',
-    ],
-    reason: 'Already logical about money; skip emotional-spending probes',
+    gateKey: "emotionalMoneyLevel",
+    triggerOn: ["fully_logical"],
+    skipKeys: ["spendWhenBored", "spendWhenStressed"],
+    reason: "Already logical about money; skip emotional-spending probes"
   },
   {
-    gateKey: 'impulseWaitRule',
-    triggerOn: ['always'],
-    skipKeys: [
-      'unplannedPurchaseFreq',
-      'regretImpulseFreq',
-    ],
-    reason: 'Waiting rule discipline proven; skip impulse follow-ups',
+    gateKey: "impulseWaitRule",
+    triggerOn: ["always"],
+    skipKeys: ["unplannedPurchaseFreq", "regretImpulseFreq"],
+    reason: "Waiting rule discipline proven; skip impulse follow-ups"
   },
   {
-    gateKey: 'plannedPurchasesOnly',
-    triggerOn: ['always'],
-    skipKeys: [
-      'unplannedPurchaseFreq',
-      'regretImpulseFreq',
-    ],
-    reason: 'Planned buyer; skip impulse history',
+    gateKey: "plannedPurchasesOnly",
+    triggerOn: ["always"],
+    skipKeys: ["unplannedPurchaseFreq", "regretImpulseFreq"],
+    reason: "Planned buyer; skip impulse history"
   },
   {
-    gateKey: 'cashflowAwareness',
-    triggerOn: ['always'],
-    skipKeys: [
-      'avoidBalanceDuringStress',
-    ],
-    reason: 'Cashflow-aware; stress avoidance less relevant',
+    gateKey: "cashflowAwareness",
+    triggerOn: ["always"],
+    skipKeys: ["avoidBalanceDuringStress"],
+    reason: "Cashflow-aware; stress avoidance less relevant"
   },
   {
-    gateKey: 'socialInfluenceLevel',
-    triggerOn: ['never'],
+    gateKey: "socialInfluenceLevel",
+    triggerOn: ["never"],
     skipKeys: [
-      'comparesLifestyleFreq', // awareness — cross-section skip
+      "comparesLifestyleFreq" // awareness — cross-section skip
     ],
-    reason: 'Not socially influenced; skip lifestyle comparison probe',
+    reason: "Not socially influenced; skip lifestyle comparison probe"
   },
   {
-    gateKey: 'presentFutureMindset',
-    triggerOn: ['extreme_discipline'],
-    skipKeys: [
-      'impulseWaitRule',
-      'plannedPurchasesOnly',
-    ],
-    reason: 'Extreme discipline proven; skip impulse-control questions',
-  },
+    gateKey: "presentFutureMindset",
+    triggerOn: ["extreme_discipline"],
+    skipKeys: ["impulseWaitRule", "plannedPurchasesOnly"],
+    reason: "Extreme discipline proven; skip impulse-control questions"
+  }
 ];
 
 const AWARENESS_BRANCHES = [
   {
-    gateKey: 'hasFinancialPlan',
-    triggerOn: ['clear_plan'],
-    skipKeys: [
-      'budgetCycle',
-    ],
-    reason: 'Has a clear plan; budget revisit frequency less diagnostic',
+    gateKey: "hasFinancialPlan",
+    triggerOn: ["clear_plan"],
+    skipKeys: ["budgetCycle"],
+    reason: "Has a clear plan; budget revisit frequency less diagnostic"
   },
   {
-    gateKey: 'tracksExpenses',
-    triggerOn: ['regularly'],
-    skipKeys: [
-      'knowsMonthlyExpenses',
-    ],
-    reason: 'Tracks expenses; knowsMonthlyExpenses redundant',
+    gateKey: "tracksExpenses",
+    triggerOn: ["regularly"],
+    skipKeys: ["knowsMonthlyExpenses"],
+    reason: "Tracks expenses; knowsMonthlyExpenses redundant"
   },
   {
-    gateKey: 'knowsMonthlyExpenses',
-    triggerOn: ['exact'],
-    skipKeys: [
-      'tracksSavingsRate',
-    ],
-    reason: 'Knows exact expenses; savings rate likely tracked too',
+    gateKey: "knowsMonthlyExpenses",
+    triggerOn: ["exact"],
+    skipKeys: ["tracksSavingsRate"],
+    reason: "Knows exact expenses; savings rate likely tracked too"
   },
   {
-    gateKey: 'knowsTotalDebt',
-    triggerOn: ['fully'],
-    skipKeys: [
-      'tracksSavingsRate',
-      'knowsTop3Expenses',
-    ],
-    reason: 'Full debt knowledge implies strong tracking; skip rate & top-3 probes',
-  },
+    gateKey: "knowsTotalDebt",
+    triggerOn: ["fully"],
+    skipKeys: ["tracksSavingsRate", "knowsTop3Expenses"],
+    reason: "Full debt knowledge implies strong tracking; skip rate & top-3 probes"
+  }
 ];
 
 const HABITS_BRANCHES = [
   {
-    gateKey: 'debtPaymentDiscipline',
-    triggerOn: ['always'],
-    skipKeys: [
-      'habitCheckInsPerWeek',
-    ],
-    reason: 'Always follows through on payments; check-in habit less diagnostic',
-  },
+    gateKey: "debtPaymentDiscipline",
+    triggerOn: ["always"],
+    skipKeys: ["habitCheckInsPerWeek"],
+    reason: "Always follows through on payments; check-in habit less diagnostic"
+  }
 ];
 
 // ──────────────────────────────────────────────
@@ -211,7 +186,7 @@ const QUESTION_TIMING = {
   averageInterestRatePct: 10000,
   // Habits
   habitCheckInsPerWeek: 6000,
-  debtPaymentDiscipline: 8000,
+  debtPaymentDiscipline: 8000
 };
 
 const DEFAULT_QUESTION_TIME_MS = 7000;
@@ -239,16 +214,25 @@ function getAllowedPriorities(expressMode) {
  * @returns {object[]} filtered questions
  */
 function filterByExpressPriority(questions, expressMode) {
-  if (!expressMode) return questions;
+  if (!expressMode) {
+    return questions;
+  }
 
   const allowed = getAllowedPriorities(true);
   // Always include gate questions (those used in skip rules)
   const gateKeys = new Set([
-    'emotionalMoneyLevel', 'socialInfluenceLevel', 'presentFutureMindset',
-    'impulseWaitRule', 'plannedPurchasesOnly', 'cashflowAwareness',
-    'comparesLifestyleFreq', 'hasFinancialPlan', 'tracksExpenses',
-    'knowsTotalDebt', 'knowsMonthlyExpenses',
-    'debtPaymentDiscipline',
+    "emotionalMoneyLevel",
+    "socialInfluenceLevel",
+    "presentFutureMindset",
+    "impulseWaitRule",
+    "plannedPurchasesOnly",
+    "cashflowAwareness",
+    "comparesLifestyleFreq",
+    "hasFinancialPlan",
+    "tracksExpenses",
+    "knowsTotalDebt",
+    "knowsMonthlyExpenses",
+    "debtPaymentDiscipline"
   ]);
 
   return questions.filter(q => gateKeys.has(q.key) || allowed.includes(q.expressPriority));
@@ -269,13 +253,13 @@ function filterByExpressPriority(questions, expressMode) {
 function getSkipKeys(sectionKey, currentAnswers) {
   let branches;
   switch (sectionKey) {
-    case 'behaviour':
+    case "behaviour":
       branches = BEHAVIOUR_BRANCHES;
       break;
-    case 'awareness':
+    case "awareness":
       branches = AWARENESS_BRANCHES;
       break;
-    case 'habits':
+    case "habits":
       branches = HABITS_BRANCHES;
       break;
     default:
@@ -286,7 +270,9 @@ function getSkipKeys(sectionKey, currentAnswers) {
 
   for (const branch of branches) {
     const answer = currentAnswers?.[branch.gateKey];
-    if (!answer) continue; // gate unanswered — keep all questions
+    if (!answer) {
+      continue;
+    } // gate unanswered — keep all questions
 
     if (branch.triggerOn.includes(answer)) {
       for (const key of branch.skipKeys) {
@@ -337,7 +323,7 @@ export function getFilteredQuestions(sectionKey, fullQuestions, currentAnswers =
     skipped,
     totalSaved: skipped.length,
     estimatedTimeMs,
-    estimatedTimeMin: Math.round(estimatedTimeMs / 6000) / 10, // in minutes, 1dp
+    estimatedTimeMin: Math.round(estimatedTimeMs / 6000) / 10 // in minutes, 1dp
   };
 }
 
@@ -377,25 +363,44 @@ export function estimateTotalTime(assessment, fullQuestionBank, options = {}) {
   let totalMs = 0;
 
   // Behaviour questions
-  const bhv = getFilteredQuestions('behaviour', fullQuestionBank.behaviourQuestions, assessment.behaviour, { expressMode });
+  const bhv = getFilteredQuestions(
+    "behaviour",
+    fullQuestionBank.behaviourQuestions,
+    assessment.behaviour,
+    { expressMode }
+  );
   totalMs += bhv.estimatedTimeMs;
 
   // Awareness questions
-  const awr = getFilteredQuestions('awareness', fullQuestionBank.awarenessQuestions, assessment.awareness, { expressMode });
+  const awr = getFilteredQuestions(
+    "awareness",
+    fullQuestionBank.awarenessQuestions,
+    assessment.awareness,
+    { expressMode }
+  );
   totalMs += awr.estimatedTimeMs;
 
   // Stability — always shown (numeric inputs are slower)
   const stabilityKeys = [
-    'monthlyExpenses', 'emergencySavingsFixed', 'emergencySavingsDiscretionary',
-    'totalDebt', 'monthlyIncome', 'incomeStability', 'dependentsBucket',
-    'monthlyLiabilities', 'debtRepaymentRatePctOfIncome', 'averageInterestRatePct',
+    "monthlyExpenses",
+    "emergencySavingsFixed",
+    "emergencySavingsDiscretionary",
+    "totalDebt",
+    "monthlyIncome",
+    "incomeStability",
+    "dependentsBucket",
+    "monthlyLiabilities",
+    "debtRepaymentRatePctOfIncome",
+    "averageInterestRatePct"
   ];
   for (const key of stabilityKeys) {
     totalMs += QUESTION_TIMING[key] ?? DEFAULT_QUESTION_TIME_MS;
   }
 
   // Habits questions
-  const hab = getFilteredQuestions('habits', fullQuestionBank.habitsQuestions, assessment.habits, { expressMode });
+  const hab = getFilteredQuestions("habits", fullQuestionBank.habitsQuestions, assessment.habits, {
+    expressMode
+  });
   totalMs += hab.estimatedTimeMs;
 
   // Express mode: stability fields are weighted less (less time needed)
@@ -403,7 +408,7 @@ export function estimateTotalTime(assessment, fullQuestionBank, options = {}) {
     totalMs *= 0.7; // ~30% faster in express mode (user is in a hurry)
   }
 
-  return Math.round(totalMs / 6000 * 10) / 10; // minutes, 1dp
+  return Math.round((totalMs / 6000) * 10) / 10; // minutes, 1dp
 }
 
 /**
@@ -430,7 +435,13 @@ export function getQuestionTiming(questionKey) {
  * @param {{ expressMode?: boolean }} [options]
  * @returns {{ visible, skipped, totalSaved, estimatedTimeMs, estimatedTimeMin, currentQ, totalQ }}
  */
-export function getFilteredQuestionsWithProgress(sectionKey, fullQuestions, currentAnswers = {}, answeredKeys = [], options = {}) {
+export function getFilteredQuestionsWithProgress(
+  sectionKey,
+  fullQuestions,
+  currentAnswers = {},
+  answeredKeys = [],
+  options = {}
+) {
   const base = getFilteredQuestions(sectionKey, fullQuestions, currentAnswers, options);
   const answeredSet = new Set(answeredKeys);
 
@@ -445,8 +456,8 @@ export function getFilteredQuestionsWithProgress(sectionKey, fullQuestions, curr
 
   return {
     ...base,
-    currentQ: firstUnanswered + 1,    // 1-based progress
-    totalQ: base.visible.length,
+    currentQ: firstUnanswered + 1, // 1-based progress
+    totalQ: base.visible.length
   };
 }
 
@@ -459,17 +470,29 @@ export function getFilteredQuestionsWithProgress(sectionKey, fullQuestions, curr
  */
 export function getAdaptiveMetrics(assessment, fullQuestionBank, options = {}) {
   const { expressMode = false } = options;
-  const bhv = getFilteredQuestions('behaviour', fullQuestionBank.behaviourQuestions, assessment.behaviour, { expressMode });
-  const awr = getFilteredQuestions('awareness', fullQuestionBank.awarenessQuestions, assessment.awareness, { expressMode });
-  const hab = getFilteredQuestions('habits', fullQuestionBank.habitsQuestions, assessment.habits, { expressMode });
+  const bhv = getFilteredQuestions(
+    "behaviour",
+    fullQuestionBank.behaviourQuestions,
+    assessment.behaviour,
+    { expressMode }
+  );
+  const awr = getFilteredQuestions(
+    "awareness",
+    fullQuestionBank.awarenessQuestions,
+    assessment.awareness,
+    { expressMode }
+  );
+  const hab = getFilteredQuestions("habits", fullQuestionBank.habitsQuestions, assessment.habits, {
+    expressMode
+  });
 
   const totalOriginal = expressMode
-    ? (fullQuestionBank.behaviourQuestions.filter(q => q.expressPriority !== 'normal').length
-      + fullQuestionBank.awarenessQuestions.filter(q => q.expressPriority !== 'normal').length
-      + fullQuestionBank.habitsQuestions.filter(q => q.expressPriority !== 'normal').length)
-    : fullQuestionBank.behaviourQuestions.length
-      + fullQuestionBank.awarenessQuestions.length
-      + fullQuestionBank.habitsQuestions.length;
+    ? fullQuestionBank.behaviourQuestions.filter(q => q.expressPriority !== "normal").length +
+      fullQuestionBank.awarenessQuestions.filter(q => q.expressPriority !== "normal").length +
+      fullQuestionBank.habitsQuestions.filter(q => q.expressPriority !== "normal").length
+    : fullQuestionBank.behaviourQuestions.length +
+      fullQuestionBank.awarenessQuestions.length +
+      fullQuestionBank.habitsQuestions.length;
   const totalAdapted = bhv.visible.length + awr.visible.length + hab.visible.length;
   const totalSkipped = bhv.skipped.length + awr.skipped.length + hab.skipped.length;
 
@@ -477,15 +500,21 @@ export function getAdaptiveMetrics(assessment, fullQuestionBank, options = {}) {
     totalOriginal,
     totalAdapted,
     totalSkipped,
-    reductionPercent: totalOriginal > 0
-      ? Math.round((totalSkipped / totalOriginal) * 100)
-      : 0,
+    reductionPercent: totalOriginal > 0 ? Math.round((totalSkipped / totalOriginal) * 100) : 0,
     estimatedTimeMinutes: estimateTotalTime(assessment, fullQuestionBank, { expressMode }),
     expressMode,
     bySection: {
-      behaviour: { original: totalOriginal, adapted: bhv.visible.length, skipped: bhv.skipped.length },
-      awareness: { original: totalOriginal, adapted: awr.visible.length, skipped: awr.skipped.length },
-      habits: { original: totalOriginal, adapted: hab.visible.length, skipped: hab.skipped.length },
-    },
+      behaviour: {
+        original: totalOriginal,
+        adapted: bhv.visible.length,
+        skipped: bhv.skipped.length
+      },
+      awareness: {
+        original: totalOriginal,
+        adapted: awr.visible.length,
+        skipped: awr.skipped.length
+      },
+      habits: { original: totalOriginal, adapted: hab.visible.length, skipped: hab.skipped.length }
+    }
   };
 }

@@ -26,12 +26,16 @@ export function scopedKey(key, userId) {
  * (for data that existed before login).
  */
 export function scopedRead(key, userId) {
-  if (typeof localStorage === "undefined") return null;
+  if (typeof localStorage === "undefined") {
+    return null;
+  }
 
   const scoped = scopedKey(key, userId);
   try {
     const raw = localStorage.getItem(scoped);
-    if (raw !== null) return JSON.parse(raw);
+    if (raw !== null) {
+      return JSON.parse(raw);
+    }
   } catch (err) {
     console.warn(`[storageManager] Failed to parse scoped key "${scoped}":`, err.message);
   }
@@ -41,7 +45,9 @@ export function scopedRead(key, userId) {
   if (scoped !== unscoped) {
     try {
       const raw = localStorage.getItem(unscoped);
-      if (raw !== null) return JSON.parse(raw);
+      if (raw !== null) {
+        return JSON.parse(raw);
+      }
     } catch (err) {
       console.warn(`[storageManager] Failed to parse unscoped key "${unscoped}":`, err.message);
     }
@@ -55,11 +61,16 @@ export function scopedRead(key, userId) {
  * When logging in with a userId, this automatically scopes writes.
  */
 export function scopedWrite(key, value, userId) {
-  if (typeof localStorage === "undefined") return;
+  if (typeof localStorage === "undefined") {
+    return;
+  }
   try {
     localStorage.setItem(scopedKey(key, userId), JSON.stringify(value));
   } catch (err) {
-    console.warn(`[storageManager] Failed to write key "${key}" (quota or access error):`, err.message);
+    console.warn(
+      `[storageManager] Failed to write key "${key}" (quota or access error):`,
+      err.message
+    );
   }
 }
 
@@ -67,7 +78,9 @@ export function scopedWrite(key, value, userId) {
  * Remove a scoped key.
  */
 export function scopedRemove(key, userId) {
-  if (typeof localStorage === "undefined") return;
+  if (typeof localStorage === "undefined") {
+    return;
+  }
   try {
     localStorage.removeItem(scopedKey(key, userId));
   } catch (err) {
@@ -80,8 +93,12 @@ export function scopedRemove(key, userId) {
  * Called after login to preserve local data under the new user ID.
  */
 export function migrateAnonymousData(userId) {
-  if (!userId || userId === "demo" || userId === "anonymous") return;
-  if (typeof localStorage === "undefined") return;
+  if (!userId || userId === "demo" || userId === "anonymous") {
+    return;
+  }
+  if (typeof localStorage === "undefined") {
+    return;
+  }
 
   const keysToMigrate = [
     "score-history",
@@ -92,7 +109,7 @@ export function migrateAnonymousData(userId) {
     "twin-snapshots",
     "event-log",
     "pending-sync",
-    "sync-metadata",
+    "sync-metadata"
   ];
 
   for (const key of keysToMigrate) {

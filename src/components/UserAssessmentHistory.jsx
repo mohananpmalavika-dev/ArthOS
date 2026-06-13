@@ -8,10 +8,12 @@ import "../styles/user-assessment-history.css";
 
 export function UserAssessmentHistory() {
   const { user, isAuthenticated } = useAuth();
-  const { assessments, loading: assessmentsLoading, error: assessmentsError } =
-    useUserAssessments();
-  const { scores, loading: scoresLoading, error: scoresError, trends } =
-    useUserScoreHistory();
+  const {
+    assessments,
+    loading: assessmentsLoading,
+    error: assessmentsError
+  } = useUserAssessments();
+  const { scores, loading: scoresLoading, error: scoresError, trends } = useUserScoreHistory();
 
   if (!isAuthenticated) {
     return (
@@ -95,7 +97,7 @@ export function UserAssessmentHistory() {
               </div>
             ) : (
               <div className="assessments-list">
-                {assessments.map((assessment) => (
+                {assessments.map(assessment => (
                   <div key={assessment.id} className="assessment-card">
                     <div className="card-header">
                       <h4>{assessment.assessment_type || "Assessment"}</h4>

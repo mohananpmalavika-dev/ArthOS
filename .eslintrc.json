@@ -5,7 +5,15 @@
     "node": true
   },
   "extends": [
-    "eslint:recommended"
+    "eslint:recommended",
+    "plugin:react/recommended",
+    "plugin:react-hooks/recommended",
+    "prettier"
+  ],
+  "plugins": [
+    "react",
+    "react-hooks",
+    "prettier"
   ],
   "parserOptions": {
     "ecmaFeatures": {
@@ -14,7 +22,17 @@
     "ecmaVersion": "latest",
     "sourceType": "module"
   },
+  "settings": {
+    "react": {
+      "version": "detect"
+    }
+  },
   "rules": {
+    "react/react-in-jsx-scope": "off",
+    "react/prop-types": "warn",
+    "react/display-name": "warn",
+    "react-hooks/rules-of-hooks": "error",
+    "react-hooks/exhaustive-deps": "warn",
     "indent": ["warn", 2],
     "linebreak-style": ["warn", "unix"],
     "quotes": ["warn", "double"],
@@ -34,7 +52,8 @@
     "curly": "warn",
     "brace-style": ["warn", "1tbs"],
     "comma-dangle": ["warn", "never"],
-    "no-var": "warn"
+    "no-var": "warn",
+    "prettier/prettier": "warn"
   },
   "overrides": [
     {

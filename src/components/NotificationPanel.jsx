@@ -1,6 +1,12 @@
 import React, { useState, useMemo, useEffect } from "react";
 import PropTypes from "prop-types";
-import { getNotifications, getUnreadCount, markNotificationRead, markAllNotificationsRead, clearNotifications } from "../engines/notificationEngine.js";
+import {
+  getNotifications,
+  getUnreadCount,
+  markNotificationRead,
+  markAllNotificationsRead,
+  clearNotifications
+} from "../engines/notificationEngine.js";
 import { Bell, CheckCheck, Trash2, X } from "lucide-react";
 
 /**
@@ -17,10 +23,12 @@ function NotificationPanel({ isOpen, onClose }) {
   };
 
   useEffect(() => {
-    if (isOpen) refresh();
+    if (isOpen) {
+      refresh();
+    }
   }, [isOpen]);
 
-  const handleMarkRead = (id) => {
+  const handleMarkRead = id => {
     markNotificationRead(id);
     refresh();
   };
@@ -35,23 +43,33 @@ function NotificationPanel({ isOpen, onClose }) {
     refresh();
   };
 
-  const timeAgo = (dateStr) => {
+  const timeAgo = dateStr => {
     const diff = Date.now() - new Date(dateStr).getTime();
     const mins = Math.floor(diff / 60000);
-    if (mins < 1) return "just now";
-    if (mins < 60) return `${mins}m ago`;
+    if (mins < 1) {
+      return "just now";
+    }
+    if (mins < 60) {
+      return `${mins}m ago`;
+    }
     const hours = Math.floor(mins / 60);
-    if (hours < 24) return `${hours}h ago`;
+    if (hours < 24) {
+      return `${hours}h ago`;
+    }
     const days = Math.floor(hours / 24);
-    if (days === 1) return "yesterday";
+    if (days === 1) {
+      return "yesterday";
+    }
     return `${days}d ago`;
   };
 
-  if (!isOpen) return null;
+  if (!isOpen) {
+    return null;
+  }
 
   return (
     <div className="notification-overlay" onClick={onClose}>
-      <div className="notification-panel" onClick={(e) => e.stopPropagation()}>
+      <div className="notification-panel" onClick={e => e.stopPropagation()}>
         <div className="notification-panel-header">
           <div className="notification-panel-title">
             <Bell size={18} />
@@ -60,16 +78,31 @@ function NotificationPanel({ isOpen, onClose }) {
           </div>
           <div className="notification-panel-actions">
             {unreadCount > 0 && (
-              <button type="button" className="notification-action-btn" onClick={handleMarkAllRead} title="Mark all as read">
+              <button
+                type="button"
+                className="notification-action-btn"
+                onClick={handleMarkAllRead}
+                title="Mark all as read"
+              >
                 <CheckCheck size={16} />
               </button>
             )}
             {notifications.length > 0 && (
-              <button type="button" className="notification-action-btn" onClick={handleClearAll} title="Clear all">
+              <button
+                type="button"
+                className="notification-action-btn"
+                onClick={handleClearAll}
+                title="Clear all"
+              >
                 <Trash2 size={16} />
               </button>
             )}
-            <button type="button" className="notification-action-btn" onClick={onClose} title="Close">
+            <button
+              type="button"
+              className="notification-action-btn"
+              onClick={onClose}
+              title="Close"
+            >
               <X size={16} />
             </button>
           </div>
@@ -83,12 +116,14 @@ function NotificationPanel({ isOpen, onClose }) {
               <small>Complete assessments and track your progress to see updates here.</small>
             </div>
           ) : (
-            notifications.map((n) => (
+            notifications.map(n => (
               <div
                 key={n.id}
                 className={`notification-item ${n.read ? "read" : "unread"}`}
                 onClick={() => {
-                  if (!n.read) handleMarkRead(n.id);
+                  if (!n.read) {
+                    handleMarkRead(n.id);
+                  }
                 }}
               >
                 <span className="notification-icon">{n.icon}</span>
@@ -109,7 +144,7 @@ function NotificationPanel({ isOpen, onClose }) {
 
 NotificationPanel.propTypes = {
   isOpen: PropTypes.bool.isRequired,
-  onClose: PropTypes.func.isRequired,
+  onClose: PropTypes.func.isRequired
 };
 
 export default NotificationPanel;

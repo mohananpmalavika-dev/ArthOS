@@ -20,5 +20,5 @@ createRoot(document.getElementById("root")).render(
         <AppRouter />
       </AuthProvider>
     </ErrorBoundary>
-  </React.StrictMode>,
+  </React.StrictMode>
 );

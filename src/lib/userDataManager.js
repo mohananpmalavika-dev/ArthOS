@@ -73,7 +73,9 @@ export function loadUserAssessment(userId, storageKey = "current-assessment") {
  */
 export function clearUserData(userId) {
   try {
-    if (!userId) return;
+    if (!userId) {
+      return;
+    }
 
     const keys = [];
     for (let i = 0; i < window.localStorage.length; i++) {
@@ -83,7 +85,7 @@ export function clearUserData(userId) {
       }
     }
 
-    keys.forEach((key) => {
+    keys.forEach(key => {
       window.localStorage.removeItem(key);
       console.log(`[UserDataManager] Cleared ${key}`);
     });
@@ -101,7 +103,9 @@ export function clearUserData(userId) {
  */
 export function migrateAnonymousDataToUser(userId, anonymousData = null) {
   try {
-    if (!userId) return;
+    if (!userId) {
+      return;
+    }
 
     // Try to load existing anonymous data
     let anonAssessment = anonymousData;
@@ -131,7 +135,9 @@ export function migrateAnonymousDataToUser(userId, anonymousData = null) {
  */
 export function saveUserScoreHistory(userId, scoreHistory) {
   try {
-    if (!userId) return false;
+    if (!userId) {
+      return false;
+    }
 
     const key = getUserStorageKey(userId, "score-history");
     window.localStorage.setItem(key, JSON.stringify(scoreHistory));
@@ -150,7 +156,9 @@ export function saveUserScoreHistory(userId, scoreHistory) {
  */
 export function loadUserScoreHistory(userId) {
   try {
-    if (!userId) return [];
+    if (!userId) {
+      return [];
+    }
 
     const key = getUserStorageKey(userId, "score-history");
     const stored = window.localStorage.getItem(key);
@@ -173,12 +181,14 @@ export function loadUserScoreHistory(userId) {
  */
 export function addScoreToUserHistory(userId, scoreEntry) {
   try {
-    if (!userId) return false;
+    if (!userId) {
+      return false;
+    }
 
     const history = loadUserScoreHistory(userId);
     history.push({
       ...scoreEntry,
-      timestamp: new Date().toISOString(),
+      timestamp: new Date().toISOString()
     });
 
     // Keep only last 100 scores to manage storage
@@ -199,7 +209,9 @@ export function addScoreToUserHistory(userId, scoreEntry) {
  */
 export function getUserLatestScore(userId) {
   try {
-    if (!userId) return null;
+    if (!userId) {
+      return null;
+    }
 
     const history = loadUserScoreHistory(userId);
     return history.length > 0 ? history[history.length - 1] : null;
@@ -216,7 +228,9 @@ export function getUserLatestScore(userId) {
  */
 export function userHasData(userId) {
   try {
-    if (!userId) return false;
+    if (!userId) {
+      return false;
+    }
 
     for (let i = 0; i < window.localStorage.length; i++) {
       const key = window.localStorage.key(i);

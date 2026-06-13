@@ -4,31 +4,9 @@
 // Now optionally associates telemetry with authenticated users via JWT
 
 import { insertIntoTable, hasDatabaseConfig } from "./dbClient.js";
-import jwt from "jsonwebtoken";
+import { extractUserFromRequest } from "./auth/jwt.js";
 
 const TELEMETRY_TABLE = process.env.SUPABASE_TELEMETRY_TABLE || "anonymous_telemetry";
-const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key";
-
-// Extract user ID from JWT token
-function extractUserFromToken(req) {
-  const authHeader = req.headers.authorization || "";
-  const token = authHeader.replace("Bearer ", "");
-
-  if (!token) {
-    return null;
-  }
-
-  try {
-    const decoded = jwt.verify(token, JWT_SECRET, { algorithms: ["HS256"] });
-    return {
-      id: decoded.userId || decoded.id || decoded.email || null,
-      email: decoded.email || null,
-    };
-  } catch (error) {
-    console.warn("[Telemetry] Invalid or missing token:", error.message);
-    return null;
-  }
-}
 
 export default async function handler(req, res) {
   // Enforce POST-only access
@@ -40,7 +18,7 @@ export default async function handler(req, res) {
     const payload = req.body;
 
     // Extract authenticated user from JWT token (optional)
-    const user = extractUserFromToken(req);
+    const user = await extractUserFromRequest(req);
     if (user) {
       console.log("[Telemetry] Authenticated user:", user.id);
     }

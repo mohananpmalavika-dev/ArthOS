@@ -4,15 +4,19 @@ import { Zap, Brain, Users } from "lucide-react";
 /**
  * TraitMatrixVisualizer — displays core personality traits and dimensions
  * with visual progress meters anchored to behavioral answers.
- * 
+ *
  * This component directly maps answers from the assessment to three core dimensions:
  * - Impulse Delay Index: ability to wait/defer gratification (plannedPurchasesOnly, impulseWaitRule)
  * - Stress Avoidance Factor: tendency to spend when stressed (spendWhenStressed, emotionalMoneyLevel)
  * - Social Friction Elasticity: influence from social/peer pressure (socialInfluenceLevel, spendWhenBored)
  */
 export default function TraitMatrixVisualizer({ result, assessment }) {
-  if (!result || !assessment) return null;
-  if (!result || !assessment) return null;
+  if (!result || !assessment) {
+    return null;
+  }
+  if (!result || !assessment) {
+    return null;
+  }
 
   const traitDimensions = useMemo(() => {
     // Extract behavioral answers
@@ -20,21 +24,65 @@ export default function TraitMatrixVisualizer({ result, assessment }) {
 
     // === IMPULSE DELAY INDEX ===
     // Higher = better ability to defer (planned purchases, impulse wait rules)
-    const plannedScore = (behaviour.plannedPurchasesOnly === "always" ? 10 : behaviour.plannedPurchasesOnly === "often" ? 7.5 : behaviour.plannedPurchasesOnly === "occasionally" ? 4.5 : 0) || 0;
-    const impulseWaitScore = (behaviour.impulseWaitRule === "always" ? 10 : behaviour.impulseWaitRule === "sometimes" ? 7 : behaviour.impulseWaitRule === "rarely" ? 4 : 0) || 0;
+    const plannedScore =
+      (behaviour.plannedPurchasesOnly === "always"
+        ? 10
+        : behaviour.plannedPurchasesOnly === "often"
+          ? 7.5
+          : behaviour.plannedPurchasesOnly === "occasionally"
+            ? 4.5
+            : 0) || 0;
+    const impulseWaitScore =
+      (behaviour.impulseWaitRule === "always"
+        ? 10
+        : behaviour.impulseWaitRule === "sometimes"
+          ? 7
+          : behaviour.impulseWaitRule === "rarely"
+            ? 4
+            : 0) || 0;
     const impulseDelayIndex = Math.round(((plannedScore + impulseWaitScore) / 20) * 100);
 
     // === STRESS AVOIDANCE FACTOR ===
     // Lower = better (lower stress spend triggers)
-    const spendStressScore = (behaviour.spendWhenStressed === "very_likely" ? 0 : behaviour.spendWhenStressed === "sometimes" ? 5 : behaviour.spendWhenStressed === "rarely" ? 7.5 : 10) || 0;
-    const emotionalScore = (behaviour.emotionalMoneyLevel === "extremely_emotional" ? 0 : behaviour.emotionalMoneyLevel === "somewhat_emotional" ? 4 : behaviour.emotionalMoneyLevel === "mostly_practical" ? 7.5 : 10) || 0;
+    const spendStressScore =
+      (behaviour.spendWhenStressed === "very_likely"
+        ? 0
+        : behaviour.spendWhenStressed === "sometimes"
+          ? 5
+          : behaviour.spendWhenStressed === "rarely"
+            ? 7.5
+            : 10) || 0;
+    const emotionalScore =
+      (behaviour.emotionalMoneyLevel === "extremely_emotional"
+        ? 0
+        : behaviour.emotionalMoneyLevel === "somewhat_emotional"
+          ? 4
+          : behaviour.emotionalMoneyLevel === "mostly_practical"
+            ? 7.5
+            : 10) || 0;
     const stressAvoidanceFactor = Math.round(((spendStressScore + emotionalScore) / 20) * 100);
 
     // === SOCIAL FRICTION ELASTICITY ===
     // Lower = better (less influenced by social/peer pressure)
-    const socialInfluenceScore = (behaviour.socialInfluenceLevel === "heavily" ? 0 : behaviour.socialInfluenceLevel === "sometimes" ? 4 : behaviour.socialInfluenceLevel === "rarely" ? 7.5 : 10) || 0;
-    const spendBoredScore = (behaviour.spendWhenBored === "very_likely" ? 0 : behaviour.spendWhenBored === "sometimes" ? 5 : behaviour.spendWhenBored === "rarely" ? 7.5 : 10) || 0;
-    const socialFrictionElasticity = Math.round(((socialInfluenceScore + spendBoredScore) / 20) * 100);
+    const socialInfluenceScore =
+      (behaviour.socialInfluenceLevel === "heavily"
+        ? 0
+        : behaviour.socialInfluenceLevel === "sometimes"
+          ? 4
+          : behaviour.socialInfluenceLevel === "rarely"
+            ? 7.5
+            : 10) || 0;
+    const spendBoredScore =
+      (behaviour.spendWhenBored === "very_likely"
+        ? 0
+        : behaviour.spendWhenBored === "sometimes"
+          ? 5
+          : behaviour.spendWhenBored === "rarely"
+            ? 7.5
+            : 10) || 0;
+    const socialFrictionElasticity = Math.round(
+      ((socialInfluenceScore + spendBoredScore) / 20) * 100
+    );
 
     return [
       {
@@ -43,7 +91,7 @@ export default function TraitMatrixVisualizer({ result, assessment }) {
         description: "Ability to defer gratification and stick to plans",
         icon: Zap,
         color: "var(--purple)",
-        bg: "var(--purple-10)",
+        bg: "var(--purple-10)"
       },
       {
         name: "Stress Avoidance Factor",
@@ -51,7 +99,7 @@ export default function TraitMatrixVisualizer({ result, assessment }) {
         description: "Resilience when stressed (higher is better)",
         icon: Brain,
         color: "var(--yellow)",
-        bg: "var(--yellow-15)",
+        bg: "var(--yellow-15)"
       },
       {
         name: "Social Friction Elasticity",
@@ -59,12 +107,14 @@ export default function TraitMatrixVisualizer({ result, assessment }) {
         description: "Resistance to peer/social spending pressure",
         icon: Users,
         color: "var(--cyan)",
-        bg: "var(--blue-08)",
-      },
+        bg: "var(--blue-08)"
+      }
     ];
   }, [assessment.behaviour]);
 
-  const avgTraitScore = Math.round(traitDimensions.reduce((sum, t) => sum + t.score, 0) / traitDimensions.length);
+  const avgTraitScore = Math.round(
+    traitDimensions.reduce((sum, t) => sum + t.score, 0) / traitDimensions.length
+  );
 
   return (
     <section className="trait-matrix-card">
@@ -88,7 +138,7 @@ export default function TraitMatrixVisualizer({ result, assessment }) {
       </div>
 
       <div className="traits-grid">
-        {traitDimensions.map((trait) => {
+        {traitDimensions.map(trait => {
           const Icon = trait.icon;
           return (
             <div key={trait.name} className="trait-item">
@@ -108,7 +158,7 @@ export default function TraitMatrixVisualizer({ result, assessment }) {
                     className="meter-fill"
                     style={{
                       width: `${trait.score}%`,
-                      backgroundColor: trait.color,
+                      backgroundColor: trait.color
                     }}
                   />
                 </div>
@@ -132,8 +182,10 @@ export default function TraitMatrixVisualizer({ result, assessment }) {
         <ul>
           {traitDimensions.map((trait, idx) => (
             <li key={idx}>
-              <strong>{trait.name}:</strong> Currently at {trait.score}%. This reflects your ability to{" "}
-              {trait.name.includes("Impulse") && "make planned decisions without impulsive detours."}
+              <strong>{trait.name}:</strong> Currently at {trait.score}%. This reflects your ability
+              to{" "}
+              {trait.name.includes("Impulse") &&
+                "make planned decisions without impulsive detours."}
               {trait.name.includes("Stress") && "manage spending when under pressure."}
               {trait.name.includes("Social") && "resist social spending triggers."}
             </li>

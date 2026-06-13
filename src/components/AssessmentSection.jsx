@@ -12,7 +12,7 @@ import {
   HelpCircle,
   RotateCcw,
   ShieldCheck,
-  Zap,
+  Zap
 } from "lucide-react";
 import ValidationFeedbackForm from "./ValidationFeedbackForm.jsx";
 import DecisionSimulator from "./DecisionSimulator.jsx";
@@ -21,7 +21,7 @@ import SurvivalHero from "./SurvivalHero.jsx";
 import {
   buildAnonymousTelemetryPayload,
   dispatchAnonymousTelemetry,
-  dispatchAnonymousFeedbackEvent,
+  dispatchAnonymousFeedbackEvent
 } from "../lib/scoring-v2.js";
 import {
   startAssessmentSession,
@@ -29,34 +29,39 @@ import {
   markStepCompleted,
   markAssessmentCompleted,
   archiveSession,
-  buildStepTelemetryPayload,
+  buildStepTelemetryPayload
 } from "../engines/assessmentTelemetry.js";
 import {
   getFilteredQuestions,
   getFilteredQuestionsWithProgress,
   getAdaptiveMetrics,
-  estimateTotalTime,
+  estimateTotalTime
 } from "../engines/adaptiveQuestionEngine.js";
 import {
   saveDraft,
   loadDraft,
   clearDraft,
   setupAutoSave,
-  setupBeforeUnload,
+  setupBeforeUnload
 } from "../engines/assessmentAutoSave.js";
-import { ASSESSMENT_FIELDS, ASSESSMENT_OPTIONS, ASSESSMENT_BUTTONS, ASSESSMENT_SECTIONS } from "../lib/copy.ts";
+import {
+  ASSESSMENT_FIELDS,
+  ASSESSMENT_OPTIONS,
+  ASSESSMENT_BUTTONS,
+  ASSESSMENT_SECTIONS
+} from "../lib/copy.ts";
 
 // Icon registry mapping icon names to actual components (replaces eval())
 const ICON_REGISTRY = {
   Brain,
   BarChart3,
   ShieldCheck,
-  Activity,
+  Activity
 };
 
 // ── G3: Idle detection thresholds ──
-const IDLE_NUDGE_THRESHOLD_MS = 15000;    // 15s without interaction → gentle nudge
-const IDLE_SKIP_THRESHOLD_MS = 30000;      // 30s → offer skip
+const IDLE_NUDGE_THRESHOLD_MS = 15000; // 15s without interaction → gentle nudge
+const IDLE_SKIP_THRESHOLD_MS = 30000; // 30s → offer skip
 
 const STEP_STORAGE_KEY = "arth-os-wizard-step";
 const EXPRESS_MODE_KEY = "arth-os-express-mode";
@@ -70,7 +75,7 @@ function ParticipantSection({ values, onChange }) {
           <input
             type="text"
             value={values.name ?? ""}
-            onChange={(e) => onChange("name", e.target.value)}
+            onChange={e => onChange("name", e.target.value)}
             placeholder={ASSESSMENT_FIELDS.name.placeholder}
           />
         </label>
@@ -81,7 +86,7 @@ function ParticipantSection({ values, onChange }) {
             type="number"
             min="0"
             value={values.age ?? ""}
-            onChange={(e) => onChange("age", e.target.value)}
+            onChange={e => onChange("age", e.target.value)}
             placeholder={ASSESSMENT_FIELDS.age.placeholder}
           />
         </label>
@@ -91,7 +96,7 @@ function ParticipantSection({ values, onChange }) {
           <input
             type="email"
             value={values.email ?? ""}
-            onChange={(e) => onChange("email", e.target.value)}
+            onChange={e => onChange("email", e.target.value)}
             placeholder={ASSESSMENT_FIELDS.email.placeholder}
           />
         </label>
@@ -102,21 +107,26 @@ function ParticipantSection({ values, onChange }) {
 
 function QuestionContext({ context }) {
   const [open, setOpen] = useState(false);
-  if (!context) return null;
+  if (!context) {
+    return null;
+  }
 
   return (
     <span className="question-context-wrapper">
       <button
         type="button"
         className="question-context-toggle"
-        onClick={(e) => { e.stopPropagation(); setOpen((o) => !o); }}
+        onClick={e => {
+          e.stopPropagation();
+          setOpen(o => !o);
+        }}
         aria-label="Why this matters"
         title="Why this matters"
       >
         <HelpCircle size={14} />
       </button>
       {open && (
-        <div className="question-context-tooltip" onClick={(e) => e.stopPropagation()}>
+        <div className="question-context-tooltip" onClick={e => e.stopPropagation()}>
           <strong>Why this matters</strong>
           <p>{context}</p>
         </div>
@@ -125,7 +135,16 @@ function QuestionContext({ context }) {
   );
 }
 
-function QuestionSection({ icon: Icon, title, score, questions, values, onChange, progress, answeredKeys }) {
+function QuestionSection({
+  icon: Icon,
+  title,
+  score,
+  questions,
+  values,
+  onChange,
+  progress,
+  answeredKeys
+}) {
   return (
     <section className="panel">
       <div className="panel-heading">
@@ -170,7 +189,7 @@ function QuestionSection({ icon: Icon, title, score, questions, values, onChange
                 name={question.key}
                 options={question.options}
                 value={values[question.key]}
-                onChange={(value) => onChange(question.key, value)}
+                onChange={value => onChange(question.key, value)}
               />
             </div>
           );
@@ -195,32 +214,32 @@ function ProfileSection({ values, score, onChange }) {
         <MoneyInput
           label="Monthly expenses"
           value={values.monthlyExpenses}
-          onChange={(value) => onChange("monthlyExpenses", value)}
+          onChange={value => onChange("monthlyExpenses", value)}
         />
         <MoneyInput
           label="Fixed emergency buffer"
           value={values.emergencySavingsFixed}
-          onChange={(value) => onChange("emergencySavingsFixed", value)}
+          onChange={value => onChange("emergencySavingsFixed", value)}
         />
         <MoneyInput
           label="Discretionary emergency buffer"
           value={values.emergencySavingsDiscretionary}
-          onChange={(value) => onChange("emergencySavingsDiscretionary", value)}
+          onChange={value => onChange("emergencySavingsDiscretionary", value)}
         />
         <MoneyInput
           label="Total debt"
           value={values.totalDebt}
-          onChange={(value) => onChange("totalDebt", value)}
+          onChange={value => onChange("totalDebt", value)}
         />
         <MoneyInput
           label="Monthly income"
           value={values.monthlyIncome}
-          onChange={(value) => onChange("monthlyIncome", value)}
+          onChange={value => onChange("monthlyIncome", value)}
         />
         <MoneyInput
           label="Fixed commitments"
           value={values.monthlyLiabilities}
-          onChange={(value) => onChange("monthlyLiabilities", value)}
+          onChange={value => onChange("monthlyLiabilities", value)}
         />
       </div>
 
@@ -233,7 +252,7 @@ function ProfileSection({ values, score, onChange }) {
           name="incomeStability"
           options={incomeStabilityOptions}
           value={values.incomeStability}
-          onChange={(value) => onChange("incomeStability", value)}
+          onChange={value => onChange("incomeStability", value)}
         />
       </div>
 
@@ -246,7 +265,7 @@ function ProfileSection({ values, score, onChange }) {
           name="dependentsBucket"
           options={dependentsOptions}
           value={values.dependentsBucket}
-          onChange={(value) => onChange("dependentsBucket", value)}
+          onChange={value => onChange("dependentsBucket", value)}
         />
       </div>
 
@@ -262,10 +281,10 @@ function ProfileSection({ values, score, onChange }) {
               min="0"
               inputMode="decimal"
               value={values.debtRepaymentRatePctOfIncome ?? 0.12}
-              onChange={(e) =>
+              onChange={e =>
                 onChange(
                   "debtRepaymentRatePctOfIncome",
-                  e.target.value === "" ? 0 : Number.parseFloat(e.target.value),
+                  e.target.value === "" ? 0 : Number.parseFloat(e.target.value)
                 )
               }
             />
@@ -285,10 +304,10 @@ function ProfileSection({ values, score, onChange }) {
               min="0"
               inputMode="decimal"
               value={values.averageInterestRatePct ?? 10}
-              onChange={(e) =>
+              onChange={e =>
                 onChange(
                   "averageInterestRatePct",
-                  e.target.value === "" ? 0 : Number.parseFloat(e.target.value),
+                  e.target.value === "" ? 0 : Number.parseFloat(e.target.value)
                 )
               }
             />
@@ -302,7 +321,7 @@ function ProfileSection({ values, score, onChange }) {
 function MoneyInput({ label, value, onChange }) {
   const [error, setError] = useState("");
 
-  const handleChange = (event) => {
+  const handleChange = event => {
     const val = event.target.value;
     const numVal = val === "" ? 0 : Number.parseFloat(val);
 
@@ -326,7 +345,9 @@ function MoneyInput({ label, value, onChange }) {
     <label className="money-input">
       <span>
         {label}
-        <span className="required-indicator" title="Required field">*</span>
+        <span className="required-indicator" title="Required field">
+          *
+        </span>
       </span>
       <div>
         <span>INR</span>
@@ -352,11 +373,17 @@ function MoneyInput({ label, value, onChange }) {
 function SegmentedControl({ labelledBy, name, options, value, onChange }) {
   return (
     <div className="segmented-control" role="radiogroup" aria-labelledby={labelledBy}>
-      {options.map((option) => {
+      {options.map(option => {
         const checked = option.value === value;
         return (
           <label key={option.value} className={`segmented-option ${checked ? "selected" : ""}`}>
-            <input type="radio" name={name} value={option.value} checked={checked} onChange={() => onChange(option.value)} />
+            <input
+              type="radio"
+              name={name}
+              value={option.value}
+              checked={checked}
+              onChange={() => onChange(option.value)}
+            />
             <span>{option.label}</span>
           </label>
         );
@@ -375,7 +402,9 @@ function LiveResultSnapshot({ result }) {
   const componentRows = result.componentRows ?? [];
 
   return (
-    <section className={`result-card live-score-card tone-${result.categoryBand?.tone ?? "steady"}`}>
+    <section
+      className={`result-card live-score-card tone-${result.categoryBand?.tone ?? "steady"}`}
+    >
       <div className="live-score-header">
         <div>
           <span className="metric-label">Live Health Score</span>
@@ -400,7 +429,7 @@ function LiveResultSnapshot({ result }) {
       </div>
 
       <div className="live-breakdown-bars" aria-label="Live component breakdown">
-        {componentRows.map((row) => (
+        {componentRows.map(row => (
           <div className="live-breakdown-row" key={row.key}>
             <div>
               <span>{row.label}</span>
@@ -456,15 +485,18 @@ function ResumeBanner({ onResume, onDismiss }) {
   );
 }
 
-const incomeStabilityOptions = [
-  ...ASSESSMENT_OPTIONS.incomeStability,
-];
+const incomeStabilityOptions = [...ASSESSMENT_OPTIONS.incomeStability];
 
-const dependentsOptions = [
-  ...ASSESSMENT_OPTIONS.dependents,
-];
+const dependentsOptions = [...ASSESSMENT_OPTIONS.dependents];
 
-export default function AssessmentSection({ assessment, result, onChange, onSaveAssessment, ui, resetTrigger }) {
+export default function AssessmentSection({
+  assessment,
+  result,
+  onChange,
+  onSaveAssessment,
+  ui,
+  resetTrigger
+}) {
   // ── G3: Express Mode State ──
   const [expressMode, setExpressMode] = useState(() => {
     try {
@@ -475,14 +507,14 @@ export default function AssessmentSection({ assessment, result, onChange, onSave
   });
 
   const toggleExpressMode = useCallback(() => {
-    setExpressMode((prev) => {
+    setExpressMode(prev => {
       const next = !prev;
       try {
         window.localStorage.setItem(EXPRESS_MODE_KEY, String(next));
       } catch (error) {
-        console.error('[AssessmentSection] Failed to save express mode preference:', {
+        console.error("[AssessmentSection] Failed to save express mode preference:", {
           mode: next,
-          error: error?.message,
+          error: error?.message
         });
       }
       return next;
@@ -496,27 +528,44 @@ export default function AssessmentSection({ assessment, result, onChange, onSave
   // ── Adaptive Question Engine: compute visible (filtered) questions ──
   const adaptation = React.useMemo(() => {
     const behaviour = getFilteredQuestionsWithProgress(
-      'behaviour', ui.behaviourQuestions, assessment.behaviour,
-      Object.keys(assessment.behaviour), { expressMode }
+      "behaviour",
+      ui.behaviourQuestions,
+      assessment.behaviour,
+      Object.keys(assessment.behaviour),
+      { expressMode }
     );
     const awareness = getFilteredQuestionsWithProgress(
-      'awareness', ui.awarenessQuestions, assessment.awareness,
-      Object.keys(assessment.awareness), { expressMode }
+      "awareness",
+      ui.awarenessQuestions,
+      assessment.awareness,
+      Object.keys(assessment.awareness),
+      { expressMode }
     );
     const habits = getFilteredQuestionsWithProgress(
-      'habits', ui.habitsQuestions, assessment.habits,
-      Object.keys(assessment.habits), { expressMode }
+      "habits",
+      ui.habitsQuestions,
+      assessment.habits,
+      Object.keys(assessment.habits),
+      { expressMode }
     );
-    const estimatedTime = estimateTotalTime(assessment, {
-      behaviourQuestions: ui.behaviourQuestions,
-      awarenessQuestions: ui.awarenessQuestions,
-      habitsQuestions: ui.habitsQuestions,
-    }, { expressMode });
+    const estimatedTime = estimateTotalTime(
+      assessment,
+      {
+        behaviourQuestions: ui.behaviourQuestions,
+        awarenessQuestions: ui.awarenessQuestions,
+        habitsQuestions: ui.habitsQuestions
+      },
+      { expressMode }
+    );
     return { behaviour, awareness, habits, estimatedTime };
   }, [
-    assessment.behaviour, assessment.awareness, assessment.habits,
-    ui.behaviourQuestions, ui.awarenessQuestions, ui.habitsQuestions,
-    expressMode,
+    assessment.behaviour,
+    assessment.awareness,
+    assessment.habits,
+    ui.behaviourQuestions,
+    ui.awarenessQuestions,
+    ui.habitsQuestions,
+    expressMode
   ]);
 
   const [currentStep, setCurrentStep] = useState(() => {
@@ -542,13 +591,15 @@ export default function AssessmentSection({ assessment, result, onChange, onSave
   const debouncedSave = useMemo(() => {
     let timer = null;
     let lastCall = 0;
-    return (step) => {
+    return step => {
       const now = Date.now();
       if (now - lastCall >= 2000) {
         lastCall = now;
         saveDraft(stateRef.current.assessment, step, stateRef.current.expressMode);
       } else {
-        if (timer) clearTimeout(timer);
+        if (timer) {
+          clearTimeout(timer);
+        }
         timer = setTimeout(() => {
           lastCall = Date.now();
           saveDraft(stateRef.current.assessment, step, stateRef.current.expressMode);
@@ -572,7 +623,12 @@ export default function AssessmentSection({ assessment, result, onChange, onSave
     const draft = loadDraft();
     // Show resume banner when: step > 0 AND participant name exists (meaningful progress)
     // BUGFIX: was checking `!draft.assessment.participant?.name` which inverted the condition
-    if (draft && draft.currentStep > 0 && draft.assessment.participant?.name && draft.assessment.participant?.name.trim()) {
+    if (
+      draft &&
+      draft.currentStep > 0 &&
+      draft.assessment.participant?.name &&
+      draft.assessment.participant?.name.trim()
+    ) {
       setShowResumeBanner(true);
       setResumeRestore(draft);
     }
@@ -589,10 +645,10 @@ export default function AssessmentSection({ assessment, result, onChange, onSave
       // Import the draft values back into the assessment
       if (resumeRestore.assessment) {
         const draft = resumeRestore.assessment;
-        Object.keys(draft).forEach((group) => {
-          if (typeof draft[group] === 'object' && draft[group] !== null) {
-            Object.keys(draft[group]).forEach((key) => {
-              if (draft[group][key] !== undefined && draft[group][key] !== '') {
+        Object.keys(draft).forEach(group => {
+          if (typeof draft[group] === "object" && draft[group] !== null) {
+            Object.keys(draft[group]).forEach(key => {
+              if (draft[group][key] !== undefined && draft[group][key] !== "") {
                 onChange(group, key, draft[group][key]);
               }
             });
@@ -619,14 +675,25 @@ export default function AssessmentSection({ assessment, result, onChange, onSave
     }
     onChange(group, key, value);
     // Save draft on answer
-    saveDraft(stateRef.current.assessment, stateRef.current.currentStep, stateRef.current.expressMode);
+    saveDraft(
+      stateRef.current.assessment,
+      stateRef.current.currentStep,
+      stateRef.current.expressMode
+    );
   };
 
   // ── Compute assessment steps BEFORE useEffect hooks ──
   const mode = result?.mode || "v2";
   const steps = [
-    ...ASSESSMENT_SECTIONS.filter(s => !s.conditional).map(s => ({ ...s, icon: ICON_REGISTRY[s.icon] || Activity })),
-    ...(mode === "v2" ? [ASSESSMENT_SECTIONS.find(s => s.conditional)].filter(Boolean).map(s => ({ ...s, icon: ICON_REGISTRY[s.icon] || Activity })) : []),
+    ...ASSESSMENT_SECTIONS.filter(s => !s.conditional).map(s => ({
+      ...s,
+      icon: ICON_REGISTRY[s.icon] || Activity
+    })),
+    ...(mode === "v2"
+      ? [ASSESSMENT_SECTIONS.find(s => s.conditional)]
+          .filter(Boolean)
+          .map(s => ({ ...s, icon: ICON_REGISTRY[s.icon] || Activity }))
+      : [])
   ];
   const totalSteps = steps.length;
 
@@ -653,16 +720,16 @@ export default function AssessmentSection({ assessment, result, onChange, onSave
     };
 
     if (currentStep === 0) {
-      adaptation.behaviour.visible.forEach((question) => addMissingAnswer(question, "behaviour"));
+      adaptation.behaviour.visible.forEach(question => addMissingAnswer(question, "behaviour"));
     }
 
     if (currentStep === 1) {
-      adaptation.awareness.visible.forEach((question) => addMissingAnswer(question, "awareness"));
+      adaptation.awareness.visible.forEach(question => addMissingAnswer(question, "awareness"));
     }
 
     if (currentStep === 2) {
       // Validate income
-      if (profile.monthlyIncome === '' || profile.monthlyIncome === undefined) {
+      if (profile.monthlyIncome === "" || profile.monthlyIncome === undefined) {
         errors.push("⚠️ Monthly income is required.");
       } else if (Number(profile.monthlyIncome) < 0) {
         errors.push("❌ Monthly income cannot be negative.");
@@ -671,7 +738,7 @@ export default function AssessmentSection({ assessment, result, onChange, onSave
       }
 
       // Validate expenses
-      if (profile.monthlyExpenses === '' || profile.monthlyExpenses === undefined) {
+      if (profile.monthlyExpenses === "" || profile.monthlyExpenses === undefined) {
         errors.push("⚠️ Monthly expenses are required.");
       } else if (Number(profile.monthlyExpenses) < 0) {
         errors.push("❌ Monthly expenses cannot be negative.");
@@ -680,15 +747,25 @@ export default function AssessmentSection({ assessment, result, onChange, onSave
       }
 
       // Validate debt (optional but cannot be negative)
-      if (profile.totalDebt !== undefined && profile.totalDebt !== '' && Number(profile.totalDebt) < 0) {
+      if (
+        profile.totalDebt !== undefined &&
+        profile.totalDebt !== "" &&
+        Number(profile.totalDebt) < 0
+      ) {
         errors.push("❌ Total debt cannot be negative.");
       }
 
       // Validate emergency savings (optional but cannot be negative)
-      if (profile.emergencySavingsFixed !== undefined && Number(profile.emergencySavingsFixed) < 0) {
+      if (
+        profile.emergencySavingsFixed !== undefined &&
+        Number(profile.emergencySavingsFixed) < 0
+      ) {
         errors.push("❌ Emergency savings cannot be negative.");
       }
-      if (profile.emergencySavingsDiscretionary !== undefined && Number(profile.emergencySavingsDiscretionary) < 0) {
+      if (
+        profile.emergencySavingsDiscretionary !== undefined &&
+        Number(profile.emergencySavingsDiscretionary) < 0
+      ) {
         errors.push("❌ Discretionary savings cannot be negative.");
       }
 
@@ -699,7 +776,7 @@ export default function AssessmentSection({ assessment, result, onChange, onSave
     }
 
     if (currentStep === 3 && mode === "v2") {
-      adaptation.habits.visible.forEach((question) => addMissingAnswer(question, "habits"));
+      adaptation.habits.visible.forEach(question => addMissingAnswer(question, "habits"));
     }
 
     return errors;
@@ -731,7 +808,7 @@ export default function AssessmentSection({ assessment, result, onChange, onSave
 
   const isLastStep = currentStep === totalSteps - 1;
 
-  const handleStepChange = (newStep) => {
+  const handleStepChange = newStep => {
     setCurrentStep(newStep);
     try {
       window.localStorage.setItem(STEP_STORAGE_KEY, String(newStep));
@@ -744,17 +821,17 @@ export default function AssessmentSection({ assessment, result, onChange, onSave
 
   const handleNext = async () => {
     const errors = validateCurrentStep();
-    
+
     if (errors.length > 0) {
       setValidationErrors(errors);
-      
+
       // If it's the final step, offer to proceed anyway
       if (isLastStep) {
         const confirmed = window.confirm(
-          `⚠️ Some fields are incomplete:\n\n${errors.slice(0, 3).join('\n')}${errors.length > 3 ? `\n... and ${errors.length - 3} more` : ''}\n\n` +
-          `Continue to submit anyway?\n\nYour partial answers will be saved.`
+          `⚠️ Some fields are incomplete:\n\n${errors.slice(0, 3).join("\n")}${errors.length > 3 ? `\n... and ${errors.length - 3} more` : ""}\n\n` +
+            `Continue to submit anyway?\n\nYour partial answers will be saved.`
         );
-        
+
         if (!confirmed) {
           return;
         }
@@ -786,17 +863,21 @@ export default function AssessmentSection({ assessment, result, onChange, onSave
       clearDraft(); // Clear draft on completion
 
       const payload = buildAnonymousTelemetryPayload(result, assessment);
-      
+
       // Append step-level telemetry data to the existing payload
       const stepTelemetry = buildStepTelemetryPayload();
       payload.step_telemetry = stepTelemetry.step_telemetry;
 
       // Append adaptive question metrics for completion-rate analysis
-      const adaptiveMetrics = getAdaptiveMetrics(assessment, {
-        behaviourQuestions: ui.behaviourQuestions,
-        awarenessQuestions: ui.awarenessQuestions,
-        habitsQuestions: ui.habitsQuestions,
-      }, { expressMode });
+      const adaptiveMetrics = getAdaptiveMetrics(
+        assessment,
+        {
+          behaviourQuestions: ui.behaviourQuestions,
+          awarenessQuestions: ui.awarenessQuestions,
+          habitsQuestions: ui.habitsQuestions
+        },
+        { expressMode }
+      );
       payload.adaptive_metrics = adaptiveMetrics;
 
       await dispatchAnonymousTelemetry(payload, "/api/telemetry");
@@ -806,7 +887,7 @@ export default function AssessmentSection({ assessment, result, onChange, onSave
       setShowFeedback(true);
     } catch (error) {
       console.error("Error submitting assessment:", error);
-      setValidationErrors(['❌ Error submitting assessment. Please try again.']);
+      setValidationErrors(["❌ Error submitting assessment. Please try again."]);
     }
   };
 
@@ -818,10 +899,18 @@ export default function AssessmentSection({ assessment, result, onChange, onSave
 
   // ── Collect answered keys for idle detection ──
   const answeredKeys = useMemo(() => {
-    if (currentStep === 0) return Object.values(assessment.behaviour || {});
-    if (currentStep === 1) return Object.values(assessment.awareness || {});
-    if (currentStep === 2) return Object.values(assessment.profile || {});
-    if (currentStep === 3) return Object.values(assessment.habits || {});
+    if (currentStep === 0) {
+      return Object.values(assessment.behaviour || {});
+    }
+    if (currentStep === 1) {
+      return Object.values(assessment.awareness || {});
+    }
+    if (currentStep === 2) {
+      return Object.values(assessment.profile || {});
+    }
+    if (currentStep === 3) {
+      return Object.values(assessment.habits || {});
+    }
     return [];
   }, [currentStep, assessment]);
 
@@ -838,8 +927,8 @@ export default function AssessmentSection({ assessment, result, onChange, onSave
           Run your Financial Health <em>Behavior Score.</em>
         </h2>
         <p>
-          Complete the guided assessment step-by-step. The intelligence metrics panel
-          updates instantly in real time.
+          Complete the guided assessment step-by-step. The intelligence metrics panel updates
+          instantly in real time.
         </p>
 
         {/* ── G3: Express Mode Toggle ── */}
@@ -852,7 +941,11 @@ export default function AssessmentSection({ assessment, result, onChange, onSave
           >
             <Zap size={16} />
             <span>Express Mode</span>
-            {expressMode && <span className="express-mode-badge">⚡ ~{Math.max(1, adaptation.estimatedTime)} min</span>}
+            {expressMode && (
+              <span className="express-mode-badge">
+                ⚡ ~{Math.max(1, adaptation.estimatedTime)} min
+              </span>
+            )}
           </button>
           {expressMode && (
             <span className="express-mode-hint">
@@ -871,7 +964,9 @@ export default function AssessmentSection({ assessment, result, onChange, onSave
           {expressMode && (
             <div className="adaptive-time-badge express">
               <Zap size={14} />
-              <span>Express: {Math.max(1, Math.round(adaptation.estimatedTime * 0.6))} min estimate</span>
+              <span>
+                Express: {Math.max(1, Math.round(adaptation.estimatedTime * 0.6))} min estimate
+              </span>
             </div>
           )}
         </div>
@@ -906,7 +1001,10 @@ export default function AssessmentSection({ assessment, result, onChange, onSave
           )}
 
           {!showFeedback && !celebration?.visible && (
-            <ParticipantSection values={assessment.participant} onChange={(key, value) => handleFieldChange("participant", key, value)} />
+            <ParticipantSection
+              values={assessment.participant}
+              onChange={(key, value) => handleFieldChange("participant", key, value)}
+            />
           )}
 
           {validationErrors.length > 0 && (
@@ -929,13 +1027,20 @@ export default function AssessmentSection({ assessment, result, onChange, onSave
                 questions={adaptation.behaviour.visible}
                 values={assessment.behaviour}
                 onChange={(key, value) => handleFieldChange("behaviour", key, value)}
-                progress={{ current: adaptation.behaviour.currentQ, total: adaptation.behaviour.totalQ }}
+                progress={{
+                  current: adaptation.behaviour.currentQ,
+                  total: adaptation.behaviour.totalQ
+                }}
                 answeredKeys={answeredKeys}
               />
               {adaptation.behaviour.totalSaved > 0 && (
                 <div className="adaptive-skip-banner">
-                  <span className="adaptive-skip-badge">✂️ {adaptation.behaviour.totalSaved} skipped</span>
-                  <span className="adaptive-skip-reason">Based on your answers — fewer questions, same accuracy.</span>
+                  <span className="adaptive-skip-badge">
+                    ✂️ {adaptation.behaviour.totalSaved} skipped
+                  </span>
+                  <span className="adaptive-skip-reason">
+                    Based on your answers — fewer questions, same accuracy.
+                  </span>
                 </div>
               )}
             </>
@@ -954,8 +1059,12 @@ export default function AssessmentSection({ assessment, result, onChange, onSave
               />
               {adaptation.awareness.totalSaved > 0 && (
                 <div className="adaptive-skip-banner">
-                  <span className="adaptive-skip-badge">✂️ {adaptation.awareness.totalSaved} skipped</span>
-                  <span className="adaptive-skip-reason">You've got this covered — fewer questions, same accuracy.</span>
+                  <span className="adaptive-skip-badge">
+                    ✂️ {adaptation.awareness.totalSaved} skipped
+                  </span>
+                  <span className="adaptive-skip-reason">
+                    You've got this covered — fewer questions, same accuracy.
+                  </span>
                 </div>
               )}
             </>
@@ -982,8 +1091,12 @@ export default function AssessmentSection({ assessment, result, onChange, onSave
               />
               {adaptation.habits.totalSaved > 0 && (
                 <div className="adaptive-skip-banner">
-                  <span className="adaptive-skip-badge">✂️ {adaptation.habits.totalSaved} skipped</span>
-                  <span className="adaptive-skip-reason">On top of it — fewer questions, same accuracy.</span>
+                  <span className="adaptive-skip-badge">
+                    ✂️ {adaptation.habits.totalSaved} skipped
+                  </span>
+                  <span className="adaptive-skip-reason">
+                    On top of it — fewer questions, same accuracy.
+                  </span>
                 </div>
               )}
             </>
@@ -991,7 +1104,12 @@ export default function AssessmentSection({ assessment, result, onChange, onSave
 
           {!showFeedback && !celebration?.visible && (
             <div className="wizard-nav-footer">
-              <button type="button" className="wizard-secondary-btn" onClick={handlePrev} disabled={currentStep === 0}>
+              <button
+                type="button"
+                className="wizard-secondary-btn"
+                onClick={handlePrev}
+                disabled={currentStep === 0}
+              >
                 <ChevronLeft size={16} />
                 Previous
               </button>
@@ -1005,13 +1123,17 @@ export default function AssessmentSection({ assessment, result, onChange, onSave
 
           {/* ── G3: Idle nudges ── */}
           {!showFeedback && !celebration?.visible && (
-            <IdleNudgeArea active={currentStep < totalSteps - 1} answeredKeys={answeredKeys} onSkip={handleSkipStuckQuestion} />
+            <IdleNudgeArea
+              active={currentStep < totalSteps - 1}
+              answeredKeys={answeredKeys}
+              onSkip={handleSkipStuckQuestion}
+            />
           )}
 
           {showFeedback && (
             <ValidationFeedbackForm
               healthScore={result.healthScore}
-              onSubmitFeedback={async (feedbackPayload) => {
+              onSubmitFeedback={async feedbackPayload => {
                 const ok = await dispatchAnonymousFeedbackEvent(feedbackPayload, "/api/feedback");
                 const resultsEl = document.querySelector(".result-stack");
                 if (resultsEl) {
@@ -1027,7 +1149,13 @@ export default function AssessmentSection({ assessment, result, onChange, onSave
           )}
         </section>
 
-        <aside className="result-stack" aria-label="Financial health result" role="region" aria-live="polite" tabIndex={-1}>
+        <aside
+          className="result-stack"
+          aria-label="Financial health result"
+          role="region"
+          aria-live="polite"
+          tabIndex={-1}
+        >
           {result && result.healthScore !== undefined && (
             <div className="result-stack-inner">
               <LiveResultSnapshot result={result} />
@@ -1066,14 +1194,14 @@ function IdleNudgeArea({ active, answeredKeys, onSkip }) {
     // Nudge after 15s if very few answers
     timerRef.current = setTimeout(() => {
       if (answeredCount < 2) {
-        setIdleState('nudge');
+        setIdleState("nudge");
       }
     }, IDLE_NUDGE_THRESHOLD_MS);
 
     // Skip offer after 30s if no answers
     skipTimerRef.current = setTimeout(() => {
       if (answeredCount < 1) {
-        setIdleState('stuck');
+        setIdleState("stuck");
       }
     }, IDLE_SKIP_THRESHOLD_MS);
 
@@ -1091,17 +1219,19 @@ function IdleNudgeArea({ active, answeredKeys, onSkip }) {
     }
   }, [answeredKeys]);
 
-  if (!idleState) return null;
+  if (!idleState) {
+    return null;
+  }
 
   return (
-    <div className={`idle-nudge ${idleState === 'stuck' ? 'stuck' : ''}`}>
-      {idleState === 'nudge' && (
+    <div className={`idle-nudge ${idleState === "stuck" ? "stuck" : ""}`}>
+      {idleState === "nudge" && (
         <div className="idle-nudge-content">
           <AlertTriangle size={14} />
           <span>Not sure? Take your time — there's no wrong answer.</span>
         </div>
       )}
-      {idleState === 'stuck' && (
+      {idleState === "stuck" && (
         <div className="idle-nudge-content stuck-content">
           <AlertTriangle size={14} />
           <div>
@@ -1125,11 +1255,7 @@ function WizardStep({ step, index, isActive, isCurrent, isLast, isCompleted }) {
     >
       <div className="wizard-node-marker">
         {/* ── G3: Completed steps show checkmark ── */}
-        {isCompleted ? (
-          <span className="wizard-node-check">✓</span>
-        ) : (
-          <StepIcon size={13} />
-        )}
+        {isCompleted ? <span className="wizard-node-check">✓</span> : <StepIcon size={13} />}
         <span>{index + 1}</span>
       </div>
       <span className="wizard-node-label">{step.label}</span>

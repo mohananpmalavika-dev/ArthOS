@@ -1,6 +1,6 @@
 /**
  * Roast Analytics Service
- * 
+ *
  * Tracks viral share metrics for the Financial Roast
  * - Share events (WhatsApp, Twitter, Facebook, etc.)
  * - CTA clicks (Generate Your Own)
@@ -8,7 +8,7 @@
  * - Conversion funnel from share → generation
  */
 
-const ROAST_ANALYTICS_KEY = 'arth-os-roast-analytics';
+const ROAST_ANALYTICS_KEY = "arth-os-roast-analytics";
 
 export class RoastAnalytics {
   constructor() {
@@ -20,17 +20,17 @@ export class RoastAnalytics {
    */
   trackShare(platform, payload = {}) {
     const event = {
-      type: 'share',
+      type: "share",
       platform,
       timestamp: new Date().toISOString(),
-      ...payload,
+      ...payload
     };
 
     this.data.shares.push(event);
     this.persistData();
 
     // Also send to backend/analytics service if available
-    this.sendToBackend('roast_share', { platform, ...payload });
+    this.sendToBackend("roast_share", { platform, ...payload });
 
     return event;
   }
@@ -38,17 +38,17 @@ export class RoastAnalytics {
   /**
    * Track when user clicks "Generate Your Own"
    */
-  trackGenerateYourOwnCTA(source = 'roast_view') {
+  trackGenerateYourOwnCTA(source = "roast_view") {
     const event = {
-      type: 'cta_click',
+      type: "cta_click",
       source,
-      timestamp: new Date().toISOString(),
+      timestamp: new Date().toISOString()
     };
 
     this.data.ctaClicks.push(event);
     this.persistData();
 
-    this.sendToBackend('roast_cta_click', { source });
+    this.sendToBackend("roast_cta_click", { source });
 
     return event;
   }
@@ -56,18 +56,18 @@ export class RoastAnalytics {
   /**
    * Track roast view (when someone lands on /roast/:id)
    */
-  trackRoastView(roastId, source = 'unknown') {
+  trackRoastView(roastId, source = "unknown") {
     const event = {
-      type: 'roast_view',
+      type: "roast_view",
       roastId,
       source, // 'whatsapp', 'twitter', 'direct', etc.
-      timestamp: new Date().toISOString(),
+      timestamp: new Date().toISOString()
     };
 
     this.data.views.push(event);
     this.persistData();
 
-    this.sendToBackend('roast_view', { roastId, source });
+    this.sendToBackend("roast_view", { roastId, source });
 
     return event;
   }
@@ -77,16 +77,16 @@ export class RoastAnalytics {
    */
   trackRoastGenerated(personalityType, score) {
     const event = {
-      type: 'roast_generated',
+      type: "roast_generated",
       personalityType,
       score: Math.round(score),
-      timestamp: new Date().toISOString(),
+      timestamp: new Date().toISOString()
     };
 
     this.data.generated.push(event);
     this.persistData();
 
-    this.sendToBackend('roast_generated', { personalityType, score });
+    this.sendToBackend("roast_generated", { personalityType, score });
 
     return event;
   }
@@ -113,8 +113,16 @@ export class RoastAnalytics {
     });
 
     // Conversion rate (views → CTA clicks)
-    const conversionRate24h = views24h.length > 0 ? (ctaClicks24h.length / views24h.length * 100).toFixed(1) : 0;
-    const conversionRateWeek = viewsWeek.length > 0 ? (this.data.ctaClicks.filter(c => new Date(c.timestamp) > lastWeek).length / viewsWeek.length * 100).toFixed(1) : 0;
+    const conversionRate24h =
+      views24h.length > 0 ? ((ctaClicks24h.length / views24h.length) * 100).toFixed(1) : 0;
+    const conversionRateWeek =
+      viewsWeek.length > 0
+        ? (
+            (this.data.ctaClicks.filter(c => new Date(c.timestamp) > lastWeek).length /
+              viewsWeek.length) *
+            100
+          ).toFixed(1)
+        : 0;
 
     // Top personalities
     const personalityBreakdown = {};
@@ -127,13 +135,13 @@ export class RoastAnalytics {
         shares: shares24h.length,
         views: views24h.length,
         ctaClicks: ctaClicks24h.length,
-        conversionRate: conversionRate24h + '%',
-        platformBreakdown,
+        conversionRate: conversionRate24h + "%",
+        platformBreakdown
       },
       lastWeek: {
         shares: sharesWeek.length,
         views: viewsWeek.length,
-        conversionRate: conversionRateWeek + '%',
+        conversionRate: conversionRateWeek + "%"
       },
       allTime: {
         totalShares: this.data.shares.length,
@@ -141,10 +149,14 @@ export class RoastAnalytics {
         totalCTAClicks: this.data.ctaClicks.length,
         totalGenerated: this.data.generated.length,
         personalityBreakdown,
-        avgScore: this.data.generated.length > 0 
-          ? (this.data.generated.reduce((sum, g) => sum + g.score, 0) / this.data.generated.length).toFixed(1)
-          : 0,
-      },
+        avgScore:
+          this.data.generated.length > 0
+            ? (
+                this.data.generated.reduce((sum, g) => sum + g.score, 0) /
+                this.data.generated.length
+              ).toFixed(1)
+            : 0
+      }
     };
   }
 
@@ -157,14 +169,16 @@ export class RoastAnalytics {
     // In production, would need more sophisticated tracking
     const totalShares = this.data.shares.length;
     const totalViews = this.data.views.length;
-    
-    if (totalViews === 0) return 0;
-    
+
+    if (totalViews === 0) {
+      return 0;
+    }
+
     // Approximate: number of new roasts generated from shared links
-    const fromSharedLinks = this.data.generated.filter(g => 
-      g.timestamp > new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
+    const fromSharedLinks = this.data.generated.filter(
+      g => g.timestamp > new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
     ).length;
-    
+
     return totalShares > 0 ? (fromSharedLinks / totalShares).toFixed(2) : 0;
   }
 
@@ -179,8 +193,8 @@ export class RoastAnalytics {
         shares: this.data.shares,
         views: this.data.views,
         ctaClicks: this.data.ctaClicks,
-        generated: this.data.generated,
-      },
+        generated: this.data.generated
+      }
     };
   }
 
@@ -201,27 +215,31 @@ export class RoastAnalytics {
       shares: [],
       views: [],
       ctaClicks: [],
-      generated: [],
+      generated: []
     };
   }
 
   loadData() {
     try {
-      if (typeof localStorage === 'undefined') return this.initData();
+      if (typeof localStorage === "undefined") {
+        return this.initData();
+      }
       const stored = localStorage.getItem(ROAST_ANALYTICS_KEY);
       return stored ? JSON.parse(stored) : this.initData();
     } catch (err) {
-      console.warn('Failed to load roast analytics:', err);
+      console.warn("Failed to load roast analytics:", err);
       return this.initData();
     }
   }
 
   persistData() {
     try {
-      if (typeof localStorage === 'undefined') return;
+      if (typeof localStorage === "undefined") {
+        return;
+      }
       localStorage.setItem(ROAST_ANALYTICS_KEY, JSON.stringify(this.data));
     } catch (err) {
-      console.warn('Failed to persist roast analytics:', err);
+      console.warn("Failed to persist roast analytics:", err);
     }
   }
 

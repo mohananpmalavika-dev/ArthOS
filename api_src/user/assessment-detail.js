@@ -1,32 +1,11 @@
-// api_src/user/assessment-[id].js
+// api_src/user/assessment-detail.js
 // Endpoint to retrieve a specific assessment by ID (user-owned only)
 // GET /api/user/assessment/:id - Returns assessment if user is owner
 
 import { query } from "../dbClient.js";
-import jwt from "jsonwebtoken";
+import { extractUserFromRequest } from "../auth/jwt.js";
 
 const TABLE_NAME = process.env.SUPABASE_ASSESSMENTS_TABLE || "assessments";
-const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key";
-
-function extractUserFromToken(req) {
-  const authHeader = req.headers.authorization || "";
-  const token = authHeader.replace("Bearer ", "");
-
-  if (!token) {
-    return null;
-  }
-
-  try {
-    const decoded = jwt.verify(token, JWT_SECRET, { algorithms: ["HS256"] });
-    return {
-      id: decoded.userId || decoded.id || decoded.email || null,
-      email: decoded.email || null,
-    };
-  } catch (error) {
-    console.warn("[UserAssessmentDetail] Invalid or missing token:", error.message);
-    return null;
-  }
-}
 
 export default async function handler(req, res) {
   if (req.method !== "GET") {
@@ -35,7 +14,7 @@ export default async function handler(req, res) {
 
   try {
     // Extract authenticated user from JWT token
-    const user = extractUserFromToken(req);
+    const user = await extractUserFromRequest(req);
 
     if (!user || !user.id) {
       return res.status(401).json({ error: "Unauthorized - No valid token" });

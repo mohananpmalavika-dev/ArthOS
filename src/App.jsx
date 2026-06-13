@@ -1,4 +1,13 @@
-import React, { memo, useEffect, useMemo, useState, lazy, Suspense, useCallback, startTransition } from "react";
+import React, {
+  memo,
+  useEffect,
+  useMemo,
+  useState,
+  lazy,
+  Suspense,
+  useCallback,
+  startTransition
+} from "react";
 import { useAuth } from "./context/AuthContext.jsx";
 import LoginPage from "./pages/LoginPage.jsx";
 import RegisterPage from "./pages/RegisterPage.jsx";
@@ -27,14 +36,14 @@ import {
   Target,
   ThumbsUp,
   TrendingUp,
-  WalletCards,
+  WalletCards
 } from "lucide-react";
 import {
   calculateFinancialHealthV2,
   componentMaximumsV2,
   formatCurrency as formatCurrencyV2,
   formatMonths as formatMonthsV2,
-  initOfflineApiQueue,
+  initOfflineApiQueue
 } from "./lib/scoring-v2.js";
 import {
   appendScoreHistory,
@@ -42,7 +51,7 @@ import {
   loadScoreHistory,
   loadWeeklyCheckins,
   getProgressSummary,
-  calculateConsecutiveStreak,
+  calculateConsecutiveStreak
 } from "./engines/financialMemoryEngine.js";
 import { buildTrajectoryNarrative } from "./engines/trajectoryNarrativeEngine.js";
 import { buildFinancialTwinScenarios } from "./engines/financialTwinEngine.js";
@@ -53,7 +62,10 @@ import { forecastHealth, detectFutureRisk } from "./engines/forecastEngine.js";
 import { predictionEngineForecastHealth } from "./engines/predictionEngine.js";
 import { calculateConfidence } from "./engines/confidenceEngine.js";
 import { generateAlerts } from "./engines/riskOpportunityEngine.js";
-import { detectBiases as detectCognitiveBiases, calculateRiskCalibration } from "./engines/biasEngine.js";
+import {
+  detectBiases as detectCognitiveBiases,
+  calculateRiskCalibration
+} from "./engines/biasEngine.js";
 import { trackGoalEvolution } from "./engines/goalEvolutionEngine.js";
 import { generateMemoryInsight } from "./engines/contextualMemoryEngine.js";
 import { opportunityForecast } from "./engines/opportunityForecastEngine.js";
@@ -68,8 +80,18 @@ import { mapSignalsToBehaviour } from "./engines/smsParser.js";
 
 import { checkAndUnlockMilestones } from "./engines/milestoneEngine.js";
 import { archiveOrphanedSession } from "./engines/assessmentTelemetry.js";
-import { getUnreadCount, addNotification, notifyNewMilestones, checkCheckinReminder, detectAndNotifyScoreChange } from "./engines/notificationEngine.js";
-import { initializeUserRetention, recordUserReturn, recordAssessmentCompletion } from "./engines/retentionEngine.js";
+import {
+  getUnreadCount,
+  addNotification,
+  notifyNewMilestones,
+  checkCheckinReminder,
+  detectAndNotifyScoreChange
+} from "./engines/notificationEngine.js";
+import {
+  initializeUserRetention,
+  recordUserReturn,
+  recordAssessmentCompletion
+} from "./engines/retentionEngine.js";
 import BadgeDisplay from "./components/BadgeDisplay.jsx";
 import NotificationPanel from "./components/NotificationPanel.jsx";
 import NotificationToast from "./components/NotificationToast.jsx";
@@ -82,7 +104,40 @@ import SubscriptionManagement from "./components/SubscriptionManagement.jsx";
 import FeaturePaywall from "./components/FeaturePaywall.jsx";
 import AssessmentLimitNotice from "./components/AssessmentLimitNotice.jsx";
 import { useSubscription } from "./hooks/useSubscription.js";
-import { recordAssessment, getRemainingAssessments, getLastAssessmentDate } from "./lib/assessmentUsageTracker.js";
+import { useAssessmentState } from "./hooks/useAssessmentState.js";
+import { useNotificationState } from "./hooks/useNotificationState.js";
+import { useHistoricalData } from "./hooks/useHistoricalData.js";
+import { useUIState } from "./hooks/useUIState.js";
+import {
+  recordAssessment,
+  getRemainingAssessments,
+  getLastAssessmentDate
+} from "./lib/assessmentUsageTracker.js";
+// App utilities (extracted for modularity)
+import {
+  makeEmptyAssessment,
+  isBrowser,
+  isLocalDevHost,
+  normalizeV2Assessment,
+  normalizeV1Assessment,
+  loadInitialAssessment,
+  deriveDrivers,
+  LazyComponentFallback as UtilLazyComponentFallback,
+  STORAGE_KEY,
+  ASSESSMENT_SAVE_QUEUE_KEY
+} from "./lib/app-utils.jsx";
+import {
+  loadQueuedAssessmentSaves,
+  persistQueuedAssessmentSaves,
+  enqueueAssessmentSave,
+  flushQueuedAssessmentSaves
+} from "./lib/appAssessmentQueue.js";
+import {
+  buildLiveInsightCards,
+  SECTION_ICONS,
+  INCOME_STABILITY_OPTIONS,
+  DEPENDENTS_OPTIONS
+} from "./lib/assessmentCardBuilder.js";
 // Lazy-loaded feature components to reduce main bundle
 const AnalyticsDashboard = lazy(() => import("./components/AnalyticsDashboard.jsx"));
 const CognitionGraphView = lazy(() => import("./components/CognitionGraphView.jsx"));
@@ -93,6 +148,8 @@ const UserHistory = lazy(() => import("./components/UserHistory.jsx"));
 const TraitMatrixVisualizer = lazy(() => import("./components/TraitMatrixVisualizer.jsx"));
 const DigitalTwinDashboard = lazy(() => import("./components/DigitalTwinDashboard.jsx"));
 const PredictionEngineDashboard = lazy(() => import("./components/PredictionEngineDashboard.jsx"));
+const AiCoachInterface = lazy(() => import("./components/AiCoachInterface.jsx"));
+const LongitudinalLearningDashboard = lazy(() => import("./components/LongitudinalLearningDashboard.jsx"));
 // Always-needed components (in main bundle)
 import OnboardingOverlay from "./components/OnboardingOverlay.jsx";
 import AssessmentSection from "./components/AssessmentSection.jsx";
@@ -123,12 +180,11 @@ import { AreaChart, Area, XAxis, ResponsiveContainer, PieChart, Pie, Cell } from
 import "./premium-report.css";
 import "./styles/retention-dashboard.css";
 
-
 import {
   v2BehaviourQuestions,
   v2AwarenessQuestions,
   v2HabitsQuestions,
-  v2DefaultAssessment,
+  v2DefaultAssessment
 } from "./data/questionnaire-v2.js";
 import {
   NAV_ITEMS,
@@ -138,367 +194,134 @@ import {
   INSIGHT_TITLES,
   ADMIN_LABELS,
   INTELLIGENCE_ROWS,
-  BUSINESS_CARDS,
+  BUSINESS_CARDS
 } from "./lib/copy.ts";
 
+// Suspense loading fallback (imported from app-utils)
+const LazyComponentFallback = UtilLazyComponentFallback;
 
-const STORAGE_KEY = "arth-os-assessment";
-
-// Suspense loading fallback for lazy-loaded components
-const LazyComponentFallback = () => (
-  <div style={{
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    minHeight: "400px",
-    fontSize: "14px",
-    color: "#666",
-  }}>
-    <div style={{ textAlign: "center" }}>
-      <div style={{ marginBottom: "12px" }}>Loading component...</div>
-      <div style={{ fontSize: "12px", color: "#999" }}>Please wait</div>
-    </div>
-  </div>
-);
-
-function makeEmptyAssessment() {
-  const emptyBehaviour = Object.keys(v2DefaultAssessment.behaviour || {}).reduce((acc, k) => {
-    acc[k] = "";
-    return acc;
-  }, {});
-
-  const emptyAwareness = Object.keys(v2DefaultAssessment.awareness || {}).reduce((acc, k) => {
-    acc[k] = "";
-    return acc;
-  }, {});
-
-  const emptyHabits = Object.keys(v2DefaultAssessment.habits || {}).reduce((acc, k) => {
-    acc[k] = "";
-    return acc;
-  }, {});
-
-  const emptyProfile = Object.keys(v2DefaultAssessment.profile || {}).reduce((acc, k) => {
-    acc[k] = undefined;
-    return acc;
-  }, {});
-
-  return {
-    mode: "v2",
-    behaviour: emptyBehaviour,
-    awareness: emptyAwareness,
-    profile: emptyProfile,
-    participant: {
-      name: "",
-      age: "",
-      email: "",
-    },
-    habits: emptyHabits,
-  };
-}
-
-const ASSESSMENT_SAVE_QUEUE_KEY = "arth-os-assessment-save-queue";
-
-function isBrowser() {
-  return typeof window !== "undefined";
-}
-
-function isLocalDevHost() {
-  if (!isBrowser()) return false;
-  const host = window.location.hostname || "";
-  return host === "localhost" || host.startsWith("127.");
-}
-
-function loadQueuedAssessmentSaves() {
-  if (!isBrowser()) return [];
-
-  try {
-    const raw = window.localStorage.getItem(ASSESSMENT_SAVE_QUEUE_KEY);
-    return raw ? JSON.parse(raw) : [];
-  } catch {
-    return [];
-  }
-}
-
-function persistQueuedAssessmentSaves(queue) {
-  if (!isBrowser()) return;
-
-  try {
-    if (queue.length) {
-      window.localStorage.setItem(ASSESSMENT_SAVE_QUEUE_KEY, JSON.stringify(queue));
-    } else {
-      window.localStorage.removeItem(ASSESSMENT_SAVE_QUEUE_KEY);
-    }
-  } catch {
-    // ignore storage failures
-  }
-}
-
-function enqueueAssessmentSave(payload) {
-  if (!isBrowser()) return;
-  const queue = loadQueuedAssessmentSaves();
-  queue.push({ payload, queuedAt: new Date().toISOString() });
-  persistQueuedAssessmentSaves(queue);
-}
-
-async function flushQueuedAssessmentSaves() {
-  if (!isBrowser()) return;
-  if (typeof navigator !== "undefined" && !navigator.onLine) return;
-
-  const queue = loadQueuedAssessmentSaves();
-  if (!queue.length) return;
-
-  const remaining = [];
-  for (const queued of queue) {
-    try {
-      const response = await fetch("/api/saveAssessment", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(queued.payload),
-      });
-      if (!response.ok) {
-        remaining.push(queued);
-      }
-    } catch {
-      remaining.push(queued);
-    }
-  }
-
-  persistQueuedAssessmentSaves(remaining);
-}
-
+// Icon registry for intelligence rows
 const ICON_REGISTRY = { Network, Zap, Brain };
-const intelligenceRows = INTELLIGENCE_ROWS.map((row) => ({
+const intelligenceRows = INTELLIGENCE_ROWS.map(row => ({
   ...row,
-  icon: ICON_REGISTRY[row.icon] ?? Network,
+  icon: ICON_REGISTRY[row.icon] ?? Network
 }));
 const businessCards = BUSINESS_CARDS;
 
-function buildLiveInsightCards(result, assessment) {
-  const lowestComponent = result.componentRows?.[0];
-  const stressPattern = assessment.behaviour?.spendWhenStressed;
-  const impulsePattern = assessment.behaviour?.regretImpulseFreq;
-  const planState = assessment.awareness?.hasFinancialPlan;
-  const focusLabel = lowestComponent?.label ?? "Behaviour";
+// Note: buildLiveInsightCards, SECTION_ICONS, INCOME_STABILITY_OPTIONS, DEPENDENTS_OPTIONS
+// are now imported from assessmentCardBuilder.js
+const sectionIcons = SECTION_ICONS;
+const incomeStabilityOptions = INCOME_STABILITY_OPTIONS;
+const dependentsOptions = DEPENDENTS_OPTIONS;
 
-  return [
-    {
-      icon: Brain,
-      title: "Behavior Pattern",
-      copy: `${result.personalityType ?? "Current"} profile detected from your active responses.`,
-      time: "Live now",
-      tone: "purple",
-    },
-    {
-      icon: BarChart3,
-      title: "Spending Signal",
-      copy: stressPattern
-        ? `Stress-spend response is currently marked ${stressPattern.replaceAll("_", " ")}.`
-        : "Answer emotion prompts to reveal stress-spend patterns.",
-      time: "Live now",
-      tone: "cyan",
-    },
-    {
-      icon: ShieldCheck,
-      title: "Risk Exposure",
-      copy: `${result.futureRiskLabel ?? "Risk"} based on your current stability inputs.`,
-      time: "Live now",
-      tone: "purple",
-    },
-    {
-      icon: Target,
-      title: "Focus Opportunity",
-      copy: `${focusLabel} is the next area to strengthen as your answers update.`,
-      time: planState || impulsePattern ? "Live now" : "Needs input",
-      tone: "cyan",
-    },
-  ];
-}
-
-const sectionIcons = {
-  behaviour: Brain,
-  awareness: BarChart3,
-  stability: ShieldCheck,
-};
-
-const incomeStabilityOptions = [
-  { value: "very_consistent", label: "Very consistent" },
-  { value: "mostly_consistent", label: "Mostly consistent" },
-  { value: "somewhat_variable", label: "Somewhat variable" },
-  { value: "highly_variable", label: "Highly variable" },
-];
-
-const dependentsOptions = [
-  { value: "0_1", label: "0-1" },
-  { value: "2_3", label: "2-3" },
-  { value: "4_5", label: "4-5" },
-  { value: "6_plus", label: "6+" },
-];
-
-
-function normalizeV2Assessment(assessment) {
-  const profile = assessment?.profile ?? {};
-  if (
-    profile.emergencySavingsFixed !== undefined ||
-    profile.emergencySavingsDiscretionary !== undefined
-  ) {
-    return {
-      ...assessment,
-      participant: {
-        ...v2DefaultAssessment.participant,
-        ...assessment?.participant,
-      },
-      profile: {
-        ...v2DefaultAssessment.profile,
-        ...profile,
-      },
-    };
-  }
-
-  const emergencySavings = Number.parseFloat(profile.emergencySavings) || 0;
-  const fixed = Math.min(emergencySavings, 50000);
-  const discretionary = Math.max(0, emergencySavings - fixed);
-
-  return {
-    ...assessment,
-    participant: {
-      ...v2DefaultAssessment.participant,
-      ...assessment?.participant,
-    },
-    profile: {
-      ...v2DefaultAssessment.profile,
-      ...profile,
-      emergencySavingsFixed: fixed,
-      emergencySavingsDiscretionary: discretionary,
-    },
-  };
-}
-
-function normalizeV1Assessment(assessment) {
-  const profile = assessment?.profile ?? {};
-  const legacySavings = Number.parseFloat(profile.emergencySavings) || 0;
-  const fixed = Number.parseFloat(profile.emergencySavingsFixed) || 0;
-  const discretionary = Number.parseFloat(profile.emergencySavingsDiscretionary) || 0;
-
-  return {
-    ...v2DefaultAssessment,
-    ...assessment,
-    participant: {
-      ...v2DefaultAssessment.participant,
-      ...assessment?.participant,
-    },
-    behaviour: {
-      ...v2DefaultAssessment.behaviour,
-      ...assessment?.behaviour,
-    },
-    awareness: {
-      ...v2DefaultAssessment.awareness,
-      ...assessment?.awareness,
-    },
-    profile: {
-      ...v2DefaultAssessment.profile,
-      ...profile,
-      emergencySavings: legacySavings || fixed + discretionary,
-    },
-  };
-}
-
-function loadInitialAssessment() {
-  try {
-    const unified = window.localStorage.getItem(STORAGE_KEY);
-    if (unified) return normalizeV2Assessment(JSON.parse(unified));
-
-    const legacyV2 = window.localStorage.getItem("arth-os-assessment-v2");
-    if (legacyV2) return normalizeV2Assessment(JSON.parse(legacyV2));
-
-    const legacyV1 = window.localStorage.getItem("arth-os-assessment-v1");
-    if (legacyV1) return normalizeV2Assessment(normalizeV1Assessment(JSON.parse(legacyV1)));
-
-    return typeof v2DefaultAssessment !== "undefined" ? v2DefaultAssessment : {};
-  } catch (error) {
-    console.warn("Could not load initial assessment from localStorage:", error);
-    return typeof v2DefaultAssessment !== "undefined" ? v2DefaultAssessment : {};
-  }
-}
+// Note: normalizeV2Assessment, normalizeV1Assessment, loadInitialAssessment imported from app-utils.js
 
 export default function App() {
   const { user, token, isAuthenticated, loading: authLoading, logout } = useAuth();
-  const [showAuthModal, setShowAuthModal] = useState(false);
-  const [authMode, setAuthMode] = useState("login");
 
-  const [assessment, setAssessment] = useState(() => makeEmptyAssessment());
-  const [saveState, setSaveState] = useState("Ready");
-  const [queuedSaveCount, setQueuedSaveCount] = useState(() => (isBrowser() ? loadQueuedAssessmentSaves().length : 0));
-  const [isOnline, setIsOnline] = useState(() => (typeof navigator !== "undefined" ? navigator.onLine : true));
-  const [resetTrigger, setResetTrigger] = useState(0);
-  const [pendingFollowUps, setPendingFollowUps] = useState([]);
-  const [activeHash, setActiveHash] = useState(
-    isBrowser() ? window.location.hash || "#home" : "#home"
-  );
-  const [showOnboarding, setShowOnboarding] = useState(() => {
-    if (!isBrowser()) return false;
-    return window.localStorage.getItem("arth-os-onboarding-complete") !== "true";
-  });
+  // Initialize custom hooks for organized state management
+  const assessmentState = useAssessmentState();
+  const notificationState = useNotificationState();
+  const historicalData = useHistoricalData();
+  const uiState = useUIState();
 
-  const currentUserId = isAuthenticated && user ? user.id : null;
-  const effectiveUserId = currentUserId || assessment.participant?.email || 'demo';
+  // Destructure for convenient access
+  const {
+    assessment,
+    setAssessment,
+    saveState,
+    setSaveState,
+    queuedSaveCount,
+    setQueuedSaveCount,
+    isOnline,
+    setIsOnline,
+    resetTrigger,
+    saveStatusLabel,
+    saveStatusClass,
+    refreshQueuedSaveCount,
+    enqueueAssessmentSaveAndRefresh,
+    flushQueuedAssessmentSavesAndRefresh
+  } = assessmentState;
 
-  const saveStatusLabel = queuedSaveCount > 0
-    ? isOnline
-      ? `Upload pending (${queuedSaveCount})`
-      : `Saved offline (${queuedSaveCount})`
-    : saveState === "Unsaved"
-      ? "Unsaved changes"
-      : saveState;
+  const {
+    showNotificationPanel,
+    setShowNotificationPanel,
+    notificationBadgeCount,
+    setNotificationBadgeCount,
+    newlyUnlockedMilestones,
+    setNewlyUnlockedMilestones,
+    pendingFollowUps,
+    setPendingFollowUps
+  } = notificationState;
 
-  const saveStatusClass = queuedSaveCount > 0
-    ? isOnline
-      ? "upload-pending"
-      : "saved-offline"
-    : saveState.toLowerCase().replace(/\s+/g, "-");
+  const {
+    scoreHistory,
+    setScoreHistory,
+    twinScenarios,
+    setTwinScenarios,
+    digitalTwin,
+    setDigitalTwin,
+    weeklyCheckins,
+    setWeeklyCheckins,
+    historyTimespan,
+    setHistoryTimespan,
+    memoryTimeline,
+    setMemoryTimeline,
+    showFullMemoryTimeline,
+    setShowFullMemoryTimeline,
+    memoryEngine
+  } = historicalData;
 
-  const refreshQueuedSaveCount = () => {
-    if (!isBrowser()) return;
-    setQueuedSaveCount(loadQueuedAssessmentSaves().length);
-  };
+  const {
+    activeHash,
+    setActiveHash,
+    showOnboarding,
+    setShowOnboarding,
+    showAuthModal,
+    setShowAuthModal,
+    authMode,
+    setAuthMode,
+    paywallFeature,
+    setPaywallFeature,
+    smsEnrichment,
+    setSmsEnrichment,
+    showSmsForm,
+    setShowSmsForm,
+    navigateTo,
+    completeOnboarding,
+    resetOnboarding
+  } = uiState;
 
-  const enqueueAssessmentSaveAndRefresh = (payload) => {
-    enqueueAssessmentSave(payload);
-    refreshQueuedSaveCount();
-  };
-
-  const flushQueuedAssessmentSavesAndRefresh = async () => {
-    await flushQueuedAssessmentSaves();
-    refreshQueuedSaveCount();
-  };
+  // Admin-related states (not yet in hooks - kept for now)
   const [adminLoggedIn, setAdminLoggedIn] = useState(false);
   const [adminCredentials, setAdminCredentials] = useState({ username: "", password: "" });
   const [adminLoginError, setAdminLoginError] = useState("");
   const [adminReport, setAdminReport] = useState(null);
-  const [smsEnrichment, setSmsEnrichment] = useState(null);
-  const [showSmsForm, setShowSmsForm] = useState(false);
-  const [scoreHistory, setScoreHistory] = useState([]);
-  const [twinScenarios, setTwinScenarios] = useState(null);
-  const [digitalTwin, setDigitalTwin] = useState(null);
-  const [weeklyCheckins, setWeeklyCheckins] = useState([]);
-  const [historyTimespan, setHistoryTimespan] = useState("all");
-  const [decisionsRefresh, setDecisionsRefresh] = useState(0);
-  const [memoryTimeline, setMemoryTimeline] = useState([]);
-  const [showFullMemoryTimeline, setShowFullMemoryTimeline] = useState(false);
-  const memoryEngine = useMemo(() => new UnifiedMemoryEngine(), []);
+
+  // Marketplace and other secondary states (not yet in hooks)
   const [marketplaceRecommendations, setMarketplaceRecommendations] = useState([]);
   const [backendMarketplaceRecommendations, setBackendMarketplaceRecommendations] = useState([]);
   const [backendRiskAlerts, setBackendRiskAlerts] = useState([]);
   const [decisionHistoryCount, setDecisionHistoryCount] = useState(0);
-  const [showNotificationPanel, setShowNotificationPanel] = useState(false);
-  const [notificationBadgeCount, setNotificationBadgeCount] = useState(0);
-  const [newlyUnlockedMilestones, setNewlyUnlockedMilestones] = useState([]);
+  const [decisionsRefresh, setDecisionsRefresh] = useState(0);
 
   // Subscription & Paywall Management
-  const { tier, subscription, loading: subscriptionLoading, error: subscriptionError, checkFeature, checkAssessmentAvailable, upgradeSubscription } = useSubscription(currentUserId);
-  const [paywallFeature, setPaywallFeature] = useState(null);
+  const currentUserId = isAuthenticated && user ? user.id : null;
+  const {
+    tier,
+    subscription,
+    loading: subscriptionLoading,
+    error: subscriptionError,
+    checkFeature,
+    checkAssessmentAvailable,
+    upgradeSubscription
+  } = useSubscription(currentUserId);
   const [showPaywall, setShowPaywall] = useState(false);
-  const [remainingAssessments, setRemainingAssessments] = useState(getRemainingAssessments('free'));
-  const [nextAvailableAssessmentDate, setNextAvailableAssessmentDate] = useState(getLastAssessmentDate());
+  const [remainingAssessments, setRemainingAssessments] = useState(getRemainingAssessments("free"));
+  const [nextAvailableAssessmentDate, setNextAvailableAssessmentDate] =
+    useState(getLastAssessmentDate());
+
+  const effectiveUserId = currentUserId || assessment.participant?.email || "demo";
 
   // Refresh notification badge count whenever modal opens or periodically
   const refreshNotificationCount = useCallback(() => {
@@ -517,13 +340,15 @@ export default function App() {
   }, [refreshNotificationCount]);
 
   useEffect(() => {
-    if (!isBrowser()) return;
+    if (!isBrowser()) {
+      return;
+    }
 
     setRemainingAssessments(getRemainingAssessments(tier));
     setNextAvailableAssessmentDate(getLastAssessmentDate());
   }, [tier, subscriptionLoading]);
 
-  const handleOpenPaywall = (feature) => {
+  const handleOpenPaywall = feature => {
     setPaywallFeature(feature);
     setShowPaywall(true);
   };
@@ -534,22 +359,26 @@ export default function App() {
   };
 
   const handleUpgradeFromPaywall = async () => {
-    const success = await upgradeSubscription('plus');
+    const success = await upgradeSubscription("plus");
     if (success) {
       handleClosePaywall();
-      setRemainingAssessments(getRemainingAssessments('plus'));
+      setRemainingAssessments(getRemainingAssessments("plus"));
     }
   };
 
-  const handleDismissMilestone = (badgeId) => {
-    setNewlyUnlockedMilestones((current) => current.filter((b) => b.id !== badgeId));
+  const handleDismissMilestone = badgeId => {
+    setNewlyUnlockedMilestones(current => current.filter(b => b.id !== badgeId));
   };
 
   // Detect score changes and check milestones each time score updates
   const prevScoreRef = React.useRef(0);
   useEffect(() => {
-    if (!isBrowser()) return;
-    if (result.healthScore <= 0) return;
+    if (!isBrowser()) {
+      return;
+    }
+    if (result.healthScore <= 0) {
+      return;
+    }
 
     const prev = prevScoreRef.current;
     if (prev > 0 && result.healthScore !== prev) {
@@ -562,8 +391,12 @@ export default function App() {
 
   // Check and unlock milestones on score/checkin changes
   useEffect(() => {
-    if (!isBrowser()) return;
-    if (result.healthScore <= 0) return;
+    if (!isBrowser()) {
+      return;
+    }
+    if (result.healthScore <= 0) {
+      return;
+    }
 
     const milestones = checkAndUnlockMilestones({
       currentScore: result.healthScore,
@@ -574,48 +407,63 @@ export default function App() {
       hasSmsEnrichment: !!smsEnrichment,
       hasTwinSimulation: !!twinScenarios,
       hasDigitalTwin: !!digitalTwin,
-      hasPartnerConnection: false,
+      hasPartnerConnection: false
     });
 
     if (milestones.length > 0) {
-      setNewlyUnlockedMilestones((current) => [...current, ...milestones]);
+      setNewlyUnlockedMilestones(current => [...current, ...milestones]);
       notifyNewMilestones(milestones);
       refreshNotificationCount();
     }
-  }, [result.healthScore, scoreHistory, weeklyCheckins, decisionHistoryCount, smsEnrichment, twinScenarios, digitalTwin, refreshNotificationCount]);
+  }, [
+    result.healthScore,
+    scoreHistory,
+    weeklyCheckins,
+    decisionHistoryCount,
+    smsEnrichment,
+    twinScenarios,
+    digitalTwin,
+    refreshNotificationCount
+  ]);
 
   // When auth state changes, set the email in the assessment participant
   useEffect(() => {
     if (isAuthenticated && user?.email) {
-      setAssessment((current) => ({
+      setAssessment(current => ({
         ...current,
         participant: {
           ...current.participant,
           email: user.email,
-          name: user.name || current.participant.name,
-        },
+          name: user.name || current.participant.name
+        }
       }));
     }
   }, [isAuthenticated, user?.email, user?.name]);
 
   useEffect(() => {
-    if (!isBrowser()) return;
+    if (!isBrowser()) {
+      return;
+    }
     setWeeklyCheckins(loadWeeklyCheckins());
     setMemoryTimeline(memoryEngine.getHistory());
   }, [memoryEngine]);
 
   // Initialize user retention tracking on app load
   useEffect(() => {
-    if (!isBrowser()) return;
-    const userId = currentUserId || assessment.participant?.email || 'demo';
+    if (!isBrowser()) {
+      return;
+    }
+    const userId = currentUserId || assessment.participant?.email || "demo";
     initializeUserRetention(userId);
   }, [currentUserId, assessment.participant?.email]);
 
   // Track user activity for retention metrics (max once per day per session)
   useEffect(() => {
-    if (!isBrowser()) return;
-    const userId = currentUserId || assessment.participant?.email || 'demo';
-    
+    if (!isBrowser()) {
+      return;
+    }
+    const userId = currentUserId || assessment.participant?.email || "demo";
+
     const handleUserActivity = () => {
       recordUserReturn(userId);
     };
@@ -627,21 +475,23 @@ export default function App() {
       }
     };
 
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-    document.addEventListener('click', handleUserActivity);
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    document.addEventListener("click", handleUserActivity);
 
     return () => {
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-      document.removeEventListener('click', handleUserActivity);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+      document.removeEventListener("click", handleUserActivity);
     };
   }, [currentUserId, assessment.participant?.email]);
 
   useEffect(() => {
-    if (!isBrowser()) return;
-    const userId = currentUserId || assessment.participant?.email || 'demo';
+    if (!isBrowser()) {
+      return;
+    }
+    const userId = currentUserId || assessment.participant?.email || "demo";
     void fetch(`/api/decision?userId=${encodeURIComponent(userId)}`)
-      .then((response) => response.json())
-      .then((data) => {
+      .then(response => response.json())
+      .then(data => {
         setDecisionHistoryCount(Array.isArray(data.decisions) ? data.decisions.length : 0);
       })
       .catch(() => {
@@ -651,18 +501,20 @@ export default function App() {
 
   // Fetch pending follow-ups when user is authenticated
   useEffect(() => {
-    if (!isBrowser() || !currentUserId) return;
+    if (!isBrowser() || !currentUserId) {
+      return;
+    }
     void fetch(`/api/follow-up/pending?userId=${encodeURIComponent(currentUserId)}`, {
-      headers: { 'x-user-id': currentUserId },
+      headers: { "x-user-id": currentUserId }
     })
-      .then((response) => response.json())
-      .then((data) => {
+      .then(response => response.json())
+      .then(data => {
         if (data.followUps && Array.isArray(data.followUps)) {
           setPendingFollowUps(data.followUps);
         }
       })
-      .catch((e) => {
-        console.error('Error fetching follow-ups:', e);
+      .catch(e => {
+        console.error("Error fetching follow-ups:", e);
         setPendingFollowUps([]);
       });
   }, [currentUserId]);
@@ -674,25 +526,25 @@ export default function App() {
         ...assessment.profile,
         ...assessment.behaviour,
         monthlyExpense: assessment.profile.monthlyExpense || assessment.profile.monthlySpending,
-        savings: Number(assessment.profile.emergencySavingsFixed || 0) + Number(assessment.profile.emergencySavingsDiscretionary || 0),
-      }),
+        savings:
+          Number(assessment.profile.emergencySavingsFixed || 0) +
+          Number(assessment.profile.emergencySavingsDiscretionary || 0)
+      })
     );
   }, [assessment.profile, assessment.behaviour]);
 
-  useEffect(() => {
-    const handleHashChange = () => startTransition(() => setActiveHash(window.location.hash || "#home"));
-    window.addEventListener("hashchange", handleHashChange);
-    return () => window.removeEventListener("hashchange", handleHashChange);
-  }, []);
-
   // Detect and archive orphaned assessment sessions (user left mid-assessment)
   useEffect(() => {
-    if (!isBrowser()) return;
+    if (!isBrowser()) {
+      return;
+    }
     archiveOrphanedSession();
   }, []);
 
   useEffect(() => {
-    if (!isBrowser()) return;
+    if (!isBrowser()) {
+      return;
+    }
 
     initOfflineApiQueue();
     refreshQueuedSaveCount();
@@ -717,39 +569,34 @@ export default function App() {
     };
   }, []);
 
-  useEffect(() => {
-    if (!isBrowser()) return;
-    if (window.localStorage.getItem("arth-os-onboarding-complete") === "true") {
-      setShowOnboarding(false);
-    }
-  }, []);
+  // Onboarding completion is handled by useUIState hook
+  // completeOnboarding is available from uiState and manages both state and localStorage
 
   const dismissOnboarding = () => {
-    if (isBrowser()) {
-      window.localStorage.setItem("arth-os-onboarding-complete", "true");
-    }
-    setShowOnboarding(false);
+    completeOnboarding();
   };
 
   useEffect(() => {
-    if (!isBrowser()) return;
+    if (!isBrowser()) {
+      return;
+    }
 
     const payload = {
       user: {
         ...assessment.profile,
         ...assessment.behaviour,
-        survivalMonths: result.survivalMonthsRaw,
+        survivalMonths: result.survivalMonthsRaw
       },
-      profile: assessment.profile,
+      profile: assessment.profile
     };
 
     void fetch("/api/risk-opportunity", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
+      body: JSON.stringify(payload)
     })
-      .then((response) => response.json())
-      .then((data) => {
+      .then(response => response.json())
+      .then(data => {
         if (Array.isArray(data.alerts)) {
           setBackendRiskAlerts(data.alerts);
         }
@@ -763,28 +610,31 @@ export default function App() {
   }, [assessment.profile, assessment.behaviour, result.survivalMonthsRaw]);
 
   const cognitionProfile = useMemo(
-    () => buildCognitionProfile({
-      ...assessment.profile,
-      ...assessment.behaviour,
-      ...assessment.awareness,
-    }),
-    [assessment.profile, assessment.behaviour, assessment.awareness],
+    () =>
+      buildCognitionProfile({
+        ...assessment.profile,
+        ...assessment.behaviour,
+        ...assessment.awareness
+      }),
+    [assessment.profile, assessment.behaviour, assessment.awareness]
   );
   const biasProfile = useMemo(
-    () => detectCognitiveBiases({
-      ...assessment.profile,
-      ...assessment.behaviour,
-      ...assessment.awareness,
-    }),
-    [assessment.profile, assessment.behaviour, assessment.awareness],
+    () =>
+      detectCognitiveBiases({
+        ...assessment.profile,
+        ...assessment.behaviour,
+        ...assessment.awareness
+      }),
+    [assessment.profile, assessment.behaviour, assessment.awareness]
   );
   const futureRisk = useMemo(() => detectFutureRisk(assessment.profile), [assessment.profile]);
   const riskCalibration = useMemo(
-    () => calculateRiskCalibration(
-      cognitionProfile.riskCalibration.perceivedRisk,
-      cognitionProfile.riskCalibration.actualRisk,
-    ),
-    [cognitionProfile.riskCalibration.perceivedRisk, cognitionProfile.riskCalibration.actualRisk],
+    () =>
+      calculateRiskCalibration(
+        cognitionProfile.riskCalibration.perceivedRisk,
+        cognitionProfile.riskCalibration.actualRisk
+      ),
+    [cognitionProfile.riskCalibration.perceivedRisk, cognitionProfile.riskCalibration.actualRisk]
   );
   const habitProgress = useMemo(() => evaluateHabitProgress(weeklyCheckins), [weeklyCheckins]);
   const forecastHealthValues = useMemo(() => {
@@ -792,7 +642,7 @@ export default function App() {
       result.healthScore,
       Math.round(habitProgress.score / 8),
       scoreHistory.length,
-      decisionHistoryCount,
+      decisionHistoryCount
     );
   }, [result.healthScore, habitProgress.score, scoreHistory.length, decisionHistoryCount]);
 
@@ -801,7 +651,7 @@ export default function App() {
     try {
       return predictionEngineForecastHealth(
         result.healthScore,
-        scoreHistory.map((s) => s.score || s),
+        scoreHistory.map(s => s.score || s),
         assessment.profile,
         12 // monthly seasonality
       );
@@ -812,72 +662,92 @@ export default function App() {
   const memoryInsight = useMemo(() => generateMemoryInsight(weeklyCheckins), [weeklyCheckins]);
   const opportunity = useMemo(() => opportunityForecast(assessment.profile), [assessment.profile]);
   const goalEvolution = useMemo(
-    () => trackGoalEvolution(
-      assessment.profile.previousGoal || assessment.profile.goal || assessment.profile.goalDescription,
-      assessment.profile.currentGoal || assessment.profile.goal || assessment.profile.goalDescription,
-    ),
+    () =>
+      trackGoalEvolution(
+        assessment.profile.previousGoal ||
+          assessment.profile.goal ||
+          assessment.profile.goalDescription,
+        assessment.profile.currentGoal ||
+          assessment.profile.goal ||
+          assessment.profile.goalDescription
+      ),
     [
       assessment.profile.previousGoal,
       assessment.profile.goal,
       assessment.profile.goalDescription,
-      assessment.profile.currentGoal,
-    ],
+      assessment.profile.currentGoal
+    ]
   );
   const trajectoryNarrative = useMemo(() => buildTrajectoryNarrative(scoreHistory), [scoreHistory]);
   const riskAlerts = useMemo(
-    () => generateAlerts({
-      ...assessment.profile,
-      ...assessment.behaviour,
-      survivalMonths: result.survivalMonthsRaw,
-    }),
-    [assessment.profile, assessment.behaviour, result.survivalMonthsRaw],
+    () =>
+      generateAlerts({
+        ...assessment.profile,
+        ...assessment.behaviour,
+        survivalMonths: result.survivalMonthsRaw
+      }),
+    [assessment.profile, assessment.behaviour, result.survivalMonthsRaw]
   );
   const displayedRiskAlerts = useMemo(
     () => (backendRiskAlerts.length > 0 ? backendRiskAlerts : riskAlerts),
-    [backendRiskAlerts, riskAlerts],
+    [backendRiskAlerts, riskAlerts]
   );
   const fullMemoryEvents = useMemo(() => [...memoryTimeline].reverse(), [memoryTimeline]);
   const displayedMemoryEvents = useMemo(() => {
     return showFullMemoryTimeline ? fullMemoryEvents : fullMemoryEvents.slice(0, 3);
   }, [fullMemoryEvents, showFullMemoryTimeline]);
-  
-  const moneyBeliefs = useMemo(() => deriveMoneyBeliefs({
-    ...assessment.profile,
-    ...assessment.behaviour,
-  }), [assessment.profile, assessment.behaviour]);
-  
-  const emotionalTriggers = useMemo(() => detectTriggers({
-    ...assessment.profile,
-    ...assessment.behaviour,
-  }), [assessment.profile, assessment.behaviour]);
-  
+
+  const moneyBeliefs = useMemo(
+    () =>
+      deriveMoneyBeliefs({
+        ...assessment.profile,
+        ...assessment.behaviour
+      }),
+    [assessment.profile, assessment.behaviour]
+  );
+
+  const emotionalTriggers = useMemo(
+    () =>
+      detectTriggers({
+        ...assessment.profile,
+        ...assessment.behaviour
+      }),
+    [assessment.profile, assessment.behaviour]
+  );
+
   const triggerPatterns = useMemo(
     () => identifyTriggerPatterns(emotionalTriggers, weeklyCheckins),
-    [emotionalTriggers, weeklyCheckins],
+    [emotionalTriggers, weeklyCheckins]
   );
 
   const financialCognitionGraph = useMemo(() => {
     const graph = new FinancialCognitionGraph();
     graph.beliefs = moneyBeliefs.beliefs || [];
     graph.biases = [
-      { id: 'presentBias', value: biasProfile.presentBias },
-      { id: 'lossAversion', value: biasProfile.lossAversion },
-      { id: 'optimismBias', value: biasProfile.optimismBias },
-    ].filter((item) => item.value !== undefined);
+      { id: "presentBias", value: biasProfile.presentBias },
+      { id: "lossAversion", value: biasProfile.lossAversion },
+      { id: "optimismBias", value: biasProfile.optimismBias }
+    ].filter(item => item.value !== undefined);
     graph.emotions = Object.entries(emotionalTriggers || {})
-      .filter(([key, value]) => typeof value === 'number' && value > 0)
+      .filter(([key, value]) => typeof value === "number" && value > 0)
       .map(([key, value]) => ({ id: key, value }));
     graph.decisions = [
-      { id: 'spendWhenStressed', value: assessment.behaviour.spendWhenStressed || null },
-      { id: 'regretImpulseFreq', value: assessment.behaviour.regretImpulseFreq || null },
-    ].filter((item) => item.value !== null);
-    graph.outcomes = [{ id: 'healthScore', value: result.healthScore }];
-    graph.connect('beliefs', 'biases');
-    graph.connect('biases', 'emotions');
-    graph.connect('emotions', 'decisions');
-    graph.connect('decisions', 'outcomes');
+      { id: "spendWhenStressed", value: assessment.behaviour.spendWhenStressed || null },
+      { id: "regretImpulseFreq", value: assessment.behaviour.regretImpulseFreq || null }
+    ].filter(item => item.value !== null);
+    graph.outcomes = [{ id: "healthScore", value: result.healthScore }];
+    graph.connect("beliefs", "biases");
+    graph.connect("biases", "emotions");
+    graph.connect("emotions", "decisions");
+    graph.connect("decisions", "outcomes");
     return graph;
-  }, [moneyBeliefs.beliefs, biasProfile, emotionalTriggers, assessment.behaviour, result.healthScore]);
+  }, [
+    moneyBeliefs.beliefs,
+    biasProfile,
+    emotionalTriggers,
+    assessment.behaviour,
+    result.healthScore
+  ]);
 
   const cognitionGraphData = useMemo(() => {
     const nodes = [];
@@ -887,28 +757,30 @@ export default function App() {
         nodes.push({
           id,
           title: item.label || item.id || `${group} ${index + 1}`,
-          group,
+          group
         });
       });
     };
 
-    addGroup(financialCognitionGraph.beliefs, 'beliefs');
-    addGroup(financialCognitionGraph.biases, 'biases');
-    addGroup(financialCognitionGraph.emotions, 'emotions');
-    addGroup(financialCognitionGraph.decisions, 'decisions');
-    addGroup(financialCognitionGraph.outcomes, 'outcomes');
+    addGroup(financialCognitionGraph.beliefs, "beliefs");
+    addGroup(financialCognitionGraph.biases, "biases");
+    addGroup(financialCognitionGraph.emotions, "emotions");
+    addGroup(financialCognitionGraph.decisions, "decisions");
+    addGroup(financialCognitionGraph.outcomes, "outcomes");
 
     const edges = (financialCognitionGraph.connections || []).map((connection, index) => ({
       source: connection.source,
       target: connection.target,
-      id: `edge-${index}`,
+      id: `edge-${index}`
     }));
 
     return { nodes, edges };
   }, [financialCognitionGraph]);
-  
+
   const financialMindProfile = useMemo(() => {
-    const profile = new FinancialMindProfile({ userId: assessment.participant?.email || 'anonymous' });
+    const profile = new FinancialMindProfile({
+      userId: assessment.participant?.email || "anonymous"
+    });
     if (moneyBeliefs.beliefs) {
       moneyBeliefs.beliefs.forEach(b => profile.addBelief(b));
     }
@@ -916,47 +788,55 @@ export default function App() {
     profile.updateEmotionalTriggers(emotionalTriggers);
     return profile;
   }, [moneyBeliefs.beliefs, biasProfile, emotionalTriggers, assessment.participant?.email]);
-  
+
   const scoreProgress = useMemo(() => getProgressSummary(scoreHistory), [scoreHistory]);
 
   useEffect(() => {
-    if (!isBrowser()) return;
+    if (!isBrowser()) {
+      return;
+    }
     const history = loadScoreHistory();
     setScoreHistory(history);
   }, []);
 
   useEffect(() => {
-    if (!isBrowser()) return;
-    if (typeof result?.healthScore !== "number" || Number.isNaN(result.healthScore)) return;
-    if (result.healthScore <= 0) return;
+    if (!isBrowser()) {
+      return;
+    }
+    if (typeof result?.healthScore !== "number" || Number.isNaN(result.healthScore)) {
+      return;
+    }
+    if (result.healthScore <= 0) {
+      return;
+    }
 
     const updatedHistory = appendScoreHistory(result.healthScore);
     setScoreHistory(updatedHistory);
     appendAssessmentHistory(result);
-    
+
     // Record assessment completion for retention metrics
-    const userId = currentUserId || assessment.participant?.email || 'demo';
+    const userId = currentUserId || assessment.participant?.email || "demo";
     recordAssessmentCompletion(userId);
-    
+
     memoryEngine.addEvent({
-      type: 'assessment_result',
+      type: "assessment_result",
       score: result.healthScore,
       personalityType: result.personalityType,
       stabilityMonths: result.survivalMonthsRaw,
-      source: 'assessment',
+      source: "assessment"
     });
     memoryEngine.addEvent({
-      type: 'trajectory_snapshot',
+      type: "trajectory_snapshot",
       score: result.healthScore,
-      date: new Date().toISOString(),
+      date: new Date().toISOString()
     });
     setMemoryTimeline(memoryEngine.getHistory());
     setTwinScenarios(buildFinancialTwinScenarios(result, assessment.profile));
-    
+
     // Build complete digital twin for simulation and forecasting
     const completeTwin = buildCompleteTwin(result, assessment.profile, {
       assessments: [result],
-      history: memoryEngine.getHistory(),
+      history: memoryEngine.getHistory()
     });
     setDigitalTwin(completeTwin);
   }, [result.healthScore, assessment.profile, result, memoryEngine]);
@@ -969,26 +849,34 @@ export default function App() {
     formatCurrency: formatCurrencyV2,
     extraCards: {
       debtSchedule: true,
-      habits: true,
-    },
+      habits: true
+    }
   };
 
-  const reportRoutes = ["#reports", "#cognition", "#simulator", "#decisions", "#memory", "#history"];
+  const reportRoutes = [
+    "#reports",
+    "#cognition",
+    "#simulator",
+    "#decisions",
+    "#memory",
+    "#history"
+  ];
   const isWorkflowRoute = activeHash === "#assessment" || activeHash === "#simulator";
   const isReportsRoute = reportRoutes.includes(activeHash);
-  const showHeroSection = activeHash === "#home" || activeHash === "#intelligence" || (!isWorkflowRoute && !isReportsRoute);
+  const showHeroSection =
+    activeHash === "#home" ||
+    activeHash === "#intelligence" ||
+    (!isWorkflowRoute && !isReportsRoute);
   const showAssessmentSection = activeHash === "#assessment";
   const showReportsSection = isReportsRoute;
 
-
-
   function updateGroup(group, key, value) {
-    setAssessment((current) => ({
+    setAssessment(current => ({
       ...current,
       [group]: {
         ...current[group],
-        [key]: value,
-      },
+        [key]: value
+      }
     }));
     setSaveState("Unsaved");
   }
@@ -1000,9 +888,11 @@ export default function App() {
       console.warn("Could not save locally:", e);
     }
 
-    if (tier === 'free' && !checkAssessmentAvailable()) {
-      window.alert('Free tier assessments are limited to one per month. Upgrade to Plus for unlimited assessments.');
-      handleOpenPaywall('unlimited_assessments');
+    if (tier === "free" && !checkAssessmentAvailable()) {
+      window.alert(
+        "Free tier assessments are limited to one per month. Upgrade to Plus for unlimited assessments."
+      );
+      handleOpenPaywall("unlimited_assessments");
       return;
     }
 
@@ -1015,19 +905,19 @@ export default function App() {
       }
 
       setSaveState("Upload pending");
-      
+
       // Build headers with JWT token for authenticated users
       const headers = { "Content-Type": "application/json" };
       if (token) {
         headers["Authorization"] = `Bearer ${token}`;
       }
-      
+
       fetch("/api/saveAssessment", {
         method: "POST",
         headers,
-        body: JSON.stringify(payload),
+        body: JSON.stringify(payload)
       })
-        .then(async (resp) => {
+        .then(async resp => {
           const body = await resp.text().catch(() => null);
           if (!resp.ok) {
             enqueueAssessmentSaveAndRefresh(payload);
@@ -1044,15 +934,15 @@ export default function App() {
             setSaveState("Saved");
           }
 
-          if (tier === 'free') {
+          if (tier === "free") {
             recordAssessment();
-            setRemainingAssessments(getRemainingAssessments('free'));
+            setRemainingAssessments(getRemainingAssessments("free"));
             setNextAvailableAssessmentDate(getLastAssessmentDate());
           }
 
           console.log("Remote save response:", resp.status, body);
         })
-        .catch((err) => {
+        .catch(err => {
           enqueueAssessmentSaveAndRefresh(payload);
           setSaveState("Saved offline");
           console.warn("Remote save error, queued for retry:", err);
@@ -1083,7 +973,7 @@ export default function App() {
     const report = {
       assessment,
       result,
-      createdAt: new Date().toISOString(),
+      createdAt: new Date().toISOString()
     };
     setAdminReport(report);
   }
@@ -1099,7 +989,7 @@ export default function App() {
       console.warn("Could not clear reset storage:", error);
     }
     setSaveState("Ready");
-    setResetTrigger((current) => current + 1);
+    setResetTrigger(current => current + 1);
   }
 
   function handleSmsEnrichment(signals, transactions) {
@@ -1107,32 +997,35 @@ export default function App() {
     setSmsEnrichment({ signals, transactions, behaviourUpdates });
     setShowSmsForm(false);
     if (signals) {
-      setAssessment((current) => ({
+      setAssessment(current => ({
         ...current,
         behaviour: {
           ...current.behaviour,
-          ...behaviourUpdates,
-        },
+          ...behaviourUpdates
+        }
       }));
       setSaveState("Unsaved");
     }
   }
 
   function handleDailyCheckin({ behaviourUpdates }) {
-    if (!behaviourUpdates) return;
-    setAssessment((current) => ({
+    if (!behaviourUpdates) {
+      return;
+    }
+    setAssessment(current => ({
       ...current,
       behaviour: {
         ...current.behaviour,
-        ...behaviourUpdates,
-      },
+        ...behaviourUpdates
+      }
     }));
     setSaveState("Unsaved");
   }
 
-
   function exportReport() {
-    if (!isBrowser()) return;
+    if (!isBrowser()) {
+      return;
+    }
     window.print();
   }
 
@@ -1151,13 +1044,13 @@ export default function App() {
         onOpenAuth={() => setShowAuthModal(true)}
         onLogout={logout}
         notificationBadgeCount={notificationBadgeCount}
-        onToggleNotification={() => setShowNotificationPanel((prev) => !prev)}
+        onToggleNotification={() => setShowNotificationPanel(prev => !prev)}
       />
 
       {!showAuthModal && (
         <FlowNavigation
           activeHash={activeHash}
-          onNavigate={(hash) => {
+          onNavigate={hash => {
             startTransition(() => {
               setActiveHash(hash);
               window.location.hash = hash;
@@ -1173,14 +1066,12 @@ export default function App() {
 
       <NotificationToast />
 
-      {showOnboarding && (
-        <OnboardingOverlay onComplete={dismissOnboarding} />
-      )}
+      {showOnboarding && <OnboardingOverlay onComplete={dismissOnboarding} />}
 
       {/* Auth Modal */}
       {showAuthModal && (
         <div className="auth-modal-backdrop" onClick={() => setShowAuthModal(false)}>
-          <div className="auth-modal-container" onClick={(e) => e.stopPropagation()}>
+          <div className="auth-modal-container" onClick={e => e.stopPropagation()}>
             {authMode === "login" ? (
               <LoginPage
                 onSwitchToRegister={() => setAuthMode("register")}
@@ -1199,15 +1090,24 @@ export default function App() {
       <main>
         {activeHash === "#b2b" ? (
           <Suspense fallback={<LazyComponentFallback />}>
-            <B2BPartnerPortal
-              userId={effectiveUserId}
-              assessment={assessment}
-            />
+            <B2BPartnerPortal userId={effectiveUserId} assessment={assessment} />
           </Suspense>
         ) : activeHash === "#predictions" ? (
           <Suspense fallback={<LazyComponentFallback />}>
             <ErrorBoundary>
               <PredictionEngineDashboard userId={effectiveUserId} />
+            </ErrorBoundary>
+          </Suspense>
+        ) : activeHash === "#ai-coach" ? (
+          <Suspense fallback={<LazyComponentFallback />}>
+            <ErrorBoundary>
+              <AiCoachInterface userId={effectiveUserId} />
+            </ErrorBoundary>
+          </Suspense>
+        ) : activeHash === "#longitudinal" ? (
+          <Suspense fallback={<LazyComponentFallback />}>
+            <ErrorBoundary>
+              <LongitudinalLearningDashboard userId={effectiveUserId} />
             </ErrorBoundary>
           </Suspense>
         ) : activeHash === "#admin" ? (
@@ -1225,41 +1125,36 @@ export default function App() {
           />
         ) : (
           <>
-            {showHeroSection && (
-              <HeroSection
-                assessment={assessment}
-                result={result}
-              />
-            )}
+            {showHeroSection && <HeroSection assessment={assessment} result={result} />}
             {showAssessmentSection && (
               <ErrorBoundary>
-              {tier === 'free' && remainingAssessments === 0 && (
-                <AssessmentLimitNotice
-                  tier={tier}
-                  remaining={remainingAssessments}
-                  nextAvailableDate={nextAvailableAssessmentDate}
-                  onUpgradeClick={() => handleOpenPaywall('unlimited_assessments')}
+                {tier === "free" && remainingAssessments === 0 && (
+                  <AssessmentLimitNotice
+                    tier={tier}
+                    remaining={remainingAssessments}
+                    nextAvailableDate={nextAvailableAssessmentDate}
+                    onUpgradeClick={() => handleOpenPaywall("unlimited_assessments")}
+                  />
+                )}
+                <AssessmentSection
+                  assessment={assessment}
+                  result={result}
+                  onChange={updateGroup}
+                  onSaveAssessment={saveAssessment}
+                  ui={ui}
+                  resetTrigger={resetTrigger}
                 />
-              )}
-              <AssessmentSection
-                assessment={assessment}
-                result={result}
-                onChange={updateGroup}
-                onSaveAssessment={saveAssessment}
-                ui={ui}
-                resetTrigger={resetTrigger}
-              />
-              {showPaywall && (
-                <FeaturePaywall
-                  isOpen={showPaywall}
-                  feature={paywallFeature}
-                  currentTier={tier}
-                  onClose={handleClosePaywall}
-                  onUpgradeClick={handleUpgradeFromPaywall}
-                />
-              )}
-            </ErrorBoundary>
-          )}
+                {showPaywall && (
+                  <FeaturePaywall
+                    isOpen={showPaywall}
+                    feature={paywallFeature}
+                    currentTier={tier}
+                    onClose={handleClosePaywall}
+                    onUpgradeClick={handleUpgradeFromPaywall}
+                  />
+                )}
+              </ErrorBoundary>
+            )}
 
             {showSmsForm && activeHash === "#assessment" && (
               <section style={{ maxWidth: "1200px", margin: "20px auto", padding: "0 16px" }}>
@@ -1274,437 +1169,565 @@ export default function App() {
             )}
 
             {smsEnrichment && (
-              <section className="premium-inline-badge-wrap" style={{ maxWidth: "1200px", margin: "20px auto", padding: "0 16px" }}>
+              <section
+                className="premium-inline-badge-wrap"
+                style={{ maxWidth: "1200px", margin: "20px auto", padding: "0 16px" }}
+              >
                 <div className="premium-success-badge">
-                  ✓ Your assessment has been enriched with {smsEnrichment.transactions?.length || 0} banking transactions
+                  ✓ Your assessment has been enriched with {smsEnrichment.transactions?.length || 0}{" "}
+                  banking transactions
                 </div>
               </section>
             )}
 
-
             {showReportsSection && (
-            <section className="assessment-summary-grid flow-report-grid" id="reports">
-              <div className="summary-main-column">
-                {/* MOST IMPORTANT INSIGHT — Center of the MVP Experience */}
-                <Suspense fallback={<LazyComponentFallback />}>
-                  <ErrorBoundary>
-                    <SingleMostImportantInsight assessmentResult={result} assessment={assessment} />
-                  </ErrorBoundary>
-                </Suspense>
+              <section className="assessment-summary-grid flow-report-grid" id="reports">
+                <div className="summary-main-column">
+                  {/* MOST IMPORTANT INSIGHT — Center of the MVP Experience */}
+                  <Suspense fallback={<LazyComponentFallback />}>
+                    <ErrorBoundary>
+                      <SingleMostImportantInsight
+                        assessmentResult={result}
+                        assessment={assessment}
+                      />
+                    </ErrorBoundary>
+                  </Suspense>
 
-                {/* PDF EXPORT — Save Results */}
-                <section className="summary-card">
-                  <ExportPDF result={result} assessmentData={assessment} />
-                </section>
-                
-                {/* ACTION FOLLOW-UP PANEL — Day 7 & Day 30 Check-Ins */}
-                <Suspense fallback={<LazyComponentFallback />}>
-                  <ErrorBoundary>
-                    <ActionFollowUpPanel userId={currentUserId} followUps={pendingFollowUps} />
-                  </ErrorBoundary>
-                </Suspense>
-                
-                <Suspense fallback={<LazyComponentFallback />}>
-                  <ErrorBoundary>
-                    <AnalyticsDashboard result={result} />
-                  </ErrorBoundary>
-                </Suspense>
-
-                {/* Retention & Cohort Analytics Dashboard */}
-                <Suspense fallback={<LazyComponentFallback />}>
-                  <ErrorBoundary>
-                    <RetentionDashboard />
-                  </ErrorBoundary>
-                </Suspense>
-
-                {/* Assessment Completion Rate Dashboard */}
-                <Suspense fallback={<LazyComponentFallback />}>
-                  <ErrorBoundary>
-                    <CompletionDashboard />
-                  </ErrorBoundary>
-                </Suspense>
-
-                {currentUserId && (
+                  {/* PDF EXPORT — Save Results */}
                   <section className="summary-card">
-                    <SubscriptionManagement userId={currentUserId} />
+                    <ExportPDF result={result} assessmentData={assessment} />
                   </section>
-                )}
 
-                {/* Digital Twin Dashboard - Flight Simulator for Financial Life */}
-                <Suspense fallback={<LazyComponentFallback />}>
-                  <ErrorBoundary>
-                    <DigitalTwinDashboard twin={digitalTwin} assessment={result} />
-                  </ErrorBoundary>
-                </Suspense>
-                
-                <section className="summary-card">
-                  <div className="premium-report-section-header">
-                    <h2 className="premium-report-section-title">🔥 Financial Roast</h2>
-                  </div>
-                  <SalaryRoastGenerator
-                    assessmentResult={result}
-                    profile={assessment.profile}
-                  />
-                </section>
-                <section className="summary-card">
-                  <div className="premium-report-section-header">
-                    <h2 className="premium-report-section-title">📊 Financial Forecast</h2>
-                    <p className="premium-report-block-subtitle">GBM Monte Carlo projections with stress test scenarios.</p>
-                  </div>
-                  <ScenarioForecast
-                    profile={assessment.profile}
-                    assessmentResult={result}
-                    predictionEngineForecast={predictionEngineForecast}
-                  />
-                </section>
-                <section className="summary-card">
-                  <div className="premium-report-section-header">
-                    <h2 className="premium-report-section-title">🤖 Multi-Model Ensemble Forecast</h2>
-                    <p className="premium-report-block-subtitle">
-                      Auto-selected best model from ARIMA · Holt-Winters · Bayesian Structural · Ensemble
-                    </p>
-                  </div>
-                  <ForecastModelCard forecast={predictionEngineForecast} />
-                </section>
-                <section className="summary-card premium-report-block" id="cognition">
-                  <div className="premium-report-block-header">
-                    <h2 className="premium-report-block-title">🧠 Cognition & Future Risk</h2>
-                    <p className="premium-report-block-subtitle">
-                      See your cognitive calibration, runway risk, and forecasted health trajectory.
-                    </p>
-                  </div>
-                  <div className="premium-report-grid">
-                    <div className="premium-report-grid-2">
-                      <div className="premium-metric-tile">
-                        <div className="premium-metric-kicker">Calibration gap</div>
-                        <div className="premium-metric-value">{riskCalibration.calibrationGap}%</div>
-                        <div className="premium-metric-desc">Perceived vs. actual risk alignment.</div>
-                      </div>
-                      <div className="premium-metric-tile">
-                        <div className="premium-metric-kicker">Near-term runway</div>
-                        <div className="premium-metric-value">{futureRisk.runway} months</div>
-                        <div className="premium-metric-desc">{futureRisk.message}</div>
-                      </div>
-                    </div>
-                    <div className="premium-report-grid-3">
-                      <div className="premium-metric-tile">
-                        <div className="premium-metric-kicker">30 day health (p50)</div>
-                        <div className="premium-metric-value">{forecastHealthValues.day30?.p50 ?? '—'}</div>
-                        <div className="premium-metric-desc">Range: {forecastHealthValues.day30?.p25 ?? '—'}–{forecastHealthValues.day30?.p75 ?? '—'}</div>
-                      </div>
-                      <div className="premium-metric-tile">
-                        <div className="premium-metric-kicker">90 day health (p50)</div>
-                        <div className="premium-metric-value">{forecastHealthValues.day90?.p50 ?? '—'}</div>
-                        <div className="premium-metric-desc">Range: {forecastHealthValues.day90?.p25 ?? '—'}–{forecastHealthValues.day90?.p75 ?? '—'}</div>
-                      </div>
-                      <div className="premium-metric-tile">
-                        <div className="premium-metric-kicker">180 day health (p50)</div>
-                        <div className="premium-metric-value">{forecastHealthValues.day180?.p50 ?? '—'}</div>
-                        <div className="premium-metric-desc">Range: {forecastHealthValues.day180?.p25 ?? '—'}–{forecastHealthValues.day180?.p75 ?? '—'}</div>
-                      </div>
-                    </div>
-                    <div className="premium-report-grid-2">
-                      <div className="premium-metric-tile">
-                        <div className="premium-metric-kicker">Forecast confidence</div>
-                        <div className="premium-metric-value">{forecastHealthValues.confidence}%</div>
-                        <div className="premium-metric-desc">Based on {scoreHistory.length} historical datapoints and {decisionHistoryCount} decisions tracked.</div>
-                      </div>
-                      <div className="premium-metric-tile">
-                        <div className="premium-metric-kicker">Cognitive bias load</div>
-                        <div className="premium-metric-value">
-                          {Math.round((biasProfile.presentBias + biasProfile.lossAversion + biasProfile.optimismBias + biasProfile.anchoringBias + biasProfile.sunkCostBias) / 5)}%
-                        </div>
-                        <div className="premium-metric-desc">Average exposure across your core bias dimensions.</div>
-                      </div>
-                      <div className="premium-metric-tile">
-                        <div className="premium-metric-kicker">Opportunity forecast</div>
-                        <div className="premium-metric-value premium-metric-value-compact">{opportunity.action}</div>
-                        <div className="premium-metric-desc">{opportunity.benefit}</div>
-                      </div>
-                    </div>
-                    <div className="premium-report-grid-2">
-                      <div className="premium-metric-tile">
-                        <div className="premium-metric-kicker">Cognition graph</div>
-                        <div className="premium-metric-value">{financialCognitionGraph.beliefs.length + financialCognitionGraph.biases.length + financialCognitionGraph.emotions.length + financialCognitionGraph.decisions.length + financialCognitionGraph.outcomes.length} elements</div>
-                        <div className="premium-metric-desc">{financialCognitionGraph.connections.length} connections modeling belief → bias → outcome.</div>
-                      </div>
-                      <div className="premium-metric-tile">
-                        <div className="premium-metric-kicker">Risk calibration</div>
-                        <div className="premium-metric-value">{riskCalibration.calibrated ? "Aligned" : "Misaligned"}</div>
-                        <div className="premium-metric-desc">Perception gap is {riskCalibration.calibrationGap}%.</div>
-                      </div>
-                    </div>
-                    <div className="premium-metric-tile premium-metric-tile-wide">
-                      <strong className="premium-metric-heading">Risk & opportunity alerts</strong>
-                      <ul className="risk-alert-list">
-                        {displayedRiskAlerts.map((alert, index) => (
-                          <li key={`${alert.type}-${index}`} className={`risk-alert risk-alert-${alert.type}`}>
-                            <strong>{alert.title}</strong>
-                            <span>{alert.message}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                    {(backendMarketplaceRecommendations.length > 0 || marketplaceRecommendations.length > 0) && (
-                      <div className="premium-metric-tile premium-metric-tile-wide">
-                        <strong className="premium-metric-heading">Marketplace recommendations</strong>
-                        <p className="premium-metric-longtext">
-                          {backendMarketplaceRecommendations.length > 0
-                            ? backendMarketplaceRecommendations.map((provider) => provider.name).join(', ')
-                            : marketplaceRecommendations.map((provider) => provider.name).join(', ')}
-                        </p>
-                      </div>
-                    )}
-                    {memoryInsight && (
-                      <div className="premium-metric-tile premium-metric-tile-wide">
-                        <strong className="premium-metric-heading">Memory Insight</strong>
-                        <p className="premium-metric-longtext">{memoryInsight.insight}</p>
-                      </div>
-                    )}
-                    <div className="premium-metric-tile premium-metric-tile-wide">
-                      <strong className="premium-metric-heading">Score trajectory</strong>
-                      <p className="premium-metric-longtext">{trajectoryNarrative}</p>
-                    </div>
-                    <div className="premium-metric-tile premium-metric-tile-wide">
-                      <strong className="premium-metric-heading">Cognition graph explorer</strong>
-                      <Suspense fallback={<LazyComponentFallback />}>
-                        <CognitionGraphView nodes={cognitionGraphData.nodes} edges={cognitionGraphData.edges} />
-                      </Suspense>
-                    </div>
-                    <div className="premium-metric-tile premium-metric-tile-wide">
-                      <strong className="premium-metric-heading">Unified memory</strong>
-                      <p className="premium-metric-longtext">{memoryTimeline.length} memory events stored across your financial history.</p>
-                      {displayedMemoryEvents.length > 0 ? (
-                        <>
-                          <ul className="memory-timeline-list">
-                            {displayedMemoryEvents.map((event, index) => (
-                              <li key={`${event.type}-${event.timestamp}-${index}`}>
-                                <strong>{event.type.replaceAll('_', ' ')}</strong>: {event.score !== undefined ? `score ${event.score}` : event.name || event.description || 'event recorded'}
-                                <span> · {new Date(event.timestamp).toLocaleDateString()}</span>
-                              </li>
-                            ))}
-                          </ul>
-                          {memoryTimeline.length > 3 && (
-                            <button
-                              type="button"
-                              className="memory-toggle-button"
-                              onClick={() => setShowFullMemoryTimeline((current) => !current)}
-                            >
-                              {showFullMemoryTimeline ? "Show recent events" : "View full memory timeline"}
-                            </button>
-                          )}
-                        </>
-                      ) : (
-                        <p className="premium-metric-longtext">Complete an assessment to start building your financial memory timeline.</p>
-                      )}
-                    </div>
-                    {marketplaceRecommendations.length > 0 && (
-                      <div className="premium-metric-tile premium-metric-tile-wide">
-                        <strong className="premium-metric-heading">OS marketplace</strong>
-                        <p className="premium-metric-longtext">
-                          Recommended providers: {marketplaceRecommendations.map((provider) => provider.name).join(", ")}.
-                        </p>
-                      </div>
-                    )}
-                    {(goalEvolution.previousGoal || goalEvolution.currentGoal) && (
-                      <div className="premium-metric-tile premium-metric-tile-wide">
-                        <span className="premium-metric-kicker">Goal evolution</span>
-                        <div className="premium-metric-value premium-metric-value-compact">
-                          {goalEvolution.changed ? "Goal path shifted" : "Goal path stable"}
-                        </div>
-                        <div className="premium-metric-desc">
-                          {goalEvolution.changed
-                            ? `Moved from ${goalEvolution.previousGoal || "previous"} to ${goalEvolution.currentGoal || "current"}.`
-                            : "Your current goal remains consistent."}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </section>
+                  {/* ACTION FOLLOW-UP PANEL — Day 7 & Day 30 Check-Ins */}
+                  <Suspense fallback={<LazyComponentFallback />}>
+                    <ErrorBoundary>
+                      <ActionFollowUpPanel userId={currentUserId} followUps={pendingFollowUps} />
+                    </ErrorBoundary>
+                  </Suspense>
 
-                <section className="summary-card premium-report-block">
-                  <MoneyBeliefsCard moneyBeliefs={moneyBeliefs} />
-                  <EmotionalTriggersCard triggers={emotionalTriggers} patterns={triggerPatterns} />
-                  <FinancialMindProfileCard profile={financialMindProfile} />
-                </section>
+                  <Suspense fallback={<LazyComponentFallback />}>
+                    <ErrorBoundary>
+                      <AnalyticsDashboard result={result} />
+                    </ErrorBoundary>
+                  </Suspense>
 
-                <ErrorBoundary>
-                  <DecisionSimulator
-                    id="simulator"
-                    profile={assessment.profile}
-                    behaviour={assessment.behaviour}
-                  />
-                </ErrorBoundary>
-              </div>
+                  {/* Retention & Cohort Analytics Dashboard */}
+                  <Suspense fallback={<LazyComponentFallback />}>
+                    <ErrorBoundary>
+                      <RetentionDashboard />
+                    </ErrorBoundary>
+                  </Suspense>
 
-              <div className="assessment-summary-sidebar">
-                <Suspense fallback={<LazyComponentFallback />}>
-                  <ErrorBoundary>
-                    <FinancialTwin
-                      personalityType={result.personalityType}
-                      behaviourScore={result.behaviourScore}
-                      awarenessScore={result.awarenessScore}
-                      scenarios={twinScenarios}
+                  {/* Assessment Completion Rate Dashboard */}
+                  <Suspense fallback={<LazyComponentFallback />}>
+                    <ErrorBoundary>
+                      <CompletionDashboard />
+                    </ErrorBoundary>
+                  </Suspense>
+
+                  {currentUserId && (
+                    <section className="summary-card">
+                      <SubscriptionManagement userId={currentUserId} />
+                    </section>
+                  )}
+
+                  {/* Digital Twin Dashboard - Flight Simulator for Financial Life */}
+                  <Suspense fallback={<LazyComponentFallback />}>
+                    <ErrorBoundary>
+                      <DigitalTwinDashboard twin={digitalTwin} assessment={result} />
+                    </ErrorBoundary>
+                  </Suspense>
+
+                  <section className="summary-card">
+                    <div className="premium-report-section-header">
+                      <h2 className="premium-report-section-title">🔥 Financial Roast</h2>
+                    </div>
+                    <SalaryRoastGenerator assessmentResult={result} profile={assessment.profile} />
+                  </section>
+                  <section className="summary-card">
+                    <div className="premium-report-section-header">
+                      <h2 className="premium-report-section-title">📊 Financial Forecast</h2>
+                      <p className="premium-report-block-subtitle">
+                        GBM Monte Carlo projections with stress test scenarios.
+                      </p>
+                    </div>
+                    <ScenarioForecast
+                      profile={assessment.profile}
+                      assessmentResult={result}
+                      predictionEngineForecast={predictionEngineForecast}
                     />
-                  </ErrorBoundary>
-                </Suspense>
-                <PeerComparisonCard userScore={result.healthScore} />
-                <FinancialDNA result={result} />
-                {isAuthenticated ? (
-                  <div className="summary-card padded" style={{ marginTop: "18px" }}>
-                    <div className="auth-status-card">
-                      <CircleUserRound size={20} />
-                      <span>Signed in as <strong>{user?.name || user?.email}</strong></span>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="summary-card padded" style={{ marginTop: "18px" }}>
-                    <div className="auth-status-card">
-                      <LogIn size={20} />
-                      <span>
-                        <button
-                          type="button"
-                          className="auth-link-btn"
-                          onClick={() => { setAuthMode("login"); setShowAuthModal(true); }}
-                        >
-                          Sign in
-                        </button>
-                        {" "}or{" "}
-                        <button
-                          type="button"
-                          className="auth-link-btn"
-                          onClick={() => { setAuthMode("register"); setShowAuthModal(true); }}
-                        >
-                          create an account
-                        </button>
-                        {" "}to persist data across devices
-                      </span>
-                    </div>
-                  </div>
-                )}
-                <UpgradeJourney result={result} currentScore={result.healthScore} />
-                {!showSmsForm && !smsEnrichment && (
-                  <section className="enrichment-banner">
-                    <p className="enrichment-banner-title">{ASSESSMENT_BANNER.title}</p>
-                    <button type="button" className="enrichment-button" onClick={() => setShowSmsForm(true)}>
-                      {ASSESSMENT_BANNER.cta}
-                    </button>
-                    <p className="enrichment-copy">{ASSESSMENT_BANNER.description}</p>
                   </section>
-                )}
-
-                <section className="summary-card padded" style={{ marginTop: "18px" }}>
-                  <PartnerSdkDemo
-                    userId={effectiveUserId}
-                    assessment={assessment}
-                  />
-                </section>
-              </div>
-
-              <section id="memory" className="summary-span">
-                <div className="summary-card">
-                  <div className="premium-report-section-header">
-                    <h2 className="premium-report-section-title">🧠 Memory Timeline</h2>
-                    <p className="premium-report-block-subtitle">
-                      A dedicated memory view for your recorded financial events, reflections and decision milestones.
-                    </p>
-                  </div>
-                  {memoryTimeline.length > 0 ? (
-                    <>
+                  <section className="summary-card">
+                    <div className="premium-report-section-header">
+                      <h2 className="premium-report-section-title">
+                        🤖 Multi-Model Ensemble Forecast
+                      </h2>
+                      <p className="premium-report-block-subtitle">
+                        Auto-selected best model from ARIMA · Holt-Winters · Bayesian Structural ·
+                        Ensemble
+                      </p>
+                    </div>
+                    <ForecastModelCard forecast={predictionEngineForecast} />
+                  </section>
+                  <section className="summary-card premium-report-block" id="cognition">
+                    <div className="premium-report-block-header">
+                      <h2 className="premium-report-block-title">🧠 Cognition & Future Risk</h2>
+                      <p className="premium-report-block-subtitle">
+                        See your cognitive calibration, runway risk, and forecasted health
+                        trajectory.
+                      </p>
+                    </div>
+                    <div className="premium-report-grid">
                       <div className="premium-report-grid-2">
                         <div className="premium-metric-tile">
-                          <div className="premium-metric-kicker">Memory events</div>
-                          <div className="premium-metric-value">{memoryTimeline.length}</div>
-                          <div className="premium-metric-desc">Events captured from assessments, forecasts, and decisions.</div>
+                          <div className="premium-metric-kicker">Calibration gap</div>
+                          <div className="premium-metric-value">
+                            {riskCalibration.calibrationGap}%
+                          </div>
+                          <div className="premium-metric-desc">
+                            Perceived vs. actual risk alignment.
+                          </div>
                         </div>
                         <div className="premium-metric-tile">
-                          <div className="premium-metric-kicker">Latest entry</div>
-                          <div className="premium-metric-value">
-                            {new Date(fullMemoryEvents[0]?.timestamp || Date.now()).toLocaleDateString()}
-                          </div>
-                          <div className="premium-metric-desc">Most recent financial memory update.</div>
+                          <div className="premium-metric-kicker">Near-term runway</div>
+                          <div className="premium-metric-value">{futureRisk.runway} months</div>
+                          <div className="premium-metric-desc">{futureRisk.message}</div>
                         </div>
                       </div>
-                      <ul className="memory-timeline-list memory-timeline-page-list">
-                        {fullMemoryEvents.map((event, index) => (
-                          <li key={`${event.type}-${event.timestamp}-${index}`}>
-                            <strong>{event.type.replaceAll('_', ' ')}</strong>
-                            <span>{event.score !== undefined ? `Score ${event.score}` : event.name || event.description || 'Event recorded'}</span>
-                            <span>{new Date(event.timestamp).toLocaleDateString()} · {new Date(event.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    </>
+                      <div className="premium-report-grid-3">
+                        <div className="premium-metric-tile">
+                          <div className="premium-metric-kicker">30 day health (p50)</div>
+                          <div className="premium-metric-value">
+                            {forecastHealthValues.day30?.p50 ?? "—"}
+                          </div>
+                          <div className="premium-metric-desc">
+                            Range: {forecastHealthValues.day30?.p25 ?? "—"}–
+                            {forecastHealthValues.day30?.p75 ?? "—"}
+                          </div>
+                        </div>
+                        <div className="premium-metric-tile">
+                          <div className="premium-metric-kicker">90 day health (p50)</div>
+                          <div className="premium-metric-value">
+                            {forecastHealthValues.day90?.p50 ?? "—"}
+                          </div>
+                          <div className="premium-metric-desc">
+                            Range: {forecastHealthValues.day90?.p25 ?? "—"}–
+                            {forecastHealthValues.day90?.p75 ?? "—"}
+                          </div>
+                        </div>
+                        <div className="premium-metric-tile">
+                          <div className="premium-metric-kicker">180 day health (p50)</div>
+                          <div className="premium-metric-value">
+                            {forecastHealthValues.day180?.p50 ?? "—"}
+                          </div>
+                          <div className="premium-metric-desc">
+                            Range: {forecastHealthValues.day180?.p25 ?? "—"}–
+                            {forecastHealthValues.day180?.p75 ?? "—"}
+                          </div>
+                        </div>
+                      </div>
+                      <div className="premium-report-grid-2">
+                        <div className="premium-metric-tile">
+                          <div className="premium-metric-kicker">Forecast confidence</div>
+                          <div className="premium-metric-value">
+                            {forecastHealthValues.confidence}%
+                          </div>
+                          <div className="premium-metric-desc">
+                            Based on {scoreHistory.length} historical datapoints and{" "}
+                            {decisionHistoryCount} decisions tracked.
+                          </div>
+                        </div>
+                        <div className="premium-metric-tile">
+                          <div className="premium-metric-kicker">Cognitive bias load</div>
+                          <div className="premium-metric-value">
+                            {Math.round(
+                              (biasProfile.presentBias +
+                                biasProfile.lossAversion +
+                                biasProfile.optimismBias +
+                                biasProfile.anchoringBias +
+                                biasProfile.sunkCostBias) /
+                                5
+                            )}
+                            %
+                          </div>
+                          <div className="premium-metric-desc">
+                            Average exposure across your core bias dimensions.
+                          </div>
+                        </div>
+                        <div className="premium-metric-tile">
+                          <div className="premium-metric-kicker">Opportunity forecast</div>
+                          <div className="premium-metric-value premium-metric-value-compact">
+                            {opportunity.action}
+                          </div>
+                          <div className="premium-metric-desc">{opportunity.benefit}</div>
+                        </div>
+                      </div>
+                      <div className="premium-report-grid-2">
+                        <div className="premium-metric-tile">
+                          <div className="premium-metric-kicker">Cognition graph</div>
+                          <div className="premium-metric-value">
+                            {financialCognitionGraph.beliefs.length +
+                              financialCognitionGraph.biases.length +
+                              financialCognitionGraph.emotions.length +
+                              financialCognitionGraph.decisions.length +
+                              financialCognitionGraph.outcomes.length}{" "}
+                            elements
+                          </div>
+                          <div className="premium-metric-desc">
+                            {financialCognitionGraph.connections.length} connections modeling belief
+                            → bias → outcome.
+                          </div>
+                        </div>
+                        <div className="premium-metric-tile">
+                          <div className="premium-metric-kicker">Risk calibration</div>
+                          <div className="premium-metric-value">
+                            {riskCalibration.calibrated ? "Aligned" : "Misaligned"}
+                          </div>
+                          <div className="premium-metric-desc">
+                            Perception gap is {riskCalibration.calibrationGap}%.
+                          </div>
+                        </div>
+                      </div>
+                      <div className="premium-metric-tile premium-metric-tile-wide">
+                        <strong className="premium-metric-heading">
+                          Risk & opportunity alerts
+                        </strong>
+                        <ul className="risk-alert-list">
+                          {displayedRiskAlerts.map((alert, index) => (
+                            <li
+                              key={`${alert.type}-${index}`}
+                              className={`risk-alert risk-alert-${alert.type}`}
+                            >
+                              <strong>{alert.title}</strong>
+                              <span>{alert.message}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                      {(backendMarketplaceRecommendations.length > 0 ||
+                        marketplaceRecommendations.length > 0) && (
+                        <div className="premium-metric-tile premium-metric-tile-wide">
+                          <strong className="premium-metric-heading">
+                            Marketplace recommendations
+                          </strong>
+                          <p className="premium-metric-longtext">
+                            {backendMarketplaceRecommendations.length > 0
+                              ? backendMarketplaceRecommendations
+                                  .map(provider => provider.name)
+                                  .join(", ")
+                              : marketplaceRecommendations
+                                  .map(provider => provider.name)
+                                  .join(", ")}
+                          </p>
+                        </div>
+                      )}
+                      {memoryInsight && (
+                        <div className="premium-metric-tile premium-metric-tile-wide">
+                          <strong className="premium-metric-heading">Memory Insight</strong>
+                          <p className="premium-metric-longtext">{memoryInsight.insight}</p>
+                        </div>
+                      )}
+                      <div className="premium-metric-tile premium-metric-tile-wide">
+                        <strong className="premium-metric-heading">Score trajectory</strong>
+                        <p className="premium-metric-longtext">{trajectoryNarrative}</p>
+                      </div>
+                      <div className="premium-metric-tile premium-metric-tile-wide">
+                        <strong className="premium-metric-heading">Cognition graph explorer</strong>
+                        <Suspense fallback={<LazyComponentFallback />}>
+                          <CognitionGraphView
+                            nodes={cognitionGraphData.nodes}
+                            edges={cognitionGraphData.edges}
+                          />
+                        </Suspense>
+                      </div>
+                      <div className="premium-metric-tile premium-metric-tile-wide">
+                        <strong className="premium-metric-heading">Unified memory</strong>
+                        <p className="premium-metric-longtext">
+                          {memoryTimeline.length} memory events stored across your financial
+                          history.
+                        </p>
+                        {displayedMemoryEvents.length > 0 ? (
+                          <>
+                            <ul className="memory-timeline-list">
+                              {displayedMemoryEvents.map((event, index) => (
+                                <li key={`${event.type}-${event.timestamp}-${index}`}>
+                                  <strong>{event.type.replaceAll("_", " ")}</strong>:{" "}
+                                  {event.score !== undefined
+                                    ? `score ${event.score}`
+                                    : event.name || event.description || "event recorded"}
+                                  <span> · {new Date(event.timestamp).toLocaleDateString()}</span>
+                                </li>
+                              ))}
+                            </ul>
+                            {memoryTimeline.length > 3 && (
+                              <button
+                                type="button"
+                                className="memory-toggle-button"
+                                onClick={() => setShowFullMemoryTimeline(current => !current)}
+                              >
+                                {showFullMemoryTimeline
+                                  ? "Show recent events"
+                                  : "View full memory timeline"}
+                              </button>
+                            )}
+                          </>
+                        ) : (
+                          <p className="premium-metric-longtext">
+                            Complete an assessment to start building your financial memory timeline.
+                          </p>
+                        )}
+                      </div>
+                      {marketplaceRecommendations.length > 0 && (
+                        <div className="premium-metric-tile premium-metric-tile-wide">
+                          <strong className="premium-metric-heading">OS marketplace</strong>
+                          <p className="premium-metric-longtext">
+                            Recommended providers:{" "}
+                            {marketplaceRecommendations.map(provider => provider.name).join(", ")}.
+                          </p>
+                        </div>
+                      )}
+                      {(goalEvolution.previousGoal || goalEvolution.currentGoal) && (
+                        <div className="premium-metric-tile premium-metric-tile-wide">
+                          <span className="premium-metric-kicker">Goal evolution</span>
+                          <div className="premium-metric-value premium-metric-value-compact">
+                            {goalEvolution.changed ? "Goal path shifted" : "Goal path stable"}
+                          </div>
+                          <div className="premium-metric-desc">
+                            {goalEvolution.changed
+                              ? `Moved from ${goalEvolution.previousGoal || "previous"} to ${goalEvolution.currentGoal || "current"}.`
+                              : "Your current goal remains consistent."}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </section>
+
+                  <section className="summary-card premium-report-block">
+                    <MoneyBeliefsCard moneyBeliefs={moneyBeliefs} />
+                    <EmotionalTriggersCard
+                      triggers={emotionalTriggers}
+                      patterns={triggerPatterns}
+                    />
+                    <FinancialMindProfileCard profile={financialMindProfile} />
+                  </section>
+
+                  <ErrorBoundary>
+                    <DecisionSimulator
+                      id="simulator"
+                      profile={assessment.profile}
+                      behaviour={assessment.behaviour}
+                    />
+                  </ErrorBoundary>
+                </div>
+
+                <div className="assessment-summary-sidebar">
+                  <Suspense fallback={<LazyComponentFallback />}>
+                    <ErrorBoundary>
+                      <FinancialTwin
+                        personalityType={result.personalityType}
+                        behaviourScore={result.behaviourScore}
+                        awarenessScore={result.awarenessScore}
+                        scenarios={twinScenarios}
+                      />
+                    </ErrorBoundary>
+                  </Suspense>
+                  <PeerComparisonCard userScore={result.healthScore} />
+                  <FinancialDNA result={result} />
+                  {isAuthenticated ? (
+                    <div className="summary-card padded" style={{ marginTop: "18px" }}>
+                      <div className="auth-status-card">
+                        <CircleUserRound size={20} />
+                        <span>
+                          Signed in as <strong>{user?.name || user?.email}</strong>
+                        </span>
+                      </div>
+                    </div>
                   ) : (
-                    <p className="premium-metric-longtext">No financial memory events yet. Keep using the app to build a richer timeline of your financial journey.</p>
+                    <div className="summary-card padded" style={{ marginTop: "18px" }}>
+                      <div className="auth-status-card">
+                        <LogIn size={20} />
+                        <span>
+                          <button
+                            type="button"
+                            className="auth-link-btn"
+                            onClick={() => {
+                              setAuthMode("login");
+                              setShowAuthModal(true);
+                            }}
+                          >
+                            Sign in
+                          </button>{" "}
+                          or{" "}
+                          <button
+                            type="button"
+                            className="auth-link-btn"
+                            onClick={() => {
+                              setAuthMode("register");
+                              setShowAuthModal(true);
+                            }}
+                          >
+                            create an account
+                          </button>{" "}
+                          to persist data across devices
+                        </span>
+                      </div>
+                    </div>
                   )}
+                  <UpgradeJourney result={result} currentScore={result.healthScore} />
+                  {!showSmsForm && !smsEnrichment && (
+                    <section className="enrichment-banner">
+                      <p className="enrichment-banner-title">{ASSESSMENT_BANNER.title}</p>
+                      <button
+                        type="button"
+                        className="enrichment-button"
+                        onClick={() => setShowSmsForm(true)}
+                      >
+                        {ASSESSMENT_BANNER.cta}
+                      </button>
+                      <p className="enrichment-copy">{ASSESSMENT_BANNER.description}</p>
+                    </section>
+                  )}
+
+                  <section className="summary-card padded" style={{ marginTop: "18px" }}>
+                    <PartnerSdkDemo userId={effectiveUserId} assessment={assessment} />
+                  </section>
                 </div>
-              </section>
-              
-              <section id="history" className="summary-span">
-                <Suspense fallback={<LazyComponentFallback />}>
-                  <ErrorBoundary>
-                    <UserHistory
-                      className="summary-span"
-                      currentScore={result.healthScore}
-                      personalityType={result.personalityType}
-                    />
-                  </ErrorBoundary>
-                </Suspense>
-              </section>
-              
-              <section className="summary-span">
-                <div className="summary-card premium-report-block" style={{ padding: "24px" }}>
-                  <div className="premium-report-block-header">
-                    <h2 className="premium-report-block-title">{INSIGHT_TITLES.narrativeTitle}</h2>
-                    <p className="premium-report-block-subtitle">{INSIGHT_TITLES.narrativeSubtitle}</p>
+
+                <section id="memory" className="summary-span">
+                  <div className="summary-card">
+                    <div className="premium-report-section-header">
+                      <h2 className="premium-report-section-title">🧠 Memory Timeline</h2>
+                      <p className="premium-report-block-subtitle">
+                        A dedicated memory view for your recorded financial events, reflections and
+                        decision milestones.
+                      </p>
+                    </div>
+                    {memoryTimeline.length > 0 ? (
+                      <>
+                        <div className="premium-report-grid-2">
+                          <div className="premium-metric-tile">
+                            <div className="premium-metric-kicker">Memory events</div>
+                            <div className="premium-metric-value">{memoryTimeline.length}</div>
+                            <div className="premium-metric-desc">
+                              Events captured from assessments, forecasts, and decisions.
+                            </div>
+                          </div>
+                          <div className="premium-metric-tile">
+                            <div className="premium-metric-kicker">Latest entry</div>
+                            <div className="premium-metric-value">
+                              {new Date(
+                                fullMemoryEvents[0]?.timestamp || Date.now()
+                              ).toLocaleDateString()}
+                            </div>
+                            <div className="premium-metric-desc">
+                              Most recent financial memory update.
+                            </div>
+                          </div>
+                        </div>
+                        <ul className="memory-timeline-list memory-timeline-page-list">
+                          {fullMemoryEvents.map((event, index) => (
+                            <li key={`${event.type}-${event.timestamp}-${index}`}>
+                              <strong>{event.type.replaceAll("_", " ")}</strong>
+                              <span>
+                                {event.score !== undefined
+                                  ? `Score ${event.score}`
+                                  : event.name || event.description || "Event recorded"}
+                              </span>
+                              <span>
+                                {new Date(event.timestamp).toLocaleDateString()} ·{" "}
+                                {new Date(event.timestamp).toLocaleTimeString([], {
+                                  hour: "2-digit",
+                                  minute: "2-digit"
+                                })}
+                              </span>
+                            </li>
+                          ))}
+                        </ul>
+                      </>
+                    ) : (
+                      <p className="premium-metric-longtext">
+                        No financial memory events yet. Keep using the app to build a richer
+                        timeline of your financial journey.
+                      </p>
+                    )}
                   </div>
-                  <ErrorBoundary>
-                    <EnhancedInsightNarrative
-                      assessmentResult={result}
-                      assessment={assessment}
-                    />
-                  </ErrorBoundary>
-                </div>
+                </section>
+
+                <section id="history" className="summary-span">
+                  <Suspense fallback={<LazyComponentFallback />}>
+                    <ErrorBoundary>
+                      <UserHistory
+                        className="summary-span"
+                        currentScore={result.healthScore}
+                        personalityType={result.personalityType}
+                      />
+                    </ErrorBoundary>
+                  </Suspense>
+                </section>
+
+                <section className="summary-span">
+                  <div className="summary-card premium-report-block" style={{ padding: "24px" }}>
+                    <div className="premium-report-block-header">
+                      <h2 className="premium-report-block-title">
+                        {INSIGHT_TITLES.narrativeTitle}
+                      </h2>
+                      <p className="premium-report-block-subtitle">
+                        {INSIGHT_TITLES.narrativeSubtitle}
+                      </p>
+                    </div>
+                    <ErrorBoundary>
+                      <EnhancedInsightNarrative assessmentResult={result} assessment={assessment} />
+                    </ErrorBoundary>
+                  </div>
+                </section>
               </section>
-            </section>
             )}
 
             {showReportsSection && (
-            <div className="flow-insights-section" id="insights">
-              <div className="diagnostics-grid">
-                <SurvivalHero survivalMonths={result.survivalMonthsRaw} />
-                <CognitionGapCard perceived={result.awarenessGapDisplay} actual={result.survivalMonthsDisplay} />
-                <BehaviourDrivers drivers={deriveDrivers(result, assessment)} />
-              </div>
-              <SingleRecommendedAction result={result} assessment={assessment} />
-              <TraitMatrixVisualizer result={result} assessment={assessment} />
+              <div className="flow-insights-section" id="insights">
+                <div className="diagnostics-grid">
+                  <SurvivalHero survivalMonths={result.survivalMonthsRaw} />
+                  <CognitionGapCard
+                    perceived={result.awarenessGapDisplay}
+                    actual={result.survivalMonthsDisplay}
+                  />
+                  <BehaviourDrivers drivers={deriveDrivers(result, assessment)} />
+                </div>
+                <SingleRecommendedAction result={result} assessment={assessment} />
+                <TraitMatrixVisualizer result={result} assessment={assessment} />
 
-              <ConsequenceForecastCard result={result} assessment={assessment} />
-              <InterventionsPrescriptionCard result={result} assessment={assessment} />
-              <StrategicMetricsCard 
-                result={result} 
-                profile={assessment?.profile} 
-                behaviour={assessment?.behaviour}
-                stability={assessment?.stability}
-              />
-              <DailyCheckinForm onCheckin={handleDailyCheckin} />
-              <ReminderPreferences userId={currentUserId} />
-              <section id="decisions" className="summary-card premium-report-block decision-overview-section">
-                <div className="premium-report-block-header">
-                  <h2 className="premium-report-block-title">Decisions</h2>
-                  <p className="premium-report-block-subtitle">
-                    Track your choices, review recent outcomes, and keep decision-making aligned to your financial goals.
-                  </p>
-                </div>
-                <div className="decision-section-grid">
-                  <DecisionHistory userId={effectiveUserId} refreshSignal={decisionsRefresh} />
-                  <RecordDecision userId={effectiveUserId} onSaved={() => {
-                    setDecisionsRefresh((c) => c + 1);
-                  }} />
-                </div>
-              </section>
-            </div>
+                <ConsequenceForecastCard result={result} assessment={assessment} />
+                <InterventionsPrescriptionCard result={result} assessment={assessment} />
+                <StrategicMetricsCard
+                  result={result}
+                  profile={assessment?.profile}
+                  behaviour={assessment?.behaviour}
+                  stability={assessment?.stability}
+                />
+                <DailyCheckinForm onCheckin={handleDailyCheckin} />
+                <ReminderPreferences userId={currentUserId} />
+                <section
+                  id="decisions"
+                  className="summary-card premium-report-block decision-overview-section"
+                >
+                  <div className="premium-report-block-header">
+                    <h2 className="premium-report-block-title">Decisions</h2>
+                    <p className="premium-report-block-subtitle">
+                      Track your choices, review recent outcomes, and keep decision-making aligned
+                      to your financial goals.
+                    </p>
+                  </div>
+                  <div className="decision-section-grid">
+                    <DecisionHistory userId={effectiveUserId} refreshSignal={decisionsRefresh} />
+                    <RecordDecision
+                      userId={effectiveUserId}
+                      onSaved={() => {
+                        setDecisionsRefresh(c => c + 1);
+                      }}
+                    />
+                  </div>
+                </section>
+              </div>
             )}
           </>
         )}
@@ -1713,35 +1736,11 @@ export default function App() {
   );
 }
 
-function deriveDrivers(result, assessment) {
-  if (!result) return [];
-  const drivers = [];
-  const spendWhenStressed = assessment.behaviour?.spendWhenStressed;
-  if (spendWhenStressed && spendWhenStressed !== "never") {
-    drivers.push({ title: "Stress Spending", impact: -18 });
-  }
-  const impulse = assessment.behaviour?.regretImpulseFreq;
-  if (impulse && impulse !== "never") {
-    drivers.push({ title: "Impulse Purchases", impact: -12 });
-  }
-  if ((result.awarenessGapDisplay || 0) > 2) {
-    drivers.push({ title: "Poor Expense Tracking", impact: -9 });
-  }
-
-  if (drivers.length === 0) {
-    drivers.push({ title: "Low savings rate", impact: -8 });
-    drivers.push({ title: "Irregular income", impact: -6 });
-  }
-
-  return drivers;
-}
+// Note: deriveDrivers imported from app-utils.js
 
 function ScoreRing({ score }) {
   const normalizedScore = Math.max(0, Math.min(100, Number(score) || 0));
-  const ringData = [
-    { value: normalizedScore },
-    { value: 100 - normalizedScore },
-  ];
+  const ringData = [{ value: normalizedScore }, { value: 100 - normalizedScore }];
 
   return (
     <div className="score-ring-chart" style={{ "--score": normalizedScore }}>
@@ -1770,16 +1769,27 @@ function ScoreRing({ score }) {
 }
 
 function FinancialDNA({ result }) {
-  if (!result) return null;
+  if (!result) {
+    return null;
+  }
 
-  const behaviourPct = Math.min(100, Math.round((result.behaviourScore / componentMaximumsV2.behaviour) * 100));
-  const awarenessPct = Math.min(100, Math.round((result.awarenessScore / componentMaximumsV2.awareness) * 100));
-  const stabilityPct = Math.min(100, Math.round((result.stabilityScore / componentMaximumsV2.stability) * 100));
+  const behaviourPct = Math.min(
+    100,
+    Math.round((result.behaviourScore / componentMaximumsV2.behaviour) * 100)
+  );
+  const awarenessPct = Math.min(
+    100,
+    Math.round((result.awarenessScore / componentMaximumsV2.awareness) * 100)
+  );
+  const stabilityPct = Math.min(
+    100,
+    Math.round((result.stabilityScore / componentMaximumsV2.stability) * 100)
+  );
 
   const dnaMetrics = [
     { label: "Behavioral Control", value: behaviourPct },
     { label: "Awareness Clarity", value: awarenessPct },
-    { label: "Financial Stability", value: stabilityPct },
+    { label: "Financial Stability", value: stabilityPct }
   ];
 
   return (
@@ -1792,7 +1802,7 @@ function FinancialDNA({ result }) {
         </div>
       </div>
       <div className="dna-grid">
-        {dnaMetrics.map((item) => (
+        {dnaMetrics.map(item => (
           <div className="dna-item" key={item.label}>
             <div>
               <span>{item.label}</span>
@@ -1814,7 +1824,7 @@ function UpgradeJourney({ result, currentScore }) {
     { month: "Week 2", healthScore: Math.max(0, currentScore - 21) },
     { month: "Week 3", healthScore: Math.max(0, currentScore - 14) },
     { month: "Week 4", healthScore: Math.max(0, currentScore - 7) },
-    { month: "Today", healthScore: currentScore },
+    { month: "Today", healthScore: currentScore }
   ];
 
   return (
@@ -1835,7 +1845,12 @@ function UpgradeJourney({ result, currentScore }) {
                 <stop offset="100%" stopColor="var(--purple)" stopOpacity={0.08} />
               </linearGradient>
             </defs>
-            <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fill: "var(--white-76)", fontSize: 12 }} />
+            <XAxis
+              dataKey="month"
+              axisLine={false}
+              tickLine={false}
+              tick={{ fill: "var(--white-76)", fontSize: 12 }}
+            />
             <Area
               type="monotone"
               dataKey="healthScore"
@@ -1862,7 +1877,7 @@ function AdminSection({
   onAdminCredentialChange,
   onAdminLogin,
   onAdminLogout,
-  onGenerateReport,
+  onGenerateReport
 }) {
   return (
     <section className="admin-section">
@@ -1886,10 +1901,12 @@ function AdminSection({
                 type="text"
                 autoComplete="username"
                 value={adminCredentials.username}
-                onChange={(event) => onAdminCredentialChange({
-                  ...adminCredentials,
-                  username: event.target.value,
-                })}
+                onChange={event =>
+                  onAdminCredentialChange({
+                    ...adminCredentials,
+                    username: event.target.value
+                  })
+                }
               />
             </label>
             <label>
@@ -1898,10 +1915,12 @@ function AdminSection({
                 type="password"
                 autoComplete="current-password"
                 value={adminCredentials.password}
-                onChange={(event) => onAdminCredentialChange({
-                  ...adminCredentials,
-                  password: event.target.value,
-                })}
+                onChange={event =>
+                  onAdminCredentialChange({
+                    ...adminCredentials,
+                    password: event.target.value
+                  })
+                }
               />
             </label>
             {adminLoginError && <p className="admin-login-error">{adminLoginError}</p>}
@@ -1969,13 +1988,11 @@ function Header({
   onOpenAuth,
   onLogout,
   notificationBadgeCount = 0,
-  onToggleNotification,
+  onToggleNotification
 }) {
-
   return (
     <header className="topbar">
       <a className="brand" href="#home" aria-label="ARTH.OS home">
-
         <span className="logo-word">
           ARTH.<span>OS</span>
         </span>
@@ -1983,7 +2000,7 @@ function Header({
       </a>
 
       <nav className="nav-links" aria-label="Primary navigation">
-        {NAV_ITEMS.map((item) => (
+        {NAV_ITEMS.map(item => (
           <a
             href={item.href}
             key={item.label}
@@ -1996,17 +2013,27 @@ function Header({
       </nav>
 
       <div className="model-header-actions" aria-label="Product actions">
-        <span className={`header-sync save-state-${saveStatusClass}`}>
-          {saveStatusLabel}
-        </span>
+        <span className={`header-sync save-state-${saveStatusClass}`}>{saveStatusLabel}</span>
         <button type="button" className="model-icon-btn" title="Search">
           <Search size={18} />
         </button>
-        <button type="button" className="model-icon-btn notification-btn" title="Notifications" onClick={onToggleNotification}>
+        <button
+          type="button"
+          className="model-icon-btn notification-btn"
+          title="Notifications"
+          onClick={onToggleNotification}
+        >
           <Bell size={18} />
-          {notificationBadgeCount > 0 && <span className="notification-badge-dot">{notificationBadgeCount}</span>}
+          {notificationBadgeCount > 0 && (
+            <span className="notification-badge-dot">{notificationBadgeCount}</span>
+          )}
         </button>
-        <button type="button" className="model-icon-btn" title="Export report as PDF" onClick={onExport}>
+        <button
+          type="button"
+          className="model-icon-btn"
+          title="Export report as PDF"
+          onClick={onExport}
+        >
           <Download size={18} />
         </button>
 
@@ -2035,7 +2062,6 @@ function Header({
           Start Assessment
         </a>
       </div>
-
     </header>
   );
 }
@@ -2054,18 +2080,18 @@ function HeroSection({ assessment, result }) {
     {
       label: "Financial Health Behavior Score",
       value: scorePreview,
-      width: `${scorePreview}%`,
+      width: `${scorePreview}%`
     },
     {
       label: "Behavior Control",
       value: Math.round(result.behaviourScore ?? 0),
-      width: `${Math.min(100, ((result.behaviourScore ?? 0) / componentMaximumsV2.behaviour) * 100)}%`,
+      width: `${Math.min(100, ((result.behaviourScore ?? 0) / componentMaximumsV2.behaviour) * 100)}%`
     },
     {
       label: "Awareness Signal",
       value: Math.round(result.awarenessScore ?? 0),
-      width: `${Math.min(100, ((result.awarenessScore ?? 0) / componentMaximumsV2.awareness) * 100)}%`,
-    },
+      width: `${Math.min(100, ((result.awarenessScore ?? 0) / componentMaximumsV2.awareness) * 100)}%`
+    }
   ];
   const perceivedRunway = Number(result.blindSpotPerceived);
   const actualRunway = Number(result.blindSpotActual);
@@ -2085,7 +2111,7 @@ function HeroSection({ assessment, result }) {
             clearer financial decisions.
           </p>
           <div className="hero-stat-card">
-            {HERO_STATS.map((item) => (
+            {HERO_STATS.map(item => (
               <div className="metric" key={item.label}>
                 <span>{item.value}</span>
                 <label>{item.label}</label>
@@ -2093,8 +2119,14 @@ function HeroSection({ assessment, result }) {
             ))}
           </div>
           <div className="model-hero-actions">
-            {HERO_ACTIONS.map((action) => (
-              <a key={action.label} className={action.href === "#assessment" ? "model-primary-cta" : "model-secondary-cta"} href={action.href}>
+            {HERO_ACTIONS.map(action => (
+              <a
+                key={action.label}
+                className={
+                  action.href === "#assessment" ? "model-primary-cta" : "model-secondary-cta"
+                }
+                href={action.href}
+              >
                 {action.label}
                 <ArrowRight size={18} />
               </a>
@@ -2139,7 +2171,7 @@ function HeroSection({ assessment, result }) {
             )}
 
             <div className="model-metric-stack">
-              {metricRows.map((row) => (
+              {metricRows.map(row => (
                 <div className="model-metric-row" key={row.label}>
                   <div>
                     <span>{row.label}</span>
@@ -2165,7 +2197,9 @@ function HeroSection({ assessment, result }) {
           <div className="model-insights-header">
             <h2>Live Insights</h2>
             <div>
-              <a className="model-view-insights" href="#reports">View all</a>
+              <a className="model-view-insights" href="#reports">
+                View all
+              </a>
             </div>
           </div>
 
@@ -2174,7 +2208,9 @@ function HeroSection({ assessment, result }) {
               const Icon = it.icon;
               return (
                 <div className={`model-insight-card tone-${it.tone}`} key={idx}>
-                  <div className="insight-icon"><Icon size={18} /></div>
+                  <div className="insight-icon">
+                    <Icon size={18} />
+                  </div>
                   <div className="insight-content">
                     <strong>{it.title}</strong>
                     <p>{it.copy}</p>

@@ -9,7 +9,7 @@
  * - Ensemble weight distribution
  */
 
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import {
   TrendingUp,
   TrendingDown,
@@ -20,24 +20,34 @@ import {
   CheckCircle,
   ChevronDown,
   ChevronUp,
-  Info,
-} from 'lucide-react';
+  Info
+} from "lucide-react";
 
 function round(num) {
-  if (typeof num !== 'number' || Number.isNaN(num)) return '—';
+  if (typeof num !== "number" || Number.isNaN(num)) {
+    return "—";
+  }
   return Math.round(num);
 }
 
 function confidenceColor(confidence) {
-  if (confidence >= 70) return 'forecast-status-positive';
-  if (confidence >= 40) return 'forecast-status-neutral';
-  return 'forecast-status-negative';
+  if (confidence >= 70) {
+    return "forecast-status-positive";
+  }
+  if (confidence >= 40) {
+    return "forecast-status-neutral";
+  }
+  return "forecast-status-negative";
 }
 
 function scoreColor(val) {
-  if (val >= 80) return 'var(--green)';
-  if (val >= 50) return 'var(--amber)';
-  return 'var(--red)';
+  if (val >= 80) {
+    return "var(--green)";
+  }
+  if (val >= 50) {
+    return "var(--amber)";
+  }
+  return "var(--red)";
 }
 
 export function ForecastModelCard({ forecast }) {
@@ -52,35 +62,60 @@ export function ForecastModelCard({ forecast }) {
     );
   }
 
-  const { horizons, model, modelType, modelMetrics, ensembleModel, allModels, confidence, dataPoints } =
-    forecast;
+  const {
+    horizons,
+    model,
+    modelType,
+    modelMetrics,
+    ensembleModel,
+    allModels,
+    confidence,
+    dataPoints
+  } = forecast;
 
   const horizonDays = [
-    { key: 'day30', label: '30 Day', subtitle: 'Near-term' },
-    { key: 'day90', label: '90 Day', subtitle: 'Medium-term' },
-    { key: 'day180', label: '180 Day', subtitle: 'Long-term' },
+    { key: "day30", label: "30 Day", subtitle: "Near-term" },
+    { key: "day90", label: "90 Day", subtitle: "Medium-term" },
+    { key: "day180", label: "180 Day", subtitle: "Long-term" }
   ];
 
-  const getTrend = (hKey) => {
-    if (!horizons) return 'stable';
+  const getTrend = hKey => {
+    if (!horizons) {
+      return "stable";
+    }
     const h = horizons[hKey];
-    if (!h) return 'stable';
+    if (!h) {
+      return "stable";
+    }
     const p50 = h.p50 || 0;
     const base = horizons.day30?.p50 || p50;
-    if (p50 > base + 3) return 'improving';
-    if (p50 < base - 3) return 'deteriorating';
-    return 'stable';
+    if (p50 > base + 3) {
+      return "improving";
+    }
+    if (p50 < base - 3) {
+      return "deteriorating";
+    }
+    return "stable";
   };
 
-  const trendIcon = (t) => {
-    if (t === 'improving') return <TrendingUp size={18} style={{ color: 'var(--green)' }} />;
-    if (t === 'deteriorating') return <TrendingDown size={18} style={{ color: 'var(--red)' }} />;
-    return <Minus size={18} style={{ color: 'var(--muted)' }} />;
+  const trendIcon = t => {
+    if (t === "improving") {
+      return <TrendingUp size={18} style={{ color: "var(--green)" }} />;
+    }
+    if (t === "deteriorating") {
+      return <TrendingDown size={18} style={{ color: "var(--red)" }} />;
+    }
+    return <Minus size={18} style={{ color: "var(--muted)" }} />;
   };
 
-  const r2Grade = modelMetrics?.r2 !== undefined
-    ? modelMetrics.r2 < 0.3 ? 'Poor fit' : modelMetrics.r2 < 0.6 ? 'Moderate fit' : 'Good fit'
-    : 'N/A';
+  const r2Grade =
+    modelMetrics?.r2 !== undefined
+      ? modelMetrics.r2 < 0.3
+        ? "Poor fit"
+        : modelMetrics.r2 < 0.6
+          ? "Moderate fit"
+          : "Good fit"
+      : "N/A";
 
   return (
     <section className="forecast-section">
@@ -88,7 +123,7 @@ export function ForecastModelCard({ forecast }) {
         <div>
           <h3>Multi-Model Forecast Engine</h3>
           <p>
-            Combines <strong>ARIMA</strong>, <strong>Holt-Winters</strong>,{' '}
+            Combines <strong>ARIMA</strong>, <strong>Holt-Winters</strong>,{" "}
             <strong>Bayesian Structural</strong>, and <strong>Ensemble</strong> models for
             probabilistic financial health projections at 30/90/180 day horizons.
           </p>
@@ -99,11 +134,11 @@ export function ForecastModelCard({ forecast }) {
       <div className="forecast-model-badge">
         <BarChart3 size={18} />
         <span>
-          Auto-selected: <strong>{model}</strong> (RMSE: {modelMetrics?.rmse ?? 'N/A'}, R²:{' '}
-          {modelMetrics?.r2?.toFixed(2) ?? 'N/A'} — {r2Grade})
+          Auto-selected: <strong>{model}</strong> (RMSE: {modelMetrics?.rmse ?? "N/A"}, R²:{" "}
+          {modelMetrics?.r2?.toFixed(2) ?? "N/A"} — {r2Grade})
         </span>
         <span className="forecast-model-badge-meta">
-          {dataPoints} data points ·{' '}
+          {dataPoints} data points ·{" "}
           <span style={{ color: confidenceColor(confidence) }}>{confidence}% confidence</span>
         </span>
       </div>
@@ -112,19 +147,23 @@ export function ForecastModelCard({ forecast }) {
       <div className="premium-report-grid premium-report-grid-3 forecast-scenarios-grid">
         {horizonDays.map(({ key, label, subtitle }) => {
           const h = horizons[key];
-          if (!h) return null;
+          if (!h) {
+            return null;
+          }
           const trend = getTrend(key);
           return (
             <div
               key={key}
-              className={`forecast-card ${trend === 'improving' ? 'forecast-card-positive' : trend === 'deteriorating' ? 'forecast-card-negative' : 'forecast-card-neutral'}`}
+              className={`forecast-card ${trend === "improving" ? "forecast-card-positive" : trend === "deteriorating" ? "forecast-card-negative" : "forecast-card-neutral"}`}
             >
               <div className="forecast-card-header">
                 <div className="forecast-card-title">
                   {trendIcon(trend)}
                   <div>
                     <h4>{label} Forecast</h4>
-                    <p>{subtitle} · {trend} trajectory</p>
+                    <p>
+                      {subtitle} · {trend} trajectory
+                    </p>
                   </div>
                 </div>
               </div>
@@ -160,7 +199,7 @@ export function ForecastModelCard({ forecast }) {
         <button
           type="button"
           className="forecast-model-toggle-btn"
-          onClick={() => setShowModelDetails((p) => !p)}
+          onClick={() => setShowModelDetails(p => !p)}
         >
           <Layers size={16} />
           <span>Model comparison & ensemble details</span>
@@ -173,7 +212,7 @@ export function ForecastModelCard({ forecast }) {
           {/* All Models Table */}
           {allModels && allModels.length > 0 && (
             <>
-              <div className="forecast-subsection-title" style={{ marginBottom: '12px' }}>
+              <div className="forecast-subsection-title" style={{ marginBottom: "12px" }}>
                 Candidate Models
               </div>
               <div className="forecast-model-table">
@@ -188,23 +227,26 @@ export function ForecastModelCard({ forecast }) {
                 {(showAllModels ? allModels : allModels.slice(0, 3)).map((m, i) => (
                   <div
                     key={i}
-                    className={`forecast-model-table-row ${m.isBest ? 'forecast-model-row-best' : ''}`}
+                    className={`forecast-model-table-row ${m.isBest ? "forecast-model-row-best" : ""}`}
                   >
                     <span>
                       {m.name}
                       {m.isBest && (
-                        <CheckCircle size={12} style={{ marginLeft: '6px', color: 'var(--green)' }} />
+                        <CheckCircle
+                          size={12}
+                          style={{ marginLeft: "6px", color: "var(--green)" }}
+                        />
                       )}
                     </span>
-                    <span>{m.metrics?.mae ?? '—'}</span>
-                    <span>{m.metrics?.rmse ?? '—'}</span>
-                    <span>{m.metrics?.mape != null ? `${m.metrics.mape}%` : '—'}</span>
-                    <span>{m.metrics?.r2 != null ? m.metrics.r2.toFixed(3) : '—'}</span>
+                    <span>{m.metrics?.mae ?? "—"}</span>
+                    <span>{m.metrics?.rmse ?? "—"}</span>
+                    <span>{m.metrics?.mape != null ? `${m.metrics.mape}%` : "—"}</span>
+                    <span>{m.metrics?.r2 != null ? m.metrics.r2.toFixed(3) : "—"}</span>
                     <span>
                       {m.isBest ? (
-                        <span style={{ color: 'var(--green)', fontWeight: 600 }}>✓ Selected</span>
+                        <span style={{ color: "var(--green)", fontWeight: 600 }}>✓ Selected</span>
                       ) : (
-                        <span style={{ color: 'var(--muted)' }}>Candidate</span>
+                        <span style={{ color: "var(--muted)" }}>Candidate</span>
                       )}
                     </span>
                   </div>
@@ -214,10 +256,10 @@ export function ForecastModelCard({ forecast }) {
                 <button
                   type="button"
                   className="forecast-model-toggle-btn"
-                  onClick={() => setShowAllModels((p) => !p)}
-                  style={{ marginTop: '8px' }}
+                  onClick={() => setShowAllModels(p => !p)}
+                  style={{ marginTop: "8px" }}
                 >
-                  {showAllModels ? 'Show fewer models' : `Show all ${allModels.length} models`}
+                  {showAllModels ? "Show fewer models" : `Show all ${allModels.length} models`}
                 </button>
               )}
             </>
@@ -225,8 +267,8 @@ export function ForecastModelCard({ forecast }) {
 
           {/* Ensemble Weights */}
           {ensembleModel && ensembleModel.models && ensembleModel.models.length > 0 && (
-            <div style={{ marginTop: '20px' }}>
-              <div className="forecast-subsection-title" style={{ marginBottom: '12px' }}>
+            <div style={{ marginTop: "20px" }}>
+              <div className="forecast-subsection-title" style={{ marginBottom: "12px" }}>
                 Ensemble Composition (inverse-RMSE weighted)
               </div>
               <div className="forecast-ensemble-list">
@@ -234,20 +276,17 @@ export function ForecastModelCard({ forecast }) {
                   <div key={i} className="forecast-ensemble-row">
                     <span>{m.name}</span>
                     <div className="forecast-ensemble-bar-track">
-                      <div
-                        className="forecast-ensemble-bar-fill"
-                        style={{ width: m.weight }}
-                      />
+                      <div className="forecast-ensemble-bar-fill" style={{ width: m.weight }} />
                     </div>
                     <span className="forecast-ensemble-weight">{m.weight}</span>
-                    <span className="forecast-ensemble-rmse">RMSE: {m.rmse ?? '—'}</span>
+                    <span className="forecast-ensemble-rmse">RMSE: {m.rmse ?? "—"}</span>
                   </div>
                 ))}
               </div>
               <div className="forecast-ensemble-summary">
                 <Info size={14} />
                 <span>
-                  Ensemble RMSE: <strong>{ensembleModel.rmse ?? '—'}</strong> · Weights are
+                  Ensemble RMSE: <strong>{ensembleModel.rmse ?? "—"}</strong> · Weights are
                   proportional to inverse of each model's RMSE (lower error = higher weight)
                 </span>
               </div>
@@ -257,12 +296,12 @@ export function ForecastModelCard({ forecast }) {
       )}
 
       {/* Trajectory note */}
-      <div className="forecast-card-note" style={{ marginTop: '16px' }}>
+      <div className="forecast-card-note" style={{ marginTop: "16px" }}>
         <AlertTriangle size={14} />
         <span>
-          Forecasts are probabilistic — the p50 (median) is the most likely outcome, but the
-          actual result can fall anywhere within the confidence bands. Higher confidence indicates
-          more historical data and better model fit.
+          Forecasts are probabilistic — the p50 (median) is the most likely outcome, but the actual
+          result can fall anywhere within the confidence bands. Higher confidence indicates more
+          historical data and better model fit.
         </span>
       </div>
     </section>

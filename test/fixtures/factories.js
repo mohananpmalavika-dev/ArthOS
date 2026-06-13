@@ -34,7 +34,7 @@ export function createMockAssessment(overrides = {}) {
       },
     },
     
-    // Profile/Personal data
+    // Profile/Personal data (required for scoring-v2 calculations)
     profile: {
       name: 'Test User',
       email: 'test@example.com',
@@ -42,14 +42,27 @@ export function createMockAssessment(overrides = {}) {
       income: 75000,
       dependents: 2,
       location: 'US',
+      // Scoring-v2 required fields
+      monthlyIncome: 6250,
+      monthlyExpenses: 3000,
+      emergencySavingsFixed: 15000,
+      emergencySavingsDiscretionary: 5000,
+      totalDebt: 25000,
+      monthlyLiabilities: 800,
+      debtRepaymentRatePctOfIncome: 12.8,
+      averageInterestRatePct: 6.5,
+      incomeStability: "stable",      // Values: "stable", "variable", "seasonal"
+      dependentsBucket: "2-3",        // Values: "0", "1", "2-3", "4plus"
     },
     
-    // Habits
+    // Habits (with scoring-v2 required fields)
     habits: {
       daily_tracking: true,
       weekly_review: true,
       monthly_planning: false,
       yearly_goals: true,
+      habitCheckInsPerWeek: "2_3",        // Required for scoring-v2
+      debtPaymentDiscipline: "often",     // Required for scoring-v2
     },
     
     // Derived fields

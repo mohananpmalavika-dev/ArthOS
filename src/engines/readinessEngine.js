@@ -19,8 +19,8 @@ export function calculateFinancialReadiness(profile, behaviour, stability) {
       componentBreakdown: {
         emergencyFund: 0,
         incomeStability: 0,
-        debtResilience: 0,
-      },
+        debtResilience: 0
+      }
     };
   }
 
@@ -35,7 +35,7 @@ export function calculateFinancialReadiness(profile, behaviour, stability) {
     very_consistent: 100,
     mostly_consistent: 75,
     somewhat_variable: 50,
-    highly_variable: 25,
+    highly_variable: 25
   };
   const incomeStabilityScore = incomeStabilityOptions[profile.incomeStability] || 0;
 
@@ -45,22 +45,33 @@ export function calculateFinancialReadiness(profile, behaviour, stability) {
 
   // Weighted formula: emergency fund is most important
   const readiness = Math.round(
-    emergencyFundCoverageScore * 0.35 +
-    incomeStabilityScore * 0.3 +
-    debtResilienceScore * 0.35
+    emergencyFundCoverageScore * 0.35 + incomeStabilityScore * 0.3 + debtResilienceScore * 0.35
   );
 
   return {
     readiness: Math.max(0, Math.min(100, readiness)),
     band: getReadinessBand(readiness),
-    narrative: getReadinessNarrative(readiness, survivalMonths, incomeStabilityScore, debtResilienceScore),
+    narrative: getReadinessNarrative(
+      readiness,
+      survivalMonths,
+      incomeStabilityScore,
+      debtResilienceScore
+    ),
     componentBreakdown: {
       emergencyFund: emergencyFundCoverageScore,
       incomeStability: incomeStabilityScore,
-      debtResilience: debtResilienceScore,
+      debtResilience: debtResilienceScore
     },
-    strengths: getReadinessStrengths(emergencyFundCoverageScore, incomeStabilityScore, debtResilienceScore),
-    weaknesses: getReadinessWeaknesses(emergencyFundCoverageScore, incomeStabilityScore, debtResilienceScore),
+    strengths: getReadinessStrengths(
+      emergencyFundCoverageScore,
+      incomeStabilityScore,
+      debtResilienceScore
+    ),
+    weaknesses: getReadinessWeaknesses(
+      emergencyFundCoverageScore,
+      incomeStabilityScore,
+      debtResilienceScore
+    )
   };
 }
 
@@ -72,12 +83,24 @@ export function calculateFinancialReadiness(profile, behaviour, stability) {
  * 6+ months = 100 (excellent)
  */
 function calculateEmergencyFundScore(survivalMonths) {
-  if (survivalMonths < 0.5) return 0;
-  if (survivalMonths < 1) return 15;
-  if (survivalMonths < 2) return 35;
-  if (survivalMonths < 3) return 50;
-  if (survivalMonths < 6) return 75;
-  if (survivalMonths < 12) return 90;
+  if (survivalMonths < 0.5) {
+    return 0;
+  }
+  if (survivalMonths < 1) {
+    return 15;
+  }
+  if (survivalMonths < 2) {
+    return 35;
+  }
+  if (survivalMonths < 3) {
+    return 50;
+  }
+  if (survivalMonths < 6) {
+    return 75;
+  }
+  if (survivalMonths < 12) {
+    return 90;
+  }
   return 100;
 }
 
@@ -90,7 +113,9 @@ function calculateDebtResilienceScore(profile, stability) {
   const monthlyExpenses = Number.parseFloat(profile.monthlyExpenses) || 0;
   const monthlyLiabilities = Number.parseFloat(profile.monthlyLiabilities) || 0;
 
-  if (monthlyIncome <= 0) return 0;
+  if (monthlyIncome <= 0) {
+    return 0;
+  }
 
   // If income drops 25%, can you still cover debt?
   const reducedIncome = monthlyIncome * 0.75;
@@ -122,10 +147,18 @@ function calculateDebtResilienceScore(profile, stability) {
  * Map readiness score to band
  */
 function getReadinessBand(readiness) {
-  if (readiness <= 20) return "Critically Unprepared";
-  if (readiness <= 40) return "Unprepared";
-  if (readiness <= 60) return "Partially Prepared";
-  if (readiness <= 80) return "Well Prepared";
+  if (readiness <= 20) {
+    return "Critically Unprepared";
+  }
+  if (readiness <= 40) {
+    return "Unprepared";
+  }
+  if (readiness <= 60) {
+    return "Partially Prepared";
+  }
+  if (readiness <= 80) {
+    return "Well Prepared";
+  }
   return "Highly Prepared";
 }
 
@@ -161,21 +194,21 @@ function getReadinessStrengths(emergencyScore, incomeScore, debtScore) {
   if (emergencyScore >= 75) {
     strengths.push({
       area: "Emergency Savings",
-      description: "Strong emergency fund provides solid shock buffer.",
+      description: "Strong emergency fund provides solid shock buffer."
     });
   }
 
   if (incomeScore >= 75) {
     strengths.push({
       area: "Income Stability",
-      description: "Your income is consistent and predictable.",
+      description: "Your income is consistent and predictable."
     });
   }
 
   if (debtScore >= 75) {
     strengths.push({
       area: "Debt Resilience",
-      description: "You can maintain debt payments even if income fluctuates.",
+      description: "You can maintain debt payments even if income fluctuates."
     });
   }
 
@@ -194,7 +227,7 @@ function getReadinessWeaknesses(emergencyScore, incomeScore, debtScore) {
     weaknesses.push({
       area: "Emergency Savings",
       description: "Build emergency fund to 3-6 months of expenses.",
-      priority: "High",
+      priority: "High"
     });
   }
 
@@ -202,7 +235,7 @@ function getReadinessWeaknesses(emergencyScore, incomeScore, debtScore) {
     weaknesses.push({
       area: "Income Stability",
       description: "Consider diversifying income or negotiating more stable arrangements.",
-      priority: "Medium",
+      priority: "Medium"
     });
   }
 
@@ -210,7 +243,7 @@ function getReadinessWeaknesses(emergencyScore, incomeScore, debtScore) {
     weaknesses.push({
       area: "Debt Resilience",
       description: "Your debt obligations exceed what you could cover if income dropped.",
-      priority: "High",
+      priority: "High"
     });
   }
 
@@ -241,7 +274,7 @@ export function getEmergencySavingsGap(profile, targetReadiness = 75) {
     currentSavings: Math.round(currentSavings),
     targetSavings: Math.round(targetSavingsMid),
     gap: Math.round(gap),
-    monthsToTarget: Math.ceil(gap / (monthlyExpenses * 0.1)), // Assume 10% of income to savings
+    monthsToTarget: Math.ceil(gap / (monthlyExpenses * 0.1)) // Assume 10% of income to savings
   };
 }
 
@@ -256,7 +289,7 @@ export function getReadinessRecommendations(readiness, componentScores) {
       action: "Build Emergency Fund",
       details: "Target 3-6 months of essential expenses saved in accessible account.",
       impact: "High - Most important readiness factor",
-      timeline: "3-6 months",
+      timeline: "3-6 months"
     });
   }
 
@@ -265,7 +298,7 @@ export function getReadinessRecommendations(readiness, componentScores) {
       action: "Increase Income Stability",
       details: "Explore side income, skill development, or more predictable work.",
       impact: "Medium - Reduces shock vulnerability",
-      timeline: "1-3 months to explore",
+      timeline: "1-3 months to explore"
     });
   }
 
@@ -274,16 +307,17 @@ export function getReadinessRecommendations(readiness, componentScores) {
       action: "Reduce Debt Burden",
       details: "Pay down high-interest debt or renegotiate payment terms.",
       impact: "High - Critical if income is unstable",
-      timeline: "Ongoing",
+      timeline: "Ongoing"
     });
   }
 
   if (recommendations.length === 0) {
     recommendations.push({
       action: "Maintain Readiness",
-      details: "You're well prepared. Focus on maintaining current emergency fund and monitoring debt.",
+      details:
+        "You're well prepared. Focus on maintaining current emergency fund and monitoring debt.",
       impact: "Medium - Keep resilience strong",
-      timeline: "Quarterly review",
+      timeline: "Quarterly review"
     });
   }
 

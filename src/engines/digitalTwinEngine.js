@@ -39,13 +39,13 @@ class FinancialState {
       liabilities: baseState.liabilities || 0,
       netWorth: baseState.netWorth || 0,
       runway: baseState.runway || 0,
-      healthScore: baseState.healthScore || 50,
+      healthScore: baseState.healthScore || 50
     };
 
     // Probabilistic bounds (5th and 95th percentiles)
     this.bounds = {
       lower: { ...this.median },
-      upper: { ...this.median },
+      upper: { ...this.median }
     };
 
     // Behavioral state
@@ -55,7 +55,7 @@ class FinancialState {
       spendingElasticity: baseState.spendingElasticity || 0.4,
       riskTolerance: baseState.riskTolerance || 0.5,
       decisionQuality: baseState.decisionQuality || 0.5, // Improves with good decisions
-      impulseProbability: baseState.impulseProbability || 0.3, // Decreases with awareness
+      impulseProbability: baseState.impulseProbability || 0.3 // Decreases with awareness
     };
 
     // Shocks and interventions applied at this point
@@ -84,9 +84,7 @@ class FinancialState {
 
     // Runway calculation
     nextState.median.runway =
-      nextState.median.expenses > 0
-        ? nextState.median.savings / nextState.median.expenses
-        : 0;
+      nextState.median.expenses > 0 ? nextState.median.savings / nextState.median.expenses : 0;
 
     // Health score evolution (moves toward 50-70 baseline + behavior effect)
     const healthBaseline = 55;
@@ -110,10 +108,7 @@ class FinancialState {
 
     // Bounds propagate with uncertainty
     const uncertainty = Math.abs(monthlyNet) * volatility * 1.96; // 95% confidence interval
-    nextState.bounds.lower.savings = Math.max(
-      0,
-      nextState.median.savings - uncertainty
-    );
+    nextState.bounds.lower.savings = Math.max(0, nextState.median.savings - uncertainty);
     nextState.bounds.upper.savings = nextState.median.savings + uncertainty;
 
     return nextState;
@@ -129,44 +124,35 @@ class FinancialState {
       monthlyImpact: decision.monthlyImpact || 0,
       oneTimeImpact: decision.oneTimeImpact || 0,
       behaviorShift: decision.behaviorShift || {}, // Changes to behavior state
-      riskLevel: decision.riskLevel || 'low', // 'low' | 'medium' | 'high'
+      riskLevel: decision.riskLevel || "low", // 'low' | 'medium' | 'high'
       confidence: decision.confidence || 0.7, // 0-1
       horizon: impactHorizon,
-      projectedOutcome: null, // Will be calculated
+      projectedOutcome: null // Will be calculated
     };
 
     // Update behavior based on decision type
-    if (decision.type === 'saving') {
+    if (decision.type === "saving") {
       this.behavior.savingsDiscipline = Math.min(
         1,
-        this.behavior.savingsDiscipline + (decision.confidence * 0.1)
+        this.behavior.savingsDiscipline + decision.confidence * 0.1
       );
-      this.behavior.decisionQuality = Math.min(
-        1,
-        this.behavior.decisionQuality + 0.05
-      );
-    } else if (decision.type === 'spending_control') {
+      this.behavior.decisionQuality = Math.min(1, this.behavior.decisionQuality + 0.05);
+    } else if (decision.type === "spending_control") {
       this.behavior.impulseProbability = Math.max(
         0,
-        this.behavior.impulseProbability - (decision.confidence * 0.1)
+        this.behavior.impulseProbability - decision.confidence * 0.1
       );
     }
 
     // Calculate consequence path (simplified projection)
     let projectedSavings = this.median.savings;
     for (let m = 0; m < Math.min(impactHorizon, 12); m++) {
-      projectedSavings +=
-        consequence.monthlyImpact +
-        (m === 0 ? consequence.oneTimeImpact : 0);
+      projectedSavings += consequence.monthlyImpact + (m === 0 ? consequence.oneTimeImpact : 0);
     }
     consequence.projectedOutcome = {
       savingsAfter: Math.max(0, projectedSavings),
-      runwayAfter:
-        this.median.expenses > 0
-          ? projectedSavings / this.median.expenses
-          : 0,
-      impactScore:
-        ((projectedSavings - this.median.savings) / this.median.savings) * 100,
+      runwayAfter: this.median.expenses > 0 ? projectedSavings / this.median.expenses : 0,
+      impactScore: ((projectedSavings - this.median.savings) / this.median.savings) * 100
     };
 
     this.decisions.push(consequence);
@@ -182,21 +168,18 @@ class FinancialState {
       magnitude: shock.magnitude, // Absolute amount
       duration: shock.duration || 1, // Months
       recovery: shock.recovery || 12, // Months to recover
-      severity: shock.severity || 'medium',
-      timestamp: this.timestamp,
+      severity: shock.severity || "medium",
+      timestamp: this.timestamp
     };
 
     // Immediate impact
-    if (shock.type === 'income_loss') {
+    if (shock.type === "income_loss") {
       this.median.income -= shock.magnitude;
-    } else if (shock.type === 'expense_spike') {
+    } else if (shock.type === "expense_spike") {
       this.median.savings -= shock.magnitude;
-    } else if (shock.type === 'emergency') {
+    } else if (shock.type === "emergency") {
       this.median.savings -= shock.magnitude;
-      this.behavior.riskTolerance = Math.max(
-        0,
-        this.behavior.riskTolerance - 0.2
-      );
+      this.behavior.riskTolerance = Math.max(0, this.behavior.riskTolerance - 0.2);
     }
 
     this.shocks.push(shockRecord);
@@ -213,16 +196,16 @@ class FinancialState {
       persistencePeriod: intervention.persistencePeriod || 6, // Months
       behaviorShift: intervention.behaviorShift || {},
       adoptionProbability: intervention.adoptionProbability || 0.6,
-      timestamp: this.timestamp,
+      timestamp: this.timestamp
     };
 
     // Apply behavioral shift if adopted (based on adoption probability)
     if (Math.random() < interventionRecord.adoptionProbability) {
-      if (intervention.type === 'nudge') {
+      if (intervention.type === "nudge") {
         this.behavior.impulseProbability *= 1 - intervention.effectiveness;
-      } else if (intervention.type === 'coaching') {
+      } else if (intervention.type === "coaching") {
         this.behavior.decisionQuality += intervention.effectiveness * 0.15;
-      } else if (intervention.type === 'automation') {
+      } else if (intervention.type === "automation") {
         this.behavior.savingsDiscipline += intervention.effectiveness * 0.2;
       }
     }
@@ -263,17 +246,16 @@ class DecisionConsequenceGraph {
       confidence: decision.confidence || 0.7,
       impact: decision.monthlyImpact || 0,
       oneTimeImpact: decision.oneTimeImpact || 0,
-      projectedFinalState: null,
+      projectedFinalState: null
     };
 
     // Project consequences
-    let projState = { ...this.initialState.median };
+    const projState = { ...this.initialState.median };
     const consequences = [];
 
     for (let m = 0; m < 12; m++) {
       if (m === 0) {
-        projState.savings =
-          projState.savings + node.oneTimeImpact + node.impact;
+        projState.savings = projState.savings + node.oneTimeImpact + node.impact;
       } else {
         projState.savings = projState.savings + node.impact;
       }
@@ -281,11 +263,8 @@ class DecisionConsequenceGraph {
       consequences.push({
         month: m,
         savings: Math.max(0, projState.savings),
-        runway:
-          projState.expenses > 0
-            ? Math.max(0, projState.savings) / projState.expenses
-            : 0,
-        healthScore: projState.healthScore,
+        runway: projState.expenses > 0 ? Math.max(0, projState.savings) / projState.expenses : 0,
+        healthScore: projState.healthScore
       });
     }
 
@@ -326,7 +305,7 @@ class DecisionConsequenceGraph {
           decisionId: nodeId,
           decision: node.decision.name,
           finalState,
-          impact: node.impact,
+          impact: node.impact
         });
       }
     }
@@ -341,19 +320,19 @@ class DecisionConsequenceGraph {
    * Export as JSON for visualization
    */
   toJSON() {
-    const nodes = Array.from(this.nodes.values()).map((n) => ({
+    const nodes = Array.from(this.nodes.values()).map(n => ({
       id: n.id,
       parentId: n.parentId,
       decision: n.decision.name,
       impact: n.impact,
       confidence: n.confidence,
       finalRunway: n.projectedFinalState?.runway,
-      finalHealth: n.projectedFinalState?.healthScore,
+      finalHealth: n.projectedFinalState?.healthScore
     }));
 
     const edges = Array.from(this.edges.entries()).map(([from, to]) => ({
       from,
-      to,
+      to
     }));
 
     return { nodes, edges };
@@ -412,17 +391,12 @@ class MonteCarloFutureGenerator {
       // Stochastic shocks (job loss, medical emergency, etc.)
       if (rng() < 0.02) {
         // 2% chance each month
-        const shockType =
-          rng() < 0.6
-            ? 'income_loss'
-            : rng() < 0.9
-              ? 'expense_spike'
-              : 'emergency';
+        const shockType = rng() < 0.6 ? "income_loss" : rng() < 0.9 ? "expense_spike" : "emergency";
         const shockMagnitude = monthlyExpenses * (rng() * 0.5 + 0.3); // 30-80% of monthly expenses
         state.applyShock({
           type: shockType,
           magnitude: shockMagnitude,
-          duration: Math.floor(rng() * 3) + 1,
+          duration: Math.floor(rng() * 3) + 1
         });
       }
 
@@ -433,10 +407,7 @@ class MonteCarloFutureGenerator {
       }
 
       // Positive decisions (boost savings rate, etc.)
-      if (
-        rng() < state.behavior.savingsDiscipline &&
-        monthlyNet > 0
-      ) {
+      if (rng() < state.behavior.savingsDiscipline && monthlyNet > 0) {
         state.median.savings += monthlyNet * (rng() * 0.3 + 0.2);
       }
 
@@ -450,7 +421,7 @@ class MonteCarloFutureGenerator {
         savings: state.median.savings,
         runway: state.median.runway,
         healthScore: state.median.healthScore,
-        shocks: state.shocks,
+        shocks: state.shocks
       });
 
       // Stop if savings depleted (financial ruin)
@@ -459,7 +430,7 @@ class MonteCarloFutureGenerator {
           month: t + 1,
           savings: 0,
           runway: 0,
-          status: 'depleted',
+          status: "depleted"
         });
         break;
       }
@@ -471,8 +442,8 @@ class MonteCarloFutureGenerator {
       finalSavings: timeline[timeline.length - 1]?.savings || 0,
       finalRunway: timeline[timeline.length - 1]?.runway || 0,
       finalHealthScore: timeline[timeline.length - 1]?.healthScore || 50,
-      maxRunway: Math.max(...timeline.map((t) => t.runway || 0)),
-      survived: state.median.savings > 0,
+      maxRunway: Math.max(...timeline.map(t => t.runway || 0)),
+      survived: state.median.savings > 0
     };
   }
 
@@ -480,18 +451,20 @@ class MonteCarloFutureGenerator {
    * Compute statistical distributions across all futures
    */
   computeStatistics(futures) {
-    if (futures.length === 0) return null;
+    if (futures.length === 0) {
+      return null;
+    }
 
     const stats = {
       iterationCount: futures.length,
-      survivalRate: (futures.filter((f) => f.survived).length / futures.length) * 100,
-      percentiles: {},
+      survivalRate: (futures.filter(f => f.survived).length / futures.length) * 100,
+      percentiles: {}
     };
 
     // Extract final state distributions
-    const finalSavings = futures.map((f) => f.finalSavings).sort((a, b) => a - b);
-    const finalRunway = futures.map((f) => f.finalRunway).sort((a, b) => a - b);
-    const finalHealth = futures.map((f) => f.finalHealthScore).sort((a, b) => a - b);
+    const finalSavings = futures.map(f => f.finalSavings).sort((a, b) => a - b);
+    const finalRunway = futures.map(f => f.finalRunway).sort((a, b) => a - b);
+    const finalHealth = futures.map(f => f.finalHealthScore).sort((a, b) => a - b);
 
     stats.percentiles.finalSavings = {
       p5: finalSavings[Math.floor(futures.length * 0.05)],
@@ -500,7 +473,7 @@ class MonteCarloFutureGenerator {
       p75: finalSavings[Math.floor(futures.length * 0.75)],
       p95: finalSavings[Math.floor(futures.length * 0.95)],
       mean: finalSavings.reduce((a, b) => a + b, 0) / futures.length,
-      stdev: this.standardDeviation(finalSavings),
+      stdev: this.standardDeviation(finalSavings)
     };
 
     stats.percentiles.finalRunway = {
@@ -509,7 +482,7 @@ class MonteCarloFutureGenerator {
       p50: finalRunway[Math.floor(futures.length * 0.5)],
       p75: finalRunway[Math.floor(futures.length * 0.75)],
       p95: finalRunway[Math.floor(futures.length * 0.95)],
-      mean: finalRunway.reduce((a, b) => a + b, 0) / futures.length,
+      mean: finalRunway.reduce((a, b) => a + b, 0) / futures.length
     };
 
     stats.percentiles.finalHealth = {
@@ -518,13 +491,11 @@ class MonteCarloFutureGenerator {
       p50: finalHealth[Math.floor(futures.length * 0.5)],
       p75: finalHealth[Math.floor(futures.length * 0.75)],
       p95: finalHealth[Math.floor(futures.length * 0.95)],
-      mean: finalHealth.reduce((a, b) => a + b, 0) / futures.length,
+      mean: finalHealth.reduce((a, b) => a + b, 0) / futures.length
     };
 
     // Time-series percentiles for runway
-    stats.timeSeriesPercentiles = this.computeTimeSeriesPercentiles(
-      futures
-    );
+    stats.timeSeriesPercentiles = this.computeTimeSeriesPercentiles(futures);
 
     return stats;
   }
@@ -533,13 +504,11 @@ class MonteCarloFutureGenerator {
    * Compute percentiles over time (for charts)
    */
   computeTimeSeriesPercentiles(futures) {
-    const maxLength = Math.max(...futures.map((f) => f.timeline.length));
+    const maxLength = Math.max(...futures.map(f => f.timeline.length));
     const series = [];
 
     for (let t = 0; t < maxLength; t++) {
-      const runwaysAtT = futures
-        .map((f) => f.timeline[t]?.runway || 0)
-        .sort((a, b) => a - b);
+      const runwaysAtT = futures.map(f => f.timeline[t]?.runway || 0).sort((a, b) => a - b);
 
       if (runwaysAtT.length > 0) {
         series.push({
@@ -548,7 +517,7 @@ class MonteCarloFutureGenerator {
           p25: runwaysAtT[Math.floor(runwaysAtT.length * 0.25)],
           p50: runwaysAtT[Math.floor(runwaysAtT.length * 0.5)],
           p75: runwaysAtT[Math.floor(runwaysAtT.length * 0.75)],
-          p95: runwaysAtT[Math.floor(runwaysAtT.length * 0.95)],
+          p95: runwaysAtT[Math.floor(runwaysAtT.length * 0.95)]
         });
       }
     }
@@ -571,7 +540,7 @@ class MonteCarloFutureGenerator {
    */
   standardDeviation(arr) {
     const mean = arr.reduce((a, b) => a + b, 0) / arr.length;
-    const sq = arr.map((x) => Math.pow(x - mean, 2));
+    const sq = arr.map(x => Math.pow(x - mean, 2));
     return Math.sqrt(sq.reduce((a, b) => a + b, 0) / arr.length);
   }
 
@@ -580,7 +549,7 @@ class MonteCarloFutureGenerator {
    */
   filterFuturesByGoal(goalCriteria) {
     return this.futures.filter(
-      (f) =>
+      f =>
         f.finalRunway >= goalCriteria.minRunway &&
         f.finalHealthScore >= goalCriteria.minHealth &&
         f.finalSavings >= goalCriteria.minSavings
@@ -605,8 +574,8 @@ class BehaviorEvolutionEngine {
       {
         timestamp: 0,
         behavior: initialBehavior,
-        factors: [],
-      },
+        factors: []
+      }
     ];
 
     this.initialBehavior = initialBehavior;
@@ -619,58 +588,37 @@ class BehaviorEvolutionEngine {
     const currentBehavior = { ...this.history[this.history.length - 1].behavior };
     const factors = [];
 
-    if (event.type === 'positive_outcome') {
+    if (event.type === "positive_outcome") {
       // Good outcome reinforces discipline
-      currentBehavior.savingsDiscipline = Math.min(
-        1,
-        currentBehavior.savingsDiscipline + 0.05
-      );
-      currentBehavior.decisionQuality = Math.min(
-        1,
-        currentBehavior.decisionQuality + 0.03
-      );
-      factors.push('positive_reinforcement');
-    } else if (event.type === 'negative_outcome') {
+      currentBehavior.savingsDiscipline = Math.min(1, currentBehavior.savingsDiscipline + 0.05);
+      currentBehavior.decisionQuality = Math.min(1, currentBehavior.decisionQuality + 0.03);
+      factors.push("positive_reinforcement");
+    } else if (event.type === "negative_outcome") {
       // Bad outcome reduces discipline
-      currentBehavior.savingsDiscipline = Math.max(
-        0,
-        currentBehavior.savingsDiscipline - 0.05
-      );
-      factors.push('negative_reinforcement');
+      currentBehavior.savingsDiscipline = Math.max(0, currentBehavior.savingsDiscipline - 0.05);
+      factors.push("negative_reinforcement");
     }
 
-    if (event.type === 'impulse_moment') {
-      currentBehavior.impulseProbability = Math.min(
-        1,
-        currentBehavior.impulseProbability + 0.1
-      );
-      factors.push('impulse_spike');
+    if (event.type === "impulse_moment") {
+      currentBehavior.impulseProbability = Math.min(1, currentBehavior.impulseProbability + 0.1);
+      factors.push("impulse_spike");
     }
 
-    if (event.type === 'awareness_moment') {
+    if (event.type === "awareness_moment") {
       // Awareness naturally improves discipline
-      currentBehavior.impulseProbability = Math.max(
-        0,
-        currentBehavior.impulseProbability - 0.1
-      );
-      currentBehavior.decisionQuality = Math.min(
-        1,
-        currentBehavior.decisionQuality + 0.05
-      );
-      factors.push('awareness_increase');
+      currentBehavior.impulseProbability = Math.max(0, currentBehavior.impulseProbability - 0.1);
+      currentBehavior.decisionQuality = Math.min(1, currentBehavior.decisionQuality + 0.05);
+      factors.push("awareness_increase");
     }
 
     // Time alone improves behavior (mean reversion toward better discipline)
-    currentBehavior.savingsDiscipline = Math.min(
-      1,
-      currentBehavior.savingsDiscipline + 0.01
-    );
+    currentBehavior.savingsDiscipline = Math.min(1, currentBehavior.savingsDiscipline + 0.01);
 
     this.history.push({
       timestamp,
       behavior: currentBehavior,
       factors,
-      event,
+      event
     });
 
     return currentBehavior;
@@ -700,21 +648,15 @@ class BehaviorEvolutionEngine {
       const evolved = { ...current };
 
       // Natural improvement over time
-      evolved.savingsDiscipline = Math.min(
-        1,
-        evolved.savingsDiscipline + 0.02
-      );
+      evolved.savingsDiscipline = Math.min(1, evolved.savingsDiscipline + 0.02);
       evolved.decisionQuality = Math.min(1, evolved.decisionQuality + 0.015);
-      evolved.impulseProbability = Math.max(
-        0,
-        evolved.impulseProbability - 0.01
-      );
+      evolved.impulseProbability = Math.max(0, evolved.impulseProbability - 0.01);
 
       projection.push({
         month: m,
         discipline: evolved.savingsDiscipline,
         impulseControl: 1 - evolved.impulseProbability,
-        decisionQuality: evolved.decisionQuality,
+        decisionQuality: evolved.decisionQuality
       });
     }
 
@@ -738,9 +680,7 @@ export function buildCompleteTwin(assessment = {}, profile = {}, history = {}) {
   const initialState = new FinancialState(0, {
     income: profile.monthlyIncome || 0,
     expenses: profile.monthlyExpense || profile.monthlySpending || 0,
-    savings:
-      (profile.emergencySavingsFixed || 0) +
-      (profile.emergencySavingsDiscretionary || 0),
+    savings: (profile.emergencySavingsFixed || 0) + (profile.emergencySavingsDiscretionary || 0),
     debt: profile.totalDebt || 0,
     runway: assessment.survivalMonthsRaw || 0,
     healthScore: assessment.healthScore || 50,
@@ -750,7 +690,7 @@ export function buildCompleteTwin(assessment = {}, profile = {}, history = {}) {
         : 0,
     savingsDiscipline: Math.min(1, (assessment.behavioralTraits?.discipline || 0.3) / 100),
     spendingElasticity: 0.4,
-    impulseProbability: Math.max(0, 1 - (assessment.impulseControl || 50) / 100),
+    impulseProbability: Math.max(0, 1 - (assessment.impulseControl || 50) / 100)
   });
 
   // Initialize behavior evolution
@@ -767,7 +707,7 @@ export function buildCompleteTwin(assessment = {}, profile = {}, history = {}) {
   const twin = {
     id: `twin_${Date.now()}`,
     createdAt: new Date().toISOString(),
-    userId: profile.userId || 'unknown',
+    userId: profile.userId || "unknown",
 
     // Core state
     currentState: initialState,
@@ -786,8 +726,9 @@ export function buildCompleteTwin(assessment = {}, profile = {}, history = {}) {
       healthScore: assessment.healthScore,
       runway: assessment.survivalMonthsRaw,
       confidence: 0.65, // Increases with more behavioral data
-      dataPoints: (history.assessments?.length || 0),
-      imprecisionReason: (history.assessments?.length || 0) < 10 ? 'Insufficient behavioral history' : 'Data rich',
+      dataPoints: history.assessments?.length || 0,
+      imprecisionReason:
+        (history.assessments?.length || 0) < 10 ? "Insufficient behavioral history" : "Data rich"
     },
 
     // Methods to interact with the twin
@@ -795,23 +736,22 @@ export function buildCompleteTwin(assessment = {}, profile = {}, history = {}) {
       /**
        * Simulate a decision and see its consequence path
        */
-      simulateDecision: (decision) => {
+      simulateDecision: decision => {
         const consequenceId = consequenceGraph.addDecision(null, decision);
         return {
           decisionId: consequenceId,
           consequencePath: consequenceGraph.getConsequencePath(consequenceId),
-          projectedOutcome: consequenceGraph.nodes.get(consequenceId)
-            .projectedFinalState,
+          projectedOutcome: consequenceGraph.nodes.get(consequenceId).projectedFinalState
         };
       },
 
       /**
        * Find decisions that achieve a goal
        */
-      findPathToGoal: (criteria) => {
+      findPathToGoal: criteria => {
         return consequenceGraph.getPathToState({
           minRunway: criteria.targetRunway || 6,
-          minHealth: criteria.targetHealth || 70,
+          minHealth: criteria.targetHealth || 70
         });
       },
 
@@ -823,17 +763,17 @@ export function buildCompleteTwin(assessment = {}, profile = {}, history = {}) {
         pessimistic: futureStatistics.percentiles.finalRunway.p5,
         optimistic: futureStatistics.percentiles.finalRunway.p95,
         survivalRate: futureStatistics.survivalRate,
-        timeSeriesPercentiles: futureStatistics.timeSeriesPercentiles,
+        timeSeriesPercentiles: futureStatistics.timeSeriesPercentiles
       }),
 
       /**
        * Apply a decision and update the twin
        */
-      applyDecision: (decision) => {
+      applyDecision: decision => {
         const consequence = initialState.applyDecision(decision);
         behaviorEngine.updateBehavior(Date.now(), {
-          type: 'decision_applied',
-          decision,
+          type: "decision_applied",
+          decision
         });
         return consequence;
       },
@@ -846,7 +786,7 @@ export function buildCompleteTwin(assessment = {}, profile = {}, history = {}) {
       /**
        * Stress test the twin
        */
-      stressTest: (scenarios) => {
+      stressTest: scenarios => {
         const results = [];
         for (const scenario of scenarios) {
           const testState = new FinancialState(0, initialState.median);
@@ -855,12 +795,12 @@ export function buildCompleteTwin(assessment = {}, profile = {}, history = {}) {
             scenario: scenario.type,
             survived: testState.median.savings > 0,
             remainingSavings: testState.median.savings,
-            runway: testState.median.runway,
+            runway: testState.median.runway
           });
         }
         return results;
-      },
-    },
+      }
+    }
   };
 
   return twin;
@@ -873,5 +813,5 @@ export {
   FinancialState,
   DecisionConsequenceGraph,
   MonteCarloFutureGenerator,
-  BehaviorEvolutionEngine,
+  BehaviorEvolutionEngine
 };

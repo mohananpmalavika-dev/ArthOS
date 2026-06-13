@@ -20,23 +20,30 @@
  */
 
 const DEFAULT_CONFIG = {
-  environment: 'production',
-  baseUrl: '',
+  environment: "production",
+  baseUrl: "",
   retryCount: 2,
   retryDelay: 1000,
-  timeout: 10000,
+  timeout: 10000
 };
 
 const ENVIRONMENTS = {
-  production: 'https://api.arthos.io',
-  staging: 'https://staging-api.arthos.io',
-  development: 'http://localhost:5173',
+  production: "https://api.arthos.io",
+  staging: "https://staging-api.arthos.io",
+  development: "http://localhost:5173"
 };
 
 export class ArthOSPartnerSDK {
-  constructor({ apiKey, environment = 'production', baseUrl, retryCount, retryDelay, timeout } = {}) {
+  constructor({
+    apiKey,
+    environment = "production",
+    baseUrl,
+    retryCount,
+    retryDelay,
+    timeout
+  } = {}) {
     if (!apiKey) {
-      throw new Error('ArthOSPartnerSDK: apiKey is required. Get one at https://arthos.io/b2b');
+      throw new Error("ArthOSPartnerSDK: apiKey is required. Get one at https://arthos.io/b2b");
     }
 
     this.apiKey = apiKey;
@@ -46,14 +53,14 @@ export class ArthOSPartnerSDK {
       baseUrl: baseUrl || ENVIRONMENTS[environment] || ENVIRONMENTS.production,
       retryCount: retryCount ?? DEFAULT_CONFIG.retryCount,
       retryDelay: retryDelay ?? DEFAULT_CONFIG.retryDelay,
-      timeout: timeout ?? DEFAULT_CONFIG.timeout,
+      timeout: timeout ?? DEFAULT_CONFIG.timeout
     };
     this.metrics = {
       totalRequests: 0,
       successfulRequests: 0,
       failedRequests: 0,
       lastRequestTime: null,
-      rateLimited: false,
+      rateLimited: false
     };
   }
 
@@ -69,13 +76,13 @@ export class ArthOSPartnerSDK {
         const timeoutId = setTimeout(() => controller.abort(), this.config.timeout);
 
         const response = await fetch(url, {
-          method: 'POST',
+          method: "POST",
           headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${this.apiKey}`,
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${this.apiKey}`
           },
           body: JSON.stringify(payload),
-          signal: controller.signal,
+          signal: controller.signal
         });
 
         clearTimeout(timeoutId);
@@ -86,18 +93,26 @@ export class ArthOSPartnerSDK {
         if (response.status === 429) {
           this.metrics.rateLimited = true;
           if (attempt < this.config.retryCount) {
-            const retryAfter = response.headers.get('Retry-After');
-            const delay = retryAfter ? parseInt(retryAfter, 10) * 1000 : this.config.retryDelay * (attempt + 1);
-            await new Promise((resolve) => setTimeout(resolve, delay));
+            const retryAfter = response.headers.get("Retry-After");
+            const delay = retryAfter
+              ? parseInt(retryAfter, 10) * 1000
+              : this.config.retryDelay * (attempt + 1);
+            await new Promise(resolve => setTimeout(resolve, delay));
             continue;
           }
-          throw new ArthOSPartnerError('Rate limit exceeded. Upgrade your plan at https://arthos.io/b2b', 429);
+          throw new ArthOSPartnerError(
+            "Rate limit exceeded. Upgrade your plan at https://arthos.io/b2b",
+            429
+          );
         }
 
         // Unauthorized — don't retry
         if (response.status === 401) {
           this.metrics.failedRequests++;
-          throw new ArthOSPartnerError('Invalid API key. Check your credentials or generate a new key.', 401);
+          throw new ArthOSPartnerError(
+            "Invalid API key. Check your credentials or generate a new key.",
+            401
+          );
         }
 
         if (!response.ok) {
@@ -113,21 +128,23 @@ export class ArthOSPartnerSDK {
         this.metrics.successfulRequests++;
         return response.json();
       } catch (err) {
-        if (err instanceof ArthOSPartnerError) throw err;
+        if (err instanceof ArthOSPartnerError) {
+          throw err;
+        }
 
         // Abort/timeout
-        if (err.name === 'AbortError') {
+        if (err.name === "AbortError") {
           if (attempt < this.config.retryCount) {
-            await new Promise((resolve) => setTimeout(resolve, this.config.retryDelay));
+            await new Promise(resolve => setTimeout(resolve, this.config.retryDelay));
             continue;
           }
           this.metrics.failedRequests++;
-          throw new ArthOSPartnerError('Request timed out', 408);
+          throw new ArthOSPartnerError("Request timed out", 408);
         }
 
         // Network error — retry
         if (attempt < this.config.retryCount) {
-          await new Promise((resolve) => setTimeout(resolve, this.config.retryDelay * (attempt + 1)));
+          await new Promise(resolve => setTimeout(resolve, this.config.retryDelay * (attempt + 1)));
           continue;
         }
 
@@ -151,14 +168,14 @@ export class ArthOSPartnerSDK {
    */
   async getIntelligence({ userId, profile, behaviour, awareness, habits }) {
     if (!userId) {
-      throw new ArthOSPartnerError('userId is required for getIntelligence', 400);
+      throw new ArthOSPartnerError("userId is required for getIntelligence", 400);
     }
-    return this._request('/api/b2b/intelligence', {
+    return this._request("/api/b2b/intelligence", {
       userId,
       profile,
       behaviour,
       awareness,
-      habits,
+      habits
     });
   }
 
@@ -176,7 +193,7 @@ export class ArthOSPartnerSDK {
       userId,
       profile,
       behaviour: {},
-      awareness: {},
+      awareness: {}
     });
     return result.healthScore;
   }
@@ -196,7 +213,7 @@ export class ArthOSPartnerSDK {
       userId,
       profile,
       behaviour,
-      awareness,
+      awareness
     });
     return result.riskProfile;
   }
@@ -214,7 +231,7 @@ export class ArthOSPartnerSDK {
     const result = await this.getIntelligence({
       userId,
       profile,
-      behaviour,
+      behaviour
     });
     return result.cognitiveBiases;
   }
@@ -237,7 +254,7 @@ export class ArthOSPartnerSDK {
       successfulRequests: 0,
       failedRequests: 0,
       lastRequestTime: null,
-      rateLimited: false,
+      rateLimited: false
     };
   }
 
@@ -258,7 +275,7 @@ export class ArthOSPartnerSDK {
 export class ArthOSPartnerError extends Error {
   constructor(message, statusCode, body) {
     super(message);
-    this.name = 'ArthOSPartnerError';
+    this.name = "ArthOSPartnerError";
     this.statusCode = statusCode;
     this.body = body;
     this.timestamp = new Date().toISOString();

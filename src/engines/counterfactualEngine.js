@@ -7,14 +7,15 @@ export function compareAlternatives(actual = {}, alternative = {}) {
     actualScore,
     alternativeScore,
     scoreDifference,
-    better: scoreDifference > 0 ? 'alternative' : scoreDifference < 0 ? 'actual' : 'tie',
-    recommendation: scoreDifference > 0 
-      ? 'Alternative decision would have yielded better outcome'
-      : scoreDifference < 0
-      ? 'Your actual decision was the better choice'
-      : 'Both decisions were equally sound',
+    better: scoreDifference > 0 ? "alternative" : scoreDifference < 0 ? "actual" : "tie",
+    recommendation:
+      scoreDifference > 0
+        ? "Alternative decision would have yielded better outcome"
+        : scoreDifference < 0
+          ? "Your actual decision was the better choice"
+          : "Both decisions were equally sound",
     regretPotential: Math.abs(scoreDifference),
-    timestamp: new Date().toISOString(),
+    timestamp: new Date().toISOString()
   };
 }
 
@@ -28,8 +29,9 @@ export function simulateCounterfactual(decision = {}, scenario = {}) {
     scenario,
     projectedScore,
     improvement: projectedScore - baseScore,
-    learningInsight: projectedScore > baseScore 
-      ? `If you had ${scenario.description || 'adjusted your approach'}, this decision would have scored ${projectedScore}.`
-      : `Your actual decision path was more resilient than the alternative scenario.`,
+    learningInsight:
+      projectedScore > baseScore
+        ? `If you had ${scenario.description || "adjusted your approach"}, this decision would have scored ${projectedScore}.`
+        : `Your actual decision path was more resilient than the alternative scenario.`
   };
 }

@@ -11,7 +11,7 @@ export default function AdminSection({
   onAdminCredentialChange,
   onAdminLogin,
   onAdminLogout,
-  onGenerateReport,
+  onGenerateReport
 }) {
   return (
     <section className="admin-section" id="admin">
@@ -35,10 +35,12 @@ export default function AdminSection({
                 type="text"
                 autoComplete="username"
                 value={adminCredentials.username}
-                onChange={(event) => onAdminCredentialChange({
-                  ...adminCredentials,
-                  username: event.target.value,
-                })}
+                onChange={event =>
+                  onAdminCredentialChange({
+                    ...adminCredentials,
+                    username: event.target.value
+                  })
+                }
               />
             </label>
             <label>
@@ -47,10 +49,12 @@ export default function AdminSection({
                 type="password"
                 autoComplete="current-password"
                 value={adminCredentials.password}
-                onChange={(event) => onAdminCredentialChange({
-                  ...adminCredentials,
-                  password: event.target.value,
-                })}
+                onChange={event =>
+                  onAdminCredentialChange({
+                    ...adminCredentials,
+                    password: event.target.value
+                  })
+                }
               />
             </label>
             {adminLoginError && <p className="admin-login-error">{adminLoginError}</p>}

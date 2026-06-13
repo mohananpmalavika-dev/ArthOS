@@ -11,7 +11,9 @@
  */
 
 function normalizeScore(value) {
-  if (typeof value !== 'number' || Number.isNaN(value)) return 50;
+  if (typeof value !== "number" || Number.isNaN(value)) {
+    return 50;
+  }
   return Math.max(0, Math.min(100, Math.round(value)));
 }
 
@@ -23,29 +25,35 @@ function clamp(value, min = 0, max = 100) {
 // OUTCOME HISTORY — Pattern-weighted calibration
 // ============================================================
 
-const DECISION_OUTCOME_KEY = 'arth-os-decision-outcomes';
+const DECISION_OUTCOME_KEY = "arth-os-decision-outcomes";
 
 function isBrowser() {
-  return typeof window !== 'undefined' && typeof window.localStorage !== 'undefined';
+  return typeof window !== "undefined" && typeof window.localStorage !== "undefined";
 }
 
 function loadOutcomes() {
-  if (!isBrowser()) return [];
+  if (!isBrowser()) {
+    return [];
+  }
   try {
     const raw = window.localStorage.getItem(DECISION_OUTCOME_KEY);
     return raw ? JSON.parse(raw) : [];
-  } catch { return []; }
+  } catch {
+    return [];
+  }
 }
 
 function saveOutcomes(outcomes) {
-  if (!isBrowser()) return;
+  if (!isBrowser()) {
+    return;
+  }
   try {
     window.localStorage.setItem(DECISION_OUTCOME_KEY, JSON.stringify(outcomes));
   } catch (error) {
-    console.error('[decisionIntelligence] Failed to save decision outcomes:', {
+    console.error("[decisionIntelligence] Failed to save decision outcomes:", {
       numOutcomes: outcomes?.length || 0,
       error: error?.message,
-      code: error?.code,
+      code: error?.code
     });
   }
 }
@@ -55,13 +63,13 @@ function saveOutcomes(outcomes) {
 // ============================================================
 
 const BASE_RISK_FACTORS = {
-  urgency: { weight: 0.15, description: 'Urgency-driven decision making' },
-  emotional: { weight: 0.15, description: 'Emotion-driven decision making' },
-  cognitiveBias: { weight: 0.20, description: 'Cognitive bias evidence in decision text' },
-  informationQuality: { weight: 0.15, description: 'Information completeness before decision' },
-  timeOrientation: { weight: 0.10, description: 'Short vs long-term orientation' },
-  goalAlignment: { weight: 0.15, description: 'Alignment with stated financial goals' },
-  valueConsistency: { weight: 0.10, description: 'Consistency with personal values' },
+  urgency: { weight: 0.15, description: "Urgency-driven decision making" },
+  emotional: { weight: 0.15, description: "Emotion-driven decision making" },
+  cognitiveBias: { weight: 0.2, description: "Cognitive bias evidence in decision text" },
+  informationQuality: { weight: 0.15, description: "Information completeness before decision" },
+  timeOrientation: { weight: 0.1, description: "Short vs long-term orientation" },
+  goalAlignment: { weight: 0.15, description: "Alignment with stated financial goals" },
+  valueConsistency: { weight: 0.1, description: "Consistency with personal values" }
 };
 
 // ============================================================
@@ -69,62 +77,121 @@ const BASE_RISK_FACTORS = {
 // ============================================================
 
 function scoreUrgency(decision = {}) {
-  const text = String(decision.notes || decision.description || '').toLowerCase();
-  const urgencyWords = ['urgent', 'now', 'must', 'immediately', 'today', 'tonight', 'right away', 'asap'];
-  const urgencyCount = urgencyWords.filter((w) => text.includes(w)).length;
-  return clamp(100 - (urgencyCount * 20));
+  const text = String(decision.notes || decision.description || "").toLowerCase();
+  const urgencyWords = [
+    "urgent",
+    "now",
+    "must",
+    "immediately",
+    "today",
+    "tonight",
+    "right away",
+    "asap"
+  ];
+  const urgencyCount = urgencyWords.filter(w => text.includes(w)).length;
+  return clamp(100 - urgencyCount * 20);
 }
 
 function scoreEmotional(decision = {}) {
-  const text = String(decision.notes || decision.description || '').toLowerCase();
-  const fearWords = ['fear', 'lose', 'loss', 'worried', 'scared', 'anxious', 'panic', 'afraid'];
-  const greedWords = ['fomo', 'opportunity', 'miss out', 'once in a lifetime', 'guaranteed', 'sure thing'];
-  const fearScore = fearWords.filter((w) => text.includes(w)).length * 15;
-  const greedScore = greedWords.filter((w) => text.includes(w)).length * 12;
+  const text = String(decision.notes || decision.description || "").toLowerCase();
+  const fearWords = ["fear", "lose", "loss", "worried", "scared", "anxious", "panic", "afraid"];
+  const greedWords = [
+    "fomo",
+    "opportunity",
+    "miss out",
+    "once in a lifetime",
+    "guaranteed",
+    "sure thing"
+  ];
+  const fearScore = fearWords.filter(w => text.includes(w)).length * 15;
+  const greedScore = greedWords.filter(w => text.includes(w)).length * 12;
   return clamp(100 - fearScore - greedScore);
 }
 
 function scoreCognitiveBias(decision = {}) {
-  const text = String(decision.notes || decision.description || '').toLowerCase();
+  const text = String(decision.notes || decision.description || "").toLowerCase();
   let score = 100;
-  if (/\b(always|never|everyone|nobody|impossible|certainly)\b/.test(text)) score -= 12;
-  if (/\b(all|nothing|completely|totally)\b/.test(text)) score -= 8;
-  if (/\b(maybe|perhaps|hope|might|possibly)\b/.test(text)) score -= 5;
-  if (/\b(stick with|keep doing|don't change|same as before|as is)\b/.test(text)) score -= 8;
-  if (/\b(already spent|invested so far|put so much into|can't stop now)\b/.test(text)) score -= 15;
+  if (/\b(always|never|everyone|nobody|impossible|certainly)\b/.test(text)) {
+    score -= 12;
+  }
+  if (/\b(all|nothing|completely|totally)\b/.test(text)) {
+    score -= 8;
+  }
+  if (/\b(maybe|perhaps|hope|might|possibly)\b/.test(text)) {
+    score -= 5;
+  }
+  if (/\b(stick with|keep doing|don't change|same as before|as is)\b/.test(text)) {
+    score -= 8;
+  }
+  if (/\b(already spent|invested so far|put so much into|can't stop now)\b/.test(text)) {
+    score -= 15;
+  }
   return clamp(score);
 }
 
 function scoreInformationQuality(decision = {}) {
   let score = 50;
-  if (decision.researched || decision.shoppedAround) score += 15;
-  if (decision.sleptOnIt || decision.waited) score += 10;
-  if (Number(decision.alternativesConsidered) >= 2) score += 10;
-  if (decision.consultedSomeone) score += 10;
-  if (decision.budgetChecked || decision.checkedBalance) score += 15;
-  if (decision.amount && decision.amount <= 1000) score += 5;
+  if (decision.researched || decision.shoppedAround) {
+    score += 15;
+  }
+  if (decision.sleptOnIt || decision.waited) {
+    score += 10;
+  }
+  if (Number(decision.alternativesConsidered) >= 2) {
+    score += 10;
+  }
+  if (decision.consultedSomeone) {
+    score += 10;
+  }
+  if (decision.budgetChecked || decision.checkedBalance) {
+    score += 15;
+  }
+  if (decision.amount && decision.amount <= 1000) {
+    score += 5;
+  }
   return clamp(score);
 }
 
 function scoreTimeOrientation(decision = {}) {
-  const text = String(decision.notes || decision.description || '').toLowerCase();
-  if (/\b(future|later|planning|goal|long.term|investment|next year|retirement)\b/.test(text)) return 85;
-  if (/\b(today|now|urgent|immediately|this week|tonight|this month)\b/.test(text)) return 55;
-  if (/\b(balance|both|short|medium)\b/.test(text)) return 75;
+  const text = String(decision.notes || decision.description || "").toLowerCase();
+  if (/\b(future|later|planning|goal|long.term|investment|next year|retirement)\b/.test(text)) {
+    return 85;
+  }
+  if (/\b(today|now|urgent|immediately|this week|tonight|this month)\b/.test(text)) {
+    return 55;
+  }
+  if (/\b(balance|both|short|medium)\b/.test(text)) {
+    return 75;
+  }
   return 70;
 }
 
 function scoreGoalAlignment(decision = {}) {
-  if (decision.goalAlignment === true || decision.goalAligned === true) return 85;
-  if (decision.goalAlignment === false || decision.goalAligned === false) return 40;
+  if (decision.goalAlignment === true || decision.goalAligned === true) {
+    return 85;
+  }
+  if (decision.goalAlignment === false || decision.goalAligned === false) {
+    return 40;
+  }
   return normalizeScore(decision.goalAlignment || decision.goalAligned || 50);
 }
 
 function scoreValueConsistency(decision = {}) {
-  if (typeof decision.valueConsistency === 'number') return normalizeScore(decision.valueConsistency);
-  const text = String(decision.notes || decision.description || '').toLowerCase();
-  if (text.includes('savings') || text.includes('invest') || text.includes('plan') || text.includes('budget')) return 75;
-  if (text.includes('emergency') || text.includes('debt') || text.includes('pay off')) return 70;
+  if (typeof decision.valueConsistency === "number") {
+    return normalizeScore(decision.valueConsistency);
+  }
+  const text = String(decision.notes || decision.description || "").toLowerCase();
+  if (
+    text.includes("savings") ||
+    text.includes("invest") ||
+    text.includes("plan") ||
+    text.includes("budget")
+  ) {
+    return 75;
+  }
+  if (text.includes("emergency") || text.includes("debt") || text.includes("pay off")) {
+    return 70;
+  }
   return 60;
 }
 
@@ -138,19 +205,21 @@ function scoreValueConsistency(decision = {}) {
  */
 function getPatternAdjustedWeights(category) {
   const outcomes = loadOutcomes();
-  const relevant = outcomes.filter((o) => !category || o.category === category);
+  const relevant = outcomes.filter(o => !category || o.category === category);
   const weights = { ...BASE_RISK_FACTORS };
 
-  if (relevant.length < 3) return weights;
+  if (relevant.length < 3) {
+    return weights;
+  }
 
   // For each factor, check historical correlation with poor outcomes
   for (const [factor, config] of Object.entries(BASE_RISK_FACTORS)) {
     const poorOutcomes = relevant.filter(
-      (o) => (o.factorScores?.[factor] || 50) < 50 && (o.actualOutcome === 'negative' || o.regretLevel > 50)
+      o =>
+        (o.factorScores?.[factor] || 50) < 50 &&
+        (o.actualOutcome === "negative" || o.regretLevel > 50)
     );
-    const totalWithFactor = relevant.filter(
-      (o) => (o.factorScores?.[factor] || 50) < 60
-    ).length;
+    const totalWithFactor = relevant.filter(o => (o.factorScores?.[factor] || 50) < 60).length;
 
     if (totalWithFactor > 0) {
       const failureRate = poorOutcomes.length / totalWithFactor;
@@ -159,7 +228,7 @@ function getPatternAdjustedWeights(category) {
       weights[factor] = {
         ...config,
         weight: clamp(config.weight * adjustment, 0.05, 0.35),
-        historicalFailureRate: Math.round(failureRate * 100),
+        historicalFailureRate: Math.round(failureRate * 100)
       };
     }
   }
@@ -179,21 +248,29 @@ function getPatternAdjustedWeights(category) {
  */
 function decisionConfidenceInterval(scoredDecision) {
   const outcomes = loadOutcomes();
-  const relevant = outcomes.filter((o) => o.overallDecisionQuality !== undefined);
+  const relevant = outcomes.filter(o => o.overallDecisionQuality !== undefined);
   if (relevant.length < 3) {
-    return { lower: Math.max(0, scoredDecision.overallDecisionQuality - 15), upper: Math.min(100, scoredDecision.overallDecisionQuality + 15), width: 30 };
+    return {
+      lower: Math.max(0, scoredDecision.overallDecisionQuality - 15),
+      upper: Math.min(100, scoredDecision.overallDecisionQuality + 15),
+      width: 30
+    };
   }
 
   // Bootstrap residual errors from past predictions vs outcomes
   const errors = [];
   for (const o of relevant) {
-    if (typeof o.actualQuality === 'number') {
+    if (typeof o.actualQuality === "number") {
       errors.push(o.overallDecisionQuality - o.actualQuality);
     }
   }
 
   if (errors.length < 2) {
-    return { lower: Math.max(0, scoredDecision.overallDecisionQuality - 12), upper: Math.min(100, scoredDecision.overallDecisionQuality + 12), width: 24 };
+    return {
+      lower: Math.max(0, scoredDecision.overallDecisionQuality - 12),
+      upper: Math.min(100, scoredDecision.overallDecisionQuality + 12),
+      width: 24
+    };
   }
 
   const mean = errors.reduce((s, e) => s + e, 0) / errors.length;
@@ -204,7 +281,7 @@ function decisionConfidenceInterval(scoredDecision) {
   return {
     lower: clamp(Math.round(scoredDecision.overallDecisionQuality - margin)),
     upper: clamp(Math.round(scoredDecision.overallDecisionQuality + margin)),
-    width: Math.round(margin * 2),
+    width: Math.round(margin * 2)
   };
 }
 
@@ -225,21 +302,29 @@ export function scoreDecision(decision = {}) {
   const goalAlignment = scoreGoalAlignment(decision);
   const valueConsistency = scoreValueConsistency(decision);
 
-  const factorScores = { urgency, emotional, cognitiveBias, informationQuality, timeOrientation, goalAlignment, valueConsistency };
+  const factorScores = {
+    urgency,
+    emotional,
+    cognitiveBias,
+    informationQuality,
+    timeOrientation,
+    goalAlignment,
+    valueConsistency
+  };
 
   // Get pattern-adjusted weights from historical outcomes
   const adjustedWeights = getPatternAdjustedWeights(decision.category);
   const totalWeight = Object.values(adjustedWeights).reduce((s, f) => s + f.weight, 0);
 
-  const weightedScore = (
-    urgency * adjustedWeights.urgency.weight +
-    emotional * adjustedWeights.emotional.weight +
-    cognitiveBias * adjustedWeights.cognitiveBias.weight +
-    informationQuality * adjustedWeights.informationQuality.weight +
-    timeOrientation * adjustedWeights.timeOrientation.weight +
-    goalAlignment * adjustedWeights.goalAlignment.weight +
-    valueConsistency * adjustedWeights.valueConsistency.weight
-  ) / totalWeight;
+  const weightedScore =
+    (urgency * adjustedWeights.urgency.weight +
+      emotional * adjustedWeights.emotional.weight +
+      cognitiveBias * adjustedWeights.cognitiveBias.weight +
+      informationQuality * adjustedWeights.informationQuality.weight +
+      timeOrientation * adjustedWeights.timeOrientation.weight +
+      goalAlignment * adjustedWeights.goalAlignment.weight +
+      valueConsistency * adjustedWeights.valueConsistency.weight) /
+    totalWeight;
 
   const overallDecisionQuality = clamp(Math.round(weightedScore));
 
@@ -249,9 +334,9 @@ export function scoreDecision(decision = {}) {
     .map(([key, score]) => ({
       factor: key,
       score,
-      riskLevel: score < 40 ? 'high' : 'moderate',
+      riskLevel: score < 40 ? "high" : "moderate",
       description: BASE_RISK_FACTORS[key]?.description || key,
-      historicalWeight: adjustedWeights[key]?.weight || BASE_RISK_FACTORS[key]?.weight,
+      historicalWeight: adjustedWeights[key]?.weight || BASE_RISK_FACTORS[key]?.weight
     }))
     .sort((a, b) => a.score - b.score);
 
@@ -266,9 +351,10 @@ export function scoreDecision(decision = {}) {
     overallDecisionQuality,
     riskFactors,
     confidenceInterval: ci,
-    riskLevel: overallDecisionQuality > 75 ? 'low' : overallDecisionQuality > 50 ? 'moderate' : 'high',
+    riskLevel:
+      overallDecisionQuality > 75 ? "low" : overallDecisionQuality > 50 ? "moderate" : "high",
     qualityLabel: getQualityLabel(overallDecisionQuality),
-    scoredAt: new Date().toISOString(),
+    scoredAt: new Date().toISOString()
   };
 }
 
@@ -282,22 +368,32 @@ export function recordDecisionOutcome(decisionId, outcome) {
     category: outcome.category,
     factorScores: outcome.factorScores,
     overallDecisionQuality: outcome.overallDecisionQuality,
-    actualOutcome: outcome.actualOutcome || 'unknown', // 'positive', 'negative', 'neutral'
+    actualOutcome: outcome.actualOutcome || "unknown", // 'positive', 'negative', 'neutral'
     actualQuality: outcome.actualQuality || null,
     regretLevel: outcome.regretLevel || null,
-    recordedAt: new Date().toISOString(),
+    recordedAt: new Date().toISOString()
   });
   // Keep last 200
-  if (outcomes.length > 200) outcomes.splice(0, outcomes.length - 200);
+  if (outcomes.length > 200) {
+    outcomes.splice(0, outcomes.length - 200);
+  }
   saveOutcomes(outcomes);
 }
 
 function getQualityLabel(score) {
-  if (score >= 90) return 'Excellent';
-  if (score >= 75) return 'Good';
-  if (score >= 60) return 'Fair';
-  if (score >= 40) return 'Poor';
-  return 'Risky';
+  if (score >= 90) {
+    return "Excellent";
+  }
+  if (score >= 75) {
+    return "Good";
+  }
+  if (score >= 60) {
+    return "Fair";
+  }
+  if (score >= 40) {
+    return "Poor";
+  }
+  return "Risky";
 }
 
 /**
@@ -305,10 +401,17 @@ function getQualityLabel(score) {
  */
 export function decisionTrend(decisions = []) {
   if (!decisions.length) {
-    return { currentScore: 0, movingAverage: 0, trend: 'Unknown', stability: 0, volatility: 0, confidence: 0 };
+    return {
+      currentScore: 0,
+      movingAverage: 0,
+      trend: "Unknown",
+      stability: 0,
+      volatility: 0,
+      confidence: 0
+    };
   }
 
-  const scored = decisions.map((d) => normalizeScore(d.overallDecisionQuality || d.score || 50));
+  const scored = decisions.map(d => normalizeScore(d.overallDecisionQuality || d.score || 50));
 
   const avg = Math.round(scored.reduce((a, b) => a + b, 0) / scored.length);
 
@@ -328,11 +431,14 @@ export function decisionTrend(decisions = []) {
   const firstHalf = scored.slice(0, Math.floor(scored.length / 2));
   const secondHalf = scored.slice(Math.floor(scored.length / 2));
   const firstAvg = firstHalf.length ? firstHalf.reduce((a, b) => a + b, 0) / firstHalf.length : 0;
-  const secondAvg = secondHalf.length ? secondHalf.reduce((a, b) => a + b, 0) / secondHalf.length : 0;
-  const trend = secondAvg > firstAvg + 3 ? 'Improving' : secondAvg < firstAvg - 3 ? 'Declining' : 'Stable';
+  const secondAvg = secondHalf.length
+    ? secondHalf.reduce((a, b) => a + b, 0) / secondHalf.length
+    : 0;
+  const trend =
+    secondAvg > firstAvg + 3 ? "Improving" : secondAvg < firstAvg - 3 ? "Declining" : "Stable";
 
   // Confidence in trend estimate
-  const confidence = decisions.length >= 10 ? 'high' : decisions.length >= 5 ? 'medium' : 'low';
+  const confidence = decisions.length >= 10 ? "high" : decisions.length >= 5 ? "medium" : "low";
 
   return {
     currentScore: scored[scored.length - 1],
@@ -342,7 +448,7 @@ export function decisionTrend(decisions = []) {
     stability,
     volatility,
     decisionCount: scored.length,
-    confidence,
+    confidence
   };
 }
 
@@ -351,7 +457,9 @@ export function decisionTrend(decisions = []) {
  */
 export function identifyPrimaryRisk(decision = {}) {
   const scored = scoreDecision(decision);
-  if (!scored.riskFactors.length) return null;
+  if (!scored.riskFactors.length) {
+    return null;
+  }
 
   const primary = scored.riskFactors[0];
   return {
@@ -360,21 +468,29 @@ export function identifyPrimaryRisk(decision = {}) {
     riskLevel: primary.riskLevel,
     impact: clamp(100 - scored.overallDecisionQuality),
     recommendation: getRiskRecommendation(primary.factor),
-    confidenceInterval: scored.confidenceInterval,
+    confidenceInterval: scored.confidenceInterval
   };
 }
 
 function getRiskRecommendation(factor) {
   const recommendations = {
-    urgency: 'Pause before acting. If it is truly urgent, wait 1 hour — urgency fades with reflection.',
-    emotional: 'Name the emotion driving this decision. Write it down. Revisit the decision tomorrow.',
-    cognitiveBias: 'List 2-3 alternatives before deciding. Check if "always"/"never" statements hold evidence.',
-    informationQuality: 'Gather 3 data points before deciding. Even 10 minutes of research improves quality.',
-    timeOrientation: 'Map the decision to a 6-month time horizon. How will it look then?',
-    goalAlignment: 'Reconnect with your primary financial goal. Does this decision advance it?',
-    valueConsistency: 'Write down your personal values. Score each option against them on a scale of 1-10.',
+    urgency:
+      "Pause before acting. If it is truly urgent, wait 1 hour — urgency fades with reflection.",
+    emotional:
+      "Name the emotion driving this decision. Write it down. Revisit the decision tomorrow.",
+    cognitiveBias:
+      'List 2-3 alternatives before deciding. Check if "always"/"never" statements hold evidence.',
+    informationQuality:
+      "Gather 3 data points before deciding. Even 10 minutes of research improves quality.",
+    timeOrientation: "Map the decision to a 6-month time horizon. How will it look then?",
+    goalAlignment: "Reconnect with your primary financial goal. Does this decision advance it?",
+    valueConsistency:
+      "Write down your personal values. Score each option against them on a scale of 1-10."
   };
-  return recommendations[factor] || 'Review the decision context and identify what information is missing.';
+  return (
+    recommendations[factor] ||
+    "Review the decision context and identify what information is missing."
+  );
 }
 
 /**
@@ -393,12 +509,13 @@ export function counterfactualAnalysis(actualDecision = {}, alternativeScenario 
     alternativeScore: alternativeScore.overallDecisionQuality,
     actualConfidence: actualScore.confidenceInterval,
     delta,
-    betterChoice: delta > 0 ? 'alternative' : delta < 0 ? 'actual' : 'equal',
-    insight: delta > 5
-      ? `Had you chosen differently, your decision quality would have been ${delta} points higher.`
-      : delta < -5
-        ? `Your actual choice was ${Math.abs(delta)} points better than the alternative.`
-        : 'Both paths yielded comparable decision quality.',
+    betterChoice: delta > 0 ? "alternative" : delta < 0 ? "actual" : "equal",
+    insight:
+      delta > 5
+        ? `Had you chosen differently, your decision quality would have been ${delta} points higher.`
+        : delta < -5
+          ? `Your actual choice was ${Math.abs(delta)} points better than the alternative.`
+          : "Both paths yielded comparable decision quality."
   };
 }
 
@@ -409,30 +526,38 @@ export function predictDecisionTrajectory(decisions = [], horizon = 30) {
   const trend = decisionTrend(decisions);
   if (decisions.length < 3) {
     return {
-      confidence: 'low',
-      prediction: 'Insufficient data to predict trajectory. Complete 3+ decisions for a forecast.',
-      currentScore: trend.currentScore,
+      confidence: "low",
+      prediction: "Insufficient data to predict trajectory. Complete 3+ decisions for a forecast.",
+      currentScore: trend.currentScore
     };
   }
 
-  const scores = decisions.map((d) => normalizeScore(d.overallDecisionQuality || d.score || 50));
+  const scores = decisions.map(d => normalizeScore(d.overallDecisionQuality || d.score || 50));
   const recentScores = scores.slice(-5);
   const avgRecent = recentScores.reduce((a, b) => a + b, 0) / recentScores.length;
-  const avgOlder = scores.slice(0, Math.max(1, scores.length - 5)).reduce((a, b) => a + b, 0) / Math.max(1, scores.length - 5);
+  const avgOlder =
+    scores.slice(0, Math.max(1, scores.length - 5)).reduce((a, b) => a + b, 0) /
+    Math.max(1, scores.length - 5);
   const slope = avgRecent - avgOlder;
 
   const projected = clamp(Math.round(avgRecent + slope * Math.min(horizon / 30, 3)));
 
   return {
-    confidence: scores.length >= 10 ? 'high' : scores.length >= 5 ? 'medium' : 'low',
+    confidence: scores.length >= 10 ? "high" : scores.length >= 5 ? "medium" : "low",
     currentScore: trend.currentScore,
     projectedScore: projected,
-    direction: projected > trend.currentScore + 5 ? 'improving' : projected < trend.currentScore - 5 ? 'declining' : 'stable',
+    direction:
+      projected > trend.currentScore + 5
+        ? "improving"
+        : projected < trend.currentScore - 5
+          ? "declining"
+          : "stable",
     volatility: trend.volatility,
-    recommendation: projected < 50
-      ? 'Decision quality is trending downward. Consider pausing major financial decisions until patterns stabilize.'
-      : projected > 75
-        ? 'Decision quality is strong and trending well. Maintain your current approach.'
-        : 'Decision quality is moderate. Focus on the risk factors identified in recent decisions.',
+    recommendation:
+      projected < 50
+        ? "Decision quality is trending downward. Consider pausing major financial decisions until patterns stabilize."
+        : projected > 75
+          ? "Decision quality is strong and trending well. Maintain your current approach."
+          : "Decision quality is moderate. Focus on the risk factors identified in recent decisions."
   };
 }

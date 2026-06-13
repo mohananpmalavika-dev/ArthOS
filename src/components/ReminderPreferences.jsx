@@ -14,7 +14,9 @@ import { loadPrefs, savePrefs } from "../lib/reminderPrefs.js";
  * Falls back silently if the API is unreachable.
  */
 async function scheduleReminderOnServer(userId, prefs) {
-  if (!userId) return;
+  if (!userId) {
+    return;
+  }
   // Schedule daily reminder at the user's preferred time
   const now = new Date();
   const [hours, minutes] = (prefs.time || "09:00").split(":").map(Number);
@@ -35,8 +37,8 @@ async function scheduleReminderOnServer(userId, prefs) {
         remindAt: remindAt.toISOString(),
         title: "ARTH.OS Daily Check-in Reminder",
         message: `This is your daily reminder to complete your financial check-in on ARTH.OS. Don't break your streak!`,
-        metadata: { type: "daily_checkin", prefs },
-      }),
+        metadata: { type: "daily_checkin", prefs }
+      })
     });
 
     // If both channels selected, also schedule SMS
@@ -50,8 +52,8 @@ async function scheduleReminderOnServer(userId, prefs) {
           remindAt: remindAt.toISOString(),
           title: "ARTH.OS Check-in Reminder",
           message: `Daily check-in reminder from ARTH.OS. Take 30 seconds to reflect on your finances.`,
-          metadata: { type: "daily_checkin", prefs },
-        }),
+          metadata: { type: "daily_checkin", prefs }
+        })
       });
     }
   } catch {
@@ -63,9 +65,13 @@ async function scheduleReminderOnServer(userId, prefs) {
  * Schedule a streak nudge reminder when user hits a streak milestone.
  */
 export async function scheduleStreakReminder(userId, streakDays) {
-  if (!userId) return;
+  if (!userId) {
+    return;
+  }
   const prefs = loadPrefs();
-  if (!prefs.enabled || !prefs.streakNudges) return;
+  if (!prefs.enabled || !prefs.streakNudges) {
+    return;
+  }
 
   const channel = prefs.channel === "both" ? "email" : prefs.channel;
   const now = new Date();
@@ -82,8 +88,8 @@ export async function scheduleStreakReminder(userId, streakDays) {
         remindAt: remindAt.toISOString(),
         title: `🔥 ${streakDays}-Day Streak!`,
         message: `Amazing — you've hit a ${streakDays}-day check-in streak on ARTH.OS! Keep your momentum going.`,
-        metadata: { type: "streak_nudge", streakDays },
-      }),
+        metadata: { type: "streak_nudge", streakDays }
+      })
     });
   } catch {
     // Offline — skip
@@ -103,7 +109,7 @@ export default function ReminderPreferences({ userId, onSaved }) {
   }, [saved]);
 
   const update = useCallback((key, value) => {
-    setPrefs((prev) => ({ ...prev, [key]: value }));
+    setPrefs(prev => ({ ...prev, [key]: value }));
     setSaved(false);
   }, []);
 
@@ -142,11 +148,11 @@ export default function ReminderPreferences({ userId, onSaved }) {
       {prefs.enabled && (
         <>
           <div className="reminder-field">
-            <label><Mail size={14} style={{ marginRight: "6px", verticalAlign: "middle" }} /> Notification Channel</label>
-            <select
-              value={prefs.channel}
-              onChange={(e) => update("channel", e.target.value)}
-            >
+            <label>
+              <Mail size={14} style={{ marginRight: "6px", verticalAlign: "middle" }} />{" "}
+              Notification Channel
+            </label>
+            <select value={prefs.channel} onChange={e => update("channel", e.target.value)}>
               <option value="email">Email only</option>
               <option value="sms">SMS only</option>
               <option value="both">Email + SMS</option>
@@ -154,20 +160,18 @@ export default function ReminderPreferences({ userId, onSaved }) {
           </div>
 
           <div className="reminder-field">
-            <label><Clock size={14} style={{ marginRight: "6px", verticalAlign: "middle" }} /> Preferred Reminder Time</label>
-            <input
-              type="time"
-              value={prefs.time}
-              onChange={(e) => update("time", e.target.value)}
-            />
+            <label>
+              <Clock size={14} style={{ marginRight: "6px", verticalAlign: "middle" }} /> Preferred
+              Reminder Time
+            </label>
+            <input type="time" value={prefs.time} onChange={e => update("time", e.target.value)} />
           </div>
 
           <div className="reminder-field">
-            <label><Bell size={14} style={{ marginRight: "6px", verticalAlign: "middle" }} /> Frequency</label>
-            <select
-              value={prefs.frequency}
-              onChange={(e) => update("frequency", e.target.value)}
-            >
+            <label>
+              <Bell size={14} style={{ marginRight: "6px", verticalAlign: "middle" }} /> Frequency
+            </label>
+            <select value={prefs.frequency} onChange={e => update("frequency", e.target.value)}>
               <option value="daily">Daily</option>
               <option value="weekdays">Weekdays only</option>
               <option value="weekly">Weekly (Monday)</option>
@@ -229,12 +233,7 @@ export default function ReminderPreferences({ userId, onSaved }) {
         </>
       )}
 
-      <button
-        type="button"
-        className="reminder-save-btn"
-        onClick={handleSave}
-        disabled={saving}
-      >
+      <button type="button" className="reminder-save-btn" onClick={handleSave} disabled={saving}>
         {saving ? (
           <Loader size={16} style={{ animation: "spin 1s linear infinite" }} />
         ) : saved ? (
@@ -255,20 +254,27 @@ export default function ReminderPreferences({ userId, onSaved }) {
  * Export for wiring into DailyCheckinForm and App.jsx milestone/streak logic.
  */
 export function useCheckinReminderScheduler(userId, prefs) {
-  const scheduleNextReminder = useCallback(async (streakDays) => {
-    if (!prefs?.enabled) return;
-    if (!prefs?.checkinReminders && !prefs?.streakNudges) return;
+  const scheduleNextReminder = useCallback(
+    async streakDays => {
+      if (!prefs?.enabled) {
+        return;
+      }
+      if (!prefs?.checkinReminders && !prefs?.streakNudges) {
+        return;
+      }
 
-    // Schedule next checkin reminder
-    if (prefs.checkinReminders) {
-      await scheduleReminderOnServer(userId, prefs);
-    }
+      // Schedule next checkin reminder
+      if (prefs.checkinReminders) {
+        await scheduleReminderOnServer(userId, prefs);
+      }
 
-    // Schedule streak nudge if applicable
-    if (prefs.streakNudges && [3, 7, 14, 30].includes(streakDays)) {
-      await scheduleStreakReminder(userId, streakDays);
-    }
-  }, [userId, prefs]);
+      // Schedule streak nudge if applicable
+      if (prefs.streakNudges && [3, 7, 14, 30].includes(streakDays)) {
+        await scheduleStreakReminder(userId, streakDays);
+      }
+    },
+    [userId, prefs]
+  );
 
   return scheduleNextReminder;
 }

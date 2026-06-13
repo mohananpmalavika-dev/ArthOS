@@ -1,15 +1,8 @@
-import React from 'react';
+import React from "react";
 
-export function FlowSection({ 
-  id, 
-  active = false, 
-  title, 
-  description, 
-  badge,
-  children 
-}) {
+export function FlowSection({ id, active = false, title, description, badge, children }) {
   return (
-    <section className={`flow-section ${active ? 'active' : ''}`} id={id}>
+    <section className={`flow-section ${active ? "active" : ""}`} id={id}>
       <div className="flow-section-container">
         {(title || description || badge) && (
           <div className="flow-section-header">
@@ -24,19 +17,15 @@ export function FlowSection({
   );
 }
 
-export function FlowCard({ 
-  title, 
-  description, 
-  meta,
-  icon: Icon,
-  children,
-  onClick,
-  href 
-}) {
-  const className = 'flow-card';
+export function FlowCard({ title, description, meta, icon: Icon, children, onClick, href }) {
+  const className = "flow-card";
   const content = (
     <>
-      {Icon && <div className="flow-card-icon"><Icon size={24} /></div>}
+      {Icon && (
+        <div className="flow-card-icon">
+          <Icon size={24} />
+        </div>
+      )}
       {title && <div className="flow-card-title">{title}</div>}
       {description && <div className="flow-card-desc">{description}</div>}
       {children}
@@ -45,11 +34,15 @@ export function FlowCard({
   );
 
   if (href) {
-    return <a href={href} className={className}>{content}</a>;
+    return (
+      <a href={href} className={className}>
+        {content}
+      </a>
+    );
   }
 
   return (
-    <div className={className} onClick={onClick} style={onClick ? { cursor: 'pointer' } : {}}>
+    <div className={className} onClick={onClick} style={onClick ? { cursor: "pointer" } : {}}>
       {content}
     </div>
   );
@@ -59,14 +52,7 @@ export function FlowCardsGrid({ children }) {
   return <div className="flow-cards-grid">{children}</div>;
 }
 
-export function FlowHighlightCard({ 
-  title, 
-  description, 
-  ctaLabel,
-  onCta,
-  visual,
-  children 
-}) {
+export function FlowHighlightCard({ title, description, ctaLabel, onCta, visual, children }) {
   return (
     <div className="flow-highlight-card">
       <div className="flow-highlight-content">
@@ -79,11 +65,7 @@ export function FlowHighlightCard({
           </button>
         )}
       </div>
-      {visual && (
-        <div className="flow-highlight-visual">
-          {visual}
-        </div>
-      )}
+      {visual && <div className="flow-highlight-visual">{visual}</div>}
     </div>
   );
 }
@@ -95,15 +77,13 @@ export function FlowProgressTracker({ items, currentIndex = 0 }) {
         <div
           key={`progress-${idx}`}
           className={`flow-progress-item ${
-            idx < currentIndex ? 'completed' : idx === currentIndex ? 'active' : ''
+            idx < currentIndex ? "completed" : idx === currentIndex ? "active" : ""
           }`}
         >
           <div className="flow-progress-number">{idx + 1}</div>
           <div className="flow-progress-content">
             <div className="flow-progress-label">{item.label}</div>
-            {item.description && (
-              <div className="flow-progress-desc">{item.description}</div>
-            )}
+            {item.description && <div className="flow-progress-desc">{item.description}</div>}
           </div>
         </div>
       ))}

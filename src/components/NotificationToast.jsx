@@ -5,7 +5,11 @@
  */
 import React, { useState, useEffect, useCallback } from "react";
 import { X, Bell } from "lucide-react";
-import { getNotifications, getUnreadCount, markNotificationRead } from "../engines/notificationEngine.js";
+import {
+  getNotifications,
+  getUnreadCount,
+  markNotificationRead
+} from "../engines/notificationEngine.js";
 
 export default function NotificationToast() {
   const [currentToast, setCurrentToast] = useState(null);
@@ -13,7 +17,9 @@ export default function NotificationToast() {
   const [shownIds, setShownIds] = useState(() => {
     try {
       return JSON.parse(sessionStorage.getItem("arth-os-toast-shown") || "[]");
-    } catch { return []; }
+    } catch {
+      return [];
+    }
   });
 
   const dismiss = useCallback(() => {
@@ -23,19 +29,21 @@ export default function NotificationToast() {
 
   const showNext = useCallback(() => {
     const notifications = getNotifications();
-    const unread = notifications.filter((n) => !n.read && !shownIds.includes(n.id));
-    if (unread.length === 0) return;
+    const unread = notifications.filter(n => !n.read && !shownIds.includes(n.id));
+    if (unread.length === 0) {
+      return;
+    }
 
     const next = unread[0];
     setCurrentToast(next);
-    setShownIds((prev) => {
+    setShownIds(prev => {
       const updated = [...prev, next.id];
       try {
         sessionStorage.setItem("arth-os-toast-shown", JSON.stringify(updated));
       } catch (error) {
-        console.warn('[NotificationToast] Failed to persist shown toast IDs:', {
+        console.warn("[NotificationToast] Failed to persist shown toast IDs:", {
           numShown: updated.length,
-          error: error?.message,
+          error: error?.message
         });
       }
       return updated;
@@ -54,7 +62,9 @@ export default function NotificationToast() {
       if (count > prev && !visible) {
         showNext();
       }
-      if (stored) stored.textContent = String(count);
+      if (stored) {
+        stored.textContent = String(count);
+      }
     }, 2000);
 
     return () => clearInterval(interval);
@@ -70,7 +80,9 @@ export default function NotificationToast() {
     return () => el.remove();
   }, []);
 
-  if (!currentToast) return null;
+  if (!currentToast) {
+    return null;
+  }
 
   return (
     <div className={`notification-toast ${visible ? "visible" : "hidden"}`}>

@@ -18,25 +18,40 @@ export const detectTriggers = (user = {}) => {
     boredomSpending: raw.boredom || 0,
     socialPressure: raw.socialPressure || 0,
     anxietyAvoidance: raw.anxietyAvoidance || 0,
-    celebratorySpending: raw.celebration || 0,
+    celebratorySpending: raw.celebration || 0
   };
 };
 export const identifyTriggerPatterns = (triggers = {}, history = []) => {
   const patterns = [];
-  if (triggers.stressSpending > 70) patterns.push('High stress-triggered spending');
-  if (triggers.boredomSpending > 70) patterns.push('Boredom impulse buying');
-  if (triggers.socialPressure > 70) patterns.push('Social comparison spending');
-  if (triggers.anxietyAvoidance > 70) patterns.push('Anxiety-avoidance behavior');
-  if (triggers.celebratorySpending > 70) patterns.push('Celebration overspending');
+  if (triggers.stressSpending > 70) {
+    patterns.push("High stress-triggered spending");
+  }
+  if (triggers.boredomSpending > 70) {
+    patterns.push("Boredom impulse buying");
+  }
+  if (triggers.socialPressure > 70) {
+    patterns.push("Social comparison spending");
+  }
+  if (triggers.anxietyAvoidance > 70) {
+    patterns.push("Anxiety-avoidance behavior");
+  }
+  if (triggers.celebratorySpending > 70) {
+    patterns.push("Celebration overspending");
+  }
 
-  const recentTriggers = history.slice(-7).map((h) => h.trigger || null).filter(Boolean);
+  const recentTriggers = history
+    .slice(-7)
+    .map(h => h.trigger || null)
+    .filter(Boolean);
   const triggerFrequency = {};
-  recentTriggers.forEach((t) => { triggerFrequency[t] = (triggerFrequency[t] || 0) + 1; });
+  recentTriggers.forEach(t => {
+    triggerFrequency[t] = (triggerFrequency[t] || 0) + 1;
+  });
 
   return {
     patterns,
     triggerFrequency,
     dominantTrigger: Object.entries(triggerFrequency).sort((a, b) => b[1] - a[1])[0]?.[0] || null,
-    generatedAt: new Date().toISOString(),
+    generatedAt: new Date().toISOString()
   };
 };

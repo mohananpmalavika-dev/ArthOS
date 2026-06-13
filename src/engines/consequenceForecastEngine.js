@@ -41,7 +41,7 @@ export function projectHealthTrajectory(result) {
       sixMonths: 0,
       oneYear: 0,
       twoYears: 0,
-      trajectoryData: [],
+      trajectoryData: []
     };
   }
 
@@ -65,7 +65,7 @@ export function projectHealthTrajectory(result) {
     trajectoryData.push({
       month: month === 0 ? "Today" : `${month}mo`,
       healthScore: Math.max(20, Math.round(today * Math.pow(1 - decayRate, month) * 10) / 10),
-      monthNumber: month,
+      monthNumber: month
     });
   }
 
@@ -78,15 +78,23 @@ export function projectHealthTrajectory(result) {
     trajectoryData,
     decayRate: Math.round(decayRate * 1000) / 10, // As percentage
     riskLevel: getRiskLevel(oneYear),
-    consequence: getConsequenceNarrative(today, oneYear),
+    consequence: getConsequenceNarrative(today, oneYear)
   };
 }
 
 function getRiskLevel(projectedOneYearScore) {
-  if (projectedOneYearScore <= 30) return "Critical";
-  if (projectedOneYearScore <= 45) return "High";
-  if (projectedOneYearScore <= 60) return "Moderate";
-  if (projectedOneYearScore <= 75) return "Manageable";
+  if (projectedOneYearScore <= 30) {
+    return "Critical";
+  }
+  if (projectedOneYearScore <= 45) {
+    return "High";
+  }
+  if (projectedOneYearScore <= 60) {
+    return "Moderate";
+  }
+  if (projectedOneYearScore <= 75) {
+    return "Manageable";
+  }
   return "Healthy";
 }
 
@@ -122,7 +130,7 @@ export function calculateConsequenceGap(result) {
     gapSixMonths: trajectory.today - trajectory.sixMonths,
     gapOneYear: trajectory.today - trajectory.oneYear,
     gapTwoYears: trajectory.today - trajectory.twoYears,
-    deteriorationPerMonth: trajectory.decayRate,
+    deteriorationPerMonth: trajectory.decayRate
   };
 }
 
@@ -135,16 +143,18 @@ export function getTrajectoryWarning(result) {
   if (trajectory.oneYear <= 30) {
     return {
       severity: "critical",
-      message: "Your trajectory suggests critical financial stress within 12 months without intervention.",
-      recommendation: "Start interventions immediately.",
+      message:
+        "Your trajectory suggests critical financial stress within 12 months without intervention.",
+      recommendation: "Start interventions immediately."
     };
   }
 
   if (trajectory.oneYear <= 45) {
     return {
       severity: "high",
-      message: "Without behavioral changes, financial stability could become challenging within a year.",
-      recommendation: "Prioritize the recommended interventions.",
+      message:
+        "Without behavioral changes, financial stability could become challenging within a year.",
+      recommendation: "Prioritize the recommended interventions."
     };
   }
 
@@ -152,7 +162,7 @@ export function getTrajectoryWarning(result) {
     return {
       severity: "moderate",
       message: "Current patterns suggest noticeable decline over 6 months.",
-      recommendation: "Consider small changes now to prevent larger problems.",
+      recommendation: "Consider small changes now to prevent larger problems."
     };
   }
 

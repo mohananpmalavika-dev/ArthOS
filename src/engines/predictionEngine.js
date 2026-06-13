@@ -16,7 +16,9 @@
  */
 
 function clamp(value) {
-  if (typeof value !== 'number' || Number.isNaN(value)) return 0;
+  if (typeof value !== "number" || Number.isNaN(value)) {
+    return 0;
+  }
   return Math.max(0, value);
 }
 
@@ -25,8 +27,10 @@ function round2(value) {
 }
 
 function toArray(arr) {
-  if (!Array.isArray(arr)) return [];
-  return arr.filter((v) => typeof v === 'number' && Number.isFinite(v));
+  if (!Array.isArray(arr)) {
+    return [];
+  }
+  return arr.filter(v => typeof v === "number" && Number.isFinite(v));
 }
 
 // ============================================================
@@ -39,7 +43,9 @@ function toArray(arr) {
  */
 function checkStationarity(series) {
   const data = toArray(series);
-  if (data.length < 4) return { isStationary: true, d: 0 };
+  if (data.length < 4) {
+    return { isStationary: true, d: 0 };
+  }
 
   // Variance ratio test: compare variance of raw vs differenced
   const rawVariance = variance(data);
@@ -61,7 +67,9 @@ function checkStationarity(series) {
 }
 
 function variance(values) {
-  if (values.length < 2) return 0;
+  if (values.length < 2) {
+    return 0;
+  }
   const mean = values.reduce((s, v) => s + v, 0) / values.length;
   return values.reduce((s, v) => s + (v - mean) ** 2, 0) / (values.length - 1);
 }
@@ -114,7 +122,13 @@ export function computeMetrics(actual, predicted) {
   const ssTotal = actual.reduce((s, v) => s + (v - meanActual) ** 2, 0);
   const r2 = ssTotal > 0 ? 1 - rss / ssTotal : 0;
 
-  return { mae: round2(mae), rmse: round2(rmse), mape: round2(mape), aic: round2(aic), r2: round2(r2) };
+  return {
+    mae: round2(mae),
+    rmse: round2(rmse),
+    mape: round2(mape),
+    aic: round2(aic),
+    r2: round2(r2)
+  };
 }
 
 // ============================================================
@@ -127,9 +141,18 @@ export function computeMetrics(actual, predicted) {
  *
  * Returns forecast array and model metadata.
  */
-export function holtWinters(series, forecastHorizon, seasonPeriod = 0, alpha = 0.3, beta = 0.1, gamma = 0.1) {
+export function holtWinters(
+  series,
+  forecastHorizon,
+  seasonPeriod = 0,
+  alpha = 0.3,
+  beta = 0.1,
+  gamma = 0.1
+) {
   const data = toArray(series);
-  if (data.length < 3) return fallbackForecast(data, forecastHorizon);
+  if (data.length < 3) {
+    return fallbackForecast(data, forecastHorizon);
+  }
 
   const n = data.length;
   const hasSeasonality = seasonPeriod > 1 && n >= seasonPeriod * 2;
@@ -138,7 +161,7 @@ export function holtWinters(series, forecastHorizon, seasonPeriod = 0, alpha = 0
   let level = data[0];
   let trend = data.length > 1 ? data[1] - data[0] : 0;
 
-  let season = [];
+  const season = [];
   if (hasSeasonality) {
     for (let i = 0; i < seasonPeriod; i++) {
       season[i] = data[i] / level;
@@ -155,7 +178,8 @@ export function holtWinters(series, forecastHorizon, seasonPeriod = 0, alpha = 0
       const seasonal = season[t % seasonPeriod] || 1;
       level = alpha * (data[t] / seasonal) + (1 - alpha) * (level + trend);
       trend = beta * (level - lastLevel) + (1 - beta) * lastTrend;
-      season[t % seasonPeriod] = gamma * (data[t] / level) + (1 - gamma) * (season[t % seasonPeriod] || 1);
+      season[t % seasonPeriod] =
+        gamma * (data[t] / level) + (1 - gamma) * (season[t % seasonPeriod] || 1);
       fitted.push(level * (season[t % seasonPeriod] || 1));
     } else {
       level = alpha * data[t] + (1 - alpha) * (level + trend);
@@ -177,15 +201,16 @@ export function holtWinters(series, forecastHorizon, seasonPeriod = 0, alpha = 0
 
   // Compute residuals for confidence intervals
   const residuals = data.map((v, i) => v - fitted[i]);
-  const residualStd = residuals.length > 1
-    ? Math.sqrt(residuals.reduce((s, r) => s + r * r, 0) / (residuals.length - 1))
-    : Math.abs(data[data.length - 1] * 0.1);
+  const residualStd =
+    residuals.length > 1
+      ? Math.sqrt(residuals.reduce((s, r) => s + r * r, 0) / (residuals.length - 1))
+      : Math.abs(data[data.length - 1] * 0.1);
 
   // Compute metrics on fit
   const metrics = computeMetrics(data, fitted);
 
   return {
-    model: 'holt-winters',
+    model: "holt-winters",
     forecasts,
     fitted,
     level,
@@ -198,7 +223,7 @@ export function holtWinters(series, forecastHorizon, seasonPeriod = 0, alpha = 0
     beta,
     gamma,
     metrics,
-    name: hasSeasonality ? 'Holt-Winters (seasonal)' : "Holt's Linear Trend",
+    name: hasSeasonality ? "Holt-Winters (seasonal)" : "Holt's Linear Trend"
   };
 }
 
@@ -217,7 +242,9 @@ export function holtWinters(series, forecastHorizon, seasonPeriod = 0, alpha = 0
 export function arima(series, p = 1, d = null, q = 1, forecastHorizon = 180) {
   const data = toArray(series);
 
-  if (data.length < 3) return fallbackForecast(data, forecastHorizon);
+  if (data.length < 3) {
+    return fallbackForecast(data, forecastHorizon);
+  }
 
   // Auto-detect differencing order if not provided
   if (d === null) {
@@ -301,12 +328,14 @@ export function arima(series, p = 1, d = null, q = 1, forecastHorizon = 180) {
 
   // Confidence intervals
   const residuals = data.map((v, i) => {
-    const f = i < undiffedFitted.length ? undiffedFitted[i] : undiffedFitted[undiffedFitted.length - 1];
+    const f =
+      i < undiffedFitted.length ? undiffedFitted[i] : undiffedFitted[undiffedFitted.length - 1];
     return v - f;
   });
-  const residualStd = residuals.length > 1
-    ? Math.sqrt(residuals.reduce((s, r) => s + r * r, 0) / (residuals.length - 1))
-    : Math.abs(data[data.length - 1] * 0.1);
+  const residualStd =
+    residuals.length > 1
+      ? Math.sqrt(residuals.reduce((s, r) => s + r * r, 0) / (residuals.length - 1))
+      : Math.abs(data[data.length - 1] * 0.1);
 
   return {
     model: `ARIMA(${p},${d},${q})`,
@@ -319,18 +348,22 @@ export function arima(series, p = 1, d = null, q = 1, forecastHorizon = 180) {
     d,
     q,
     metrics,
-    name: `ARIMA(${p},${d},${q})`,
+    name: `ARIMA(${p},${d},${q})`
   };
 }
 
 function estimateAR(series, p) {
-  if (p === 0) return [];
+  if (p === 0) {
+    return [];
+  }
   const n = series.length;
-  if (n < p + 1) return Array(p).fill(0);
+  if (n < p + 1) {
+    return Array(p).fill(0);
+  }
 
   // Auto-correlation function
   const mean = series.reduce((s, v) => s + v, 0) / n;
-  const centered = series.map((v) => v - mean);
+  const centered = series.map(v => v - mean);
 
   const acf = [];
   for (let lag = 0; lag <= p; lag++) {
@@ -349,7 +382,9 @@ function estimateAR(series, p) {
 }
 
 function yuleWalker(acf, p) {
-  if (p === 0) return [];
+  if (p === 0) {
+    return [];
+  }
 
   // Simple approximation: use first p lags
   // Build the Toeplitz matrix R and solve R*a = r
@@ -382,7 +417,9 @@ function gaussElimination(A, b, n) {
     [aug[col], aug[maxRow]] = [aug[maxRow], aug[col]];
 
     const pivot = aug[col][col];
-    if (Math.abs(pivot) < 1e-10) continue;
+    if (Math.abs(pivot) < 1e-10) {
+      continue;
+    }
 
     for (let row = col + 1; row < n; row++) {
       const factor = aug[row][col] / pivot;
@@ -406,12 +443,14 @@ function gaussElimination(A, b, n) {
 }
 
 function estimateMA(residuals, q) {
-  if (q === 0 || residuals.length < q + 1) return Array(q).fill(0);
+  if (q === 0 || residuals.length < q + 1) {
+    return Array(q).fill(0);
+  }
 
   // Moment-based MA estimation using autocorrelation of residuals
   const n = residuals.length;
   const mean = residuals.reduce((s, v) => s + v, 0) / n;
-  const centered = residuals.map((v) => v - mean);
+  const centered = residuals.map(v => v - mean);
 
   const acf = [];
   for (let lag = 1; lag <= q; lag++) {
@@ -425,18 +464,20 @@ function estimateMA(residuals, q) {
   }
 
   // For small q, use approximation: theta_j = -rho_j
-  const coeffs = acf.map((r) => -r);
+  const coeffs = acf.map(r => -r);
   return coeffs;
 }
 
 function undifference(forecasts, originalData, d) {
-  if (d === 0) return forecasts;
+  if (d === 0) {
+    return forecasts;
+  }
 
   const lastValue = originalData[originalData.length - 1];
   if (d === 1) {
     // Each forecast is the cumulative sum from the last original value
     let cum = lastValue;
-    return forecasts.map((f) => {
+    return forecasts.map(f => {
       cum = cum + f;
       return cum;
     });
@@ -446,7 +487,7 @@ function undifference(forecasts, originalData, d) {
     const lastTwo = originalData.slice(-2);
     let cum = lastTwo[1];
     let prev = lastTwo[0];
-    return forecasts.map((f) => {
+    return forecasts.map(f => {
       const next = cum + f;
       cum = next + (cum - prev);
       prev = cum - (cum - prev);
@@ -470,7 +511,9 @@ function undifference(forecasts, originalData, d) {
  */
 export function bayesianStructural(series, forecastHorizon = 180) {
   const data = toArray(series);
-  if (data.length < 3) return fallbackForecast(data, forecastHorizon);
+  if (data.length < 3) {
+    return fallbackForecast(data, forecastHorizon);
+  }
 
   const n = data.length;
 
@@ -478,7 +521,7 @@ export function bayesianStructural(series, forecastHorizon = 180) {
   const priorLevelMean = data[0];
   const priorTrendMean = data.length > 1 ? data[1] - data[0] : 0;
   const priorLevelVar = Math.abs(data[0] * 0.5) || 1;
-  const priorTrendVar = Math.abs((data[data.length - 1] - data[0]) / n * 0.5) || 0.1;
+  const priorTrendVar = Math.abs(((data[data.length - 1] - data[0]) / n) * 0.5) || 0.1;
   const obsVar = Math.abs(variance(data) * 0.8) || 1;
 
   // Kalman filter
@@ -534,7 +577,7 @@ export function bayesianStructural(series, forecastHorizon = 180) {
   const metrics = computeMetrics(data, fitted);
 
   return {
-    model: 'bayesian-structural',
+    model: "bayesian-structural",
     forecasts,
     fitted,
     lower90,
@@ -548,7 +591,7 @@ export function bayesianStructural(series, forecastHorizon = 180) {
     obsVar,
     metrics,
     posteriors: posteriors.slice(-10), // Last 10 posteriors for reference
-    name: 'Bayesian Structural',
+    name: "Bayesian Structural"
   };
 }
 
@@ -559,37 +602,40 @@ export function bayesianStructural(series, forecastHorizon = 180) {
 function fallbackForecast(data, horizon) {
   if (data.length === 0) {
     return {
-      model: 'fallback',
+      model: "fallback",
       forecasts: Array(horizon).fill(50),
       fitted: [],
       residualStd: 10,
-      name: 'Fallback (no data)',
-      metrics: { mae: 0, rmse: 0, mape: 0, aic: 0, r2: 0 },
+      name: "Fallback (no data)",
+      metrics: { mae: 0, rmse: 0, mape: 0, aic: 0, r2: 0 }
     };
   }
 
   const lastValue = data[data.length - 1];
   // Simple linear trend
   const slope = data.length > 1 ? (data[data.length - 1] - data[0]) / data.length : 0;
-  const forecasts = Array.from({ length: horizon }, (_, i) => Math.max(0, lastValue + slope * (i + 1)));
+  const forecasts = Array.from({ length: horizon }, (_, i) =>
+    Math.max(0, lastValue + slope * (i + 1))
+  );
   const fitted = data;
 
   const residuals = data.map((v, i) => {
     const trendVal = data[0] + slope * i;
     return v - trendVal;
   });
-  const residualStd = residuals.length > 1
-    ? Math.sqrt(residuals.reduce((s, r) => s + r * r, 0) / (residuals.length - 1))
-    : Math.abs(lastValue * 0.1);
+  const residualStd =
+    residuals.length > 1
+      ? Math.sqrt(residuals.reduce((s, r) => s + r * r, 0) / (residuals.length - 1))
+      : Math.abs(lastValue * 0.1);
   const metrics = computeMetrics(data, fitted);
 
   return {
-    model: 'fallback-linear',
+    model: "fallback-linear",
     forecasts,
     fitted,
     residualStd,
     metrics,
-    name: 'Linear Trend (fallback)',
+    name: "Linear Trend (fallback)"
   };
 }
 
@@ -608,7 +654,7 @@ export function ensembleForecast(models, historicalData, forecastHorizon) {
 
   // Compute weights based on inverse error
   let totalWeight = 0;
-  const weighted = models.map((m) => {
+  const weighted = models.map(m => {
     const rmse = m.metrics?.rmse || 1;
     const weight = 1 / Math.max(rmse, 0.01);
     totalWeight += weight;
@@ -616,9 +662,9 @@ export function ensembleForecast(models, historicalData, forecastHorizon) {
   });
 
   // Normalize weights
-  const normalizedModels = weighted.map((w) => ({
+  const normalizedModels = weighted.map(w => ({
     ...w,
-    weight: totalWeight > 0 ? w.weight / totalWeight : 1 / weighted.length,
+    weight: totalWeight > 0 ? w.weight / totalWeight : 1 / weighted.length
   }));
 
   // Combine forecasts
@@ -633,25 +679,27 @@ export function ensembleForecast(models, historicalData, forecastHorizon) {
 
   // Compute ensemble residual std as weighted average
   const ensembleResidualStd = normalizedModels.reduce(
-    (s, m) => s + (m.model.residualStd || 0) * m.weight, 0
+    (s, m) => s + (m.model.residualStd || 0) * m.weight,
+    0
   );
 
   // Weighted metrics
   const ensembleRMSE = normalizedModels.reduce(
-    (s, m) => s + (m.model.metrics?.rmse || 0) * m.weight, 0
+    (s, m) => s + (m.model.metrics?.rmse || 0) * m.weight,
+    0
   );
 
   return {
-    model: 'ensemble',
+    model: "ensemble",
     forecasts: ensembleForecasts,
-    models: normalizedModels.map((m) => ({
+    models: normalizedModels.map(m => ({
       name: m.model.name || m.model.model,
-      weight: round2(m.weight * 100) + '%',
-      rmse: m.model.metrics?.rmse,
+      weight: round2(m.weight * 100) + "%",
+      rmse: m.model.metrics?.rmse
     })),
     residualStd: round2(ensembleResidualStd),
     metrics: { rmse: round2(ensembleRMSE) },
-    name: `Ensemble (${normalizedModels.length} models)`,
+    name: `Ensemble (${normalizedModels.length} models)`
   };
 }
 
@@ -663,11 +711,7 @@ export function ensembleForecast(models, historicalData, forecastHorizon) {
  * Automatically select the best model and generate forecasts.
  * Runs all applicable models and returns the best one plus the ensemble.
  */
-export function autoSelectAndForecast(
-  historicalData,
-  forecastHorizon = 180,
-  seasonPeriod = 0
-) {
+export function autoSelectAndForecast(historicalData, forecastHorizon = 180, seasonPeriod = 0) {
   const data = toArray(historicalData);
   if (data.length === 0) {
     return fallbackForecast(data, forecastHorizon);
@@ -726,19 +770,19 @@ export function autoSelectAndForecast(
   }
 
   // Build ensemble from all successful models (excluding fallback if others exist)
-  const ensembleModels = models.filter((m) => m.model !== 'fallback-linear' || models.length <= 2);
+  const ensembleModels = models.filter(m => m.model !== "fallback-linear" || models.length <= 2);
   const ensemble = ensembleForecast(ensembleModels, data, forecastHorizon);
 
   return {
     bestModel,
     ensemble,
-    allModels: models.map((m) => ({
+    allModels: models.map(m => ({
       name: m.name || m.model,
       metrics: m.metrics,
-      isBest: m === bestModel,
+      isBest: m === bestModel
     })),
     modelCount: models.length,
-    generatedAt: new Date().toISOString(),
+    generatedAt: new Date().toISOString()
   };
 }
 
@@ -758,31 +802,62 @@ export function autoSelectAndForecast(
  * @returns {Object} Forecasts with confidence intervals at all horizons
  */
 export function generatePrediction(profile, history = [], options = {}) {
-  const { seasonPeriod = 0, includeEnsemble = true } = options;
+  const { seasonPeriod = 0, includeEnsemble = true, _synthetic = false } = options;
   const data = toArray(history);
 
   if (data.length === 0) {
+    // Prevent infinite recursion if synthetic generation already attempted
+    if (_synthetic) {
+      // Return safe forecast structure with null values if we can't generate valid data
+      const nullForecast = {
+        point: null,
+        p50: null,
+        p25: null,
+        p75: null,
+        p10: null,
+        p90: null,
+        p5: null,
+        p95: null,
+        mean: null
+      };
+      return {
+        horizons: {
+          day30: nullForecast,
+          day90: nullForecast,
+          day180: nullForecast
+        },
+        model: 'none',
+        modelType: 'fallback',
+        modelMetrics: { rmse: 0, mae: 0 },
+        ensembleModel: null,
+        confidence: 0,
+        trendDirection: 'unknown'
+      };
+    }
+    
     // Generate synthetic history from profile if no real history
     const baseValue = profile?.currentScore || profile?.healthScore || 50;
     const syntheticHistory = Array.from({ length: 6 }, (_, i) =>
       Math.max(0, baseValue - 3 + i * 1.2 + Math.random() * 2)
     );
-    return generatePrediction(profile, syntheticHistory, options);
+    return generatePrediction(profile, syntheticHistory, { ...options, _synthetic: true });
   }
 
   const result = autoSelectAndForecast(data, 180, seasonPeriod);
 
   // Extract horizon forecasts
-  const getHorizon = (days) => {
-    if (!result.bestModel.forecasts[days - 1]) return null;
+  const getHorizon = days => {
+    if (!result.bestModel.forecasts[days - 1]) {
+      return null;
+    }
     const forecast = result.bestModel.forecasts[days - 1];
     const residualStd = result.bestModel.residualStd || Math.abs(forecast * 0.1);
 
     // For Bayesian, use credible intervals; otherwise, use residual-based
     const hasBayesianIntervals = result.bestModel.lower90 && result.bestModel.upper90;
 
-    const range = (confidence) => {
-      const z = confidence === 0.95 ? 1.96 : confidence === 0.80 ? 1.28 : 0.674;
+    const range = confidence => {
+      const z = confidence === 0.95 ? 1.96 : confidence === 0.8 ? 1.28 : 0.674;
       return z * residualStd;
     };
 
@@ -795,7 +870,7 @@ export function generatePrediction(profile, history = [], options = {}) {
       p90: clamp(Math.round(forecast + 1.28 * residualStd)),
       p5: clamp(Math.round(forecast - 1.96 * residualStd)),
       p95: clamp(Math.round(forecast + 1.96 * residualStd)),
-      mean: clamp(Math.round(forecast)),
+      mean: clamp(Math.round(forecast))
     };
   };
 
@@ -807,21 +882,23 @@ export function generatePrediction(profile, history = [], options = {}) {
     horizons: {
       day30,
       day90,
-      day180,
+      day180
     },
     model: result.bestModel.name,
     modelType: result.bestModel.model,
     modelMetrics: result.bestModel.metrics,
-    ensembleModel: includeEnsemble ? {
-      name: result.ensemble.name,
-      forecasts: result.ensemble.forecasts,
-      models: result.ensemble.models,
-      rmse: result.ensemble.metrics.rmse,
-    } : null,
+    ensembleModel: includeEnsemble
+      ? {
+          name: result.ensemble.name,
+          forecasts: result.ensemble.forecasts,
+          models: result.ensemble.models,
+          rmse: result.ensemble.metrics.rmse
+        }
+      : null,
     allModels: result.allModels,
     dataPoints: data.length,
     confidence: computePredictionConfidence(result.bestModel, data.length),
-    generatedAt: result.generatedAt,
+    generatedAt: result.generatedAt
   };
 }
 
@@ -860,31 +937,25 @@ export function predictionEngineForecastHealth(
     }
   }
 
-  const prediction = generatePrediction(
-    { ...profile, currentScore },
-    history,
-    { seasonPeriod }
-  );
+  const prediction = generatePrediction({ ...profile, currentScore }, history, { seasonPeriod });
 
   // Build trajectory path for charting
   const trajectory = history.map((v, i) => ({
     month: -(history.length - i),
     value: Math.round(v),
-    actual: true,
+    actual: true
   }));
 
   // Add forecast points at regular intervals
   for (let d = 1; d <= 180; d += 10) {
-    const f = prediction.horizons[
-      d <= 30 ? 'day30' : d <= 90 ? 'day90' : 'day180'
-    ];
+    const f = prediction.horizons[d <= 30 ? "day30" : d <= 90 ? "day90" : "day180"];
     if (f) {
       trajectory.push({
         month: d / 30,
         value: f.p50,
         p5: f.p5,
         p95: f.p95,
-        actual: false,
+        actual: false
       });
     }
   }
@@ -901,7 +972,7 @@ export function predictionEngineForecastHealth(
     allModels: prediction.allModels,
     trajectory,
     dataPoints: history.length,
-    generatedAt: prediction.generatedAt,
+    generatedAt: prediction.generatedAt
   };
 }
 
@@ -913,14 +984,10 @@ export function predictionEngineForecastHealth(
  * Enhanced scenario simulation with multiple what-if parameter changes.
  * Supports adjusting income, expenses, savings, debt simultaneously.
  */
-export function simulateScenario(
-  currentState = {},
-  changes = {},
-  options = {}
-) {
+export function simulateScenario(currentState = {}, changes = {}, options = {}) {
   const {
     horizon = 180,
-    iterations = 3, // Number of models to try
+    iterations = 3 // Number of models to try
   } = options;
 
   const currentIncome = Number(currentState.monthlyIncome) || 0;
@@ -976,14 +1043,14 @@ export function simulateScenario(
 
   return {
     scenario: {
-      name: changes.name || 'Custom Scenario',
-      description: changes.description || '',
+      name: changes.name || "Custom Scenario",
+      description: changes.description || "",
       changes: {
         incomeDelta,
         expenseDelta,
         savingsDelta,
-        debtDelta,
-      },
+        debtDelta
+      }
     },
     currentState: {
       income: currentIncome,
@@ -991,7 +1058,7 @@ export function simulateScenario(
       savings: currentSavings,
       debt: currentDebt,
       monthlyNet: currentIncome - currentExpenses,
-      runway: currentExpenses > 0 ? (currentSavings / currentExpenses).toFixed(1) : '∞',
+      runway: currentExpenses > 0 ? (currentSavings / currentExpenses).toFixed(1) : "∞"
     },
     projectedState: {
       income: newIncome,
@@ -999,67 +1066,70 @@ export function simulateScenario(
       savings: newSavings,
       debt: newDebt,
       monthlyNet,
-      runway: runway.toFixed(1),
+      runway: runway.toFixed(1)
     },
     forecast: {
       day30: prediction.horizons.day30,
       day90: prediction.horizons.day90,
       day180: prediction.horizons.day180,
       model: prediction.model,
-      confidence: prediction.confidence,
+      confidence: prediction.confidence
     },
     impact: {
       monthlyNetDelta: monthlyNet - (currentIncome - currentExpenses),
       savingsDelta: newSavings - currentSavings,
       debtDelta: newDebt - currentDebt,
-      runwayDelta: Math.round((runway - (currentExpenses > 0 ? currentSavings / currentExpenses : 0)) * 10) / 10,
+      runwayDelta:
+        Math.round((runway - (currentExpenses > 0 ? currentSavings / currentExpenses : 0)) * 10) /
+        10,
       scoreImpact: round2(scoreImpact + debtImpact),
-      healthScoreProjection: clamp(Math.round(currentScore + scoreImpact + debtImpact)),
+      healthScoreProjection: clamp(Math.round(currentScore + scoreImpact + debtImpact))
     },
     recommendation: generateScenarioRecommendation(
       runway,
       monthlyNet,
       newDebt,
       currentScore + scoreImpact + debtImpact
-    ),
+    )
   };
 }
 
 function generateScenarioRecommendation(runway, monthlyNet, debt, projectedScore) {
   if (runway < 1) {
     return {
-      text: '⚠️ Critical: This scenario would deplete your runway to less than 1 month.',
-      severity: 'critical',
-      action: 'Avoid this scenario or increase savings by ₹20,000+ before proceeding.',
+      text: "⚠️ Critical: This scenario would deplete your runway to less than 1 month.",
+      severity: "critical",
+      action: "Avoid this scenario or increase savings by ₹20,000+ before proceeding."
     };
   }
   if (runway < 3) {
     return {
       text: `⚠️ Warning: Runway drops to ${runway.toFixed(1)} months — below the safety threshold.`,
-      severity: 'high',
-      action: 'Build savings to at least 3x monthly expenses before making this change.',
+      severity: "high",
+      action: "Build savings to at least 3x monthly expenses before making this change."
     };
   }
   if (monthlyNet <= 0 && debt > 0) {
     return {
       text: `⚠️ Negative cashflow with outstanding debt — risk of debt spiral.`,
-      severity: 'high',
-      action: 'Reduce expenses or increase income to achieve positive cashflow.',
+      severity: "high",
+      action: "Reduce expenses or increase income to achieve positive cashflow."
     };
   }
   if (runway >= 6 && monthlyNet > 0) {
     return {
       text: `✅ Scenario looks healthy: ${runway.toFixed(1)} months runway, positive cashflow.`,
-      severity: 'low',
-      action: 'Safe to proceed. Monitor for 30 days after implementation.',
+      severity: "low",
+      action: "Safe to proceed. Monitor for 30 days after implementation."
     };
   }
   return {
     text: `Scenario yields ${runway.toFixed(1)} months runway. Net cashflow: ₹${Math.round(monthlyNet)}/mo.`,
-    severity: 'medium',
-    action: monthlyNet > 0
-      ? 'Maintain positive cashflow and build toward 6-month runway.'
-      : 'Improve cashflow before proceeding.',
+    severity: "medium",
+    action:
+      monthlyNet > 0
+        ? "Maintain positive cashflow and build toward 6-month runway."
+        : "Improve cashflow before proceeding."
   };
 }
 
@@ -1071,19 +1141,21 @@ function generateScenarioRecommendation(runway, monthlyNet, debt, projectedScore
  * Run multiple scenario simulations and return a comparison.
  */
 export function compareScenarios(currentState, scenarios = []) {
-  if (!scenarios.length) return [];
+  if (!scenarios.length) {
+    return [];
+  }
 
-  return scenarios.map((scenario) => {
+  return scenarios.map(scenario => {
     const result = simulateScenario(currentState, scenario.changes, { horizon: 180 });
     return {
       name: scenario.name || result.scenario.name,
-      description: scenario.description || '',
+      description: scenario.description || "",
       projectedRunway: result.projectedState.runway,
       monthlyNet: result.projectedState.monthlyNet,
       projectedScore: result.impact.healthScoreProjection,
       scoreDelta: result.impact.scoreImpact,
       confidence: result.forecast.confidence,
-      recommendation: result.recommendation,
+      recommendation: result.recommendation
     };
   });
 }
@@ -1092,6 +1164,4 @@ export function compareScenarios(currentState, scenarios = []) {
 // EXPORTS
 // ============================================================
 
-export {
-  fallbackForecast,
-};
+export { fallbackForecast };

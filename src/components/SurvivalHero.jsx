@@ -17,11 +17,11 @@ function SurvivalHero({ survivalMonths = 0 }) {
 }
 
 SurvivalHero.propTypes = {
-  survivalMonths: PropTypes.number,
+  survivalMonths: PropTypes.number
 };
 
 SurvivalHero.defaultProps = {
-  survivalMonths: 0,
+  survivalMonths: 0
 };
 
 export default SurvivalHero;

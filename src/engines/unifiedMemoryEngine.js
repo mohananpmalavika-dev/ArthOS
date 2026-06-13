@@ -10,7 +10,9 @@ export class UnifiedMemoryEngine {
   }
 
   _loadTimeline() {
-    if (!this._canPersist()) return [];
+    if (!this._canPersist()) {
+      return [];
+    }
     try {
       const raw = window.localStorage.getItem(UNIFIED_MEMORY_KEY);
       const timeline = raw ? JSON.parse(raw) : [];
@@ -21,7 +23,9 @@ export class UnifiedMemoryEngine {
   }
 
   _persistTimeline() {
-    if (!this._canPersist()) return;
+    if (!this._canPersist()) {
+      return;
+    }
     try {
       window.localStorage.setItem(UNIFIED_MEMORY_KEY, JSON.stringify(this.timeline));
     } catch {
@@ -32,7 +36,7 @@ export class UnifiedMemoryEngine {
   addEvent(event) {
     const payload = {
       ...event,
-      timestamp: Date.now(),
+      timestamp: Date.now()
     };
 
     this.timeline.push(payload);
@@ -45,6 +49,6 @@ export class UnifiedMemoryEngine {
   }
 
   getPattern(type) {
-    return this.timeline.filter((x) => x.type === type);
+    return this.timeline.filter(x => x.type === type);
   }
 }

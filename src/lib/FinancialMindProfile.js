@@ -8,8 +8,8 @@ export class FinancialMindProfile {
     this.riskProfile = user.riskProfile || {};
     this.metadata = {
       createdAt: new Date().toISOString(),
-      userId: user.userId || 'anonymous',
-      version: '1.0',
+      userId: user.userId || "anonymous",
+      version: "1.0"
     };
   }
 
@@ -31,7 +31,7 @@ export class FinancialMindProfile {
     if (pattern) {
       this.decisionPatterns.push({
         ...pattern,
-        recordedAt: new Date().toISOString(),
+        recordedAt: new Date().toISOString()
       });
     }
   }
@@ -48,7 +48,7 @@ export class FinancialMindProfile {
       decisionPatterns: this.decisionPatterns,
       goals: this.goals,
       riskProfile: this.riskProfile,
-      metadata: this.metadata,
+      metadata: this.metadata
     };
   }
 
@@ -60,7 +60,7 @@ export class FinancialMindProfile {
       patternCount: this.decisionPatterns.length,
       dominantBeliefs: this.beliefs.slice(0, 3),
       highestBias: Object.entries(this.biases).sort((a, b) => b[1] - a[1])[0]?.[0],
-      highestTrigger: Object.entries(this.emotionalTriggers).sort((a, b) => b[1] - a[1])[0]?.[0],
+      highestTrigger: Object.entries(this.emotionalTriggers).sort((a, b) => b[1] - a[1])[0]?.[0]
     };
   }
 }

@@ -18,7 +18,7 @@ async function apiPost(endpoint, payload) {
     const resp = await fetch(`${API_BASE}${endpoint}`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
+      body: JSON.stringify(payload)
     });
     return resp.ok;
   } catch {
@@ -33,7 +33,9 @@ function isBrowser() {
 const GOAL_HISTORY_KEY = "arth-os-goal-evolution";
 
 function loadLocalHistory() {
-  if (!isBrowser()) return [];
+  if (!isBrowser()) {
+    return [];
+  }
   try {
     const raw = window.localStorage.getItem(GOAL_HISTORY_KEY);
     return raw ? JSON.parse(raw) : [];
@@ -43,7 +45,9 @@ function loadLocalHistory() {
 }
 
 function persistLocalHistory(history) {
-  if (!isBrowser()) return;
+  if (!isBrowser()) {
+    return;
+  }
   try {
     window.localStorage.setItem(GOAL_HISTORY_KEY, JSON.stringify(history));
   } catch {
@@ -74,7 +78,7 @@ export function trackGoalEvolution(previousGoal, currentGoal, options = {}) {
     currentGoal: currentGoal || null,
     reason: reason || null,
     sentiment: sentiment ?? (changed ? 0 : 0),
-    timestamp: new Date().toISOString(),
+    timestamp: new Date().toISOString()
   };
 
   // Load existing history, append, persist
@@ -84,11 +88,11 @@ export function trackGoalEvolution(previousGoal, currentGoal, options = {}) {
 
   // Server-side sync (fire-and-forget)
   if (userId && changed) {
-    apiPost("/memory/goal", { userId, ...event }).catch((error) => {
-      console.warn('[goalEvolutionEngine] Failed to sync goal evolution to server:', {
+    apiPost("/memory/goal", { userId, ...event }).catch(error => {
+      console.warn("[goalEvolutionEngine] Failed to sync goal evolution to server:", {
         userId,
         goalId: event?.id,
-        error: error?.message,
+        error: error?.message
       });
     });
   }
@@ -118,21 +122,25 @@ export function getGoalEvolutionSummary(history) {
       currentGoal: null,
       previousGoal: null,
       evolutionCount: 0,
-      trend: 'no_data',
+      trend: "no_data"
     };
   }
 
   const sorted = [...h].sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
   const latest = sorted[0];
-  const changes = sorted.filter((e) => e.changed);
+  const changes = sorted.filter(e => e.changed);
 
   // Sentiment analysis
-  const upgrades = changes.filter((e) => e.sentiment > 0).length;
-  const downgrades = changes.filter((e) => e.sentiment < 0).length;
-  const stability = changes.length === 0 ? 'stable'
-    : upgrades > downgrades ? 'improving'
-    : downgrades > upgrades ? 'regressing'
-    : 'fluctuating';
+  const upgrades = changes.filter(e => e.sentiment > 0).length;
+  const downgrades = changes.filter(e => e.sentiment < 0).length;
+  const stability =
+    changes.length === 0
+      ? "stable"
+      : upgrades > downgrades
+        ? "improving"
+        : downgrades > upgrades
+          ? "regressing"
+          : "fluctuating";
 
   return {
     totalChanges: changes.length,
@@ -143,8 +151,8 @@ export function getGoalEvolutionSummary(history) {
     upgrades,
     downgrades,
     stability,
-    trend: sorted.length < 2 ? 'single_observation' : stability,
-    latestEvent: latest,
+    trend: sorted.length < 2 ? "single_observation" : stability,
+    latestEvent: latest
   };
 }
 
@@ -156,14 +164,16 @@ export function getGoalEvolutionSummary(history) {
  */
 export function detectGoalPatterns(history) {
   const h = history || loadLocalHistory();
-  if (h.length < 3) return null;
+  if (h.length < 3) {
+    return null;
+  }
 
-  const uniqueGoals = new Set(h.map((e) => e.currentGoal).filter(Boolean));
-  const changes = h.filter((e) => e.changed);
+  const uniqueGoals = new Set(h.map(e => e.currentGoal).filter(Boolean));
+  const changes = h.filter(e => e.changed);
 
   // Oscillation detection: same goal appearing multiple times
   const goalCounts = {};
-  h.forEach((e) => {
+  h.forEach(e => {
     if (e.currentGoal) {
       goalCounts[e.currentGoal] = (goalCounts[e.currentGoal] || 0) + 1;
     }
@@ -176,16 +186,18 @@ export function detectGoalPatterns(history) {
     totalUniqueGoals: uniqueGoals.size,
     totalChanges: changes.length,
     oscillatingGoals: oscillatingGoals.length > 0 ? oscillatingGoals : null,
-    pattern: oscillatingGoals.length > 0
-      ? 'oscillating'
-      : uniqueGoals.size <= 2 && changes.length > 0
-        ? 'focused'
-        : 'exploring',
-    insight: oscillatingGoals.length > 0
-      ? `You've returned to "${oscillatingGoals[0]}" multiple times — clarify your primary financial priority.`
-      : uniqueGoals.size <= 2
-        ? 'Your goal direction is consistent and focused.'
-        : 'You are exploring different financial goals — consider narrowing to 1-2 priorities.',
+    pattern:
+      oscillatingGoals.length > 0
+        ? "oscillating"
+        : uniqueGoals.size <= 2 && changes.length > 0
+          ? "focused"
+          : "exploring",
+    insight:
+      oscillatingGoals.length > 0
+        ? `You've returned to "${oscillatingGoals[0]}" multiple times — clarify your primary financial priority.`
+        : uniqueGoals.size <= 2
+          ? "Your goal direction is consistent and focused."
+          : "You are exploring different financial goals — consider narrowing to 1-2 priorities."
   };
 }
 

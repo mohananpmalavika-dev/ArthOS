@@ -1,12 +1,12 @@
-import React, { useState, useMemo, useEffect } from 'react';
-import { TrendingUp, Users, Calendar, Download, BarChart3 } from 'lucide-react';
+import React, { useState, useMemo, useEffect } from "react";
+import { TrendingUp, Users, Calendar, Download, BarChart3 } from "lucide-react";
 import {
   getCohortStatistics,
   getRetentionCurve,
   downloadRetentionData,
-  getAllCohorts,
-} from '../engines/retentionEngine';
-import '../styles.css';
+  getAllCohorts
+} from "../engines/retentionEngine";
+import "../styles.css";
 
 /**
  * RetentionDashboard
@@ -52,7 +52,7 @@ export default function RetentionDashboard() {
 
       {/* KEY METRIC: Day 30 Retention */}
       <div className="retention-kpi">
-        <div className={`kpi-card ${metTarget ? 'success' : 'warning'}`}>
+        <div className={`kpi-card ${metTarget ? "success" : "warning"}`}>
           <div className="kpi-icon">
             <TrendingUp size={24} />
           </div>
@@ -61,9 +61,7 @@ export default function RetentionDashboard() {
             <div className="kpi-metric">
               {day30Actual}% <span className="target">/ {day30Target}% target</span>
             </div>
-            <p className="kpi-status">
-              {metTarget ? '✅ TARGET MET' : '🟡 APPROACHING TARGET'}
-            </p>
+            <p className="kpi-status">{metTarget ? "✅ TARGET MET" : "🟡 APPROACHING TARGET"}</p>
           </div>
         </div>
       </div>
@@ -72,15 +70,12 @@ export default function RetentionDashboard() {
       <div className="retention-section">
         <h3>Retention Curve (All Cohorts)</h3>
         <div className="retention-curve">
-          {curve.map((dayData) => (
+          {curve.map(dayData => (
             <div key={`day-${dayData.dayN}`} className="curve-bar">
               <div className="bar-label">Day {dayData.dayN}</div>
               <div className="bar-value">{dayData.percentage}%</div>
               <div className="bar-graph">
-                <div
-                  className="bar-fill"
-                  style={{ width: `${dayData.percentage}%` }}
-                />
+                <div className="bar-fill" style={{ width: `${dayData.percentage}%` }} />
               </div>
               <div className="bar-count">
                 {dayData.retained} / {dayData.total}
@@ -153,10 +148,7 @@ export default function RetentionDashboard() {
 
       {/* REFRESH BUTTON */}
       <div className="retention-footer">
-        <button
-          className="btn-primary"
-          onClick={() => setRefreshTrigger(t => t + 1)}
-        >
+        <button className="btn-primary" onClick={() => setRefreshTrigger(t => t + 1)}>
           🔄 Refresh Data
         </button>
       </div>
@@ -195,30 +187,31 @@ function CohortDetailsTable() {
             </tr>
           </thead>
           <tbody>
-            {cohorts.slice().reverse().map((cohort) => {
-              const enteredDate = new Date(cohort.enteredAt);
-              const lastReturn = cohort.returns[cohort.returns.length - 1];
-              const ageDays = Math.floor(
-                (new Date() - enteredDate) / (24 * 60 * 60 * 1000)
-              );
+            {cohorts
+              .slice()
+              .reverse()
+              .map(cohort => {
+                const enteredDate = new Date(cohort.enteredAt);
+                const lastReturn = cohort.returns[cohort.returns.length - 1];
+                const ageDays = Math.floor((new Date() - enteredDate) / (24 * 60 * 60 * 1000));
 
-              return (
-                <tr key={cohort.userId} className="cohort-row">
-                  <td className="user-id">{cohort.userId.slice(0, 8)}...</td>
-                  <td>{formatDate(cohort.enteredAt)}</td>
-                  <td>
-                    {cohort.assessmentCompleted ? (
-                      <span className="badge-success">✅ Done</span>
-                    ) : (
-                      <span className="badge-pending">⏳ Pending</span>
-                    )}
-                  </td>
-                  <td>{cohort.returns.length}</td>
-                  <td>{lastReturn ? formatDate(lastReturn) : '—'}</td>
-                  <td>{ageDays}</td>
-                </tr>
-              );
-            })}
+                return (
+                  <tr key={cohort.userId} className="cohort-row">
+                    <td className="user-id">{cohort.userId.slice(0, 8)}...</td>
+                    <td>{formatDate(cohort.enteredAt)}</td>
+                    <td>
+                      {cohort.assessmentCompleted ? (
+                        <span className="badge-success">✅ Done</span>
+                      ) : (
+                        <span className="badge-pending">⏳ Pending</span>
+                      )}
+                    </td>
+                    <td>{cohort.returns.length}</td>
+                    <td>{lastReturn ? formatDate(lastReturn) : "—"}</td>
+                    <td>{ageDays}</td>
+                  </tr>
+                );
+              })}
           </tbody>
         </table>
       </div>
@@ -229,10 +222,10 @@ function CohortDetailsTable() {
 // Helper: Format date
 function formatDate(isoString) {
   const date = new Date(isoString);
-  return date.toLocaleDateString('en-IN', {
-    month: 'short',
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
+  return date.toLocaleDateString("en-IN", {
+    month: "short",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit"
   });
 }

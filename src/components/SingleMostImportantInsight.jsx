@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState } from "react";
 import {
   Target,
   AlertCircle,
@@ -8,15 +8,15 @@ import {
   ChevronUp,
   ArrowRight,
   CheckCircle2,
-  Eye,
-} from 'lucide-react';
-import { generatePersonalizedInsights } from '../engines/insightGenerator';
+  Eye
+} from "lucide-react";
+import { generatePersonalizedInsights } from "../engines/insightGenerator";
 import {
   getSingleMostImportantInsight,
   getSecondaryInsights,
   getImpactLabel,
-  getCategoryMeta,
-} from '../engines/singleInsightEngine';
+  getCategoryMeta
+} from "../engines/singleInsightEngine";
 
 export default function SingleMostImportantInsight({ assessmentResult, assessment }) {
   const [showAll, setShowAll] = useState(false);
@@ -34,7 +34,7 @@ export default function SingleMostImportantInsight({ assessmentResult, assessmen
     return {
       primaryInsight: primary,
       secondaryInsights: secondary,
-      totalCount: all.length,
+      totalCount: all.length
     };
   }, [assessmentResult, assessment]);
 
@@ -44,10 +44,13 @@ export default function SingleMostImportantInsight({ assessmentResult, assessmen
     if (primaryInsight) {
       try {
         const key = `arth-os-insight-ack-${primaryInsight.id}`;
-        window.localStorage.setItem(key, JSON.stringify({
-          id: primaryInsight.id,
-          acknowledgedAt: new Date().toISOString(),
-        }));
+        window.localStorage.setItem(
+          key,
+          JSON.stringify({
+            id: primaryInsight.id,
+            acknowledgedAt: new Date().toISOString()
+          })
+        );
       } catch {
         // ignore storage errors
       }
@@ -59,34 +62,37 @@ export default function SingleMostImportantInsight({ assessmentResult, assessmen
     if (primaryInsight) {
       try {
         const key = `arth-os-insight-action-${primaryInsight.id}`;
-        window.localStorage.setItem(key, JSON.stringify({
-          action: primaryInsight.actionable,
-          committedAt: new Date().toISOString(),
-        }));
-        
+        window.localStorage.setItem(
+          key,
+          JSON.stringify({
+            action: primaryInsight.actionable,
+            committedAt: new Date().toISOString()
+          })
+        );
+
         // Schedule follow-up for Day 7 and Day 30
-        const userId = window.localStorage.getItem('arth-os-user-id');
+        const userId = window.localStorage.getItem("arth-os-user-id");
         if (userId) {
           try {
-            const res = await fetch('/api/follow-up/schedule', {
-              method: 'POST',
+            const res = await fetch("/api/follow-up/schedule", {
+              method: "POST",
               headers: {
-                'Content-Type': 'application/json',
-                'x-user-id': userId,
+                "Content-Type": "application/json",
+                "x-user-id": userId
               },
               body: JSON.stringify({
                 insight: primaryInsight,
                 action: primaryInsight.actionable,
-                assessment: assessment,
-              }),
+                assessment: assessment
+              })
             });
-            
+
             if (res.ok) {
               const data = await res.json();
-              console.log('Follow-up scheduled:', data);
+              console.log("Follow-up scheduled:", data);
             }
           } catch (e) {
-            console.error('Error scheduling follow-up:', e);
+            console.error("Error scheduling follow-up:", e);
           }
         }
       } catch {
@@ -124,10 +130,7 @@ export default function SingleMostImportantInsight({ assessmentResult, assessmen
       <div className={`single-insight-hero insight-card-${primaryInsight.priority}`}>
         {/* Category & Priority Row */}
         <div className="single-insight-meta-row">
-          <span
-            className="single-insight-category"
-            style={{ '--category-color': category.color }}
-          >
+          <span className="single-insight-category" style={{ "--category-color": category.color }}>
             {category.icon} {primaryInsight.category}
           </span>
           <span className={`single-insight-priority insight-tag-${primaryInsight.priority}`}>
@@ -159,9 +162,7 @@ export default function SingleMostImportantInsight({ assessmentResult, assessmen
             <p className="single-insight-action-text">{primaryInsight.actionable}</p>
             <div className="single-insight-action-buttons">
               <button
-                className={`single-insight-commit-btn ${
-                  actionCommitted ? 'committed' : ''
-                }`}
+                className={`single-insight-commit-btn ${actionCommitted ? "committed" : ""}`}
                 onClick={handleCommit}
                 disabled={actionCommitted}
               >
@@ -172,19 +173,16 @@ export default function SingleMostImportantInsight({ assessmentResult, assessmen
                   </>
                 ) : (
                   <>
-                    <CheckCircle2 size={16} />
-                    I will do this this week
+                    <CheckCircle2 size={16} />I will do this this week
                   </>
                 )}
               </button>
               <button
-                className={`single-insight-ack-btn ${
-                  acknowledged ? 'acknowledged' : ''
-                }`}
+                className={`single-insight-ack-btn ${acknowledged ? "acknowledged" : ""}`}
                 onClick={handleAcknowledge}
                 disabled={acknowledged}
               >
-                {acknowledged ? 'Acknowledged ✓' : 'Mark as seen'}
+                {acknowledged ? "Acknowledged ✓" : "Mark as seen"}
               </button>
             </div>
           </div>
@@ -194,19 +192,16 @@ export default function SingleMostImportantInsight({ assessmentResult, assessmen
       {/* Remaining Insights — Collapsible */}
       {secondaryInsights.length > 0 && (
         <div className="single-insight-secondary">
-          <button
-            className="single-insight-toggle"
-            onClick={() => setShowAll(!showAll)}
-          >
+          <button className="single-insight-toggle" onClick={() => setShowAll(!showAll)}>
             <span>
-              {showAll ? 'Hide' : 'View'} all {totalCount} insights
+              {showAll ? "Hide" : "View"} all {totalCount} insights
             </span>
             {showAll ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
           </button>
 
           {showAll && (
             <div className="single-insight-list">
-              {secondaryInsights.map((insight) => {
+              {secondaryInsights.map(insight => {
                 const cat = getCategoryMeta(insight.category);
                 const imp = getImpactLabel(insight.priority);
                 return (
@@ -246,8 +241,7 @@ export default function SingleMostImportantInsight({ assessmentResult, assessmen
         <div className="single-insight-footer-note">
           <Lightbulb size={14} />
           <span>
-            You've acknowledged this insight. Come back to commit to an action when
-            you're ready.
+            You've acknowledged this insight. Come back to commit to an action when you're ready.
           </span>
         </div>
       )}

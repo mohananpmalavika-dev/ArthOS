@@ -17,12 +17,18 @@ export default function BadgeDisplay({ compact = false, newlyUnlocked = [], onDi
         <div className="badge-compact-header">
           <Trophy size={16} />
           <span>Achievements</span>
-          <span className="badge-count">{stats.unlockedCount}/{stats.totalCount}</span>
+          <span className="badge-count">
+            {stats.unlockedCount}/{stats.totalCount}
+          </span>
         </div>
         {stats.unlockedCount > 0 && (
           <div className="badge-compact-grid">
-            {stats.unlockedBadges.slice(0, 5).map((badge) => (
-              <div key={badge.id} className="badge-chip" title={`${badge.label}: ${badge.description}`}>
+            {stats.unlockedBadges.slice(0, 5).map(badge => (
+              <div
+                key={badge.id}
+                className="badge-chip"
+                title={`${badge.label}: ${badge.description}`}
+              >
                 <span>{badge.icon}</span>
               </div>
             ))}
@@ -40,11 +46,16 @@ export default function BadgeDisplay({ compact = false, newlyUnlocked = [], onDi
 
         {showAll && (
           <div className="badge-full-list-compact">
-            {getAllBadgeDefs().map((badge) => {
-              const isUnlocked = stats.unlockedBadges.some((b) => b.id === badge.id);
+            {getAllBadgeDefs().map(badge => {
+              const isUnlocked = stats.unlockedBadges.some(b => b.id === badge.id);
               return (
-                <div key={badge.id} className={`badge-full-item ${isUnlocked ? "unlocked" : "locked"}`}>
-                  <span className="badge-full-icon">{isUnlocked ? badge.icon : <Lock size={14} />}</span>
+                <div
+                  key={badge.id}
+                  className={`badge-full-item ${isUnlocked ? "unlocked" : "locked"}`}
+                >
+                  <span className="badge-full-icon">
+                    {isUnlocked ? badge.icon : <Lock size={14} />}
+                  </span>
                   <div className="badge-full-info">
                     <strong>{badge.label}</strong>
                     <span>{badge.description}</span>
@@ -58,7 +69,7 @@ export default function BadgeDisplay({ compact = false, newlyUnlocked = [], onDi
         {/* Newly unlocked milestone popup */}
         {newlyUnlocked.length > 0 && (
           <div className="milestone-popup">
-            {newlyUnlocked.map((badge) => (
+            {newlyUnlocked.map(badge => (
               <div key={badge.id} className="milestone-popup-card">
                 <div className="milestone-popup-icon">{badge.icon}</div>
                 <div className="milestone-popup-content">
@@ -88,7 +99,9 @@ export default function BadgeDisplay({ compact = false, newlyUnlocked = [], onDi
       <div className="badge-full-header">
         <Sparkles size={22} />
         <h2>Achievements & Milestones</h2>
-        <span className="badge-full-count">{stats.unlockedCount}/{stats.totalCount} unlocked</span>
+        <span className="badge-full-count">
+          {stats.unlockedCount}/{stats.totalCount} unlocked
+        </span>
       </div>
       <div className="badge-full-progress">
         <div className="badge-progress-bar large">
@@ -97,8 +110,8 @@ export default function BadgeDisplay({ compact = false, newlyUnlocked = [], onDi
         <span>{stats.progress}% complete</span>
       </div>
       <div className="badge-full-grid">
-        {getAllBadgeDefs().map((badge) => {
-          const isUnlocked = stats.unlockedBadges.some((b) => b.id === badge.id);
+        {getAllBadgeDefs().map(badge => {
+          const isUnlocked = stats.unlockedBadges.some(b => b.id === badge.id);
           return (
             <div key={badge.id} className={`badge-full-card ${isUnlocked ? "unlocked" : "locked"}`}>
               <div className="badge-full-card-icon">{isUnlocked ? badge.icon : "🔒"}</div>

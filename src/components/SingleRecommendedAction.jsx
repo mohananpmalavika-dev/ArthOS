@@ -5,7 +5,7 @@ import { CheckCircle2, AlertCircle, Target } from "lucide-react";
 /**
  * SingleRecommendedAction — delivers ONE single highest-impact action
  * based on the lowest scoring component and behavioral profile.
- * 
+ *
  * This component focuses on behavioral receptivity by showing:
  * 1. The single most impactful action (not a laundry list)
  * 2. Measurable impact (e.g., "adds 4 months to runway")
@@ -13,8 +13,12 @@ import { CheckCircle2, AlertCircle, Target } from "lucide-react";
  * 4. Engagement tracking (how many users complete the suggested action)
  */
 function SingleRecommendedAction({ result, assessment }) {
-  if (!result || !assessment) return null;
-  if (!result || !assessment) return null;
+  if (!result || !assessment) {
+    return null;
+  }
+  if (!result || !assessment) {
+    return null;
+  }
 
   const [engaged, setEngaged] = useState(false);
   const [completed, setCompleted] = useState(false);
@@ -28,31 +32,34 @@ function SingleRecommendedAction({ result, assessment }) {
       headline: "Implement a 48-Hour Wait Rule",
       reason: `Your behaviour score (${result.behaviourScore}/45) is your weakest link. Impulse purchases compound financial stress.`,
       impact: "Could recover 1–3 months of runway annually",
-      microGoal: "This week: identify your top 3 impulse triggers and create a written wait rule for each.",
+      microGoal:
+        "This week: identify your top 3 impulse triggers and create a written wait rule for each.",
       archetype: {
         Builder: "Lock discretionary spending into a calendar. Review weekly, not daily.",
-        Survivor: "Set a ₹5,000 personal friction threshold—anything above it requires 48 hours to approve.",
+        Survivor:
+          "Set a ₹5,000 personal friction threshold—anything above it requires 48 hours to approve.",
         Planner: "Use YNAB or Kakeibo to auto-track impulse categories. Weekly review ritual.",
         Dreamer: "Create a visual 'wish list' board—move items there instead of buying on impulse.",
         Optimizer: "A/B test your current wait period vs. 48-hour rule for one month.",
-        "Risk Taker": "Gamify it: save the ₹ you *didn't* spend this week as a 'win fund'.",
+        "Risk Taker": "Gamify it: save the ₹ you *didn't* spend this week as a 'win fund'."
       },
-      trackingLabel: "Wait Rule Engagement",
+      trackingLabel: "Wait Rule Engagement"
     },
     awareness: {
       headline: "Know Your Monthly Burn Rate",
       reason: `Your awareness score (${result.awarenessScore}/30) shows you may be flying blind. You can't fix what you don't measure.`,
       impact: "Increased clarity leads to 2–5x faster debt payoff",
-      microGoal: "Today: list your top 3 monthly expenses. Tomorrow: track one category for 7 days.",
+      microGoal:
+        "Today: list your top 3 monthly expenses. Tomorrow: track one category for 7 days.",
       archetype: {
         Builder: "Spreadsheet everything. Monthly reconciliation ritual.",
         Survivor: "Use a simple note or Google Sheet. Review weekly.",
         Planner: "Set up 3 expense alerts on your banking app right now.",
         Dreamer: "Visual budget: print a simple pie chart and put it on your fridge.",
         Optimizer: "Export last 30 days of transactions and categorize them.",
-        "Risk Taker": "Challenge: guess your monthly spend to ±₹1,000. Check the data.",
+        "Risk Taker": "Challenge: guess your monthly spend to ±₹1,000. Check the data."
       },
-      trackingLabel: "Expense Tracking Adoption",
+      trackingLabel: "Expense Tracking Adoption"
     },
     stability: {
       headline: `Build Your Emergency Buffer`,
@@ -65,10 +72,11 @@ function SingleRecommendedAction({ result, assessment }) {
         Planner: "Create sub-accounts: Fixed (locked), Discretionary (flexible buffer).",
         Dreamer: "Visualize: ₹1,00,000 in emergency savings = 10 months of peace of mind.",
         Optimizer: "High-yield savings account. Let interest compound your buffer.",
-        "Risk Taker": "Skip one coffee/meal per week. Redirect that ₹500/month to emergency savings.",
+        "Risk Taker":
+          "Skip one coffee/meal per week. Redirect that ₹500/month to emergency savings."
       },
-      trackingLabel: "Buffer Growth Tracking",
-    },
+      trackingLabel: "Buffer Growth Tracking"
+    }
   };
 
   const action = actionMap[lowestComponent] || actionMap.behaviour;
@@ -83,7 +91,10 @@ function SingleRecommendedAction({ result, assessment }) {
     }
     if (completed) {
       console.log(`[Telemetry] Action Completed: ${lowestComponent}`);
-      localStorage.setItem(trackingKey, JSON.stringify({ completed: true, timestamp: new Date().toISOString() }));
+      localStorage.setItem(
+        trackingKey,
+        JSON.stringify({ completed: true, timestamp: new Date().toISOString() })
+      );
     }
   }, [engaged, completed, lowestComponent, trackingKey]);
 
@@ -163,18 +174,18 @@ function SingleRecommendedAction({ result, assessment }) {
 SingleRecommendedAction.propTypes = {
   result: PropTypes.shape({
     lowestComponent: PropTypes.shape({
-      key: PropTypes.string,
+      key: PropTypes.string
     }),
     behaviourScore: PropTypes.number,
     awarenessScore: PropTypes.number,
     survivalMonthsDisplay: PropTypes.string,
-    personalityType: PropTypes.string,
+    personalityType: PropTypes.string
   }).isRequired,
   assessment: PropTypes.shape({
     profile: PropTypes.object,
     behaviour: PropTypes.object,
-    awareness: PropTypes.object,
-  }).isRequired,
+    awareness: PropTypes.object
+  }).isRequired
 };
 
 export default SingleRecommendedAction;

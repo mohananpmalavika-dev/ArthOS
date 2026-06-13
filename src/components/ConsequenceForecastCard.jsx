@@ -7,9 +7,12 @@ import {
   YAxis,
   CartesianGrid,
   Tooltip,
-  ResponsiveContainer,
+  ResponsiveContainer
 } from "recharts";
-import { projectHealthTrajectory, getTrajectoryWarning } from "../engines/consequenceForecastEngine.js";
+import {
+  projectHealthTrajectory,
+  getTrajectoryWarning
+} from "../engines/consequenceForecastEngine.js";
 
 /**
  * Consequence Forecast Component
@@ -67,9 +70,9 @@ export function ConsequenceForecastCard({ result, assessment }) {
                 backgroundColor: "var(--surface-3)",
                 border: "1px solid var(--gray-700)",
                 borderRadius: "6px",
-                color: "var(--white)",
+                color: "var(--white)"
               }}
-              formatter={(value) => `${value.toFixed(1)}/100`}
+              formatter={value => `${value.toFixed(1)}/100`}
             />
             <Line
               type="monotone"
@@ -91,19 +94,25 @@ export function ConsequenceForecastCard({ result, assessment }) {
         </div>
         <div className="forecast-metric">
           <span className="metric-label">In 6 Months</span>
-          <strong className={`metric-value ${trajectory.sixMonths < trajectory.today ? "decline" : "stable"}`}>
+          <strong
+            className={`metric-value ${trajectory.sixMonths < trajectory.today ? "decline" : "stable"}`}
+          >
             {trajectory.sixMonths}
           </strong>
         </div>
         <div className="forecast-metric">
           <span className="metric-label">In 1 Year</span>
-          <strong className={`metric-value ${trajectory.oneYear < trajectory.today ? "decline" : "stable"}`}>
+          <strong
+            className={`metric-value ${trajectory.oneYear < trajectory.today ? "decline" : "stable"}`}
+          >
             {trajectory.oneYear}
           </strong>
         </div>
         <div className="forecast-metric">
           <span className="metric-label">In 2 Years</span>
-          <strong className={`metric-value ${trajectory.twoYears < trajectory.today ? "decline" : "stable"}`}>
+          <strong
+            className={`metric-value ${trajectory.twoYears < trajectory.today ? "decline" : "stable"}`}
+          >
             {trajectory.twoYears}
           </strong>
         </div>

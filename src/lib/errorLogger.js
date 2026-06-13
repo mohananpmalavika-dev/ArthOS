@@ -4,22 +4,22 @@
 
 export function initializeErrorLogging() {
   // Handle uncaught errors
-  window.addEventListener("error", (event) => {
+  window.addEventListener("error", event => {
     logError({
       message: event.message,
       stack: event.error?.stack || event.filename,
       url: event.filename,
       lineNumber: event.lineno,
-      columnNumber: event.colno,
+      columnNumber: event.colno
     });
   });
 
   // Handle promise rejections
-  window.addEventListener("unhandledrejection", (event) => {
+  window.addEventListener("unhandledrejection", event => {
     logError({
       message: `Unhandled Promise: ${event.reason}`,
       stack: event.reason?.stack || String(event.reason),
-      url: window.location.href,
+      url: window.location.href
     });
   });
 }
@@ -29,7 +29,7 @@ async function logError(errorData) {
     await fetch("/api/error-log", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(errorData),
+      body: JSON.stringify(errorData)
     });
   } catch (err) {
     // Silently fail if error logging fails to prevent cascading errors

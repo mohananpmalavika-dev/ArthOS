@@ -11,7 +11,7 @@
  * - Marketplace provider registration
  */
 
-import { integrations, registerProvider } from './integrations.js';
+import { integrations, registerProvider } from "./integrations.js";
 
 export class ArthOSSDK {
   /**
@@ -19,14 +19,14 @@ export class ArthOSSDK {
    * @param {object} [options]
    * @param {string} [options.apiKey] - B2B partner API key (for authenticated requests)
    */
-  constructor(baseUrl = '', options = {}) {
-    this.baseUrl = baseUrl.replace(/\/$/, '');
-    this.apiKey = options.apiKey || '';
+  constructor(baseUrl = "", options = {}) {
+    this.baseUrl = baseUrl.replace(/\/$/, "");
+    this.apiKey = options.apiKey || "";
     this._headers = {
-      'Content-Type': 'application/json',
+      "Content-Type": "application/json"
     };
     if (this.apiKey) {
-      this._headers['Authorization'] = `Bearer ${this.apiKey}`;
+      this._headers["Authorization"] = `Bearer ${this.apiKey}`;
     }
   }
 
@@ -36,9 +36,9 @@ export class ArthOSSDK {
   setApiKey(apiKey) {
     this.apiKey = apiKey;
     if (apiKey) {
-      this._headers['Authorization'] = `Bearer ${apiKey}`;
+      this._headers["Authorization"] = `Bearer ${apiKey}`;
     } else {
-      delete this._headers['Authorization'];
+      delete this._headers["Authorization"];
     }
   }
 
@@ -51,8 +51,8 @@ export class ArthOSSDK {
       ...options,
       headers: {
         ...this._headers,
-        ...options.headers,
-      },
+        ...options.headers
+      }
     });
     if (!res.ok) {
       const body = await res.json().catch(() => ({}));
@@ -69,8 +69,8 @@ export class ArthOSSDK {
 
   async getRiskProfile(userId, userPayload = null) {
     return this._fetch(`/api/user/${encodeURIComponent(userId)}/risk`, {
-      method: 'POST',
-      body: JSON.stringify({ user: userPayload }),
+      method: "POST",
+      body: JSON.stringify({ user: userPayload })
     });
   }
 
@@ -91,9 +91,9 @@ export class ArthOSSDK {
    * @returns {Promise<object>} { partner, apiKey }
    */
   async registerPartner({ name, email, companyUrl, tier, useCase }) {
-    return this._fetch('/api/b2b/register', {
-      method: 'POST',
-      body: JSON.stringify({ name, email, companyUrl, tier, useCase }),
+    return this._fetch("/api/b2b/register", {
+      method: "POST",
+      body: JSON.stringify({ name, email, companyUrl, tier, useCase })
     });
   }
 
@@ -109,9 +109,9 @@ export class ArthOSSDK {
    * @returns {Promise<object>} Full intelligence response
    */
   async getIntelligence({ userId, profile, behaviour, awareness, habits }) {
-    return this._fetch('/api/b2b/intelligence', {
-      method: 'POST',
-      body: JSON.stringify({ userId, profile, behaviour, awareness, habits }),
+    return this._fetch("/api/b2b/intelligence", {
+      method: "POST",
+      body: JSON.stringify({ userId, profile, behaviour, awareness, habits })
     });
   }
 
@@ -121,7 +121,7 @@ export class ArthOSSDK {
    * @returns {Promise<object>}
    */
   async getPartnerAnalytics(partnerId) {
-    const query = partnerId ? `?partnerId=${encodeURIComponent(partnerId)}` : '';
+    const query = partnerId ? `?partnerId=${encodeURIComponent(partnerId)}` : "";
     return this._fetch(`/api/b2b/admin${query}`);
   }
 
@@ -132,9 +132,9 @@ export class ArthOSSDK {
    * @returns {Promise<object>}
    */
   async changePartnerTier(partnerId, newTier) {
-    return this._fetch('/api/b2b/admin/change-tier', {
-      method: 'POST',
-      body: JSON.stringify({ partnerId, newTier }),
+    return this._fetch("/api/b2b/admin/change-tier", {
+      method: "POST",
+      body: JSON.stringify({ partnerId, newTier })
     });
   }
 
@@ -144,9 +144,9 @@ export class ArthOSSDK {
    * @returns {Promise<object>}
    */
   async suspendPartner(partnerId) {
-    return this._fetch('/api/b2b/admin/suspend', {
-      method: 'POST',
-      body: JSON.stringify({ partnerId }),
+    return this._fetch("/api/b2b/admin/suspend", {
+      method: "POST",
+      body: JSON.stringify({ partnerId })
     });
   }
 
@@ -156,9 +156,9 @@ export class ArthOSSDK {
    * @returns {Promise<object>}
    */
   async reactivatePartner(partnerId) {
-    return this._fetch('/api/b2b/admin/reactivate', {
-      method: 'POST',
-      body: JSON.stringify({ partnerId }),
+    return this._fetch("/api/b2b/admin/reactivate", {
+      method: "POST",
+      body: JSON.stringify({ partnerId })
     });
   }
 
@@ -168,9 +168,9 @@ export class ArthOSSDK {
    * @returns {Promise<object>}
    */
   async rotateApiKey(partnerId) {
-    return this._fetch('/api/b2b/admin/rotate-key', {
-      method: 'POST',
-      body: JSON.stringify({ partnerId }),
+    return this._fetch("/api/b2b/admin/rotate-key", {
+      method: "POST",
+      body: JSON.stringify({ partnerId })
     });
   }
 }

@@ -12,9 +12,11 @@ export default function LoginPage({ onSwitchToRegister, onClose }) {
   const [showPassword, setShowPassword] = useState(false);
   const [submitted, setSubmitted] = useState(false);
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async e => {
     e.preventDefault();
-    if (!email || !password) return;
+    if (!email || !password) {
+      return;
+    }
     setSubmitted(true);
     clearError();
     const success = await login(email, password);
@@ -51,7 +53,10 @@ export default function LoginPage({ onSwitchToRegister, onClose }) {
               type="email"
               placeholder="you@example.com"
               value={email}
-              onChange={(e) => { setEmail(e.target.value); clearError(); }}
+              onChange={e => {
+                setEmail(e.target.value);
+                clearError();
+              }}
               autoComplete="email"
               required
             />
@@ -68,7 +73,10 @@ export default function LoginPage({ onSwitchToRegister, onClose }) {
                 type={showPassword ? "text" : "password"}
                 placeholder="Enter your password"
                 value={password}
-                onChange={(e) => { setPassword(e.target.value); clearError(); }}
+                onChange={e => {
+                  setPassword(e.target.value);
+                  clearError();
+                }}
                 autoComplete="current-password"
                 required
                 minLength={6}
@@ -92,7 +100,11 @@ export default function LoginPage({ onSwitchToRegister, onClose }) {
             </div>
           )}
 
-          <button type="submit" className="auth-submit-btn" disabled={loading || !email || !password}>
+          <button
+            type="submit"
+            className="auth-submit-btn"
+            disabled={loading || !email || !password}
+          >
             {loading ? "Signing in..." : "Sign In"}
             <ArrowRight size={18} />
           </button>

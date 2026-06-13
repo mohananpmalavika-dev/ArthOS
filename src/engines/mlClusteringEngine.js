@@ -1,7 +1,7 @@
 /**
  * ML User Clustering Engine
  * Segments users into behavioral clusters using K-means clustering
- * 
+ *
  * Clusters:
  * - Risk-Averse Planners: High awareness, high stability, conservative
  * - Impulse Spenders: Low awareness, high spending, reactive
@@ -15,67 +15,78 @@ import {
   normalizeFeatureMatrix,
   euclideanDistance,
   calculateCentroid,
-  calculateInertia,
-} from './mlUtilities.js';
+  calculateInertia
+} from "./mlUtilities.js";
 
 const CLUSTER_NAMES = {
-  0: 'Risk-Averse Planner',
-  1: 'Impulse Spender',
-  2: 'Disciplined Accumulator',
-  3: 'Struggling Survivor',
-  4: 'Balanced Growth Seeker',
+  0: "Risk-Averse Planner",
+  1: "Impulse Spender",
+  2: "Disciplined Accumulator",
+  3: "Struggling Survivor",
+  4: "Balanced Growth Seeker"
 };
 
 const CLUSTER_PROFILES = {
-  'Risk-Averse Planner': {
-    description: 'Highly aware, stable, conservative. Prioritizes security over growth.',
-    characteristics: ['High awareness', 'Strong emergency fund', 'Low risk tolerance', 'Detailed budgeting'],
-    recommendations: [
-      'Consider moderate growth investments while maintaining safety buffer',
-      'Explore insurance and income protection strategies',
-      'Balance caution with opportunity cost awareness',
+  "Risk-Averse Planner": {
+    description: "Highly aware, stable, conservative. Prioritizes security over growth.",
+    characteristics: [
+      "High awareness",
+      "Strong emergency fund",
+      "Low risk tolerance",
+      "Detailed budgeting"
     ],
-  },
-  'Impulse Spender': {
-    description: 'Low awareness of spending patterns, reactive financial decisions, high impulsive purchases.',
-    characteristics: ['Low awareness', 'Frequent regrets', 'Reactive spending', 'Weak emergency buffer'],
     recommendations: [
-      'Implement strict tracking and approval workflows',
-      'Automate savings before discretionary spending',
-      'Identify emotional spending triggers and create friction',
-      'Build 30-day cooling-off rule for purchases >5% of monthly income',
-    ],
+      "Consider moderate growth investments while maintaining safety buffer",
+      "Explore insurance and income protection strategies",
+      "Balance caution with opportunity cost awareness"
+    ]
   },
-  'Disciplined Accumulator': {
-    description: 'Consistent saver, goal-oriented, methodical wealth builder.',
-    characteristics: ['Regular savings', 'Goal tracking', 'Disciplined', 'Runway-focused'],
+  "Impulse Spender": {
+    description:
+      "Low awareness of spending patterns, reactive financial decisions, high impulsive purchases.",
+    characteristics: [
+      "Low awareness",
+      "Frequent regrets",
+      "Reactive spending",
+      "Weak emergency buffer"
+    ],
     recommendations: [
-      'Optimize investment allocation for tax efficiency',
-      'Consider more aggressive growth strategies',
-      'Set milestone-based increases in investment amounts',
-      'Explore advanced financial products (options, real estate)',
-    ],
+      "Implement strict tracking and approval workflows",
+      "Automate savings before discretionary spending",
+      "Identify emotional spending triggers and create friction",
+      "Build 30-day cooling-off rule for purchases >5% of monthly income"
+    ]
   },
-  'Struggling Survivor': {
-    description: 'Limited runway, living paycheck-to-paycheck, stressed financial state.',
-    characteristics: ['Low runway (<3mo)', 'High stress', 'Reactive decisions', 'Limited savings'],
+  "Disciplined Accumulator": {
+    description: "Consistent saver, goal-oriented, methodical wealth builder.",
+    characteristics: ["Regular savings", "Goal tracking", "Disciplined", "Runway-focused"],
     recommendations: [
-      'Focus on emergency fund building (target: 3-month buffer)',
-      'Reduce discretionary spending by 20% minimum',
-      'Explore income increase opportunities (side income, skills)',
-      'Negotiate fixed expenses (insurance, subscriptions, housing)',
-    ],
+      "Optimize investment allocation for tax efficiency",
+      "Consider more aggressive growth strategies",
+      "Set milestone-based increases in investment amounts",
+      "Explore advanced financial products (options, real estate)"
+    ]
   },
-  'Balanced Growth Seeker': {
-    description: 'Moderate stability with growth orientation, balanced risk appetite.',
-    characteristics: ['Moderate awareness', 'Reasonable runway', 'Growth mindset', 'Some savings'],
+  "Struggling Survivor": {
+    description: "Limited runway, living paycheck-to-paycheck, stressed financial state.",
+    characteristics: ["Low runway (<3mo)", "High stress", "Reactive decisions", "Limited savings"],
     recommendations: [
-      'Build 6-month emergency fund while investing for growth',
-      'Diversify income streams to increase stability',
-      'Create education/skill investments for career growth',
-      'Balance safety with calculated risk-taking',
-    ],
+      "Focus on emergency fund building (target: 3-month buffer)",
+      "Reduce discretionary spending by 20% minimum",
+      "Explore income increase opportunities (side income, skills)",
+      "Negotiate fixed expenses (insurance, subscriptions, housing)"
+    ]
   },
+  "Balanced Growth Seeker": {
+    description: "Moderate stability with growth orientation, balanced risk appetite.",
+    characteristics: ["Moderate awareness", "Reasonable runway", "Growth mindset", "Some savings"],
+    recommendations: [
+      "Build 6-month emergency fund while investing for growth",
+      "Diversify income streams to increase stability",
+      "Create education/skill investments for career growth",
+      "Balance safety with calculated risk-taking"
+    ]
+  }
 };
 
 /**
@@ -112,10 +123,12 @@ function kMeans(data, k, maxIterations = 50, tolerance = 0.001) {
     );
 
     // Calculate new centroids
-    const newCentroids = Array(k).fill(null).map((_, idx) => {
-      const clusterPoints = data.filter((_, i) => assignments[i] === idx);
-      return clusterPoints.length > 0 ? calculateCentroid(clusterPoints) : centroids[idx];
-    });
+    const newCentroids = Array(k)
+      .fill(null)
+      .map((_, idx) => {
+        const clusterPoints = data.filter((_, i) => assignments[i] === idx);
+        return clusterPoints.length > 0 ? calculateCentroid(clusterPoints) : centroids[idx];
+      });
 
     // Check convergence
     const inertia = calculateInertia(data, newCentroids, assignments);
@@ -133,7 +146,13 @@ function kMeans(data, k, maxIterations = 50, tolerance = 0.001) {
     iterations = iter + 1;
   }
 
-  return { centroids, assignments: data.map((p) => 0), inertia: previousInertia, converged, iterations };
+  return {
+    centroids,
+    assignments: data.map(p => 0),
+    inertia: previousInertia,
+    converged,
+    iterations
+  };
 }
 
 /**
@@ -141,7 +160,7 @@ function kMeans(data, k, maxIterations = 50, tolerance = 0.001) {
  */
 export function clusterUser(assessment, result, trainedCentroids) {
   const features = extractFeatures(assessment, result);
-  
+
   if (!trainedCentroids || trainedCentroids.length === 0) {
     // Fallback: simple rule-based clustering
     return assignClusterRuleBased(result);
@@ -163,7 +182,7 @@ export function clusterUser(assessment, result, trainedCentroids) {
     clusterId: nearestCluster,
     clusterName: CLUSTER_NAMES[nearestCluster] || `Cluster ${nearestCluster}`,
     profile: CLUSTER_PROFILES[CLUSTER_NAMES[nearestCluster]] || {},
-    confidence: 1 / (1 + nearestDistance), // Sigmoid confidence
+    confidence: 1 / (1 + nearestDistance) // Sigmoid confidence
   };
 }
 
@@ -192,18 +211,24 @@ export function trainUserClusters(userDataset) {
   );
 
   // Calculate cluster statistics
-  const clusterStats = Array(5).fill(null).map((_, clusterIdx) => {
-    const clusterUsers = userDataset.filter((_, i) => assignments[i] === clusterIdx);
-    return {
-      size: clusterUsers.length,
-      avgHealthScore: clusterUsers.length > 0 
-        ? clusterUsers.reduce((sum, u) => sum + (u.result?.healthScore || 0), 0) / clusterUsers.length
-        : 0,
-      avgRunway: clusterUsers.length > 0
-        ? clusterUsers.reduce((sum, u) => sum + (u.result?.runwayMonths || 0), 0) / clusterUsers.length
-        : 0,
-    };
-  });
+  const clusterStats = Array(5)
+    .fill(null)
+    .map((_, clusterIdx) => {
+      const clusterUsers = userDataset.filter((_, i) => assignments[i] === clusterIdx);
+      return {
+        size: clusterUsers.length,
+        avgHealthScore:
+          clusterUsers.length > 0
+            ? clusterUsers.reduce((sum, u) => sum + (u.result?.healthScore || 0), 0) /
+              clusterUsers.length
+            : 0,
+        avgRunway:
+          clusterUsers.length > 0
+            ? clusterUsers.reduce((sum, u) => sum + (u.result?.runwayMonths || 0), 0) /
+              clusterUsers.length
+            : 0
+      };
+    });
 
   return {
     centroids,
@@ -215,8 +240,8 @@ export function trainUserClusters(userDataset) {
     model: {
       trainedAt: new Date().toISOString(),
       datasetSize: userDataset.length,
-      numClusters: 5,
-    },
+      numClusters: 5
+    }
   };
 }
 
@@ -232,44 +257,44 @@ function assignClusterRuleBased(result) {
   if (awareness > 25 && stability > 20) {
     return {
       clusterId: 0,
-      clusterName: 'Risk-Averse Planner',
-      profile: CLUSTER_PROFILES['Risk-Averse Planner'],
-      confidence: 0.7,
+      clusterName: "Risk-Averse Planner",
+      profile: CLUSTER_PROFILES["Risk-Averse Planner"],
+      confidence: 0.7
     };
   }
 
   if (behaviour < 20 && awareness < 15) {
     return {
       clusterId: 1,
-      clusterName: 'Impulse Spender',
-      profile: CLUSTER_PROFILES['Impulse Spender'],
-      confidence: 0.65,
+      clusterName: "Impulse Spender",
+      profile: CLUSTER_PROFILES["Impulse Spender"],
+      confidence: 0.65
     };
   }
 
   if (stability > 22 && awareness > 20) {
     return {
       clusterId: 2,
-      clusterName: 'Disciplined Accumulator',
-      profile: CLUSTER_PROFILES['Disciplined Accumulator'],
-      confidence: 0.75,
+      clusterName: "Disciplined Accumulator",
+      profile: CLUSTER_PROFILES["Disciplined Accumulator"],
+      confidence: 0.75
     };
   }
 
   if (runway < 3 && stability < 15) {
     return {
       clusterId: 3,
-      clusterName: 'Struggling Survivor',
-      profile: CLUSTER_PROFILES['Struggling Survivor'],
-      confidence: 0.7,
+      clusterName: "Struggling Survivor",
+      profile: CLUSTER_PROFILES["Struggling Survivor"],
+      confidence: 0.7
     };
   }
 
   return {
     clusterId: 4,
-    clusterName: 'Balanced Growth Seeker',
-    profile: CLUSTER_PROFILES['Balanced Growth Seeker'],
-    confidence: 0.6,
+    clusterName: "Balanced Growth Seeker",
+    profile: CLUSTER_PROFILES["Balanced Growth Seeker"],
+    confidence: 0.6
   };
 }
 
@@ -277,7 +302,9 @@ function assignClusterRuleBased(result) {
  * Get cluster centroid characteristics
  */
 export function getClusterCharacteristics(clusterId, centroids) {
-  if (!centroids || !centroids[clusterId]) return null;
+  if (!centroids || !centroids[clusterId]) {
+    return null;
+  }
 
   const centroid = centroids[clusterId];
   return {
@@ -286,7 +313,7 @@ export function getClusterCharacteristics(clusterId, centroids) {
     behaviourFeature: centroid[2],
     stabilityFeature: centroid[4],
     runwayFeature: centroid[8],
-    healthScoreFeature: centroid[10],
+    healthScoreFeature: centroid[10]
   };
 }
 
@@ -298,7 +325,7 @@ export function exportClusterModel(clusteringResult) {
     centroids: clusteringResult.centroids,
     clusterStats: clusteringResult.clusterStats,
     model: clusteringResult.model,
-    timestamp: new Date().toISOString(),
+    timestamp: new Date().toISOString()
   };
 }
 

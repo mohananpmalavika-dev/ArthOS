@@ -12,7 +12,7 @@ export default function RegisterPage({ onSwitchToLogin, onClose }) {
   const [showPassword, setShowPassword] = useState(false);
   const [localError, setLocalError] = useState(null);
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async e => {
     e.preventDefault();
     setLocalError(null);
     clearError();
@@ -64,7 +64,11 @@ export default function RegisterPage({ onSwitchToLogin, onClose }) {
               type="text"
               placeholder="Your name"
               value={name}
-              onChange={(e) => { setName(e.target.value); setLocalError(null); clearError(); }}
+              onChange={e => {
+                setName(e.target.value);
+                setLocalError(null);
+                clearError();
+              }}
               autoComplete="name"
               required
             />
@@ -80,7 +84,11 @@ export default function RegisterPage({ onSwitchToLogin, onClose }) {
               type="email"
               placeholder="you@example.com"
               value={email}
-              onChange={(e) => { setEmail(e.target.value); setLocalError(null); clearError(); }}
+              onChange={e => {
+                setEmail(e.target.value);
+                setLocalError(null);
+                clearError();
+              }}
               autoComplete="email"
               required
             />
@@ -97,7 +105,11 @@ export default function RegisterPage({ onSwitchToLogin, onClose }) {
                 type={showPassword ? "text" : "password"}
                 placeholder="At least 6 characters"
                 value={password}
-                onChange={(e) => { setPassword(e.target.value); setLocalError(null); clearError(); }}
+                onChange={e => {
+                  setPassword(e.target.value);
+                  setLocalError(null);
+                  clearError();
+                }}
                 autoComplete="new-password"
                 required
                 minLength={6}
@@ -124,7 +136,11 @@ export default function RegisterPage({ onSwitchToLogin, onClose }) {
               type="password"
               placeholder="Repeat your password"
               value={confirmPassword}
-              onChange={(e) => { setConfirmPassword(e.target.value); setLocalError(null); clearError(); }}
+              onChange={e => {
+                setConfirmPassword(e.target.value);
+                setLocalError(null);
+                clearError();
+              }}
               autoComplete="new-password"
               required
               minLength={6}
@@ -138,7 +154,11 @@ export default function RegisterPage({ onSwitchToLogin, onClose }) {
             </div>
           )}
 
-          <button type="submit" className="auth-submit-btn" disabled={loading || !name || !email || !password || !confirmPassword}>
+          <button
+            type="submit"
+            className="auth-submit-btn"
+            disabled={loading || !name || !email || !password || !confirmPassword}
+          >
             {loading ? "Creating account..." : "Create Account"}
             <ArrowRight size={18} />
           </button>

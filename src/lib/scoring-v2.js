@@ -2,48 +2,54 @@ import { v2DefaultAssessment } from "../data/questionnaire-v2.js";
 
 // L02: BAST™ Processing Engine - Blueprint-compliant 40/30/30 weighting
 export const componentMaximumsV2 = {
-  behaviour: 40,      // 40% composite weight
-  awareness: 30,      // 30% composite weight
-  stability: 30,      // 30% composite weight
+  behaviour: 40, // 40% composite weight
+  awareness: 30, // 30% composite weight
+  stability: 30 // 30% composite weight
 };
 
 // Composite weights for normalization to /1000 scale
 export const compositeWeightsV2 = {
-  behaviour: 0.40,
-  awareness: 0.30,
-  stability: 0.30,
+  behaviour: 0.4,
+  awareness: 0.3,
+  stability: 0.3
 };
 
 // Health score bands for /1000 scale
 export const healthScoreBandsV2 = {
-  critical: { min: 0, max: 199, label: 'Critical' },
-  fragile: { min: 200, max: 399, label: 'Fragile' },
-  developing: { min: 400, max: 599, label: 'Developing' },
-  resilient: { min: 600, max: 799, label: 'Resilient' },
-  sovereign: { min: 800, max: 1000, label: 'Sovereign' },
+  critical: { min: 0, max: 199, label: "Critical" },
+  fragile: { min: 200, max: 399, label: "Fragile" },
+  developing: { min: 400, max: 599, label: "Developing" },
+  resilient: { min: 600, max: 799, label: "Resilient" },
+  sovereign: { min: 800, max: 1000, label: "Sovereign" }
 };
 
 export function formatCurrency(value) {
   // Support configurable locale and currency via environment variables
   // Defaults to en-IN/INR for backward compatibility
-  const locale = typeof window !== 'undefined' 
-    ? (window.APP_LOCALE || import.meta.env.VITE_APP_LOCALE || "en-IN")
-    : (process.env.APP_LOCALE || "en-IN");
-  
-  const currency = typeof window !== 'undefined'
-    ? (window.APP_CURRENCY || import.meta.env.VITE_APP_CURRENCY || "INR")
-    : (process.env.APP_CURRENCY || "INR");
+  const locale =
+    typeof window !== "undefined"
+      ? window.APP_LOCALE || import.meta.env.VITE_APP_LOCALE || "en-IN"
+      : process.env.APP_LOCALE || "en-IN";
+
+  const currency =
+    typeof window !== "undefined"
+      ? window.APP_CURRENCY || import.meta.env.VITE_APP_CURRENCY || "INR"
+      : process.env.APP_CURRENCY || "INR";
 
   return new Intl.NumberFormat(locale, {
     style: "currency",
     currency: currency,
-    maximumFractionDigits: 0,
+    maximumFractionDigits: 0
   }).format(Math.max(0, Math.round(value || 0)));
 }
 
 export function formatMonths(months) {
-  if (!Number.isFinite(months) || months <= 0) return "0";
-  if (months >= 60) return "60+";
+  if (!Number.isFinite(months) || months <= 0) {
+    return "0";
+  }
+  if (months >= 60) {
+    return "60+";
+  }
   return Number.isInteger(months) ? String(months) : months.toFixed(1);
 }
 
@@ -56,37 +62,37 @@ const behaviourScoreMaps = {
     extremely_emotional: 0,
     somewhat_emotional: 4,
     mostly_practical: 7.5,
-    fully_logical: 10,
+    fully_logical: 10
   },
   socialInfluenceLevel: {
     heavily: 0,
     sometimes: 4,
     rarely: 7.5,
-    never: 10,
+    never: 10
   },
   unplannedPurchaseFreq: {
     very_frequently: 0,
     sometimes: 4,
     rarely: 7.5,
-    never: 10,
+    never: 10
   },
   regretImpulseFreq: {
     almost_every_time: 0,
     sometimes: 4,
     rarely: 7.5,
-    never: 10,
+    never: 10
   },
   presentFutureMindset: {
     enjoy_today: 2,
     balance_both: 7,
     secure_future: 9,
-    extreme_discipline: 10,
+    extreme_discipline: 10
   },
   avoidBalanceDuringStress: {
     almost_always: 0,
     sometimes: 4,
     rarely: 7.5,
-    never: 10,
+    never: 10
   },
 
   // v2 additions
@@ -94,38 +100,38 @@ const behaviourScoreMaps = {
     very_likely: 0,
     sometimes: 5,
     rarely: 7.5,
-    never: 10,
+    never: 10
   },
   spendWhenStressed: {
     very_likely: 0,
     sometimes: 5,
     rarely: 7.5,
-    never: 10,
+    never: 10
   },
   plannedPurchasesOnly: {
     never: 0,
     occasionally: 4.5,
     often: 7.5,
-    always: 10,
+    always: 10
   },
   cashflowAwareness: {
     no: 0,
     sometimes: 4,
     usually: 7.5,
-    always: 10,
+    always: 10
   },
   subscriptionControl: {
     never: 0,
     occasionally: 4,
     monthly: 7.5,
-    weekly: 10,
+    weekly: 10
   },
   impulseWaitRule: {
     never: 0,
     rarely: 4,
     sometimes: 7,
-    always: 10,
-  },
+    always: 10
+  }
 };
 
 const awarenessScoreMaps = {
@@ -133,31 +139,31 @@ const awarenessScoreMaps = {
     constantly: 0,
     occasionally: 3,
     rarely: 5,
-    never: 6,
+    never: 6
   },
   hasFinancialPlan: {
     clear_plan: 6,
     some_plan: 4,
     no_plan: 0,
-    not_sure: 1.5,
+    not_sure: 1.5
   },
   tracksExpenses: {
     regularly: 6,
     sometimes: 4,
     rarely: 2,
-    never: 0,
+    never: 0
   },
   knowsTotalDebt: {
     fully: 6,
     partially: 4,
     not_sure: 2,
-    no: 0,
+    no: 0
   },
   knowsMonthlyExpenses: {
     exact: 6,
     approximate: 4,
     not_really: 2,
-    no: 0,
+    no: 0
   },
 
   // v2 additions
@@ -165,44 +171,54 @@ const awarenessScoreMaps = {
     know_exact: 5,
     know_some: 4,
     not_sure: 2,
-    no: 0,
+    no: 0
   },
   budgetCycle: {
     never: 0,
     once_every_2_months: 2,
     monthly: 5,
-    weekly: 6,
+    weekly: 6
   },
   knowsTop3Expenses: {
     no: 0,
     some: 3,
     yes: 5,
-    very_clear: 6,
-  },
+    very_clear: 6
+  }
 };
 
 const incomeStabilityScores = {
   very_consistent: 6,
   mostly_consistent: 4.5,
   somewhat_variable: 2.5,
-  highly_variable: 0,
+  highly_variable: 0
 };
 
 const dependentsScores = {
   "0_1": 3,
   "2_3": 2,
   "4_5": 1,
-  "6_plus": 0,
+  "6_plus": 0
 };
 
 function getLiabilityScore(monthlyLiabilities, monthlyIncome) {
-  if (monthlyLiabilities <= 0) return 3;
-  if (monthlyIncome <= 0) return 0;
+  if (monthlyLiabilities <= 0) {
+    return 3;
+  }
+  if (monthlyIncome <= 0) {
+    return 0;
+  }
 
   const pressure = monthlyLiabilities / monthlyIncome;
-  if (pressure <= 0.15) return 3;
-  if (pressure <= 0.25) return 2;
-  if (pressure <= 0.35) return 1;
+  if (pressure <= 0.15) {
+    return 3;
+  }
+  if (pressure <= 0.25) {
+    return 2;
+  }
+  if (pressure <= 0.35) {
+    return 1;
+  }
   return 0;
 }
 
@@ -214,7 +230,7 @@ function getDebtScheduleEstimate(profile) {
       payoffMonthsDisplay: "0",
       monthlyDebtRepaymentEstimate: 0,
       interestEffectiveMonthlyRate: 0,
-      payoffConfidence: "High",
+      payoffConfidence: "High"
     };
   }
 
@@ -237,12 +253,12 @@ function getDebtScheduleEstimate(profile) {
       payoffMonthsDisplay: "∞",
       monthlyDebtRepaymentEstimate: 0,
       interestEffectiveMonthlyRate: 0,
-      payoffConfidence: "Low",
+      payoffConfidence: "Low"
     };
   }
 
   // Simple amortization estimate using effective monthly interest rate.
-  const monthlyRate = (interestAnnualPct / 100) / 12;
+  const monthlyRate = interestAnnualPct / 100 / 12;
 
   if (monthlyRate <= 0) {
     const months = totalDebt / payment;
@@ -251,7 +267,7 @@ function getDebtScheduleEstimate(profile) {
       payoffMonthsDisplay: formatMonths(months),
       monthlyDebtRepaymentEstimate: payment,
       interestEffectiveMonthlyRate: monthlyRate,
-      payoffConfidence: "Medium",
+      payoffConfidence: "Medium"
     };
   }
 
@@ -266,7 +282,7 @@ function getDebtScheduleEstimate(profile) {
       payoffMonthsDisplay: "∞",
       monthlyDebtRepaymentEstimate: payment,
       interestEffectiveMonthlyRate: monthlyRate,
-      payoffConfidence: "Low",
+      payoffConfidence: "Low"
     };
   }
 
@@ -279,7 +295,7 @@ function getDebtScheduleEstimate(profile) {
       payoffMonthsDisplay: "∞",
       monthlyDebtRepaymentEstimate: payment,
       interestEffectiveMonthlyRate: monthlyRate,
-      payoffConfidence: "Low",
+      payoffConfidence: "Low"
     };
   }
 
@@ -292,7 +308,7 @@ function getDebtScheduleEstimate(profile) {
       payoffMonthsDisplay: "∞",
       monthlyDebtRepaymentEstimate: payment,
       interestEffectiveMonthlyRate: monthlyRate,
-      payoffConfidence: "Low",
+      payoffConfidence: "Low"
     };
   }
 
@@ -301,7 +317,7 @@ function getDebtScheduleEstimate(profile) {
     payoffMonthsDisplay: formatMonths(months),
     monthlyDebtRepaymentEstimate: payment,
     interestEffectiveMonthlyRate: monthlyRate,
-    payoffConfidence: "Medium",
+    payoffConfidence: "Medium"
   };
 }
 
@@ -321,14 +337,14 @@ function getBehaviourScore(behaviour) {
     "plannedPurchasesOnly",
     "cashflowAwareness",
     "subscriptionControl",
-    "impulseWaitRule",
+    "impulseWaitRule"
   ];
 
-  const values = keys.map(
-    (k) => behaviourScoreMaps[k]?.[behaviour?.[k]] ?? 0,
-  );
+  const values = keys.map(k => behaviourScoreMaps[k]?.[behaviour?.[k]] ?? 0);
   const average = values.reduce((t, v) => t + v, 0) / Math.max(1, values.length);
-  return roundToOne(clamp((average / 10) * componentMaximumsV2.behaviour, 0, componentMaximumsV2.behaviour));
+  return roundToOne(
+    clamp((average / 10) * componentMaximumsV2.behaviour, 0, componentMaximumsV2.behaviour)
+  );
 }
 
 function getAwarenessScore(awareness) {
@@ -343,19 +359,15 @@ function getAwarenessScore(awareness) {
     // v2 additions
     "tracksSavingsRate",
     "budgetCycle",
-    "knowsTop3Expenses",
+    "knowsTop3Expenses"
   ];
 
-  const total = keys.reduce(
-    (sum, k) => sum + (awarenessScoreMaps[k]?.[awareness?.[k]] ?? 0),
-    0,
-  );
+  const total = keys.reduce((sum, k) => sum + (awarenessScoreMaps[k]?.[awareness?.[k]] ?? 0), 0);
   // normalize: max roughly equals 6*5 + a few additions; clamp to 30
   const maxPossible = 6 * 5 + 6 + 6 + 6; // 5 legacy *6 + 3 additions *6
   const score = (total / maxPossible) * componentMaximumsV2.awareness;
   return roundToOne(clamp(score, 0, componentMaximumsV2.awareness));
 }
-
 
 const BASELINE_ELASTICITY_FACTOR = 0.4;
 
@@ -365,29 +377,33 @@ export function calculateDynamicElasticity(behaviour = {}) {
 
   function addFriction(key, pointsByValue) {
     const value = behaviour?.[key];
-    if (!value) return;
+    if (!value) {
+      return;
+    }
     answeredSignals += 1;
     frictionPoints += pointsByValue[value] ?? 0;
   }
 
   addFriction("emotionalMoneyLevel", {
     extremely_emotional: 25,
-    somewhat_emotional: 12,
+    somewhat_emotional: 12
   });
   addFriction("socialInfluenceLevel", {
     heavily: 25,
-    sometimes: 10,
+    sometimes: 10
   });
   addFriction("unplannedPurchaseFreq", {
     very_frequently: 25,
-    sometimes: 15,
+    sometimes: 15
   });
   addFriction("impulseWaitRule", {
     never: 25,
-    rarely: 10,
+    rarely: 10
   });
 
-  if (answeredSignals === 0) return BASELINE_ELASTICITY_FACTOR;
+  if (answeredSignals === 0) {
+    return BASELINE_ELASTICITY_FACTOR;
+  }
 
   const maxElasticityOffset = 0.5;
   const degradationDelta = (clamp(frictionPoints, 0, 100) / 100) * 0.35;
@@ -404,24 +420,23 @@ function getStabilityScore(profile, behaviour) {
   const activeElasticityFactor = calculateDynamicElasticity(behaviour);
 
   const totalSavings = fixedSavings + discretionarySavings;
-  
+
   // L04: Blueprint-compliant Survival Window calculation
   // Formula: (Liquid Assets ÷ Monthly Expenses) × 30 days
   // Liquid Assets = totalSavings, Monthly Expenses = monthlyExpenses
-  const survivalDaysRaw = monthlyExpenses > 0 && totalSavings > 0 
-    ? (totalSavings / monthlyExpenses) * 30 
-    : 0;
-  const survivalMonthsRaw = survivalDaysRaw / 30;  // Convert to months for scoring
+  const survivalDaysRaw =
+    monthlyExpenses > 0 && totalSavings > 0 ? (totalSavings / monthlyExpenses) * 30 : 0;
+  const survivalMonthsRaw = survivalDaysRaw / 30; // Convert to months for scoring
 
   const variableExpenses = Math.max(0, monthlyExpenses - monthlyLiabilities);
   const bareMinimumBurn = monthlyLiabilities + variableExpenses * (1 - activeElasticityFactor);
-  const bareMinimumSurvivalDaysRaw = bareMinimumBurn > 0 && totalSavings > 0 
-    ? (totalSavings / bareMinimumBurn) * 30 
-    : 0;
+  const bareMinimumSurvivalDaysRaw =
+    bareMinimumBurn > 0 && totalSavings > 0 ? (totalSavings / bareMinimumBurn) * 30 : 0;
   const bareMinimumSurvivalMonthsRaw = bareMinimumSurvivalDaysRaw / 30;
 
   const fixedBufferMonths = monthlyExpenses > 0 ? fixedSavings / monthlyExpenses : 0;
-  const discretionaryBufferMonths = monthlyExpenses > 0 ? discretionarySavings / monthlyExpenses : 0;
+  const discretionaryBufferMonths =
+    monthlyExpenses > 0 ? discretionarySavings / monthlyExpenses : 0;
 
   const emergencyScore = Math.min(survivalMonthsRaw, 6) * 1.5;
   const debtScore = getDebtScore(totalDebt, monthlyIncome);
@@ -430,56 +445,65 @@ function getStabilityScore(profile, behaviour) {
   const liabilityScore = getLiabilityScore(monthlyLiabilities, monthlyIncome);
 
   const raw = emergencyScore + debtScore + incomeScore + dependentsScore + liabilityScore;
-  const normalized = clamp((raw / 20) * componentMaximumsV2.stability, 0, componentMaximumsV2.stability);
+  const normalized = clamp(
+    (raw / 20) * componentMaximumsV2.stability,
+    0,
+    componentMaximumsV2.stability
+  );
 
   return {
     score: roundToOne(normalized),
-    survivalDaysRaw,                    // L04: Days as per blueprint formula
-    survivalMonthsRaw,                  // L04: Months (survivalDaysRaw / 30)
-    bareMinimumSurvivalDaysRaw,         // L04: Minimum viable survival in days
-    bareMinimumSurvivalMonthsRaw,       // L04: Minimum viable survival in months
+    survivalDaysRaw, // L04: Days as per blueprint formula
+    survivalMonthsRaw, // L04: Months (survivalDaysRaw / 30)
+    bareMinimumSurvivalDaysRaw, // L04: Minimum viable survival in days
+    bareMinimumSurvivalMonthsRaw, // L04: Minimum viable survival in months
     activeElasticityFactor,
     fixedBufferMonths,
     discretionaryBufferMonths,
     fixedEmergencySavings: fixedSavings,
     discretionaryEmergencySavings: discretionarySavings,
-    totalEmergencySavings: totalSavings,
+    totalEmergencySavings: totalSavings
   };
 }
 
 function getDebtScore(totalDebt, monthlyIncome) {
-  if (totalDebt <= 0) return 4;
-  if (monthlyIncome <= 0) return 0;
+  if (totalDebt <= 0) {
+    return 4;
+  }
+  if (monthlyIncome <= 0) {
+    return 0;
+  }
 
   const debtMonths = totalDebt / monthlyIncome;
-  if (debtMonths <= 1) return 3.5;
-  if (debtMonths <= 3) return 2.8;
-  if (debtMonths <= 6) return 2.0;
-  if (debtMonths <= 12) return 1.0;
+  if (debtMonths <= 1) {
+    return 3.5;
+  }
+  if (debtMonths <= 3) {
+    return 2.8;
+  }
+  if (debtMonths <= 6) {
+    return 2.0;
+  }
+  if (debtMonths <= 12) {
+    return 1.0;
+  }
   return 0.2;
 }
 
 function getPerceivedSurvivalMonths(actualSurvivalMonths, awarenessScore) {
-  const awarenessFactor = clamp(
-    awarenessScore / componentMaximumsV2.awareness,
-    0,
-    1,
-  );
-  const perceptionBias = 1 + (0.35 * (1 - awarenessFactor));
+  const awarenessFactor = clamp(awarenessScore / componentMaximumsV2.awareness, 0, 1);
+  const perceptionBias = 1 + 0.35 * (1 - awarenessFactor);
   return actualSurvivalMonths * perceptionBias;
 }
 
 function getAwarenessGap(awarenessScore, survivalMonthsRaw) {
-  const perceivedSurvivalMonths = getPerceivedSurvivalMonths(
-    survivalMonthsRaw,
-    awarenessScore,
-  );
+  const perceivedSurvivalMonths = getPerceivedSurvivalMonths(survivalMonthsRaw, awarenessScore);
   const awarenessBias = perceivedSurvivalMonths - survivalMonthsRaw;
   return {
     perceivedSurvivalMonths,
     actualSurvivalMonths: survivalMonthsRaw,
     awarenessGap: Math.abs(awarenessBias),
-    awarenessBias,
+    awarenessBias
   };
 }
 
@@ -499,11 +523,7 @@ export function calculateAdvancedCognitiveDrift(awareness = {}, actualSurvivalMo
   }
 
   const awarenessScore = getAwarenessScore(awareness);
-  const awarenessFactor = clamp(
-    1 - awarenessScore / componentMaximumsV2.awareness,
-    0,
-    1,
-  );
+  const awarenessFactor = clamp(1 - awarenessScore / componentMaximumsV2.awareness, 0, 1);
   const baseBias = 1 + 0.38 * awarenessFactor;
   const rawPerceived = actualSurvivalMonths * baseBias;
   const perceivedSurvivalMonths = rawPerceived + cognitiveOverconfidenceDrift;
@@ -514,28 +534,26 @@ export function calculateAdvancedCognitiveDrift(awareness = {}, actualSurvivalMo
     actualSurvivalMonths,
     awarenessGap: Math.abs(awarenessBias),
     awarenessBias,
-    cognitiveOverconfidenceDrift,
+    cognitiveOverconfidenceDrift
   };
 }
 
 function getBlindSpotInsight(awarenessMetrics) {
-  const {
-    perceivedSurvivalMonths,
-    actualSurvivalMonths,
-    awarenessGap,
-  } = awarenessMetrics;
+  const { perceivedSurvivalMonths, actualSurvivalMonths, awarenessGap } = awarenessMetrics;
 
-  const headline = perceivedSurvivalMonths > actualSurvivalMonths
-    ? `You believe you can survive ${formatMonths(perceivedSurvivalMonths)} months without income.`
-    : perceivedSurvivalMonths < actualSurvivalMonths
-      ? `You are more conservative than your actual runway suggests.`
-      : `Your survival perception is tightly aligned with your actual runway.`;
+  const headline =
+    perceivedSurvivalMonths > actualSurvivalMonths
+      ? `You believe you can survive ${formatMonths(perceivedSurvivalMonths)} months without income.`
+      : perceivedSurvivalMonths < actualSurvivalMonths
+        ? `You are more conservative than your actual runway suggests.`
+        : `Your survival perception is tightly aligned with your actual runway.`;
 
-  const summary = perceivedSurvivalMonths > actualSurvivalMonths
-    ? `Actual survival time is ${formatMonths(actualSurvivalMonths)} months, meaning you are overestimating your financial security by ${formatMonths(awarenessGap)} months.`
-    : perceivedSurvivalMonths < actualSurvivalMonths
-      ? `Actual survival time is ${formatMonths(actualSurvivalMonths)} months, meaning you are underestimating your financial security by ${formatMonths(awarenessGap)} months.`
-      : `Your perceived and actual survival times match, so your runway awareness is strong.`;
+  const summary =
+    perceivedSurvivalMonths > actualSurvivalMonths
+      ? `Actual survival time is ${formatMonths(actualSurvivalMonths)} months, meaning you are overestimating your financial security by ${formatMonths(awarenessGap)} months.`
+      : perceivedSurvivalMonths < actualSurvivalMonths
+        ? `Actual survival time is ${formatMonths(actualSurvivalMonths)} months, meaning you are underestimating your financial security by ${formatMonths(awarenessGap)} months.`
+        : `Your perceived and actual survival times match, so your runway awareness is strong.`;
 
   return {
     headline,
@@ -548,77 +566,49 @@ function getBlindSpotInsight(awarenessMetrics) {
         ? "overestimated"
         : perceivedSurvivalMonths < actualSurvivalMonths
           ? "underestimated"
-          : "aligned",
+          : "aligned"
   };
 }
 
 function getPersonalityReport(personalityType) {
   const profiles = {
     Builder: {
-      strengths: [
-        "Disciplined savings",
-        "Long-term focus",
-      ],
-      risks: [
-        "Overly rigid plans",
-        "Ignoring lifestyle flexibility",
-      ],
+      strengths: ["Disciplined savings", "Long-term focus"],
+      risks: ["Overly rigid plans", "Ignoring lifestyle flexibility"],
       dangerZone: "Burnout from strict budgets",
-      recommendedRule: "Keep a flexible emergency bucket and review commitments quarterly.",
+      recommendedRule: "Keep a flexible emergency bucket and review commitments quarterly."
     },
     Survivor: {
-      strengths: [
-        "Protects safety",
-        "Avoids downside risk",
-      ],
-      risks: [
-        "Underinvesting in growth",
-        "Staying too conservative",
-      ],
+      strengths: ["Protects safety", "Avoids downside risk"],
+      risks: ["Underinvesting in growth", "Staying too conservative"],
       dangerZone: "Income shock after long-term stagnation",
-      recommendedRule: "Build a basic buffer, then allocate a small growth bucket for higher confidence choices.",
+      recommendedRule:
+        "Build a basic buffer, then allocate a small growth bucket for higher confidence choices."
     },
     Optimizer: {
-      strengths: [
-        "Tracks decisions",
-        "Balances risk and reward",
-      ],
-      risks: [
-        "Analysis paralysis",
-        "Micromanaging cash flow",
-      ],
+      strengths: ["Tracks decisions", "Balances risk and reward"],
+      risks: ["Analysis paralysis", "Micromanaging cash flow"],
       dangerZone: "Missing quick timing windows",
-      recommendedRule: "Set clear review rituals and avoid overreacting to short-term spending noise.",
+      recommendedRule:
+        "Set clear review rituals and avoid overreacting to short-term spending noise."
     },
     Dreamer: {
-      strengths: [
-        "Creative planning",
-        "Big-picture mindset",
-      ],
-      risks: [
-        "Wishful assumptions",
-        "Underestimated expenses",
-      ],
+      strengths: ["Creative planning", "Big-picture mindset"],
+      risks: ["Wishful assumptions", "Underestimated expenses"],
       dangerZone: "Reality shock when plans meet cash flow",
-      recommendedRule: "Translate aspirations into a concrete 30-day spending plan.",
+      recommendedRule: "Translate aspirations into a concrete 30-day spending plan."
     },
     "Risk Taker": {
-      strengths: [
-        "Moves fast",
-        "Grabs opportunities",
-      ],
-      risks: [
-        "Volatile cash flow",
-        "Emotional spending",
-      ],
+      strengths: ["Moves fast", "Grabs opportunities"],
+      risks: ["Volatile cash flow", "Emotional spending"],
       dangerZone: "High-stress market or income swings",
-      recommendedRule: "Pause major commitments and build a 2-month safety runway first.",
-    },
+      recommendedRule: "Pause major commitments and build a 2-month safety runway first."
+    }
   };
 
   return {
     title: personalityType,
-    ...(profiles[personalityType] ?? profiles.Survivor),
+    ...(profiles[personalityType] ?? profiles.Survivor)
   };
 }
 
@@ -628,20 +618,11 @@ function getFutureRiskProfile(profile) {
   const totalDebt = toNumber(profile.totalDebt);
   const monthlyLiabilities = toNumber(profile.monthlyLiabilities);
 
-  const savingsRate = monthlyIncome > 0
-    ? clamp((monthlyIncome - monthlyExpenses) / monthlyIncome, 0, 1)
-    : 0;
-  const debtBurden = monthlyIncome > 0
-    ? clamp(totalDebt / (monthlyIncome * 12), 0, 1)
-    : 1;
-  const liabilityPressure = monthlyIncome > 0
-    ? clamp(monthlyLiabilities / monthlyIncome, 0, 1)
-    : 1;
-  const stabilityFactor = clamp(
-    (incomeStabilityScores[profile.incomeStability] ?? 0) / 6,
-    0,
-    1,
-  );
+  const savingsRate =
+    monthlyIncome > 0 ? clamp((monthlyIncome - monthlyExpenses) / monthlyIncome, 0, 1) : 0;
+  const debtBurden = monthlyIncome > 0 ? clamp(totalDebt / (monthlyIncome * 12), 0, 1) : 1;
+  const liabilityPressure = monthlyIncome > 0 ? clamp(monthlyLiabilities / monthlyIncome, 0, 1) : 1;
+  const stabilityFactor = clamp((incomeStabilityScores[profile.incomeStability] ?? 0) / 6, 0, 1);
 
   const score = Math.round(
     clamp(
@@ -650,17 +631,18 @@ function getFutureRiskProfile(profile) {
         (1 - liabilityPressure) * 0.2 +
         stabilityFactor * 0.2,
       0,
-      1,
-    ) * 100,
+      1
+    ) * 100
   );
 
-  const label = score >= 70
-    ? "Low Risk"
-    : score >= 50
-    ? "Moderate Risk"
-    : score >= 30
-    ? "High Risk"
-    : "Critical Risk";
+  const label =
+    score >= 70
+      ? "Low Risk"
+      : score >= 50
+        ? "Moderate Risk"
+        : score >= 30
+          ? "High Risk"
+          : "Critical Risk";
 
   return { score, label };
 }
@@ -677,38 +659,86 @@ function getPersonalityType(behaviour) {
     survivor: 0,
     optimizer: 0,
     dreamer: 0,
-    riskTaker: 0,  // Internal camelCase; output will be "Risk Taker" (Title Case with space)
+    riskTaker: 0 // Internal camelCase; output will be "Risk Taker" (Title Case with space)
   };
 
-  if (behaviour.presentFutureMindset === "enjoy_today") traits.riskTaker += 2;
-  if (behaviour.presentFutureMindset === "balance_both") traits.dreamer += 2;
-  if (behaviour.presentFutureMindset === "secure_future") traits.optimizer += 1;
-  if (behaviour.presentFutureMindset === "extreme_discipline") traits.builder += 2;
+  if (behaviour.presentFutureMindset === "enjoy_today") {
+    traits.riskTaker += 2;
+  }
+  if (behaviour.presentFutureMindset === "balance_both") {
+    traits.dreamer += 2;
+  }
+  if (behaviour.presentFutureMindset === "secure_future") {
+    traits.optimizer += 1;
+  }
+  if (behaviour.presentFutureMindset === "extreme_discipline") {
+    traits.builder += 2;
+  }
 
-  if (behaviour.unplannedPurchaseFreq === "very_frequently") traits.riskTaker += 2;
-  if (behaviour.unplannedPurchaseFreq === "sometimes") traits.dreamer += 1;
-  if (behaviour.unplannedPurchaseFreq === "rarely") traits.optimizer += 1;
-  if (behaviour.unplannedPurchaseFreq === "never") traits.builder += 1;
+  if (behaviour.unplannedPurchaseFreq === "very_frequently") {
+    traits.riskTaker += 2;
+  }
+  if (behaviour.unplannedPurchaseFreq === "sometimes") {
+    traits.dreamer += 1;
+  }
+  if (behaviour.unplannedPurchaseFreq === "rarely") {
+    traits.optimizer += 1;
+  }
+  if (behaviour.unplannedPurchaseFreq === "never") {
+    traits.builder += 1;
+  }
 
-  if (behaviour.spendWhenStressed === "very_likely") traits.riskTaker += 2;
-  if (behaviour.spendWhenStressed === "sometimes") traits.dreamer += 1;
-  if (behaviour.spendWhenStressed === "rarely") traits.optimizer += 1;
-  if (behaviour.spendWhenStressed === "never") traits.builder += 1;
+  if (behaviour.spendWhenStressed === "very_likely") {
+    traits.riskTaker += 2;
+  }
+  if (behaviour.spendWhenStressed === "sometimes") {
+    traits.dreamer += 1;
+  }
+  if (behaviour.spendWhenStressed === "rarely") {
+    traits.optimizer += 1;
+  }
+  if (behaviour.spendWhenStressed === "never") {
+    traits.builder += 1;
+  }
 
-  if (behaviour.plannedPurchasesOnly === "always") traits.builder += 2;
-  if (behaviour.plannedPurchasesOnly === "often") traits.optimizer += 1;
-  if (behaviour.plannedPurchasesOnly === "occasionally") traits.dreamer += 1;
-  if (behaviour.plannedPurchasesOnly === "never") traits.riskTaker += 2;
+  if (behaviour.plannedPurchasesOnly === "always") {
+    traits.builder += 2;
+  }
+  if (behaviour.plannedPurchasesOnly === "often") {
+    traits.optimizer += 1;
+  }
+  if (behaviour.plannedPurchasesOnly === "occasionally") {
+    traits.dreamer += 1;
+  }
+  if (behaviour.plannedPurchasesOnly === "never") {
+    traits.riskTaker += 2;
+  }
 
-  if (behaviour.impulseWaitRule === "always") traits.builder += 2;
-  if (behaviour.impulseWaitRule === "sometimes") traits.optimizer += 1;
-  if (behaviour.impulseWaitRule === "rarely") traits.dreamer += 1;
-  if (behaviour.impulseWaitRule === "never") traits.riskTaker += 2;
+  if (behaviour.impulseWaitRule === "always") {
+    traits.builder += 2;
+  }
+  if (behaviour.impulseWaitRule === "sometimes") {
+    traits.optimizer += 1;
+  }
+  if (behaviour.impulseWaitRule === "rarely") {
+    traits.dreamer += 1;
+  }
+  if (behaviour.impulseWaitRule === "never") {
+    traits.riskTaker += 2;
+  }
 
-  if (behaviour.subscriptionControl === "weekly") traits.builder += 1;
-  if (behaviour.subscriptionControl === "monthly") traits.optimizer += 1;
-  if (behaviour.subscriptionControl === "occasionally") traits.dreamer += 1;
-  if (behaviour.subscriptionControl === "never") traits.riskTaker += 1;
+  if (behaviour.subscriptionControl === "weekly") {
+    traits.builder += 1;
+  }
+  if (behaviour.subscriptionControl === "monthly") {
+    traits.optimizer += 1;
+  }
+  if (behaviour.subscriptionControl === "occasionally") {
+    traits.dreamer += 1;
+  }
+  if (behaviour.subscriptionControl === "never") {
+    traits.riskTaker += 1;
+  }
 
   const winner = Object.entries(traits).sort((a, b) => b[1] - a[1])[0]?.[0];
   // Standardized personality type names (matches ARCHETYPES keys in FinancialTwin.jsx)
@@ -717,26 +747,42 @@ function getPersonalityType(behaviour) {
     survivor: "Survivor",
     optimizer: "Optimizer",
     dreamer: "Dreamer",
-    riskTaker: "Risk Taker",  // Note: Title Case with space (not "risk_taker", which is for CSS)
+    riskTaker: "Risk Taker" // Note: Title Case with space (not "risk_taker", which is for CSS)
   };
 
   return labels[winner] ?? "Survivor";
 }
 
 function getHealthBand(score) {
-  if (score <= 19) return { label: "Financially Critical", tone: "critical" };
-  if (score <= 39) return { label: "Financially Fragile", tone: "warning" };
-  if (score <= 59) return { label: "Financially Developing", tone: "caution" };
-  if (score <= 79) return { label: "Financially Resilient", tone: "steady" };
+  if (score <= 19) {
+    return { label: "Financially Critical", tone: "critical" };
+  }
+  if (score <= 39) {
+    return { label: "Financially Fragile", tone: "warning" };
+  }
+  if (score <= 59) {
+    return { label: "Financially Developing", tone: "caution" };
+  }
+  if (score <= 79) {
+    return { label: "Financially Resilient", tone: "steady" };
+  }
   return { label: "Financially Sovereign", tone: "strong" };
 }
 
 // L02: Health band for /1000 normalized composite score
 function getHealthBandV2(score) {
-  if (score < 200) return { label: "Financially Critical", tone: "critical", band: "critical" };
-  if (score < 400) return { label: "Financially Fragile", tone: "warning", band: "fragile" };
-  if (score < 600) return { label: "Financially Developing", tone: "caution", band: "developing" };
-  if (score < 800) return { label: "Financially Resilient", tone: "steady", band: "resilient" };
+  if (score < 200) {
+    return { label: "Financially Critical", tone: "critical", band: "critical" };
+  }
+  if (score < 400) {
+    return { label: "Financially Fragile", tone: "warning", band: "fragile" };
+  }
+  if (score < 600) {
+    return { label: "Financially Developing", tone: "caution", band: "developing" };
+  }
+  if (score < 800) {
+    return { label: "Financially Resilient", tone: "steady", band: "resilient" };
+  }
   return { label: "Financially Sovereign", tone: "strong", band: "sovereign" };
 }
 
@@ -745,7 +791,7 @@ function getRecommendedAction(assessment, components) {
   const lowestKey = components.sort((a, b) => a.score - b.score)[0].key;
 
   const monthlyExpenses = toNumber(assessment.profile.monthlyExpenses);
-  const survivalMonths = components.find((c) => c.key === "stability").survivalMonthsRaw;
+  const survivalMonths = components.find(c => c.key === "stability").survivalMonthsRaw;
 
   if (lowestKey === "behaviour") {
     if (assessment.behaviour.unplannedPurchaseFreq !== "never") {
@@ -784,15 +830,18 @@ function getRecommendedAction(assessment, components) {
 
 function getDiagnosis(assessment, lowestComponent, futureRiskLabel, awarenessMetrics) {
   const monthlyExpenses = toNumber(assessment.profile.monthlyExpenses);
-  const totalSavings = toNumber(assessment.profile.emergencySavingsFixed) + toNumber(assessment.profile.emergencySavingsDiscretionary);
+  const totalSavings =
+    toNumber(assessment.profile.emergencySavingsFixed) +
+    toNumber(assessment.profile.emergencySavingsDiscretionary);
   const gapMonths = awarenessMetrics.awarenessGap;
 
   if (lowestComponent.key === "behaviour") {
     return {
       headline: "Your biggest problem is behavior, not just the score.",
-      problem: "Impulse spending during stress and weak waiting rules are the largest driver of your cash runway risk.",
+      problem:
+        "Impulse spending during stress and weak waiting rules are the largest driver of your cash runway risk.",
       explanation: `Your behavior score is the weakest of the three engines. In this profile, emotional and social spending patterns are eroding your available runway even when your income looks stable. This makes growth harder and makes your emergency savings less reliable over time.`,
-      focus: "Improve your purchase discipline and spend controls first.",
+      focus: "Improve your purchase discipline and spend controls first."
     };
   }
 
@@ -801,17 +850,18 @@ function getDiagnosis(assessment, lowestComponent, futureRiskLabel, awarenessMet
       headline: "Your largest blind spot is runway awareness.",
       problem: `You are overestimating your runway by ${formatMonths(gapMonths)} months compared to actual cash runway.`,
       explanation: `Your awareness score is the softest signal. This means the biggest risk isn't a single number, it is how much you trust your own financial perception instead of the math. That gap is the place where surprise shocks become crises.`,
-      focus: "Track expenses and top expenses clearly before acting on other decisions.",
+      focus: "Track expenses and top expenses clearly before acting on other decisions."
     };
   }
 
   return {
     headline: "Your biggest problem is runway stability.",
-    problem: totalSavings <= 0
-      ? "You currently have no emergency buffer, which makes every decision high risk."
-      : `Your survival runway is the weakest piece of your profile. ${formatMonths(totalSavings)} of cash against ${formatCurrency(monthlyExpenses)} monthly burn leaves little room for surprise shocks.`,
+    problem:
+      totalSavings <= 0
+        ? "You currently have no emergency buffer, which makes every decision high risk."
+        : `Your survival runway is the weakest piece of your profile. ${formatMonths(totalSavings)} of cash against ${formatCurrency(monthlyExpenses)} monthly burn leaves little room for surprise shocks.`,
     explanation: `Your stability score is the lowest engine. This means your emergency buffer and debt structure are the primary levers to protect your runway. Without stronger cash reserves, even moderate spending can push you into critical risk.`,
-    focus: "Prioritize emergency savings and manageable debt repayment pacing.",
+    focus: "Prioritize emergency savings and manageable debt repayment pacing."
   };
 }
 
@@ -828,7 +878,7 @@ function applyCommitmentToEmergencyBuffers(profile, itemCost) {
   return {
     ...profile,
     emergencySavingsDiscretionary: Math.max(0, discretionarySavings - discretionaryDrawdown),
-    emergencySavingsFixed: Math.max(0, fixedSavings - fixedDrawdown),
+    emergencySavingsFixed: Math.max(0, fixedSavings - fixedDrawdown)
   };
 }
 
@@ -849,7 +899,7 @@ export function simulateCommitmentImpact(profile = {}, simulatedItemCost = 0, be
       stabilityLoss: 0,
       currentRunway: roundToOne(currentRunway),
       postSimulatedSavings: totalSavings,
-      simulatedProfile: profile,
+      simulatedProfile: profile
     };
   }
 
@@ -868,7 +918,7 @@ export function simulateCommitmentImpact(profile = {}, simulatedItemCost = 0, be
     stabilityLoss: roundToOne(Math.max(0, initialStability - postSimulatedStability)),
     currentRunway: roundToOne(currentRunway),
     postSimulatedSavings,
-    simulatedProfile,
+    simulatedProfile
   };
 }
 
@@ -883,11 +933,21 @@ export function calculateDecisionSimulatorV2(profile = {}, purchaseCost = 0, beh
   const forecastBand = getSurvivalBand(forecastRunway).label;
 
   const recommendation = (() => {
-    if (fee <= 0) return "Enter a purchase amount to see the runway impact.";
-    if (remainingSavings <= 0) return "Do not make this purchase. It would eliminate your emergency runway entirely.";
-    if (forecastRunway <= 1) return "Wait. This purchase would leave you with a critically low runway.";
-    if (forecastRunway <= 3) return "Delay until you have at least 3 months of runway after this purchase.";
-    if (runwayDelta > 2) return "Consider saving a bit more first, as this purchase removes over 2 months of runway.";
+    if (fee <= 0) {
+      return "Enter a purchase amount to see the runway impact.";
+    }
+    if (remainingSavings <= 0) {
+      return "Do not make this purchase. It would eliminate your emergency runway entirely.";
+    }
+    if (forecastRunway <= 1) {
+      return "Wait. This purchase would leave you with a critically low runway.";
+    }
+    if (forecastRunway <= 3) {
+      return "Delay until you have at least 3 months of runway after this purchase.";
+    }
+    if (runwayDelta > 2) {
+      return "Consider saving a bit more first, as this purchase removes over 2 months of runway.";
+    }
     return "This purchase is possible, but keep at least 3 months of buffer after you buy it.";
   })();
 
@@ -901,7 +961,7 @@ export function calculateDecisionSimulatorV2(profile = {}, purchaseCost = 0, beh
     stabilityLoss: impact.stabilityLoss,
     baselineRisk: baselineBand,
     forecastRisk: forecastBand,
-    recommendation,
+    recommendation
   };
 }
 
@@ -969,14 +1029,17 @@ export function calculateFinancialHealthV2(assessment) {
   const personalityReport = calculatePersonalityReportV2(personalityType);
   const awarenessMetrics = calculateAdvancedCognitiveDrift(
     safe.awareness,
-    stability.survivalMonthsRaw,
+    stability.survivalMonthsRaw
   );
   const blindSpot = calculateBlindSpotV2(awarenessMetrics);
 
   // L02: Calculate composite health score using 40/30/30 weighting, normalized to /1000
-  const normalisedBehaviour = (behaviourScore / componentMaximumsV2.behaviour) * 1000 * compositeWeightsV2.behaviour;
-  const normalisedAwareness = (awarenessScore / componentMaximumsV2.awareness) * 1000 * compositeWeightsV2.awareness;
-  const normalisedStability = (stability.score / componentMaximumsV2.stability) * 1000 * compositeWeightsV2.stability;
+  const normalisedBehaviour =
+    (behaviourScore / componentMaximumsV2.behaviour) * 1000 * compositeWeightsV2.behaviour;
+  const normalisedAwareness =
+    (awarenessScore / componentMaximumsV2.awareness) * 1000 * compositeWeightsV2.awareness;
+  const normalisedStability =
+    (stability.score / componentMaximumsV2.stability) * 1000 * compositeWeightsV2.stability;
   const healthScore = Math.round(normalisedBehaviour + normalisedAwareness + normalisedStability);
   const categoryBand = getHealthBandV2(healthScore);
 
@@ -988,7 +1051,7 @@ export function calculateFinancialHealthV2(assessment) {
       score: behaviourScore,
       max: componentMaximumsV2.behaviour,
       band: getBehaviourBand(behaviourScore),
-      compositeContribution: normalisedBehaviour,
+      compositeContribution: normalisedBehaviour
     },
     {
       key: "awareness",
@@ -996,7 +1059,7 @@ export function calculateFinancialHealthV2(assessment) {
       score: awarenessScore,
       max: componentMaximumsV2.awareness,
       band: getAwarenessBand(awarenessScore),
-      compositeContribution: normalisedAwareness,
+      compositeContribution: normalisedAwareness
     },
     {
       key: "stability",
@@ -1004,12 +1067,12 @@ export function calculateFinancialHealthV2(assessment) {
       score: stability.score,
       max: componentMaximumsV2.stability,
       band: getStabilityBand(stability.score),
-      compositeContribution: normalisedStability,
-    },
-  ].map((row) => ({
+      compositeContribution: normalisedStability
+    }
+  ].map(row => ({
     ...row,
     percent: Math.round((row.score / row.max) * 100),
-    compositePercent: Math.round((row.compositeContribution / healthScore) * 100),
+    compositePercent: Math.round((row.compositeContribution / healthScore) * 100)
   }));
 
   componentRows.sort((a, b) => a.percent - b.percent);
@@ -1025,13 +1088,10 @@ export function calculateFinancialHealthV2(assessment) {
     {
       key: "stability",
       score: stability.score,
-      survivalMonthsRaw: stability.survivalMonthsRaw,
-    },
+      survivalMonthsRaw: stability.survivalMonthsRaw
+    }
   ];
-  const recommendedActionText = getRecommendedAction(
-    safe,
-    componentsForAction,
-  );
+  const recommendedActionText = getRecommendedAction(safe, componentsForAction);
 
   const survivalBand = getSurvivalBand(stability.survivalMonthsRaw);
   const diagnosis = getDiagnosis(safe, lowest, futureRisk.label, awarenessMetrics);
@@ -1046,18 +1106,14 @@ export function calculateFinancialHealthV2(assessment) {
     survivalMonthsRaw: stability.survivalMonthsRaw,
     survivalMonthsDisplay: formatMonths(stability.survivalMonthsRaw),
     bareMinimumSurvivalMonthsRaw: stability.bareMinimumSurvivalMonthsRaw,
-    bareMinimumSurvivalMonthsDisplay: formatMonths(
-      stability.bareMinimumSurvivalMonthsRaw,
-    ),
+    bareMinimumSurvivalMonthsDisplay: formatMonths(stability.bareMinimumSurvivalMonthsRaw),
     activeElasticityFactor: stability.activeElasticityFactor,
     activeElasticityPercent: Math.round(stability.activeElasticityFactor * 100),
     survivalBand,
     fixedBufferMonths: stability.fixedBufferMonths,
     discretionaryBufferMonths: stability.discretionaryBufferMonths,
     fixedBufferMonthsDisplay: formatMonths(stability.fixedBufferMonths),
-    discretionaryBufferMonthsDisplay: formatMonths(
-      stability.discretionaryBufferMonths,
-    ),
+    discretionaryBufferMonthsDisplay: formatMonths(stability.discretionaryBufferMonths),
     fixedBufferAmount: stability.fixedEmergencySavings,
     discretionaryBufferAmount: stability.discretionaryEmergencySavings,
     totalEmergencySavings: stability.totalEmergencySavings,
@@ -1089,53 +1145,78 @@ export function calculateFinancialHealthV2(assessment) {
     blindSpotGap: blindSpot.gapDisplay,
     blindSpotDirection: blindSpot.direction,
 
-    summary: `${categoryBand.label} financial health with ${survivalBand.label.toLowerCase()}.`,
+    summary: `${categoryBand.label} financial health with ${survivalBand.label.toLowerCase()}.`
   };
 }
 
-
 function getBehaviourBand(score) {
-  if (score <= 15) return "Critical behaviour risk";
-  if (score <= 27) return "Needs behaviour correction";
-  if (score <= 35) return "Mostly controlled";
+  if (score <= 15) {
+    return "Critical behaviour risk";
+  }
+  if (score <= 27) {
+    return "Needs behaviour correction";
+  }
+  if (score <= 35) {
+    return "Mostly controlled";
+  }
   return "Strong financial discipline";
 }
 
 function getAwarenessBand(score) {
-  if (score <= 9) return "Low visibility";
-  if (score <= 18) return "Basic awareness";
-  if (score <= 24) return "Solid tracking";
+  if (score <= 9) {
+    return "Low visibility";
+  }
+  if (score <= 18) {
+    return "Basic awareness";
+  }
+  if (score <= 24) {
+    return "Solid tracking";
+  }
   return "High clarity";
 }
 
 function getStabilityBand(score) {
-  if (score <= 8) return "Fragile stability";
-  if (score <= 16) return "Some cushion";
-  if (score <= 20) return "Resilient";
+  if (score <= 8) {
+    return "Fragile stability";
+  }
+  if (score <= 16) {
+    return "Some cushion";
+  }
+  if (score <= 20) {
+    return "Resilient";
+  }
   return "Very stable";
 }
 
 function getSurvivalBand(months) {
-  if (months <= 1) return { label: "Immediate risk", tone: "critical" };
-  if (months <= 3) return { label: "Fragile cushion", tone: "warning" };
-  if (months <= 6) return { label: "Improving stability", tone: "steady" };
-  if (months <= 12) return { label: "Strong buffer", tone: "strong" };
+  if (months <= 1) {
+    return { label: "Immediate risk", tone: "critical" };
+  }
+  if (months <= 3) {
+    return { label: "Fragile cushion", tone: "warning" };
+  }
+  if (months <= 6) {
+    return { label: "Improving stability", tone: "steady" };
+  }
+  if (months <= 12) {
+    return { label: "Strong buffer", tone: "strong" };
+  }
   return { label: "Highly resilient", tone: "strong" };
 }
 
 function getHabitsMetrics(habits) {
   const checkInMap = {
-    "0": 0,
-    "1": 1,
+    0: 0,
+    1: 1,
     "2_3": 2.5,
-    "4_plus": 4,
+    "4_plus": 4
   };
 
   const reliabilityMap = {
     rarely: 0.25,
     sometimes: 0.55,
     often: 0.78,
-    always: 0.95,
+    always: 0.95
   };
 
   const checkInsPerWeek = checkInMap[habits.habitCheckInsPerWeek] ?? 0;
@@ -1150,7 +1231,7 @@ function getHabitsMetrics(habits) {
   return {
     habitScore,
     estimatedStreakDays,
-    weeklyAdherencePct,
+    weeklyAdherencePct
   };
 }
 
@@ -1187,20 +1268,25 @@ export function buildAnonymousTelemetryPayload(assessmentResult, coreAssessment)
     },
     runway_metrics: {
       nominal_survival_months: Number((assessmentResult.survivalMonthsRaw || 0).toFixed(2)),
-      crisis_optimized_survival_months: Number((assessmentResult.bareMinimumSurvivalMonthsRaw || 0).toFixed(2)),
+      crisis_optimized_survival_months: Number(
+        (assessmentResult.bareMinimumSurvivalMonthsRaw || 0).toFixed(2)
+      ),
       perceived_survival_months: Number((assessmentResult.perceivedSurvivalMonths || 0).toFixed(2)),
       dynamic_elasticity_percent: assessmentResult.activeElasticityPercent ?? 0
     },
     financial_ratios: {
-      savings_rate_proxied: monthlyIncome > 0 
-        ? Number(((monthlyIncome - monthlyExpenses) / monthlyIncome).toFixed(2))
-        : 0,
-      debt_to_income_months: monthlyIncome > 0
-        ? Number((toNumber(profile.totalDebt) / (monthlyIncome * 12)).toFixed(2))
-        : 0,
-      fixed_liability_pressure: monthlyIncome > 0
-        ? Number((toNumber(profile.monthlyLiabilities) / monthlyIncome).toFixed(2))
-        : 0
+      savings_rate_proxied:
+        monthlyIncome > 0
+          ? Number(((monthlyIncome - monthlyExpenses) / monthlyIncome).toFixed(2))
+          : 0,
+      debt_to_income_months:
+        monthlyIncome > 0
+          ? Number((toNumber(profile.totalDebt) / (monthlyIncome * 12)).toFixed(2))
+          : 0,
+      fixed_liability_pressure:
+        monthlyIncome > 0
+          ? Number((toNumber(profile.monthlyLiabilities) / monthlyIncome).toFixed(2))
+          : 0
     },
     lowest_performing_driver: assessmentResult.lowestComponent?.key || "unknown"
   };
@@ -1212,7 +1298,7 @@ export function buildAnonymousTelemetryPayload(assessmentResult, coreAssessment)
  */
 const OFFLINE_QUEUE_KEYS = {
   telemetry: "arth-os-offline-telemetry",
-  feedback: "arth-os-offline-feedback",
+  feedback: "arth-os-offline-feedback"
 };
 
 function isBrowser() {
@@ -1220,13 +1306,17 @@ function isBrowser() {
 }
 
 function isLocalDev() {
-  if (!isBrowser()) return false;
+  if (!isBrowser()) {
+    return false;
+  }
   const host = window.location.hostname || "";
   return host === "localhost" || host.startsWith("127.");
 }
 
 function hasLocalStorage() {
-  if (!isBrowser()) return false;
+  if (!isBrowser()) {
+    return false;
+  }
   try {
     return typeof window.localStorage !== "undefined";
   } catch {
@@ -1235,7 +1325,9 @@ function hasLocalStorage() {
 }
 
 function readQueue(queueKey) {
-  if (!hasLocalStorage()) return [];
+  if (!hasLocalStorage()) {
+    return [];
+  }
   try {
     const raw = window.localStorage.getItem(queueKey);
     return raw ? JSON.parse(raw) : [];
@@ -1245,7 +1337,9 @@ function readQueue(queueKey) {
 }
 
 function writeQueue(queueKey, queue) {
-  if (!hasLocalStorage()) return;
+  if (!hasLocalStorage()) {
+    return;
+  }
   try {
     window.localStorage.setItem(queueKey, JSON.stringify(queue));
   } catch {
@@ -1254,7 +1348,9 @@ function writeQueue(queueKey, queue) {
 }
 
 function enqueueOfflinePayload(queueKey, payload) {
-  if (!hasLocalStorage()) return;
+  if (!hasLocalStorage()) {
+    return;
+  }
   const queue = readQueue(queueKey);
   queue.push({ payload, queuedAt: new Date().toISOString() });
   writeQueue(queueKey, queue);
@@ -1265,23 +1361,31 @@ async function dispatchToEndpoint(targetUrl, payload, keepalive = true) {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload),
-    keepalive,
+    keepalive
   });
   return response.ok;
 }
 
 async function flushQueue(queueKey, targetUrl, label) {
-  if (!hasLocalStorage() || !isBrowser() || isLocalDev()) return;
-  if (typeof navigator !== "undefined" && !navigator.onLine) return;
+  if (!hasLocalStorage() || !isBrowser() || isLocalDev()) {
+    return;
+  }
+  if (typeof navigator !== "undefined" && !navigator.onLine) {
+    return;
+  }
 
   const queue = readQueue(queueKey);
-  if (!queue.length) return;
+  if (!queue.length) {
+    return;
+  }
 
   const remaining = [];
   for (const item of queue) {
     try {
       const success = await dispatchToEndpoint(targetUrl, item.payload);
-      if (!success) remaining.push(item);
+      if (!success) {
+        remaining.push(item);
+      }
     } catch {
       remaining.push(item);
     }
@@ -1302,7 +1406,9 @@ export async function flushOfflineApiQueues() {
 }
 
 export function initOfflineApiQueue() {
-  if (!isBrowser()) return;
+  if (!isBrowser()) {
+    return;
+  }
 
   const flush = () => {
     void flushOfflineApiQueues();
@@ -1342,7 +1448,13 @@ export async function dispatchAnonymousTelemetry(telemetryPayload, endpointUrl) 
   const browserEndpoint =
     isBrowser() && (window?.VITE_TELEMETRY_ENDPOINT || window?.REACT_APP_TELEMETRY_ENDPOINT);
   const targetUrl = endpointUrl || browserEndpoint || "https://api.arth-os.dev/telemetry";
-  const success = await postWithFallback(targetUrl, telemetryPayload, OFFLINE_QUEUE_KEYS.telemetry, "Telemetry", true);
+  const success = await postWithFallback(
+    targetUrl,
+    telemetryPayload,
+    OFFLINE_QUEUE_KEYS.telemetry,
+    "Telemetry",
+    true
+  );
   if (success) {
     console.log("[Telemetry] Captured cleanly under privacy guidelines.");
   }
@@ -1353,7 +1465,13 @@ export async function dispatchAnonymousFeedback(feedbackPayload, endpointUrl) {
   const browserEndpoint =
     isBrowser() && (window?.VITE_FEEDBACK_ENDPOINT || window?.REACT_APP_FEEDBACK_ENDPOINT);
   const targetUrl = endpointUrl || browserEndpoint || "/api/feedback";
-  return await postWithFallback(targetUrl, feedbackPayload, OFFLINE_QUEUE_KEYS.feedback, "Feedback", false);
+  return await postWithFallback(
+    targetUrl,
+    feedbackPayload,
+    OFFLINE_QUEUE_KEYS.feedback,
+    "Feedback",
+    false
+  );
 }
 
 export async function dispatchAnonymousFeedbackEvent(feedbackPayload, endpointUrl) {

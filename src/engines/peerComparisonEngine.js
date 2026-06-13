@@ -35,15 +35,15 @@ export function generatePeerDistribution(userScore, sampleSize = 1000) {
   }
 
   // Calculate user's percentile rank
-  const belowUser = distribution.filter((s) => s < userScore).length;
-  const atUser = distribution.filter((s) => s === userScore).length;
+  const belowUser = distribution.filter(s => s < userScore).length;
+  const atUser = distribution.filter(s => s === userScore).length;
   const userPercentile = Math.round(((belowUser + atUser / 2) / sampleSize) * 100);
 
   // Bucket into ranges for charting
   const buckets = [];
   for (let i = 0; i <= 100; i += 10) {
     const label = `${i}-${i + 9}`;
-    const count = distribution.filter((s) => s >= i && s <= i + 9).length;
+    const count = distribution.filter(s => s >= i && s <= i + 9).length;
     buckets.push({ label, count, percent: Math.round((count / sampleSize) * 100) });
   }
 
@@ -61,9 +61,9 @@ export function generatePeerDistribution(userScore, sampleSize = 1000) {
       min: sorted[0],
       max: sorted[sorted.length - 1],
       sampleSize,
-      userScore,
+      userScore
     },
-    buckets,
+    buckets
   };
 }
 
@@ -90,9 +90,17 @@ export function getPeerSummary(userScore, percentile) {
  * Get percentile emoji indicator
  */
 export function getPercentileEmoji(percentile) {
-  if (percentile >= 90) return "🏆";
-  if (percentile >= 75) return "👏";
-  if (percentile >= 50) return "👍";
-  if (percentile >= 25) return "📊";
+  if (percentile >= 90) {
+    return "🏆";
+  }
+  if (percentile >= 75) {
+    return "👏";
+  }
+  if (percentile >= 50) {
+    return "👍";
+  }
+  if (percentile >= 25) {
+    return "📊";
+  }
   return "🌱";
 }

@@ -9,7 +9,12 @@ export default function PartnerSdkDemo({ userId = "demo", assessment = {} }) {
 
   // Registration state
   const [showRegister, setShowRegister] = useState(false);
-  const [registerForm, setRegisterForm] = useState({ name: "", email: "", tier: "free", useCase: "" });
+  const [registerForm, setRegisterForm] = useState({
+    name: "",
+    email: "",
+    tier: "free",
+    useCase: ""
+  });
   const [registerResult, setRegisterResult] = useState(null);
   const [registerLoading, setRegisterLoading] = useState(false);
   const [registerError, setRegisterError] = useState(null);
@@ -31,7 +36,7 @@ export default function PartnerSdkDemo({ userId = "demo", assessment = {} }) {
         name: registerForm.name,
         email: registerForm.email,
         tier: registerForm.tier,
-        useCase: registerForm.useCase,
+        useCase: registerForm.useCase
       });
       setRegisterResult(result);
       // Auto-fill the API key
@@ -57,7 +62,7 @@ export default function PartnerSdkDemo({ userId = "demo", assessment = {} }) {
         profile: assessment.profile,
         behaviour: assessment.behaviour,
         awareness: assessment.awareness,
-        habits: assessment.habits,
+        habits: assessment.habits
       });
 
       setIntelligenceResult(result);
@@ -70,7 +75,7 @@ export default function PartnerSdkDemo({ userId = "demo", assessment = {} }) {
 
   const tierOptions = Object.entries(PARTNER_TIERS).map(([key, val]) => ({
     value: key,
-    label: `${val.name} (${val.monthlyPrice === 0 ? "Free" : `$${val.monthlyPrice}/mo`})`,
+    label: `${val.name} (${val.monthlyPrice === 0 ? "Free" : `$${val.monthlyPrice}/mo`})`
   }));
 
   return (
@@ -99,7 +104,7 @@ export default function PartnerSdkDemo({ userId = "demo", assessment = {} }) {
             cursor: "pointer",
             fontWeight: 600,
             fontSize: 13,
-            marginRight: 8,
+            marginRight: 8
           }}
         >
           {showRegister ? "Cancel Registration" : "Register New Partner"}
@@ -115,7 +120,7 @@ export default function PartnerSdkDemo({ userId = "demo", assessment = {} }) {
             backgroundColor: "var(--surface-light)",
             borderRadius: "10px",
             marginBottom: 16,
-            border: "1px solid var(--gray-300)",
+            border: "1px solid var(--gray-300)"
           }}
         >
           <h3 style={{ fontSize: 15, margin: "0 0 12px", color: "var(--text-strong)" }}>
@@ -127,7 +132,7 @@ export default function PartnerSdkDemo({ userId = "demo", assessment = {} }) {
               placeholder="Company name *"
               required
               value={registerForm.name}
-              onChange={(e) => setRegisterForm({ ...registerForm, name: e.target.value })}
+              onChange={e => setRegisterForm({ ...registerForm, name: e.target.value })}
               style={inputStyle}
             />
             <input
@@ -135,15 +140,15 @@ export default function PartnerSdkDemo({ userId = "demo", assessment = {} }) {
               placeholder="Contact email *"
               required
               value={registerForm.email}
-              onChange={(e) => setRegisterForm({ ...registerForm, email: e.target.value })}
+              onChange={e => setRegisterForm({ ...registerForm, email: e.target.value })}
               style={inputStyle}
             />
             <select
               value={registerForm.tier}
-              onChange={(e) => setRegisterForm({ ...registerForm, tier: e.target.value })}
+              onChange={e => setRegisterForm({ ...registerForm, tier: e.target.value })}
               style={inputStyle}
             >
-              {tierOptions.map((opt) => (
+              {tierOptions.map(opt => (
                 <option key={opt.value} value={opt.value}>
                   {opt.label}
                 </option>
@@ -153,7 +158,7 @@ export default function PartnerSdkDemo({ userId = "demo", assessment = {} }) {
               type="text"
               placeholder="Use case (e.g., 'Embed score into loan app')"
               value={registerForm.useCase}
-              onChange={(e) => setRegisterForm({ ...registerForm, useCase: e.target.value })}
+              onChange={e => setRegisterForm({ ...registerForm, useCase: e.target.value })}
               style={inputStyle}
             />
             <button
@@ -166,7 +171,7 @@ export default function PartnerSdkDemo({ userId = "demo", assessment = {} }) {
                 borderRadius: "6px",
                 border: "none",
                 cursor: "pointer",
-                fontWeight: 600,
+                fontWeight: 600
               }}
             >
               {registerLoading ? "Registering..." : "Register & Get API Key"}
@@ -174,7 +179,9 @@ export default function PartnerSdkDemo({ userId = "demo", assessment = {} }) {
           </div>
 
           {registerError && (
-            <div style={{ marginTop: 10, color: "var(--red-700)", fontSize: 13 }}>{registerError}</div>
+            <div style={{ marginTop: 10, color: "var(--red-700)", fontSize: 13 }}>
+              {registerError}
+            </div>
           )}
 
           {registerResult && (
@@ -184,10 +191,17 @@ export default function PartnerSdkDemo({ userId = "demo", assessment = {} }) {
                 padding: "12px",
                 backgroundColor: "var(--green-50)",
                 borderRadius: "8px",
-                border: "1px solid var(--green-100)",
+                border: "1px solid var(--green-100)"
               }}
             >
-              <div style={{ fontSize: 14, fontWeight: 600, color: "var(--green-600)", marginBottom: 8 }}>
+              <div
+                style={{
+                  fontSize: 14,
+                  fontWeight: 600,
+                  color: "var(--green-600)",
+                  marginBottom: 8
+                }}
+              >
                 ✅ Partner Registered!
               </div>
               <div style={{ fontSize: 12, color: "var(--green-800)" }}>
@@ -198,7 +212,9 @@ export default function PartnerSdkDemo({ userId = "demo", assessment = {} }) {
               </div>
               <div style={{ fontSize: 12, color: "var(--green-800)", marginTop: 4 }}>
                 <strong>API Key:</strong>{" "}
-                <code style={{ fontSize: 11, wordBreak: "break-all" }}>{registerResult.apiKey}</code>
+                <code style={{ fontSize: 11, wordBreak: "break-all" }}>
+                  {registerResult.apiKey}
+                </code>
               </div>
               <div style={{ fontSize: 11, color: "var(--green-600)", marginTop: 8 }}>
                 {registerResult.message}
@@ -210,7 +226,15 @@ export default function PartnerSdkDemo({ userId = "demo", assessment = {} }) {
 
       {/* Step 2: API Key Input */}
       <div style={{ marginBottom: 12 }}>
-        <label style={{ fontSize: 13, color: "var(--gray-700)", fontWeight: 600, display: "block", marginBottom: 6 }}>
+        <label
+          style={{
+            fontSize: 13,
+            color: "var(--gray-700)",
+            fontWeight: 600,
+            display: "block",
+            marginBottom: 6
+          }}
+        >
           API Key
         </label>
         <div style={{ display: "flex", gap: 8 }}>
@@ -218,7 +242,7 @@ export default function PartnerSdkDemo({ userId = "demo", assessment = {} }) {
             type="text"
             placeholder="Paste your API key (arth_...) or register above"
             value={apiKeyInput}
-            onChange={(e) => setApiKeyInput(e.target.value)}
+            onChange={e => setApiKeyInput(e.target.value)}
             style={{ ...inputStyle, flex: 1 }}
           />
           <button
@@ -233,7 +257,7 @@ export default function PartnerSdkDemo({ userId = "demo", assessment = {} }) {
               border: "none",
               cursor: apiKeyInput ? "pointer" : "not-allowed",
               fontWeight: 600,
-              whiteSpace: "nowrap",
+              whiteSpace: "nowrap"
             }}
           >
             {loading ? "Querying..." : "Query Intelligence"}
@@ -243,7 +267,7 @@ export default function PartnerSdkDemo({ userId = "demo", assessment = {} }) {
 
       {/* Query mode selector */}
       <div style={{ marginBottom: 12, display: "flex", gap: 8 }}>
-        {["basic", "full"].map((mode) => (
+        {["basic", "full"].map(mode => (
           <button
             key={mode}
             type="button"
@@ -256,7 +280,7 @@ export default function PartnerSdkDemo({ userId = "demo", assessment = {} }) {
               border: "none",
               cursor: "pointer",
               fontSize: 12,
-              fontWeight: 600,
+              fontWeight: 600
             }}
           >
             {mode === "basic" ? "Basic (score + risk)" : "Full Intelligence"}
@@ -266,7 +290,16 @@ export default function PartnerSdkDemo({ userId = "demo", assessment = {} }) {
 
       {/* Error */}
       {error && (
-        <div style={{ marginTop: 14, padding: "10px", backgroundColor: "var(--red-50)", borderRadius: "8px", color: "var(--red-700)", fontSize: 13 }}>
+        <div
+          style={{
+            marginTop: 14,
+            padding: "10px",
+            backgroundColor: "var(--red-50)",
+            borderRadius: "8px",
+            color: "var(--red-700)",
+            fontSize: 13
+          }}
+        >
           {error}
         </div>
       )}
@@ -276,7 +309,8 @@ export default function PartnerSdkDemo({ userId = "demo", assessment = {} }) {
         <div style={{ marginTop: 18, borderTop: "2px solid var(--gray-300)", paddingTop: 16 }}>
           {/* Meta */}
           <div style={{ fontSize: 11, color: "var(--gray-400)", marginBottom: 12 }}>
-            Queried at {intelligenceResult.meta?.timestamp
+            Queried at{" "}
+            {intelligenceResult.meta?.timestamp
               ? new Date(intelligenceResult.meta.timestamp).toLocaleString()
               : "now"}
             {" · "}v{intelligenceResult.meta?.version || "1.0"}
@@ -300,10 +334,7 @@ export default function PartnerSdkDemo({ userId = "demo", assessment = {} }) {
                   value={intelligenceResult.healthScore.score}
                   suffix="/100"
                 />
-                <MetricTile
-                  label="Category"
-                  value={intelligenceResult.healthScore.category}
-                />
+                <MetricTile label="Category" value={intelligenceResult.healthScore.category} />
                 <MetricTile
                   label="Personality"
                   value={intelligenceResult.healthScore.personality?.type}
@@ -376,10 +407,26 @@ export default function PartnerSdkDemo({ userId = "demo", assessment = {} }) {
                 🧬 Cognitive Biases
               </h3>
               <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
-                <MetricTile label="Present Bias" value={intelligenceResult.cognitiveBiases.presentBias} suffix="%" />
-                <MetricTile label="Loss Aversion" value={intelligenceResult.cognitiveBiases.lossAversion} suffix="%" />
-                <MetricTile label="Optimism Bias" value={intelligenceResult.cognitiveBiases.optimismBias} suffix="%" />
-                <MetricTile label="Bias Load" value={intelligenceResult.cognitiveBiases.biasLoad} suffix="%" />
+                <MetricTile
+                  label="Present Bias"
+                  value={intelligenceResult.cognitiveBiases.presentBias}
+                  suffix="%"
+                />
+                <MetricTile
+                  label="Loss Aversion"
+                  value={intelligenceResult.cognitiveBiases.lossAversion}
+                  suffix="%"
+                />
+                <MetricTile
+                  label="Optimism Bias"
+                  value={intelligenceResult.cognitiveBiases.optimismBias}
+                  suffix="%"
+                />
+                <MetricTile
+                  label="Bias Load"
+                  value={intelligenceResult.cognitiveBiases.biasLoad}
+                  suffix="%"
+                />
               </div>
             </div>
           )}
@@ -390,7 +437,15 @@ export default function PartnerSdkDemo({ userId = "demo", assessment = {} }) {
               <h3 style={{ fontSize: 14, margin: "0 0 8px", color: "var(--text-strong)" }}>
                 🔥 Emotional Triggers
               </h3>
-              <pre style={{ fontSize: 11, backgroundColor: "var(--surface-light)", padding: 8, borderRadius: 6, overflowX: "auto" }}>
+              <pre
+                style={{
+                  fontSize: 11,
+                  backgroundColor: "var(--surface-light)",
+                  padding: 8,
+                  borderRadius: 6,
+                  overflowX: "auto"
+                }}
+              >
                 {JSON.stringify(intelligenceResult.emotionalTriggers, null, 2)}
               </pre>
             </div>
@@ -417,7 +472,7 @@ export default function PartnerSdkDemo({ userId = "demo", assessment = {} }) {
                 🛒 Recommendations
               </h3>
               <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-                {intelligenceResult.recommendations.map((r) => (
+                {intelligenceResult.recommendations.map(r => (
                   <span
                     key={r.id}
                     style={{
@@ -426,7 +481,7 @@ export default function PartnerSdkDemo({ userId = "demo", assessment = {} }) {
                       borderRadius: "12px",
                       fontSize: 12,
                       color: "var(--green-700)",
-                      border: "1px solid var(--green-100)",
+                      border: "1px solid var(--green-100)"
                     }}
                   >
                     {r.name}
@@ -450,7 +505,7 @@ export default function PartnerSdkDemo({ userId = "demo", assessment = {} }) {
                 borderRadius: 8,
                 overflowX: "auto",
                 maxHeight: 300,
-                marginTop: 8,
+                marginTop: 8
               }}
             >
               {JSON.stringify(intelligenceResult, null, 2)}
@@ -465,7 +520,9 @@ export default function PartnerSdkDemo({ userId = "demo", assessment = {} }) {
 // ─── Sub-component ───
 
 function MetricTile({ label, value, suffix, wide }) {
-  if (value === undefined || value === null) return null;
+  if (value === undefined || value === null) {
+    return null;
+  }
   return (
     <div
       style={{
@@ -474,15 +531,26 @@ function MetricTile({ label, value, suffix, wide }) {
         borderRadius: "8px",
         border: "1px solid var(--gray-300)",
         flex: wide ? "1 1 100%" : "1 1 auto",
-        minWidth: wide ? "100%" : "80px",
+        minWidth: wide ? "100%" : "80px"
       }}
     >
-      <div style={{ fontSize: 10, color: "var(--gray-500)", textTransform: "uppercase", marginBottom: 4 }}>
+      <div
+        style={{
+          fontSize: 10,
+          color: "var(--gray-500)",
+          textTransform: "uppercase",
+          marginBottom: 4
+        }}
+      >
         {label}
       </div>
       <div style={{ fontSize: 16, fontWeight: 700, color: "var(--text-strong)" }}>
         {value}
-        {suffix && <span style={{ fontSize: 12, fontWeight: 400, color: "var(--gray-500)", marginLeft: 2 }}>{suffix}</span>}
+        {suffix && (
+          <span style={{ fontSize: 12, fontWeight: 400, color: "var(--gray-500)", marginLeft: 2 }}>
+            {suffix}
+          </span>
+        )}
       </div>
     </div>
   );
@@ -497,5 +565,5 @@ const inputStyle = {
   backgroundColor: "var(--white)",
   outline: "none",
   width: "100%",
-  boxSizing: "border-box",
+  boxSizing: "border-box"
 };

@@ -16,7 +16,7 @@ export function useUserAssessments() {
     limit: 50,
     offset: 0,
     total: 0,
-    hasMore: false,
+    hasMore: false
   });
 
   const fetchAssessments = useCallback(
@@ -36,8 +36,8 @@ export function useUserAssessments() {
             method: "GET",
             headers: {
               Authorization: `Bearer ${token}`,
-              "Content-Type": "application/json",
-            },
+              "Content-Type": "application/json"
+            }
           }
         );
 
@@ -71,7 +71,7 @@ export function useUserAssessments() {
     loading,
     error,
     pagination,
-    refetch: fetchAssessments,
+    refetch: fetchAssessments
   };
 }
 
@@ -85,7 +85,7 @@ export function useUserScoreHistory() {
     limit: 50,
     offset: 0,
     total: 0,
-    hasMore: false,
+    hasMore: false
   });
 
   const fetchScores = useCallback(
@@ -99,16 +99,13 @@ export function useUserScoreHistory() {
       setError(null);
 
       try {
-        const response = await fetch(
-          `${API_BASE}/user/scores?limit=${limit}&offset=${offset}`,
-          {
-            method: "GET",
-            headers: {
-              Authorization: `Bearer ${token}`,
-              "Content-Type": "application/json",
-            },
+        const response = await fetch(`${API_BASE}/user/scores?limit=${limit}&offset=${offset}`, {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json"
           }
-        );
+        });
 
         if (!response.ok) {
           const errData = await response.json();
@@ -142,7 +139,7 @@ export function useUserScoreHistory() {
     error,
     trends,
     pagination,
-    refetch: fetchScores,
+    refetch: fetchScores
   };
 }
 
@@ -153,7 +150,7 @@ export function useUserAssessmentDetail(assessmentId) {
   const [error, setError] = useState(null);
 
   const fetchAssessment = useCallback(
-    async (id) => {
+    async id => {
       if (!isAuthenticated || !token) {
         setError("Not authenticated");
         return;
@@ -172,8 +169,8 @@ export function useUserAssessmentDetail(assessmentId) {
           method: "GET",
           headers: {
             Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
+            "Content-Type": "application/json"
+          }
         });
 
         if (!response.ok) {
@@ -204,6 +201,6 @@ export function useUserAssessmentDetail(assessmentId) {
     assessment,
     loading,
     error,
-    refetch: fetchAssessment,
+    refetch: fetchAssessment
   };
 }

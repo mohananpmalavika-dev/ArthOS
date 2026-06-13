@@ -26,15 +26,17 @@ export function useAssessmentDraft() {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
+            Authorization: `Bearer ${token}`
           },
           body: JSON.stringify({
             draft_data: draftData,
-            assessment_type: assessmentType,
-          }),
+            assessment_type: assessmentType
+          })
         });
 
-        if (!response.ok) throw new Error("Failed to save draft");
+        if (!response.ok) {
+          throw new Error("Failed to save draft");
+        }
         const result = await response.json();
         setDraft(result.data);
         setError(null);
@@ -59,17 +61,16 @@ export function useAssessmentDraft() {
 
       try {
         setLoading(true);
-        const response = await fetch(
-          `/api/user/loadDraft?assessment_type=${assessmentType}`,
-          {
-            method: "GET",
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
+        const response = await fetch(`/api/user/loadDraft?assessment_type=${assessmentType}`, {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`
           }
-        );
+        });
 
-        if (!response.ok) throw new Error("Failed to load draft");
+        if (!response.ok) {
+          throw new Error("Failed to load draft");
+        }
         const result = await response.json();
         if (result.data) {
           setDraft(result.data);
@@ -111,16 +112,18 @@ export function useUserDecisions() {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
+            Authorization: `Bearer ${token}`
           },
           body: JSON.stringify({
             decision_data: decisionData,
             decision_type: decisionType,
-            outcome_data: outcomeData,
-          }),
+            outcome_data: outcomeData
+          })
         });
 
-        if (!response.ok) throw new Error("Failed to save decision");
+        if (!response.ok) {
+          throw new Error("Failed to save decision");
+        }
         const result = await response.json();
         setError(null);
         return result.data;
@@ -146,7 +149,9 @@ export function useTelemetry() {
   const [sessionId] = useState(() => {
     // Generate or retrieve session ID
     const stored = sessionStorage.getItem("telemetry-session-id");
-    if (stored) return stored;
+    if (stored) {
+      return stored;
+    }
     const newId = `session-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
     sessionStorage.setItem("telemetry-session-id", newId);
     return newId;
@@ -155,20 +160,22 @@ export function useTelemetry() {
 
   const logEvent = useCallback(
     async (eventType, eventData = {}) => {
-      if (!token) return; // Silent fail for non-authenticated
+      if (!token) {
+        return;
+      } // Silent fail for non-authenticated
 
       try {
         await fetch("/api/user/saveTelemetry", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
+            Authorization: `Bearer ${token}`
           },
           body: JSON.stringify({
             event_type: eventType,
             event_data: eventData,
-            session_id: sessionId,
-          }),
+            session_id: sessionId
+          })
         });
       } catch (err) {
         console.warn("[useTelemetry] Log error:", err);
@@ -203,17 +210,19 @@ export function useUserPreferences() {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
+            Authorization: `Bearer ${token}`
           },
           body: JSON.stringify({
             preference_key: key,
-            preference_value: value,
-          }),
+            preference_value: value
+          })
         });
 
-        if (!response.ok) throw new Error("Failed to save preference");
+        if (!response.ok) {
+          throw new Error("Failed to save preference");
+        }
         const result = await response.json();
-        setPreferences((prev) => ({ ...prev, [key]: value }));
+        setPreferences(prev => ({ ...prev, [key]: value }));
         setError(null);
         return result.data;
       } catch (err) {

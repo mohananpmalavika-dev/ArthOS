@@ -8,7 +8,7 @@ export default function UpgradeJourney({ result, currentScore }) {
     { month: "Week 2", healthScore: Math.max(0, currentScore - 21) },
     { month: "Week 3", healthScore: Math.max(0, currentScore - 14) },
     { month: "Week 4", healthScore: Math.max(0, currentScore - 7) },
-    { month: "Today", healthScore: currentScore },
+    { month: "Today", healthScore: currentScore }
   ];
 
   return (
@@ -29,7 +29,12 @@ export default function UpgradeJourney({ result, currentScore }) {
                 <stop offset="100%" stopColor="var(--purple)" stopOpacity={0.08} />
               </linearGradient>
             </defs>
-            <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fill: "var(--white-76)", fontSize: 12 }} />
+            <XAxis
+              dataKey="month"
+              axisLine={false}
+              tickLine={false}
+              tick={{ fill: "var(--white-76)", fontSize: 12 }}
+            />
             <Area
               type="monotone"
               dataKey="healthScore"

@@ -1,5 +1,5 @@
-import React from 'react';
-import ErrorBoundary from '../components/ErrorBoundary.jsx';
+import React from "react";
+import ErrorBoundary from "../components/ErrorBoundary.jsx";
 
 /**
  * withErrorBoundary - Higher-order component to wrap any section with error handling
@@ -7,7 +7,7 @@ import ErrorBoundary from '../components/ErrorBoundary.jsx';
  * @param {string} componentName - Name for error reporting
  */
 export function withErrorBoundary(Component, componentName) {
-  return (props) => (
+  return props => (
     <ErrorBoundary componentName={componentName}>
       <Component {...props} />
     </ErrorBoundary>

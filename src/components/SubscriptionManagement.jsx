@@ -3,68 +3,68 @@
  * Shows current plan, billing info, and upgrade/downgrade options
  */
 
-import React, { useEffect, useState, useCallback } from 'react';
-import { Check, ArrowUp, AlertCircle, Loader } from 'lucide-react';
-import { hasFeature, getTierFeatures, getNewFeaturesAtTier } from '../lib/featureGating.js';
+import React, { useEffect, useState, useCallback } from "react";
+import { Check, ArrowUp, AlertCircle, Loader } from "lucide-react";
+import { hasFeature, getTierFeatures, getNewFeaturesAtTier } from "../lib/featureGating.js";
 
 const PLAN_INFO = {
   free: {
-    name: 'Free',
-    price: '$0',
-    description: 'Perfect for getting started',
-    cta: 'Current Plan',
-    highlight: false,
+    name: "Free",
+    price: "$0",
+    description: "Perfect for getting started",
+    cta: "Current Plan",
+    highlight: false
   },
   plus: {
-    name: 'Plus',
-    price: '$12.99',
-    period: '/month',
-    description: 'Unlimited insights & tracking',
-    cta: 'Upgrade to Plus',
-    highlight: true,
+    name: "Plus",
+    price: "$12.99",
+    period: "/month",
+    description: "Unlimited insights & tracking",
+    cta: "Upgrade to Plus",
+    highlight: true
   },
   pro: {
-    name: 'Pro',
-    price: '$29.99',
-    period: '/month',
-    description: 'Advanced features & AI coaching',
-    cta: 'Upgrade to Pro',
-    highlight: false,
+    name: "Pro",
+    price: "$29.99",
+    period: "/month",
+    description: "Advanced features & AI coaching",
+    cta: "Upgrade to Pro",
+    highlight: false
   },
   elite: {
-    name: 'Elite',
-    price: '$79.99',
-    period: '/month',
-    description: 'Premium experience & concierge',
-    cta: 'Upgrade to Elite',
-    highlight: false,
-  },
+    name: "Elite",
+    price: "$79.99",
+    period: "/month",
+    description: "Premium experience & concierge",
+    cta: "Upgrade to Elite",
+    highlight: false
+  }
 };
 
 const FEATURE_LABELS = {
-  basic_assessment: '43-Question Assessment',
-  basic_score: 'Financial Health Score',
-  personality_type: 'Personality Type',
-  emotional_triggers: 'Emotional Triggers Analysis',
-  money_beliefs: 'Money Beliefs Deep Dive',
-  bias_analysis: 'Cognitive Bias Profile',
-  score_history: 'Score Tracking & History',
-  digital_twin_basic: 'Basic Digital Twin (1 scenario)',
-  digital_twin_unlimited: 'Unlimited Digital Twin Scenarios',
-  stress_testing: 'Stress Test Engine',
-  banking_integration: 'Banking Integration (Plaid)',
-  ai_coach_basic: 'AI Coach (Automated)',
-  ai_coach_concierge: 'AI Coach Concierge (1-on-1)',
-  weekly_checkins: 'Weekly Check-ins',
-  action_follow_ups: 'Day-7 & Day-30 Follow-ups',
-  pdf_export: 'PDF Report Export',
-  multi_family: 'Multi-Family Profiles (5 users)',
-  priority_support: 'Priority Email Support',
-  data_export: 'Full Data Export (CSV/JSON)',
+  basic_assessment: "43-Question Assessment",
+  basic_score: "Financial Health Score",
+  personality_type: "Personality Type",
+  emotional_triggers: "Emotional Triggers Analysis",
+  money_beliefs: "Money Beliefs Deep Dive",
+  bias_analysis: "Cognitive Bias Profile",
+  score_history: "Score Tracking & History",
+  digital_twin_basic: "Basic Digital Twin (1 scenario)",
+  digital_twin_unlimited: "Unlimited Digital Twin Scenarios",
+  stress_testing: "Stress Test Engine",
+  banking_integration: "Banking Integration (Plaid)",
+  ai_coach_basic: "AI Coach (Automated)",
+  ai_coach_concierge: "AI Coach Concierge (1-on-1)",
+  weekly_checkins: "Weekly Check-ins",
+  action_follow_ups: "Day-7 & Day-30 Follow-ups",
+  pdf_export: "PDF Report Export",
+  multi_family: "Multi-Family Profiles (5 users)",
+  priority_support: "Priority Email Support",
+  data_export: "Full Data Export (CSV/JSON)"
 };
 
 export default function SubscriptionManagement({ userId }) {
-  const [currentTier, setCurrentTier] = useState('free');
+  const [currentTier, setCurrentTier] = useState("free");
   const [subscription, setSubscription] = useState(null);
   const [loading, setLoading] = useState(true);
   const [upgrading, setUpgrading] = useState(false);
@@ -73,7 +73,9 @@ export default function SubscriptionManagement({ userId }) {
   // Fetch current subscription
   useEffect(() => {
     const fetchSubscription = async () => {
-      if (!userId) return;
+      if (!userId) {
+        return;
+      }
 
       try {
         setLoading(true);
@@ -81,12 +83,12 @@ export default function SubscriptionManagement({ userId }) {
         const data = await response.json();
 
         setSubscription(data);
-        setCurrentTier(data.tier || 'free');
+        setCurrentTier(data.tier || "free");
         setError(null);
       } catch (err) {
-        console.error('Error fetching subscription:', err);
-        setError('Could not load subscription info');
-        setCurrentTier('free');
+        console.error("Error fetching subscription:", err);
+        setError("Could not load subscription info");
+        setCurrentTier("free");
       } finally {
         setLoading(false);
       }
@@ -97,17 +99,19 @@ export default function SubscriptionManagement({ userId }) {
 
   // Handle upgrade
   const handleUpgrade = useCallback(
-    async (planId) => {
-      if (!userId || currentTier === planId) return;
+    async planId => {
+      if (!userId || currentTier === planId) {
+        return;
+      }
 
       try {
         setUpgrading(true);
         setError(null);
 
         const response = await fetch(`/api/subscriptions/${userId}/upgrade`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ planId }),
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ planId })
         });
 
         const result = await response.json();
@@ -122,11 +126,11 @@ export default function SubscriptionManagement({ userId }) {
             setSubscription({ ...subscription, tier: planId });
           }
         } else {
-          setError(result.message || 'Upgrade failed');
+          setError(result.message || "Upgrade failed");
         }
       } catch (err) {
-        console.error('Error upgrading subscription:', err);
-        setError('Failed to process upgrade');
+        console.error("Error upgrading subscription:", err);
+        setError("Failed to process upgrade");
       } finally {
         setUpgrading(false);
       }
@@ -168,8 +172,8 @@ export default function SubscriptionManagement({ userId }) {
           return (
             <div
               key={planId}
-              className={`plan-card ${isCurrentPlan ? 'active' : ''} ${
-                info.highlight ? 'highlight' : ''
+              className={`plan-card ${isCurrentPlan ? "active" : ""} ${
+                info.highlight ? "highlight" : ""
               }`}
             >
               {info.highlight && <div className="plan-badge">Most Popular</div>}
@@ -237,7 +241,7 @@ export default function SubscriptionManagement({ userId }) {
               <div className="detail-item">
                 <span className="label">Status:</span>
                 <span className={`status status-${subscription.status}`}>
-                  {subscription.status === 'trialing' ? 'Trial' : 'Active'}
+                  {subscription.status === "trialing" ? "Trial" : "Active"}
                 </span>
               </div>
             )}
@@ -251,8 +255,8 @@ export default function SubscriptionManagement({ userId }) {
             )}
           </div>
 
-          {currentTier !== 'free' && (
-            <button className="btn btn-text" onClick={() => handleUpgrade('free')}>
+          {currentTier !== "free" && (
+            <button className="btn btn-text" onClick={() => handleUpgrade("free")}>
               Downgrade to Free
             </button>
           )}
@@ -308,7 +312,9 @@ export default function SubscriptionManagement({ userId }) {
         }
 
         @keyframes spin {
-          to { transform: rotate(360deg); }
+          to {
+            transform: rotate(360deg);
+          }
         }
 
         .subscription-plans {

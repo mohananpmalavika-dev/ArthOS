@@ -14,12 +14,16 @@ import { stressTestTwin } from "./stressTestEngine.js";
 import { estimateCashflowBreakdown } from "./scenarioForecast.js";
 
 function clamp(value) {
-  if (typeof value !== 'number' || Number.isNaN(value)) return 0;
+  if (typeof value !== "number" || Number.isNaN(value)) {
+    return 0;
+  }
   return Math.max(0, value);
 }
 
 function clampScore(value) {
-  if (typeof value !== 'number' || Number.isNaN(value)) return 50;
+  if (typeof value !== "number" || Number.isNaN(value)) {
+    return 50;
+  }
   return Math.max(0, Math.min(100, Math.round(value)));
 }
 
@@ -38,7 +42,9 @@ function toNumber(value) {
  */
 export function buildProbabilisticTwinState(profile = {}, behaviour = {}) {
   const monthlyIncome = toNumber(profile.monthlyIncome);
-  const monthlyExpenses = toNumber(profile.expenses || profile.monthlyExpense || profile.monthlySpending || 0);
+  const monthlyExpenses = toNumber(
+    profile.expenses || profile.monthlyExpense || profile.monthlySpending || 0
+  );
   const fixedSavings = toNumber(profile.emergencySavingsFixed || 0);
   const discretionarySavings = toNumber(profile.emergencySavingsDiscretionary || 0);
   const totalSavings = fixedSavings + discretionarySavings;
@@ -54,32 +60,32 @@ export function buildProbabilisticTwinState(profile = {}, behaviour = {}) {
     monthlyIncome: {
       median: monthlyIncome,
       lower: clamp(monthlyIncome - incomeVolatility),
-      upper: monthlyIncome + incomeVolatility,
+      upper: monthlyIncome + incomeVolatility
     },
     monthlyExpenses: {
       median: monthlyExpenses,
       lower: clamp(monthlyExpenses - expenseVolatility),
-      upper: monthlyExpenses + expenseVolatility,
+      upper: monthlyExpenses + expenseVolatility
     },
     savings: {
       median: totalSavings,
       lower: clamp(totalSavings * 0.9),
-      upper: totalSavings * 1.1,
+      upper: totalSavings * 1.1
     },
     totalDebt: {
       median: totalDebt,
       lower: clamp(totalDebt * 0.95),
-      upper: totalDebt * 1.05,
+      upper: totalDebt * 1.05
     },
     monthlyLiabilities,
     elasticityFactor,
     netCashflow: {
       median: monthlyIncome - monthlyExpenses,
-      lower: clamp((monthlyIncome - incomeVolatility) - (monthlyExpenses + expenseVolatility)),
-      upper: (monthlyIncome + incomeVolatility) - clamp(monthlyExpenses - expenseVolatility),
+      lower: clamp(monthlyIncome - incomeVolatility - (monthlyExpenses + expenseVolatility)),
+      upper: monthlyIncome + incomeVolatility - clamp(monthlyExpenses - expenseVolatility)
     },
     baseRunway: monthlyExpenses > 0 ? totalSavings / monthlyExpenses : 0,
-    timestamp: new Date().toISOString(),
+    timestamp: new Date().toISOString()
   };
 }
 
@@ -97,7 +103,7 @@ function projectRunway(savings, monthlyNet, monthlyExpenses, months, volatility 
     trajectory.push({
       month: m + 1,
       balance: Math.round(balance),
-      runway: monthlyExpenses > 0 ? balance / monthlyExpenses : 0,
+      runway: monthlyExpenses > 0 ? balance / monthlyExpenses : 0
     });
   }
 
@@ -114,15 +120,15 @@ function monteCarloRunway(savings, monthlyNet, monthlyExpenses, months, iteratio
 
   const percentiles = [];
   for (let m = 0; m < months; m++) {
-    const balances = allTrajectories.map((t) => t[m].balance).sort((a, b) => a - b);
+    const balances = allTrajectories.map(t => t[m].balance).sort((a, b) => a - b);
     percentiles.push({
       month: m + 1,
       p5: balances[Math.floor(0.05 * balances.length)],
       p25: balances[Math.floor(0.25 * balances.length)],
-      p50: balances[Math.floor(0.50 * balances.length)],
+      p50: balances[Math.floor(0.5 * balances.length)],
       p75: balances[Math.floor(0.75 * balances.length)],
       p95: balances[Math.floor(0.95 * balances.length)],
-      mean: Math.round(balances.reduce((s, v) => s + v, 0) / balances.length),
+      mean: Math.round(balances.reduce((s, v) => s + v, 0) / balances.length)
     });
   }
 
@@ -135,8 +141,11 @@ function monteCarloRunway(savings, monthlyNet, monthlyExpenses, months, iteratio
 
 function simulateBaseline(twin) {
   const monthlyIncome = toNumber(twin.monthlyIncome);
-  const monthlyExpenses = toNumber(twin.expenses || twin.monthlyExpense || twin.monthlySpending || twin.monthlyExpenses || 0);
-  const savings = toNumber(twin.savings || twin.emergencySavings || 0) +
+  const monthlyExpenses = toNumber(
+    twin.expenses || twin.monthlyExpense || twin.monthlySpending || twin.monthlyExpenses || 0
+  );
+  const savings =
+    toNumber(twin.savings || twin.emergencySavings || 0) +
     toNumber(twin.emergencySavingsFixed || 0) +
     toNumber(twin.emergencySavingsDiscretionary || 0);
   const currentRunway = monthlyExpenses > 0 ? savings / monthlyExpenses : 0;
@@ -145,7 +154,7 @@ function simulateBaseline(twin) {
   const mc = monteCarloRunway(savings, monthlyNet, monthlyExpenses, 24);
 
   return {
-    name: 'Baseline',
+    name: "Baseline",
     currentSavings: Math.round(savings),
     currentRunway: Math.round(currentRunway * 10) / 10,
     monthlyNet: Math.round(monthlyNet),
@@ -153,11 +162,12 @@ function simulateBaseline(twin) {
     twelveMonth: mc.percentiles[11] || null,
     twentyFourMonth: mc.finalState,
     confidence: mc.percentiles,
-    recommendation: currentRunway < 3
-      ? 'Baseline trajectory shows critical runway. Intervention needed.'
-      : currentRunway < 6
-        ? 'Baseline is stable but fragile. Consider strengthening reserves.'
-        : 'Baseline shows healthy runway. Maintain current habits.',
+    recommendation:
+      currentRunway < 3
+        ? "Baseline trajectory shows critical runway. Intervention needed."
+        : currentRunway < 6
+          ? "Baseline is stable but fragile. Consider strengthening reserves."
+          : "Baseline shows healthy runway. Maintain current habits."
   };
 }
 
@@ -168,8 +178,11 @@ export function simulateSavings(baseRunway, amount) {
 
 function simulateEnhancedSavings(twin, additionalMonthlySavings) {
   const monthlyIncome = toNumber(twin.monthlyIncome);
-  const monthlyExpenses = toNumber(twin.expenses || twin.monthlyExpense || twin.monthlySpending || twin.monthlyExpenses || 0);
-  const savings = toNumber(twin.savings || twin.emergencySavings || 0) +
+  const monthlyExpenses = toNumber(
+    twin.expenses || twin.monthlyExpense || twin.monthlySpending || twin.monthlyExpenses || 0
+  );
+  const savings =
+    toNumber(twin.savings || twin.emergencySavings || 0) +
     toNumber(twin.emergencySavingsFixed || 0) +
     toNumber(twin.emergencySavingsDiscretionary || 0);
   const currentRunway = monthlyExpenses > 0 ? savings / monthlyExpenses : 0;
@@ -190,9 +203,10 @@ function simulateEnhancedSavings(twin, additionalMonthlySavings) {
     sixMonth: mc.percentiles[5],
     twelveMonth: mc.percentiles[11],
     confidence: mc.percentiles,
-    payoff: projectedRunway > currentRunway
-      ? `${Math.round((projectedRunway - currentRunway) * 10) / 10} months additional runway`
-      : 'Minimal improvement — consider larger savings target',
+    payoff:
+      projectedRunway > currentRunway
+        ? `${Math.round((projectedRunway - currentRunway) * 10) / 10} months additional runway`
+        : "Minimal improvement — consider larger savings target"
   };
 }
 
@@ -203,16 +217,19 @@ export function simulateDebtReduction(baseRunway, amount) {
 
 function simulateDebtPaydown(twin, monthlyExtraDebtPayment) {
   const monthlyIncome = toNumber(twin.monthlyIncome);
-  const monthlyExpenses = toNumber(twin.expenses || twin.monthlyExpense || twin.monthlySpending || twin.monthlyExpenses || 0);
+  const monthlyExpenses = toNumber(
+    twin.expenses || twin.monthlyExpense || twin.monthlySpending || twin.monthlyExpenses || 0
+  );
   const totalDebt = toNumber(twin.totalDebt);
-  const savings = toNumber(twin.savings || twin.emergencySavings || 0) +
+  const savings =
+    toNumber(twin.savings || twin.emergencySavings || 0) +
     toNumber(twin.emergencySavingsFixed || 0) +
     toNumber(twin.emergencySavingsDiscretionary || 0);
   const currentRunway = monthlyExpenses > 0 ? savings / monthlyExpenses : 0;
 
   const totalPayment = monthlyExtraDebtPayment * 12;
   const remainingDebt = Math.max(0, totalDebt - totalPayment);
-  const interestSaved = totalDebt * 0.10;
+  const interestSaved = totalDebt * 0.1;
   const runwayAfter = monthlyExpenses > 0 ? (savings + interestSaved) / monthlyExpenses : 0;
 
   return {
@@ -224,7 +241,8 @@ function simulateDebtPaydown(twin, monthlyExtraDebtPayment) {
     currentRunway: Math.round(currentRunway * 10) / 10,
     projectedRunway: Math.round(runwayAfter * 10) / 10,
     runwayImprovement: Math.round((runwayAfter - currentRunway) * 10) / 10,
-    debtFreeMonths: monthlyExtraDebtPayment > 0 ? Math.ceil(totalDebt / monthlyExtraDebtPayment) : 'N/A',
+    debtFreeMonths:
+      monthlyExtraDebtPayment > 0 ? Math.ceil(totalDebt / monthlyExtraDebtPayment) : "N/A"
   };
 }
 
@@ -233,10 +251,13 @@ export function simulateSalaryIncrease(baseRunway, amount) {
   return Math.max(0, baseRunway + runwayGain + 2);
 }
 
-function simulateIncomeChange(twin, additionalMonthlyIncome, label = 'Income Increase') {
+function simulateIncomeChange(twin, additionalMonthlyIncome, label = "Income Increase") {
   const monthlyIncome = toNumber(twin.monthlyIncome);
-  const monthlyExpenses = toNumber(twin.expenses || twin.monthlyExpense || twin.monthlySpending || twin.monthlyExpenses || 0);
-  const savings = toNumber(twin.savings || twin.emergencySavings || 0) +
+  const monthlyExpenses = toNumber(
+    twin.expenses || twin.monthlyExpense || twin.monthlySpending || twin.monthlyExpenses || 0
+  );
+  const savings =
+    toNumber(twin.savings || twin.emergencySavings || 0) +
     toNumber(twin.emergencySavingsFixed || 0) +
     toNumber(twin.emergencySavingsDiscretionary || 0);
   const currentRunway = monthlyExpenses > 0 ? savings / monthlyExpenses : 0;
@@ -255,7 +276,7 @@ function simulateIncomeChange(twin, additionalMonthlyIncome, label = 'Income Inc
     improvement: Math.round(((mc.twentyFourMonth?.runway || 0) - currentRunway) * 10) / 10,
     sixMonth: mc.percentiles[5],
     twelveMonth: mc.percentiles[11],
-    confidence: mc.percentiles,
+    confidence: mc.percentiles
   };
 }
 
@@ -263,10 +284,13 @@ export function simulateJobLoss(currentRunway) {
   return Math.max(0, currentRunway - 5);
 }
 
-function simulateIncomeShock(twin, incomeReductionPct, label = 'Income Shock') {
+function simulateIncomeShock(twin, incomeReductionPct, label = "Income Shock") {
   const monthlyIncome = toNumber(twin.monthlyIncome);
-  const monthlyExpenses = toNumber(twin.expenses || twin.monthlyExpense || twin.monthlySpending || twin.monthlyExpenses || 0);
-  const savings = toNumber(twin.savings || twin.emergencySavings || 0) +
+  const monthlyExpenses = toNumber(
+    twin.expenses || twin.monthlyExpense || twin.monthlySpending || twin.monthlyExpenses || 0
+  );
+  const savings =
+    toNumber(twin.savings || twin.emergencySavings || 0) +
     toNumber(twin.emergencySavingsFixed || 0) +
     toNumber(twin.emergencySavingsDiscretionary || 0);
   const fixedLiabilities = toNumber(twin.monthlyLiabilities || 0) || 0;
@@ -275,12 +299,13 @@ function simulateIncomeShock(twin, incomeReductionPct, label = 'Income Shock') {
 
   const reducedIncome = monthlyIncome * (1 - incomeReductionPct / 100);
   const flexibleExpenses = Math.max(0, monthlyExpenses - fixedLiabilities);
-  const reducedFlexibleExpenses = flexibleExpenses * (1 - elasticityFactor * (incomeReductionPct / 100));
+  const reducedFlexibleExpenses =
+    flexibleExpenses * (1 - elasticityFactor * (incomeReductionPct / 100));
   const crisisExpenses = fixedLiabilities + reducedFlexibleExpenses;
   const crisisNet = reducedIncome - crisisExpenses;
 
   const mc = monteCarloRunway(savings, crisisNet, crisisExpenses, 12);
-  const survivalDays = mc.percentiles.find((p) => p.p50 <= 0)?.month || 12;
+  const survivalDays = mc.percentiles.find(p => p.p50 <= 0)?.month || 12;
 
   return {
     name: `${label} (${incomeReductionPct}% reduction)`,
@@ -291,15 +316,23 @@ function simulateIncomeShock(twin, incomeReductionPct, label = 'Income Shock') {
     currentRunway: Math.round(currentRunway * 10) / 10,
     survivalMonths: survivalDays,
     survivalDays: Math.round(survivalDays * 30),
-    severity: survivalDays < 3 ? 'critical' : survivalDays < 6 ? 'high' : survivalDays < 12 ? 'moderate' : 'low',
+    severity:
+      survivalDays < 3
+        ? "critical"
+        : survivalDays < 6
+          ? "high"
+          : survivalDays < 12
+            ? "moderate"
+            : "low",
     sixMonth: mc.percentiles[5],
-    recommendation: survivalDays < 3
-      ? '⚠️ Immediate risk: income shock would deplete savings within 3 months.'
-      : survivalDays < 6
-        ? '⚠️ High risk: build emergency buffer to at least 6 months of expenses.'
-        : survivalDays < 12
-          ? 'Moderate risk: current buffer provides some cushion.'
-          : 'Resilient: savings buffer can absorb this shock.',
+    recommendation:
+      survivalDays < 3
+        ? "⚠️ Immediate risk: income shock would deplete savings within 3 months."
+        : survivalDays < 6
+          ? "⚠️ High risk: build emergency buffer to at least 6 months of expenses."
+          : survivalDays < 12
+            ? "Moderate risk: current buffer provides some cushion."
+            : "Resilient: savings buffer can absorb this shock."
   };
 }
 
@@ -308,15 +341,18 @@ function simulateIncomeShock(twin, incomeReductionPct, label = 'Income Shock') {
  */
 export function simulateHomePurchase(twin = {}, emi = 0) {
   const income = toNumber(twin.monthlyIncome || 0);
-  const expenses = toNumber(twin.expenses || twin.monthlyExpense || twin.monthlySpending || twin.monthlyExpenses || 0);
+  const expenses = toNumber(
+    twin.expenses || twin.monthlyExpense || twin.monthlySpending || twin.monthlyExpenses || 0
+  );
   const disposable = income - expenses - emi;
   return {
     disposableIncome: Math.round(disposable),
     affordability: disposable > 0,
     debtToIncome: income > 0 ? Math.round(((expenses + emi) / income) * 100) : 0,
-    recommendation: disposable > 0
-      ? `Affordable at ₹${Math.round(disposable)}/mo disposable income post-EMI.`
-      : `EMI of ₹${emi} exceeds disposable income — consider lower EMI or higher down payment.`,
+    recommendation:
+      disposable > 0
+        ? `Affordable at ₹${Math.round(disposable)}/mo disposable income post-EMI.`
+        : `EMI of ₹${emi} exceeds disposable income — consider lower EMI or higher down payment.`
   };
 }
 
@@ -325,16 +361,20 @@ export function simulateHomePurchase(twin = {}, emi = 0) {
  */
 export function simulateCareerChange(twin = {}, newIncome = 0) {
   const monthlyIncome = toNumber(twin.monthlyIncome || 0);
-  const monthlyExpenses = toNumber(twin.expenses || twin.monthlyExpense || twin.monthlySpending || twin.monthlyExpenses || 0);
-  const savings = toNumber(twin.savings || twin.emergencySavings || 0) +
+  const monthlyExpenses = toNumber(
+    twin.expenses || twin.monthlyExpense || twin.monthlySpending || twin.monthlyExpenses || 0
+  );
+  const savings =
+    toNumber(twin.savings || twin.emergencySavings || 0) +
     toNumber(twin.emergencySavingsFixed || 0) +
     toNumber(twin.emergencySavingsDiscretionary || 0);
   const currentRunway = monthlyExpenses > 0 ? savings / monthlyExpenses : 0;
   const delta = newIncome - monthlyIncome;
   const newMonthlyNet = newIncome - monthlyExpenses;
-  const newRunway = monthlyExpenses > 0 && newMonthlyNet > 0
-    ? savings / monthlyExpenses + (newMonthlyNet * 12) / monthlyExpenses
-    : Math.max(0, currentRunway + delta * 12);
+  const newRunway =
+    monthlyExpenses > 0 && newMonthlyNet > 0
+      ? savings / monthlyExpenses + (newMonthlyNet * 12) / monthlyExpenses
+      : Math.max(0, currentRunway + delta * 12);
 
   return {
     incomeDelta: Math.round(delta),
@@ -342,17 +382,20 @@ export function simulateCareerChange(twin = {}, newIncome = 0) {
     newMonthlyNet: Math.round(newMonthlyNet),
     projectedRunway: Math.round(newRunway * 10) / 10,
     projectedHealthDelta: Math.round(delta / 1000),
-    direction: delta > 0 ? 'improvement' : delta < 0 ? 'decline' : 'neutral',
+    direction: delta > 0 ? "improvement" : delta < 0 ? "decline" : "neutral"
   };
 }
 
 /**
  * Scenario: Life event (marriage, child, education, medical).
  */
-export function simulateLifeEvent(twin = {}, eventType = '', monthlyCostImpact = 0) {
+export function simulateLifeEvent(twin = {}, eventType = "", monthlyCostImpact = 0) {
   const monthlyIncome = toNumber(twin.monthlyIncome || 0);
-  const monthlyExpenses = toNumber(twin.expenses || twin.monthlyExpense || twin.monthlySpending || twin.monthlyExpenses || 0);
-  const savings = toNumber(twin.savings || twin.emergencySavings || 0) +
+  const monthlyExpenses = toNumber(
+    twin.expenses || twin.monthlyExpense || twin.monthlySpending || twin.monthlyExpenses || 0
+  );
+  const savings =
+    toNumber(twin.savings || twin.emergencySavings || 0) +
     toNumber(twin.emergencySavingsFixed || 0) +
     toNumber(twin.emergencySavingsDiscretionary || 0);
   const currentRunway = monthlyExpenses > 0 ? savings / monthlyExpenses : 0;
@@ -366,12 +409,13 @@ export function simulateLifeEvent(twin = {}, eventType = '', monthlyCostImpact =
     currentRunway: Math.round(currentRunway * 10) / 10,
     newRunway: Math.round(newRunway * 10) / 10,
     delta: Math.round((newRunway - currentRunway) * 10) / 10,
-    severity: newRunway < 3 ? 'critical' : newRunway < 6 ? 'high' : 'moderate',
-    recommendation: newRunway < 3
-      ? `⚠️ ${eventType} would critically reduce runway to ${newRunway.toFixed(1)} months. Plan ahead.`
-      : newRunway < 6
-        ? `Caution: ${eventType} reduces runway to ${newRunway.toFixed(1)} months. Build buffer first.`
-        : `${eventType} impact is manageable with current savings buffer.`,
+    severity: newRunway < 3 ? "critical" : newRunway < 6 ? "high" : "moderate",
+    recommendation:
+      newRunway < 3
+        ? `⚠️ ${eventType} would critically reduce runway to ${newRunway.toFixed(1)} months. Plan ahead.`
+        : newRunway < 6
+          ? `Caution: ${eventType} reduces runway to ${newRunway.toFixed(1)} months. Build buffer first.`
+          : `${eventType} impact is manageable with current savings buffer.`
   };
 }
 
@@ -399,7 +443,7 @@ export function buildFinancialTwinScenarios(result, profile) {
       scenarios: [],
       stressTest: null,
       probabilisticState: null,
-      generatedAt: new Date().toISOString(),
+      generatedAt: new Date().toISOString()
     };
   }
 
@@ -419,7 +463,7 @@ export function buildFinancialTwinScenarios(result, profile) {
     totalDebt: toNumber(profile?.totalDebt || 0),
     monthlyLiabilities: toNumber(profile?.monthlyLiabilities || 0),
     healthScore: result.healthScore,
-    activeElasticityFactor: result.activeElasticityFactor || 0.4,
+    activeElasticityFactor: result.activeElasticityFactor || 0.4
   };
 
   // Build probabilistic twin state
@@ -439,18 +483,18 @@ export function buildFinancialTwinScenarios(result, profile) {
   }
 
   // 3. Income scenarios (₹10K raise, ₹20K raise, side income ₹5K)
-  scenarios.push(simulateIncomeChange(twin, 10000, '₹10K Annual Raise'));
-  scenarios.push(simulateIncomeChange(twin, 20000, '₹20K Annual Raise'));
-  scenarios.push(simulateIncomeChange(twin, 5000, '₹5K Side Income'));
+  scenarios.push(simulateIncomeChange(twin, 10000, "₹10K Annual Raise"));
+  scenarios.push(simulateIncomeChange(twin, 20000, "₹20K Annual Raise"));
+  scenarios.push(simulateIncomeChange(twin, 5000, "₹5K Side Income"));
 
   // 4. Income shock scenarios (25%, 50%)
-  scenarios.push(simulateIncomeShock(twin, 25, '25% Income Reduction'));
-  scenarios.push(simulateIncomeShock(twin, 50, '50% Income Reduction'));
+  scenarios.push(simulateIncomeShock(twin, 25, "25% Income Reduction"));
+  scenarios.push(simulateIncomeShock(twin, 50, "50% Income Reduction"));
 
   // 5. Life event scenarios (marriage, child, medical)
-  scenarios.push(simulateLifeEvent(twin, 'Marriage Expenses', monthlyExpenses * 0.2));
-  scenarios.push(simulateLifeEvent(twin, 'Child Education', monthlyExpenses * 0.15));
-  scenarios.push(simulateLifeEvent(twin, 'Medical Emergency', monthlyExpenses * 0.5));
+  scenarios.push(simulateLifeEvent(twin, "Marriage Expenses", monthlyExpenses * 0.2));
+  scenarios.push(simulateLifeEvent(twin, "Child Education", monthlyExpenses * 0.15));
+  scenarios.push(simulateLifeEvent(twin, "Medical Emergency", monthlyExpenses * 0.5));
 
   // 6. Home purchase simulation
   const homeEmi = toNumber(profile?.homeLoanEmi || 0) || monthlyIncome * 0.35;
@@ -468,7 +512,7 @@ export function buildFinancialTwinScenarios(result, profile) {
     monthlyIncome: twin.monthlyIncome,
     expenses: twin.expenses,
     savings: totalSavings,
-    homeLoanEmi: homeEmi,
+    homeLoanEmi: homeEmi
   });
 
   // Sort scenarios by impact
@@ -478,8 +522,12 @@ export function buildFinancialTwinScenarios(result, profile) {
     return bImpact - aImpact;
   });
 
-  const positiveScenarios = scenarios.filter((s) => (s.improvement || 0) >= 0 || (s.survivalMonths || 12) >= 6);
-  const riskScenarios = scenarios.filter((s) => (s.improvement || 0) < 0 || (s.survivalMonths || 12) < 6);
+  const positiveScenarios = scenarios.filter(
+    s => (s.improvement || 0) >= 0 || (s.survivalMonths || 12) >= 6
+  );
+  const riskScenarios = scenarios.filter(
+    s => (s.improvement || 0) < 0 || (s.survivalMonths || 12) < 6
+  );
 
   const cashflowBreakdown = estimateCashflowBreakdown(profile);
 
@@ -494,15 +542,15 @@ export function buildFinancialTwinScenarios(result, profile) {
 
     baseline,
     positiveScenarios: positiveScenarios.slice(0, 5),
-    topOpportunities: positiveScenarios.slice(0, 2).map((s) => ({
+    topOpportunities: positiveScenarios.slice(0, 2).map(s => ({
       name: s.name,
-      impact: s.improvement || s.projectedRunway || 0,
+      impact: s.improvement || s.projectedRunway || 0
     })),
 
     riskScenarios: riskScenarios.slice(0, 3),
-    topRisks: riskScenarios.slice(0, 2).map((s) => ({
+    topRisks: riskScenarios.slice(0, 2).map(s => ({
       name: s.name,
-      severity: s.severity || 'high',
+      severity: s.severity || "high"
     })),
 
     allScenarios: scenarios,
@@ -516,7 +564,7 @@ export function buildFinancialTwinScenarios(result, profile) {
 
     scenarioCount: scenarios.length + 1, // +1 for baseline
 
-    generatedAt: new Date().toISOString(),
+    generatedAt: new Date().toISOString()
   };
 }
 
@@ -529,5 +577,5 @@ export {
   simulateDebtPaydown,
   simulateIncomeChange,
   simulateIncomeShock,
-  simulateBaseline,
+  simulateBaseline
 };

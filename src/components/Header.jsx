@@ -16,7 +16,7 @@ function Header({
   onOpenAuth,
   onLogout,
   notificationBadgeCount = 0,
-  onToggleNotification,
+  onToggleNotification
 }) {
   return (
     <header className="topbar">
@@ -28,7 +28,7 @@ function Header({
       </a>
 
       <nav className="nav-links" aria-label="Primary navigation">
-        {NAV_ITEMS.map((item) => (
+        {NAV_ITEMS.map(item => (
           <a
             href={item.href}
             key={item.label}
@@ -41,17 +41,27 @@ function Header({
       </nav>
 
       <div className="model-header-actions" aria-label="Product actions">
-        <span className={`header-sync save-state-${saveStatusClass}`}>
-          {saveStatusLabel}
-        </span>
+        <span className={`header-sync save-state-${saveStatusClass}`}>{saveStatusLabel}</span>
         <button type="button" className="model-icon-btn" title="Search">
           <Search size={18} />
         </button>
-        <button type="button" className="model-icon-btn notification-btn" title="Notifications" onClick={onToggleNotification}>
+        <button
+          type="button"
+          className="model-icon-btn notification-btn"
+          title="Notifications"
+          onClick={onToggleNotification}
+        >
           <Bell size={18} />
-          {notificationBadgeCount > 0 && <span className="notification-badge-dot">{notificationBadgeCount}</span>}
+          {notificationBadgeCount > 0 && (
+            <span className="notification-badge-dot">{notificationBadgeCount}</span>
+          )}
         </button>
-        <button type="button" className="model-icon-btn" title="Export report as PDF" onClick={onExport}>
+        <button
+          type="button"
+          className="model-icon-btn"
+          title="Export report as PDF"
+          onClick={onExport}
+        >
           <Download size={18} />
         </button>
 
@@ -94,12 +104,12 @@ Header.propTypes = {
   isAuthenticated: PropTypes.bool,
   user: PropTypes.shape({
     name: PropTypes.string,
-    email: PropTypes.string,
+    email: PropTypes.string
   }),
   onOpenAuth: PropTypes.func,
   onLogout: PropTypes.func,
   notificationBadgeCount: PropTypes.number,
-  onToggleNotification: PropTypes.func,
+  onToggleNotification: PropTypes.func
 };
 
 Header.defaultProps = {
@@ -115,7 +125,7 @@ Header.defaultProps = {
   onOpenAuth: () => {},
   onLogout: () => {},
   notificationBadgeCount: 0,
-  onToggleNotification: () => {},
+  onToggleNotification: () => {}
 };
 
 export default Header;

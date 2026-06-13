@@ -17,7 +17,7 @@ export function calculateDecisionQualityIndex(result) {
     return {
       index: 0,
       band: "Unable to calculate",
-      narrative: "",
+      narrative: ""
     };
   }
 
@@ -47,9 +47,9 @@ export function calculateDecisionQualityIndex(result) {
     componentBreakdown: {
       awareness: Math.round(awarenessFactor * 100),
       behaviour: Math.round(behaviourFactor * 100),
-      stability: Math.round(stabilityFactor * 100),
+      stability: Math.round(stabilityFactor * 100)
     },
-    whatItMeans: getDecisionQualityExplanation(rounded),
+    whatItMeans: getDecisionQualityExplanation(rounded)
   };
 }
 
@@ -57,11 +57,21 @@ export function calculateDecisionQualityIndex(result) {
  * Map DQI to quality bands
  */
 function getDecisionQualityBand(index) {
-  if (index <= 20) return "Poor";
-  if (index <= 35) return "Below Average";
-  if (index <= 50) return "Average";
-  if (index <= 70) return "Good";
-  if (index <= 85) return "Very Good";
+  if (index <= 20) {
+    return "Poor";
+  }
+  if (index <= 35) {
+    return "Below Average";
+  }
+  if (index <= 50) {
+    return "Average";
+  }
+  if (index <= 70) {
+    return "Good";
+  }
+  if (index <= 85) {
+    return "Very Good";
+  }
   return "Excellent";
 }
 
@@ -112,7 +122,9 @@ function getDecisionQualityExplanation(index) {
  * Identify which component is constraining decision quality most
  */
 export function getDecisionQualityConstraint(result) {
-  if (!result) return null;
+  if (!result) {
+    return null;
+  }
 
   const awarenessScore = result.awarenessScore || 0;
   const behaviourScore = result.behaviourScore || 0;
@@ -127,7 +139,7 @@ export function getDecisionQualityConstraint(result) {
   const components = [
     { name: "Awareness", score: awarenessNorm, impact: 0.4 },
     { name: "Behaviour", score: behaviourNorm, impact: 0.4 },
-    { name: "Stability", score: stabilityNorm, impact: 0.2 },
+    { name: "Stability", score: stabilityNorm, impact: 0.2 }
   ];
 
   const sorted = components.sort((a, b) => a.score - b.score);
@@ -141,7 +153,7 @@ export function getDecisionQualityConstraint(result) {
     component: lowestComponent.name,
     relativeWeakness: (1 - lowestComponent.score) * 100,
     impact: lowestComponent.impact,
-    recommendation: getConstraintRecommendation(lowestComponent.name),
+    recommendation: getConstraintRecommendation(lowestComponent.name)
   };
 }
 
@@ -174,17 +186,25 @@ export function projectDecisionQualityAfterIntervention(result, interventions) {
   let projectedBehaviour = result.behaviourScore || 0;
   let projectedStability = result.stabilityScore || 0;
 
-  interventions.forEach((intervention) => {
+  interventions.forEach(intervention => {
     // Parse impact text: "+6 Awareness" or "+4 Behaviour"
     const impactMatch = intervention.impact.match(/([+-])(\d+)\s+(\w+)/);
-    if (!impactMatch) return;
+    if (!impactMatch) {
+      return;
+    }
 
     const [, sign, points, component] = impactMatch;
     const delta = parseInt(points) * (sign === "+" ? 1 : -1);
 
-    if (component === "Awareness") projectedAwareness += delta;
-    if (component === "Behaviour") projectedBehaviour += delta;
-    if (component === "Stability") projectedStability += delta;
+    if (component === "Awareness") {
+      projectedAwareness += delta;
+    }
+    if (component === "Behaviour") {
+      projectedBehaviour += delta;
+    }
+    if (component === "Stability") {
+      projectedStability += delta;
+    }
   });
 
   // Cap at component maximums
@@ -199,7 +219,7 @@ export function projectDecisionQualityAfterIntervention(result, interventions) {
     ...result,
     awarenessScore: projectedAwareness,
     behaviourScore: projectedBehaviour,
-    stabilityScore: projectedStability,
+    stabilityScore: projectedStability
   };
 
   const projectedDQI = calculateDecisionQualityIndex(projectedResult).index;
@@ -208,6 +228,6 @@ export function projectDecisionQualityAfterIntervention(result, interventions) {
     currentDQI,
     projectedDQI,
     improvement: Math.round((projectedDQI - currentDQI) * 10) / 10,
-    interventionCount: interventions.length,
+    interventionCount: interventions.length
   };
 }

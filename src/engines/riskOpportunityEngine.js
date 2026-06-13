@@ -9,7 +9,8 @@ export function generateAlerts(user = {}) {
     alerts.push({
       type: "opportunity",
       title: "Investment Capacity Available",
-      message: "Your runway is strong enough to explore higher-conviction investments without sacrificing stability.",
+      message:
+        "Your runway is strong enough to explore higher-conviction investments without sacrificing stability."
     });
   }
 
@@ -17,7 +18,8 @@ export function generateAlerts(user = {}) {
     alerts.push({
       type: "risk",
       title: "Runway Risk Detected",
-      message: "Your emergency buffer may not sustain the next 90 days under current spending patterns.",
+      message:
+        "Your emergency buffer may not sustain the next 90 days under current spending patterns."
     });
   }
 
@@ -25,7 +27,8 @@ export function generateAlerts(user = {}) {
     alerts.push({
       type: "opportunity",
       title: "Surplus Cashflow Opportunity",
-      message: "You have discretionary capacity to increase savings or invest in a resilience strategy.",
+      message:
+        "You have discretionary capacity to increase savings or invest in a resilience strategy."
     });
   }
 
@@ -33,7 +36,8 @@ export function generateAlerts(user = {}) {
     alerts.push({
       type: "opportunity",
       title: "Healthy Runway Alert",
-      message: "You have a strong liquidity buffer for a career pivot, home purchase, or investment shift.",
+      message:
+        "You have a strong liquidity buffer for a career pivot, home purchase, or investment shift."
     });
   }
 
@@ -41,7 +45,8 @@ export function generateAlerts(user = {}) {
     alerts.push({
       type: "info",
       title: "Balanced outlook",
-      message: "No immediate alerts. Keep reinforcing positive habits and watch your runway closely.",
+      message:
+        "No immediate alerts. Keep reinforcing positive habits and watch your runway closely."
     });
   }
 

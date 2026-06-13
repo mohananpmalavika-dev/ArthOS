@@ -24,6 +24,14 @@ import aiCoachHandler from '../api_src/longitudinal/ai-coach-handler.js';
 import predictionEngineHandler from '../api_src/longitudinal/prediction-engine-handler.js';
 import followUpHandler from '../api_src/follow_up/follow-up-handler.js';
 import subscriptionsHandler from '../api_src/subscriptions-handler.js';
+// ─── Missing user endpoints ────────────────────────────────────
+import saveDecisionHandler from '../api_src/user/saveDecision.js';
+import loadDraftHandler from '../api_src/user/loadDraft.js';
+import saveDraftHandler from '../api_src/user/saveDraft.js';
+import savePreferenceHandler from '../api_src/user/savePreference.js';
+import saveTelemetryHandler from '../api_src/user/saveTelemetry.js';
+// ─── Banking endpoints (18 sub-routes) ─────────────────────────
+import bankingHandler from '../api_src/banking/vercel-handler.js';
 
 const routeDefinitions = [
   { match: (pathname) => pathname === '/api/decision', handler: decisionHandler },
@@ -61,6 +69,14 @@ const routeDefinitions = [
   { match: (pathname) => pathname === '/api/user/assessments', handler: userAssessmentsHandler },
   { match: (pathname) => pathname === '/api/user/assessment-detail' || pathname.startsWith('/api/user/assessment-detail/'), handler: userAssessmentDetailHandler },
   { match: (pathname) => pathname === '/api/user/scores', handler: userScoresHandler },
+  // ─── User data persistence endpoints (were missing in production) ──
+  { match: (pathname) => pathname === '/api/user/saveDecision', handler: saveDecisionHandler },
+  { match: (pathname) => pathname === '/api/user/loadDraft', handler: loadDraftHandler },
+  { match: (pathname) => pathname === '/api/user/saveDraft', handler: saveDraftHandler },
+  { match: (pathname) => pathname === '/api/user/savePreference', handler: savePreferenceHandler },
+  { match: (pathname) => pathname === '/api/user/saveTelemetry', handler: saveTelemetryHandler },
+  // ─── Banking (entire directory was missing in production) ───
+  { match: (pathname) => pathname.startsWith('/api/banking'), handler: bankingHandler },
   { match: (pathname) => pathname === '/api/reminders' || pathname.startsWith('/api/reminders/'), handler: remindersHandler },
   { match: (pathname) => pathname.startsWith('/api/coach'), handler: aiCoachHandler },
   { match: (pathname) => pathname.startsWith('/api/prediction'), handler: predictionEngineHandler },

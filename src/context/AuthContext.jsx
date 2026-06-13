@@ -19,8 +19,11 @@ export function AuthProvider({ children }) {
 
   // Define syncLocalDataToServer BEFORE first useEffect that uses it
   const syncLocalDataToServer = useCallback(async (userId, authToken) => {
-    if (!userId || !authToken) return;
-    const { syncAllToServer, processSyncQueue } = await import("../engines/financialMemoryEngine.js");
+    if (!userId || !authToken) {
+      return;
+    }
+    const { syncAllToServer, processSyncQueue } =
+      await import("../engines/financialMemoryEngine.js");
     // Flush any pending sync queue items first
     await processSyncQueue();
     return await syncAllToServer(userId, authToken);
@@ -42,7 +45,7 @@ export function AuthProvider({ children }) {
             // Verify token is still valid
             try {
               const res = await fetch(`${API_BASE}/auth/me`, {
-                headers: { Authorization: `Bearer ${parsed.token}` },
+                headers: { Authorization: `Bearer ${parsed.token}` }
               });
               if (res.ok && !cancelled) {
                 // Token valid — trigger background sync of unsynced data
@@ -63,18 +66,22 @@ export function AuthProvider({ children }) {
       } catch {
         window.localStorage.removeItem(AUTH_STORAGE_KEY);
       } finally {
-        if (!cancelled) setLoading(false);
+        if (!cancelled) {
+          setLoading(false);
+        }
       }
     })();
 
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [syncLocalDataToServer]);
 
   const persistSession = useCallback((userData, tokenStr) => {
     try {
       window.localStorage.setItem(
         AUTH_STORAGE_KEY,
-        JSON.stringify({ user: userData, token: tokenStr }),
+        JSON.stringify({ user: userData, token: tokenStr })
       );
     } catch {
       // Storage full or unavailable — degrade gracefully
@@ -84,77 +91,83 @@ export function AuthProvider({ children }) {
     setError(null);
   }, []);
 
-  const login = useCallback(async (email, password) => {
-    setError(null);
-    setLoading(true);
+  const login = useCallback(
+    async (email, password) => {
+      setError(null);
+      setLoading(true);
 
-    try {
-      const res = await fetch(`${API_BASE}/auth/login`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
-      });
+      try {
+        const res = await fetch(`${API_BASE}/auth/login`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, password })
+        });
 
-      const data = await res.json();
+        const data = await res.json();
 
-      if (!res.ok) {
-        setError(data.error || "Login failed");
+        if (!res.ok) {
+          setError(data.error || "Login failed");
+          return false;
+        }
+
+        // Migrate anonymous localStorage data to the new user scope
+        migrateAnonymousData(data.user.id);
+        migrateAnonymousDataToUser(data.user.id);
+
+        persistSession(data.user, data.token);
+
+        // Fire-and-forget sync: push local data to server
+        syncLocalDataToServer(data.user.id, data.token);
+
+        return true;
+      } catch (err) {
+        setError("Network error. Please try again.");
         return false;
+      } finally {
+        setLoading(false);
       }
+    },
+    [persistSession, syncLocalDataToServer]
+  );
 
-      // Migrate anonymous localStorage data to the new user scope
-      migrateAnonymousData(data.user.id);
-      migrateAnonymousDataToUser(data.user.id);
+  const register = useCallback(
+    async (name, email, password) => {
+      setError(null);
+      setLoading(true);
 
-      persistSession(data.user, data.token);
+      try {
+        const res = await fetch(`${API_BASE}/auth/register`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name, email, password })
+        });
 
-      // Fire-and-forget sync: push local data to server
-      syncLocalDataToServer(data.user.id, data.token);
+        const data = await res.json();
 
-      return true;
-    } catch (err) {
-      setError("Network error. Please try again.");
-      return false;
-    } finally {
-      setLoading(false);
-    }
-  }, [persistSession, syncLocalDataToServer]);
+        if (!res.ok) {
+          setError(data.error || "Registration failed");
+          return false;
+        }
 
-  const register = useCallback(async (name, email, password) => {
-    setError(null);
-    setLoading(true);
+        // Migrate anonymous localStorage data to the new user scope
+        migrateAnonymousData(data.user.id);
+        migrateAnonymousDataToUser(data.user.id);
 
-    try {
-      const res = await fetch(`${API_BASE}/auth/register`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, email, password }),
-      });
+        persistSession(data.user, data.token);
 
-      const data = await res.json();
+        // Fire-and-forget sync: push local data to server
+        syncLocalDataToServer(data.user.id, data.token);
 
-      if (!res.ok) {
-        setError(data.error || "Registration failed");
+        return true;
+      } catch (err) {
+        setError("Network error. Please try again.");
         return false;
+      } finally {
+        setLoading(false);
       }
-
-      // Migrate anonymous localStorage data to the new user scope
-      migrateAnonymousData(data.user.id);
-      migrateAnonymousDataToUser(data.user.id);
-
-      persistSession(data.user, data.token);
-
-      // Fire-and-forget sync: push local data to server
-      syncLocalDataToServer(data.user.id, data.token);
-
-      return true;
-    } catch (err) {
-      setError("Network error. Please try again.");
-      return false;
-    } finally {
-      setLoading(false);
-    }
-  }, [persistSession, syncLocalDataToServer]);
+    },
+    [persistSession, syncLocalDataToServer]
+  );
 
   const logout = useCallback(() => {
     try {
@@ -187,7 +200,7 @@ export function AuthProvider({ children }) {
     register,
     logout,
     clearError,
-    syncLocalDataToServer,
+    syncLocalDataToServer
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

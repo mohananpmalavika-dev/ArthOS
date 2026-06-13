@@ -7,7 +7,9 @@
  * Min-Max normalization: scales values to [0, 1]
  */
 export function normalize(value, min, max) {
-  if (max === min) return 0.5;
+  if (max === min) {
+    return 0.5;
+  }
   return Math.max(0, Math.min(1, (value - min) / (max - min)));
 }
 
@@ -25,8 +27,8 @@ export function standardize(values) {
   const mean = values.reduce((a, b) => a + b, 0) / values.length;
   const variance = values.reduce((a, b) => a + Math.pow(b - mean, 2), 0) / values.length;
   const stdDev = Math.sqrt(variance);
-  
-  return values.map(v => stdDev === 0 ? 0 : (v - mean) / stdDev);
+
+  return values.map(v => (stdDev === 0 ? 0 : (v - mean) / stdDev));
 }
 
 /**
@@ -58,8 +60,10 @@ export function cosineSimilarity(vec1, vec2) {
   const dotProduct = vec1.reduce((sum, v, i) => sum + v * (vec2[i] || 0), 0);
   const mag1 = Math.sqrt(vec1.reduce((sum, v) => sum + v * v, 0));
   const mag2 = Math.sqrt(vec2.reduce((sum, v) => sum + v * v, 0));
-  
-  if (mag1 === 0 || mag2 === 0) return 0;
+
+  if (mag1 === 0 || mag2 === 0) {
+    return 0;
+  }
   return dotProduct / (mag1 * mag2);
 }
 
@@ -67,7 +71,9 @@ export function cosineSimilarity(vec1, vec2) {
  * Calculate mean of array
  */
 export function mean(arr) {
-  if (!arr.length) return 0;
+  if (!arr.length) {
+    return 0;
+  }
   return arr.reduce((a, b) => a + b, 0) / arr.length;
 }
 
@@ -86,33 +92,37 @@ export function stdDev(arr) {
 export function extractFeatures(assessment, result) {
   const behaviour = assessment?.behaviour || {};
   const profile = assessment?.profile || {};
-  
+
   return [
     // Awareness features
     normalize(result?.awarenessScore || 0, 0, 30),
     normalize(result?.awarenessGapDisplay || 0, 0, 100),
-    
+
     // Behaviour features
     normalize(result?.behaviourScore || 0, 0, 45),
     behaviour?.spendWhenStressed ? 1 : 0,
-    behaviour?.regretImpulseFreq === 'often' ? 1 : (behaviour?.regretImpulseFreq === 'sometimes' ? 0.5 : 0),
-    
+    behaviour?.regretImpulseFreq === "often"
+      ? 1
+      : behaviour?.regretImpulseFreq === "sometimes"
+        ? 0.5
+        : 0,
+
     // Stability features
     normalize(result?.stabilityScore || 0, 0, 25),
     normalize(result?.emergencySavings || 0, 0, 500000),
     normalize(result?.monthlyIncome || 0, 0, 500000),
-    
+
     // Financial features
     normalize(result?.runwayMonths || 0, 0, 60),
     normalize(result?.riskScore || 0, 0, 100),
     normalize(result?.healthScore || 0, 0, 100),
-    
+
     // Profile features
-    result?.personalityType === 'Builder' ? 1 : 0,
-    result?.personalityType === 'Survivor' ? 1 : 0,
-    result?.personalityType === 'Optimizer' ? 1 : 0,
-    result?.personalityType === 'Dreamer' ? 1 : 0,
-    result?.personalityType === 'Risk Taker' ? 1 : 0,
+    result?.personalityType === "Builder" ? 1 : 0,
+    result?.personalityType === "Survivor" ? 1 : 0,
+    result?.personalityType === "Optimizer" ? 1 : 0,
+    result?.personalityType === "Dreamer" ? 1 : 0,
+    result?.personalityType === "Risk Taker" ? 1 : 0
   ];
 }
 
@@ -120,22 +130,26 @@ export function extractFeatures(assessment, result) {
  * Feature normalization across dataset
  */
 export function normalizeFeatureMatrix(matrix) {
-  if (!matrix || matrix.length === 0) return matrix;
-  
+  if (!matrix || matrix.length === 0) {
+    return matrix;
+  }
+
   const numFeatures = matrix[0].length;
   const normMatrix = [];
-  
+
   for (let featureIdx = 0; featureIdx < numFeatures; featureIdx++) {
     const featureValues = matrix.map(row => row[featureIdx]);
     const min = Math.min(...featureValues);
     const max = Math.max(...featureValues);
-    
+
     for (let dataIdx = 0; dataIdx < matrix.length; dataIdx++) {
-      if (!normMatrix[dataIdx]) normMatrix[dataIdx] = [];
+      if (!normMatrix[dataIdx]) {
+        normMatrix[dataIdx] = [];
+      }
       normMatrix[dataIdx][featureIdx] = normalize(matrix[dataIdx][featureIdx], min, max);
     }
   }
-  
+
   return normMatrix;
 }
 
@@ -143,15 +157,17 @@ export function normalizeFeatureMatrix(matrix) {
  * Calculate centroid (center) of points
  */
 export function calculateCentroid(points) {
-  if (!points.length) return [];
+  if (!points.length) {
+    return [];
+  }
   const numFeatures = points[0].length;
   const centroid = [];
-  
+
   for (let i = 0; i < numFeatures; i++) {
     const sum = points.reduce((total, point) => total + (point[i] || 0), 0);
     centroid[i] = sum / points.length;
   }
-  
+
   return centroid;
 }
 
@@ -196,23 +212,31 @@ export function softmax(logits) {
  * Calculate confusion matrix metrics
  */
 export function calculateMetrics(predictions, actual) {
-  let tp = 0, fp = 0, tn = 0, fn = 0;
-  
+  let tp = 0,
+    fp = 0,
+    tn = 0,
+    fn = 0;
+
   for (let i = 0; i < predictions.length; i++) {
     const pred = predictions[i] > 0.5 ? 1 : 0;
     const act = actual[i] ? 1 : 0;
-    
-    if (pred === 1 && act === 1) tp++;
-    else if (pred === 1 && act === 0) fp++;
-    else if (pred === 0 && act === 0) tn++;
-    else fn++;
+
+    if (pred === 1 && act === 1) {
+      tp++;
+    } else if (pred === 1 && act === 0) {
+      fp++;
+    } else if (pred === 0 && act === 0) {
+      tn++;
+    } else {
+      fn++;
+    }
   }
-  
+
   const accuracy = (tp + tn) / (tp + tn + fp + fn);
   const precision = tp / (tp + fp || 1);
   const recall = tp / (tp + fn || 1);
-  const f1 = 2 * (precision * recall) / (precision + recall || 1);
-  
+  const f1 = (2 * (precision * recall)) / (precision + recall || 1);
+
   return { accuracy, precision, recall, f1, tp, fp, tn, fn };
 }
 
@@ -223,15 +247,17 @@ export function calculateR2(predictions, actual) {
   const meanActual = mean(actual);
   const ssTotal = actual.reduce((sum, y) => sum + Math.pow(y - meanActual, 2), 0);
   const ssRes = predictions.reduce((sum, yhat, i) => sum + Math.pow(actual[i] - yhat, 2), 0);
-  
-  return 1 - (ssRes / ssTotal);
+
+  return 1 - ssRes / ssTotal;
 }
 
 /**
  * Calculate Mean Absolute Error
  */
 export function calculateMAE(predictions, actual) {
-  return predictions.reduce((sum, yhat, i) => sum + Math.abs(actual[i] - yhat), 0) / predictions.length;
+  return (
+    predictions.reduce((sum, yhat, i) => sum + Math.abs(actual[i] - yhat), 0) / predictions.length
+  );
 }
 
 /**

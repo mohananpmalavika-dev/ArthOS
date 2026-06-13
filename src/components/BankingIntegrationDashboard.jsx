@@ -1,9 +1,9 @@
 /**
  * Banking Integration Dashboard Component
- * 
+ *
  * Frontend UI for connecting banks, viewing transactions,
  * managing insurance, and tracking financial data
- * 
+ *
  * Features:
  * - Account aggregation
  * - Transaction history
@@ -12,7 +12,7 @@
  * - Lending offers
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 import {
   CreditCard,
   DollarSign,
@@ -27,7 +27,7 @@ import {
   Briefcase,
   BarChart3,
   CheckCircle2
-} from 'lucide-react';
+} from "lucide-react";
 
 const BankingIntegrationDashboard = ({ userId }) => {
   const [accounts, setAccounts] = useState([]);
@@ -37,7 +37,7 @@ const BankingIntegrationDashboard = ({ userId }) => {
   const [lendingOffers, setLendingOffers] = useState([]);
   const [syncStatus, setSyncStatus] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState('accounts');
+  const [activeTab, setActiveTab] = useState("accounts");
 
   useEffect(() => {
     loadBankingData();
@@ -46,36 +46,51 @@ const BankingIntegrationDashboard = ({ userId }) => {
   const loadBankingData = async () => {
     setLoading(true);
     try {
-      const [accountRes, transactionRes, insuranceRes, creditRes, lendingRes, syncRes] = await Promise.all([
-        fetch(`/api/banking/accounts/summary?userId=${userId}`).then(r => r.json()),
-        fetch(`/api/banking/transactions/summary?userId=${userId}&days=30`).then(r => r.json()),
-        fetch(`/api/banking/insurance/policies?userId=${userId}`).then(r => r.json()),
-        fetch(`/api/banking/credit/profile?userId=${userId}`).then(r => r.json()),
-        fetch(`/api/banking/lending/opportunities?userId=${userId}`).then(r => r.json()),
-        fetch(`/api/banking/sync/status?userId=${userId}`).then(r => r.json())
-      ]);
+      const [accountRes, transactionRes, insuranceRes, creditRes, lendingRes, syncRes] =
+        await Promise.all([
+          fetch(`/api/banking/accounts/summary?userId=${userId}`).then(r => r.json()),
+          fetch(`/api/banking/transactions/summary?userId=${userId}&days=30`).then(r => r.json()),
+          fetch(`/api/banking/insurance/policies?userId=${userId}`).then(r => r.json()),
+          fetch(`/api/banking/credit/profile?userId=${userId}`).then(r => r.json()),
+          fetch(`/api/banking/lending/opportunities?userId=${userId}`).then(r => r.json()),
+          fetch(`/api/banking/sync/status?userId=${userId}`).then(r => r.json())
+        ]);
 
-      if (accountRes.success) setAccounts(accountRes.summary.accounts || []);
-      if (transactionRes.success) setTransactions(transactionRes.summary || {});
-      if (insuranceRes.success) setInsurance(insuranceRes.policies || []);
-      if (creditRes.success) setCreditProfile(creditRes.profile);
-      if (lendingRes.success) setLendingOffers(lendingRes.opportunities || []);
-      if (syncRes.success) setSyncStatus(syncRes.syncStatus);
+      if (accountRes.success) {
+        setAccounts(accountRes.summary.accounts || []);
+      }
+      if (transactionRes.success) {
+        setTransactions(transactionRes.summary || {});
+      }
+      if (insuranceRes.success) {
+        setInsurance(insuranceRes.policies || []);
+      }
+      if (creditRes.success) {
+        setCreditProfile(creditRes.profile);
+      }
+      if (lendingRes.success) {
+        setLendingOffers(lendingRes.opportunities || []);
+      }
+      if (syncRes.success) {
+        setSyncStatus(syncRes.syncStatus);
+      }
     } catch (error) {
-      console.error('Failed to load banking data:', error);
+      console.error("Failed to load banking data:", error);
     } finally {
       setLoading(false);
     }
   };
 
   const connectBank = async () => {
-    const bankCode = window.prompt('Enter bank code (HDFC, ICICI, AXIS, YES, KOTAK):');
-    if (!bankCode) return;
+    const bankCode = window.prompt("Enter bank code (HDFC, ICICI, AXIS, YES, KOTAK):");
+    if (!bankCode) {
+      return;
+    }
 
     try {
-      const res = await fetch('/api/banking/feeds/connect', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const res = await fetch("/api/banking/feeds/connect", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ userId, bankCode })
       });
 
@@ -84,15 +99,15 @@ const BankingIntegrationDashboard = ({ userId }) => {
         window.location.href = data.oauthUrl;
       }
     } catch (error) {
-      alert('Failed to connect bank: ' + error.message);
+      alert("Failed to connect bank: " + error.message);
     }
   };
 
   const connectAA = async () => {
     try {
-      const res = await fetch('/api/banking/aa/consent/request', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const res = await fetch("/api/banking/aa/consent/request", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           userId,
           dataScope: {
@@ -110,7 +125,7 @@ const BankingIntegrationDashboard = ({ userId }) => {
         window.location.href = data.consentUrl;
       }
     } catch (error) {
-      alert('Failed to connect Account Aggregator: ' + error.message);
+      alert("Failed to connect Account Aggregator: " + error.message);
     }
   };
 
@@ -132,7 +147,9 @@ const BankingIntegrationDashboard = ({ userId }) => {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-4xl font-bold text-gray-900 mb-2">Banking Integration</h1>
-            <p className="text-gray-600">Unified view of all your financial accounts and services</p>
+            <p className="text-gray-600">
+              Unified view of all your financial accounts and services
+            </p>
           </div>
           <div className="flex gap-3">
             <button
@@ -158,7 +175,7 @@ const BankingIntegrationDashboard = ({ userId }) => {
             <div>
               <p className="text-gray-600 text-sm">Total Balance</p>
               <p className="text-2xl font-bold text-gray-900">
-                ₹{(transactions.totalIncome - transactions.totalExpense).toLocaleString() || '0'}
+                ₹{(transactions.totalIncome - transactions.totalExpense).toLocaleString() || "0"}
               </p>
             </div>
             <DollarSign className="w-10 h-10 text-blue-600" />
@@ -169,7 +186,9 @@ const BankingIntegrationDashboard = ({ userId }) => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-gray-600 text-sm">Credit Score</p>
-              <p className="text-2xl font-bold text-gray-900">{creditProfile?.latest_score || 'N/A'}</p>
+              <p className="text-2xl font-bold text-gray-900">
+                {creditProfile?.latest_score || "N/A"}
+              </p>
             </div>
             <TrendingUp className="w-10 h-10 text-green-600" />
           </div>
@@ -200,14 +219,14 @@ const BankingIntegrationDashboard = ({ userId }) => {
       <div className="max-w-7xl mx-auto">
         <div className="bg-white rounded-lg shadow mb-6">
           <div className="flex border-b">
-            {['accounts', 'transactions', 'insurance', 'credit', 'offers'].map(tab => (
+            {["accounts", "transactions", "insurance", "credit", "offers"].map(tab => (
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
                 className={`px-6 py-3 font-medium capitalize transition ${
                   activeTab === tab
-                    ? 'text-blue-600 border-b-2 border-blue-600'
-                    : 'text-gray-600 hover:text-gray-900'
+                    ? "text-blue-600 border-b-2 border-blue-600"
+                    : "text-gray-600 hover:text-gray-900"
                 }`}
               >
                 {tab}
@@ -216,7 +235,7 @@ const BankingIntegrationDashboard = ({ userId }) => {
           </div>
 
           {/* Accounts Tab */}
-          {activeTab === 'accounts' && (
+          {activeTab === "accounts" && (
             <div className="p-6">
               <h3 className="text-lg font-semibold mb-4">Connected Accounts</h3>
               {accounts.length === 0 ? (
@@ -227,11 +246,18 @@ const BankingIntegrationDashboard = ({ userId }) => {
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {accounts.map(account => (
-                    <div key={account.id} className="border rounded-lg p-4 hover:shadow-md transition">
+                    <div
+                      key={account.id}
+                      className="border rounded-lg p-4 hover:shadow-md transition"
+                    >
                       <div className="flex items-start justify-between mb-3">
                         <div>
-                          <p className="text-sm text-gray-600">{account.bank_connections?.bank_name}</p>
-                          <p className="font-semibold text-gray-900">{account.account_type.toUpperCase()}</p>
+                          <p className="text-sm text-gray-600">
+                            {account.bank_connections?.bank_name}
+                          </p>
+                          <p className="font-semibold text-gray-900">
+                            {account.account_type.toUpperCase()}
+                          </p>
                         </div>
                         <CheckCircle2 className="w-5 h-5 text-green-600" />
                       </div>
@@ -249,7 +275,7 @@ const BankingIntegrationDashboard = ({ userId }) => {
           )}
 
           {/* Transactions Tab */}
-          {activeTab === 'transactions' && (
+          {activeTab === "transactions" && (
             <div className="p-6">
               <h3 className="text-lg font-semibold mb-4">Last 30 Days Summary</h3>
               <div className="grid grid-cols-3 gap-4 mb-6">
@@ -282,9 +308,14 @@ const BankingIntegrationDashboard = ({ userId }) => {
                   <h4 className="font-semibold text-gray-900 mb-3">By Category</h4>
                   <div className="space-y-2">
                     {Object.entries(transactions.byCategory).map(([cat, amount]) => (
-                      <div key={cat} className="flex items-center justify-between p-3 bg-gray-50 rounded">
+                      <div
+                        key={cat}
+                        className="flex items-center justify-between p-3 bg-gray-50 rounded"
+                      >
                         <span className="capitalize text-gray-700">{cat}</span>
-                        <span className="font-semibold text-gray-900">₹{amount.toLocaleString()}</span>
+                        <span className="font-semibold text-gray-900">
+                          ₹{amount.toLocaleString()}
+                        </span>
                       </div>
                     ))}
                   </div>
@@ -294,7 +325,7 @@ const BankingIntegrationDashboard = ({ userId }) => {
           )}
 
           {/* Insurance Tab */}
-          {activeTab === 'insurance' && (
+          {activeTab === "insurance" && (
             <div className="p-6">
               <h3 className="text-lg font-semibold mb-4">Insurance Policies</h3>
               {insurance.length === 0 ? (
@@ -305,12 +336,19 @@ const BankingIntegrationDashboard = ({ userId }) => {
               ) : (
                 <div className="space-y-3">
                   {insurance.map(policy => (
-                    <div key={policy.id} className="border rounded-lg p-4 hover:shadow-md transition">
+                    <div
+                      key={policy.id}
+                      className="border rounded-lg p-4 hover:shadow-md transition"
+                    >
                       <div className="flex items-start justify-between">
                         <div>
                           <p className="font-semibold text-gray-900">{policy.provider_name}</p>
-                          <p className="text-sm text-gray-600 capitalize">{policy.policy_type} Insurance</p>
-                          <p className="text-xs text-gray-500 mt-1">Policy: {policy.policy_number}</p>
+                          <p className="text-sm text-gray-600 capitalize">
+                            {policy.policy_type} Insurance
+                          </p>
+                          <p className="text-xs text-gray-500 mt-1">
+                            Policy: {policy.policy_number}
+                          </p>
                         </div>
                         <div className="text-right">
                           <p className="text-lg font-bold text-gray-900">
@@ -329,16 +367,18 @@ const BankingIntegrationDashboard = ({ userId }) => {
           )}
 
           {/* Credit Tab */}
-          {activeTab === 'credit' && (
+          {activeTab === "credit" && (
             <div className="p-6">
               <h3 className="text-lg font-semibold mb-4">Credit Profile</h3>
               {creditProfile ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="border rounded-lg p-4">
                     <p className="text-gray-600 text-sm">Credit Score</p>
-                    <p className="text-4xl font-bold text-blue-600 mt-2">{creditProfile.latest_score}</p>
+                    <p className="text-4xl font-bold text-blue-600 mt-2">
+                      {creditProfile.latest_score}
+                    </p>
                     <p className="text-xs text-gray-500 mt-2">
-                      Trend: {creditProfile.score_trend || 'Stable'}
+                      Trend: {creditProfile.score_trend || "Stable"}
                     </p>
                   </div>
                   <div className="border rounded-lg p-4">
@@ -362,7 +402,7 @@ const BankingIntegrationDashboard = ({ userId }) => {
           )}
 
           {/* Offers Tab */}
-          {activeTab === 'offers' && (
+          {activeTab === "offers" && (
             <div className="p-6">
               <h3 className="text-lg font-semibold mb-4">Pre-Approved Loan Offers</h3>
               {lendingOffers.length === 0 ? (
@@ -373,7 +413,10 @@ const BankingIntegrationDashboard = ({ userId }) => {
               ) : (
                 <div className="space-y-3">
                   {lendingOffers.map(offer => (
-                    <div key={offer.id} className="border border-green-200 bg-green-50 rounded-lg p-4">
+                    <div
+                      key={offer.id}
+                      className="border border-green-200 bg-green-50 rounded-lg p-4"
+                    >
                       <div className="flex items-start justify-between mb-3">
                         <div>
                           <p className="font-semibold text-gray-900">{offer.lender_name}</p>
@@ -394,7 +437,9 @@ const BankingIntegrationDashboard = ({ userId }) => {
                         </div>
                         <div>
                           <p className="text-xs text-gray-600">Tenure</p>
-                          <p className="font-semibold text-gray-900">{offer.eligibility_tenure} months</p>
+                          <p className="font-semibold text-gray-900">
+                            {offer.eligibility_tenure} months
+                          </p>
                         </div>
                       </div>
                       <button className="mt-4 w-full bg-green-600 hover:bg-green-700 text-white py-2 rounded font-medium transition">
@@ -413,8 +458,12 @@ const BankingIntegrationDashboard = ({ userId }) => {
       {syncStatus && (
         <div className="max-w-7xl mx-auto mt-6 bg-white rounded-lg shadow p-4 flex items-center justify-between">
           <div>
-            <p className="text-sm text-gray-600">Last synced: {new Date(syncStatus.last_full_sync).toLocaleString()}</p>
-            <p className="text-sm text-gray-600">Status: <span className="font-semibold">{syncStatus.sync_status}</span></p>
+            <p className="text-sm text-gray-600">
+              Last synced: {new Date(syncStatus.last_full_sync).toLocaleString()}
+            </p>
+            <p className="text-sm text-gray-600">
+              Status: <span className="font-semibold">{syncStatus.sync_status}</span>
+            </p>
           </div>
           <button
             onClick={loadBankingData}

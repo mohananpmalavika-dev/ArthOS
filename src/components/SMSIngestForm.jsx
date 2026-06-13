@@ -1,22 +1,26 @@
-import React, { useState } from 'react';
-import { MessageSquare, AlertCircle, CheckCircle, Loader } from 'lucide-react';
-import { parseSMSTransactions, aggregateSMSSignals, generateSMSIngestPrompt } from '../engines/smsParser';
+import React, { useState } from "react";
+import { MessageSquare, AlertCircle, CheckCircle, Loader } from "lucide-react";
+import {
+  parseSMSTransactions,
+  aggregateSMSSignals,
+  generateSMSIngestPrompt
+} from "../engines/smsParser";
 
 export function SMSIngestForm({ onEnrichment, onCancel }) {
-  const [rawSMS, setRawSMS] = useState('');
+  const [rawSMS, setRawSMS] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
   const [extractedTransactions, setExtractedTransactions] = useState([]);
   const [enrichmentData, setEnrichmentData] = useState(null);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
 
   const prompt = generateSMSIngestPrompt();
 
   const handleParse = async () => {
-    setError('');
+    setError("");
     setExtractedTransactions([]);
 
     if (!rawSMS.trim()) {
-      setError('Please paste SMS messages first.');
+      setError("Please paste SMS messages first.");
       return;
     }
 
@@ -24,15 +28,15 @@ export function SMSIngestForm({ onEnrichment, onCancel }) {
 
     try {
       // Split by newlines and filter
-      const messages = rawSMS
-        .split('\n')
-        .filter((msg) => msg.trim().length > 0);
+      const messages = rawSMS.split("\n").filter(msg => msg.trim().length > 0);
 
       // Parse SMS
       const transactions = parseSMSTransactions(messages);
 
       if (transactions.length === 0) {
-        setError('No financial transactions detected in SMS. Try pasting banking alerts or payment confirmations.');
+        setError(
+          "No financial transactions detected in SMS. Try pasting banking alerts or payment confirmations."
+        );
         setIsProcessing(false);
         return;
       }
@@ -65,7 +69,7 @@ export function SMSIngestForm({ onEnrichment, onCancel }) {
             <h3 className="font-semibold text-blue-900 mb-1">{prompt.title}</h3>
             <p className="text-sm text-blue-800">{prompt.description}</p>
             <ul className="text-sm text-blue-800 list-disc list-inside mt-3">
-              {prompt.instructions.map((line) => (
+              {prompt.instructions.map(line => (
                 <li key={line}>{line}</li>
               ))}
             </ul>
@@ -76,16 +80,20 @@ export function SMSIngestForm({ onEnrichment, onCancel }) {
 
       {/* SMS Input */}
       <div>
-        <label className="block text-sm font-semibold text-gray-700 mb-2">Paste Your SMS Banking Alerts</label>
+        <label className="block text-sm font-semibold text-gray-700 mb-2">
+          Paste Your SMS Banking Alerts
+        </label>
         <textarea
           value={rawSMS}
-          onChange={(e) => setRawSMS(e.target.value)}
+          onChange={e => setRawSMS(e.target.value)}
           placeholder={`Example:\nCITI: ₹5,000 spent at Amazon on 1-Jan 02:30 PM. Bal: ₹45,000\nICICI: Debit ₹15,000 to acc XXXX2891 on 1-Jan. Avl Bal: ₹30,000`}
           className="w-full p-4 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 font-mono text-sm"
           rows="8"
           disabled={isProcessing}
         />
-        <p className="text-xs text-gray-600 mt-2">Paste 5-10 recent banking SMS alerts. Each on a new line.</p>
+        <p className="text-xs text-gray-600 mt-2">
+          Paste 5-10 recent banking SMS alerts. Each on a new line.
+        </p>
       </div>
 
       {/* Error Display */}
@@ -110,7 +118,7 @@ export function SMSIngestForm({ onEnrichment, onCancel }) {
             <Loader size={18} className="animate-spin" /> Processing...
           </>
         ) : (
-          '🔍 Analyze SMS Transactions'
+          "🔍 Analyze SMS Transactions"
         )}
       </button>
 
@@ -120,13 +128,15 @@ export function SMSIngestForm({ onEnrichment, onCancel }) {
           <div className="flex gap-3 mb-4">
             <CheckCircle size={24} className="text-green-600" />
             <div>
-              <h3 className="font-bold text-green-900">✓ {extractedTransactions.length} Transactions Detected</h3>
+              <h3 className="font-bold text-green-900">
+                ✓ {extractedTransactions.length} Transactions Detected
+              </h3>
               <p className="text-sm text-green-800">Review extracted data below</p>
             </div>
           </div>
 
           <div className="space-y-2 mb-6">
-            {extractedTransactions.map((txn) => (
+            {extractedTransactions.map(txn => (
               <div key={txn.id} className="p-3 bg-white rounded border border-green-200 text-sm">
                 <div className="flex justify-between items-start mb-1">
                   <span className="font-semibold">{txn.merchant}</span>
@@ -135,8 +145,14 @@ export function SMSIngestForm({ onEnrichment, onCancel }) {
                 <div className="flex gap-2 text-xs text-gray-600">
                   <span className="bg-gray-100 px-2 py-1 rounded">{txn.category}</span>
                   <span className="bg-gray-100 px-2 py-1 rounded">{txn.type}</span>
-                  {txn.isSpending && <span className="bg-orange-100 text-orange-700 px-2 py-1 rounded">🚨 Emotional Spend</span>}
-                  <span className="ml-auto text-gray-500">confidence: {(txn.confidence * 100).toFixed(0)}%</span>
+                  {txn.isSpending && (
+                    <span className="bg-orange-100 text-orange-700 px-2 py-1 rounded">
+                      🚨 Emotional Spend
+                    </span>
+                  )}
+                  <span className="ml-auto text-gray-500">
+                    confidence: {(txn.confidence * 100).toFixed(0)}%
+                  </span>
                 </div>
               </div>
             ))}
@@ -149,19 +165,27 @@ export function SMSIngestForm({ onEnrichment, onCancel }) {
               <div className="grid grid-cols-2 gap-3 text-sm">
                 <div>
                   <div className="text-gray-700">Unplanned Purchases</div>
-                  <div className="text-xl font-bold text-blue-600">{enrichmentData.unplannedPurchaseFreq}</div>
+                  <div className="text-xl font-bold text-blue-600">
+                    {enrichmentData.unplannedPurchaseFreq}
+                  </div>
                 </div>
                 <div>
                   <div className="text-gray-700">Spend When Bored</div>
-                  <div className="text-xl font-bold text-blue-600">{enrichmentData.spendWhenBored}</div>
+                  <div className="text-xl font-bold text-blue-600">
+                    {enrichmentData.spendWhenBored}
+                  </div>
                 </div>
                 <div>
                   <div className="text-gray-700">Spending Category Diversity</div>
-                  <div className="text-xl font-bold text-blue-600">{enrichmentData.categoryDiversityScore}</div>
+                  <div className="text-xl font-bold text-blue-600">
+                    {enrichmentData.categoryDiversityScore}
+                  </div>
                 </div>
                 <div>
                   <div className="text-gray-700">Frequency (transactions/day)</div>
-                  <div className="text-xl font-bold text-blue-600">{enrichmentData.transactionFrequency}</div>
+                  <div className="text-xl font-bold text-blue-600">
+                    {enrichmentData.transactionFrequency}
+                  </div>
                 </div>
               </div>
             </div>
@@ -176,7 +200,7 @@ export function SMSIngestForm({ onEnrichment, onCancel }) {
             </button>
             <button
               onClick={() => {
-                setRawSMS('');
+                setRawSMS("");
                 setExtractedTransactions([]);
                 setEnrichmentData(null);
               }}

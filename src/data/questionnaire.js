@@ -6,8 +6,8 @@ export const behaviourQuestions = [
       { value: "extremely_emotional", label: "Extremely emotional" },
       { value: "somewhat_emotional", label: "Somewhat emotional" },
       { value: "mostly_practical", label: "Mostly practical" },
-      { value: "fully_logical", label: "Fully logical" },
-    ],
+      { value: "fully_logical", label: "Fully logical" }
+    ]
   },
   {
     key: "socialInfluenceLevel",
@@ -16,8 +16,8 @@ export const behaviourQuestions = [
       { value: "heavily", label: "Heavily" },
       { value: "sometimes", label: "Sometimes" },
       { value: "rarely", label: "Rarely" },
-      { value: "never", label: "Never" },
-    ],
+      { value: "never", label: "Never" }
+    ]
   },
   {
     key: "unplannedPurchaseFreq",
@@ -26,8 +26,8 @@ export const behaviourQuestions = [
       { value: "very_frequently", label: "Very frequently" },
       { value: "sometimes", label: "Sometimes" },
       { value: "rarely", label: "Rarely" },
-      { value: "never", label: "Never" },
-    ],
+      { value: "never", label: "Never" }
+    ]
   },
   {
     key: "regretImpulseFreq",
@@ -36,8 +36,8 @@ export const behaviourQuestions = [
       { value: "almost_every_time", label: "Almost every time" },
       { value: "sometimes", label: "Sometimes" },
       { value: "rarely", label: "Rarely" },
-      { value: "never", label: "Never" },
-    ],
+      { value: "never", label: "Never" }
+    ]
   },
   {
     key: "presentFutureMindset",
@@ -46,8 +46,8 @@ export const behaviourQuestions = [
       { value: "enjoy_today", label: "Enjoy today fully" },
       { value: "balance_both", label: "Balance both" },
       { value: "secure_future", label: "Secure future first" },
-      { value: "extreme_discipline", label: "Extreme discipline" },
-    ],
+      { value: "extreme_discipline", label: "Extreme discipline" }
+    ]
   },
   {
     key: "avoidBalanceDuringStress",
@@ -56,9 +56,9 @@ export const behaviourQuestions = [
       { value: "almost_always", label: "Almost always" },
       { value: "sometimes", label: "Sometimes" },
       { value: "rarely", label: "Rarely" },
-      { value: "never", label: "Never" },
-    ],
-  },
+      { value: "never", label: "Never" }
+    ]
+  }
 ];
 
 export const awarenessQuestions = [
@@ -69,8 +69,8 @@ export const awarenessQuestions = [
       { value: "constantly", label: "Constantly" },
       { value: "occasionally", label: "Occasionally" },
       { value: "rarely", label: "Rarely" },
-      { value: "never", label: "Never" },
-    ],
+      { value: "never", label: "Never" }
+    ]
   },
   {
     key: "hasFinancialPlan",
@@ -79,8 +79,8 @@ export const awarenessQuestions = [
       { value: "clear_plan", label: "Yes, clear plan" },
       { value: "some_plan", label: "Some plan" },
       { value: "no_plan", label: "No plan" },
-      { value: "not_sure", label: "Not sure" },
-    ],
+      { value: "not_sure", label: "Not sure" }
+    ]
   },
   {
     key: "tracksExpenses",
@@ -89,8 +89,8 @@ export const awarenessQuestions = [
       { value: "regularly", label: "Regularly" },
       { value: "sometimes", label: "Sometimes" },
       { value: "rarely", label: "Rarely" },
-      { value: "never", label: "Never" },
-    ],
+      { value: "never", label: "Never" }
+    ]
   },
   {
     key: "knowsTotalDebt",
@@ -99,8 +99,8 @@ export const awarenessQuestions = [
       { value: "fully", label: "Yes, fully" },
       { value: "partially", label: "Partially" },
       { value: "not_sure", label: "Not sure" },
-      { value: "no", label: "No" },
-    ],
+      { value: "no", label: "No" }
+    ]
   },
   {
     key: "knowsMonthlyExpenses",
@@ -109,23 +109,23 @@ export const awarenessQuestions = [
       { value: "exact", label: "Yes, exact" },
       { value: "approximate", label: "Approximate" },
       { value: "not_really", label: "Not really" },
-      { value: "no", label: "No" },
-    ],
-  },
+      { value: "no", label: "No" }
+    ]
+  }
 ];
 
 export const incomeStabilityOptions = [
   { value: "very_consistent", label: "Very consistent" },
   { value: "mostly_consistent", label: "Mostly consistent" },
   { value: "somewhat_variable", label: "Somewhat variable" },
-  { value: "highly_variable", label: "Highly variable" },
+  { value: "highly_variable", label: "Highly variable" }
 ];
 
 export const dependentsOptions = [
   { value: "0_1", label: "0-1" },
   { value: "2_3", label: "2-3" },
   { value: "4_5", label: "4-5" },
-  { value: "6_plus", label: "6+" },
+  { value: "6_plus", label: "6+" }
 ];
 
 export const defaultAssessment = {
@@ -135,14 +135,14 @@ export const defaultAssessment = {
     unplannedPurchaseFreq: "sometimes",
     regretImpulseFreq: "sometimes",
     presentFutureMindset: "balance_both",
-    avoidBalanceDuringStress: "sometimes",
+    avoidBalanceDuringStress: "sometimes"
   },
   awareness: {
     comparesLifestyleFreq: "occasionally",
     hasFinancialPlan: "some_plan",
     tracksExpenses: "sometimes",
     knowsTotalDebt: "partially",
-    knowsMonthlyExpenses: "approximate",
+    knowsMonthlyExpenses: "approximate"
   },
   profile: {
     monthlyExpenses: 50000,
@@ -151,6 +151,6 @@ export const defaultAssessment = {
     monthlyIncome: 90000,
     incomeStability: "mostly_consistent",
     dependentsBucket: "0_1",
-    monthlyLiabilities: 18000,
-  },
+    monthlyLiabilities: 18000
+  }
 };

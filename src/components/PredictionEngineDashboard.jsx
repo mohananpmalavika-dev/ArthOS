@@ -1,6 +1,6 @@
 /**
  * Prediction Engine Dashboard Component
- * 
+ *
  * Visualizes:
  * - 30/90/180 day forecasts with confidence intervals
  * - Scenario simulations and "what if" testing
@@ -9,12 +9,22 @@
  * - Forecast accuracy and model performance
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 import {
-  LineChart, Line, AreaChart, Area, BarChart, Bar,
-  XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer
-} from 'recharts';
-import { AlertTriangle, TrendingUp, Target, Zap, CheckCircle } from 'lucide-react';
+  LineChart,
+  Line,
+  AreaChart,
+  Area,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer
+} from "recharts";
+import { AlertTriangle, TrendingUp, Target, Zap, CheckCircle } from "lucide-react";
 
 const PredictionEngineDashboard = ({ userId }) => {
   const [forecasts, setForecasts] = useState([]);
@@ -22,11 +32,11 @@ const PredictionEngineDashboard = ({ userId }) => {
   const [risks, setRisks] = useState([]);
   const [opportunities, setOpportunities] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState('forecasts');
+  const [activeTab, setActiveTab] = useState("forecasts");
   const [scenarioForm, setScenarioForm] = useState({
-    scenarioName: '',
-    modifiedParameter: 'monthly_spending',
-    parameterChangeType: 'absolute',
+    scenarioName: "",
+    modifiedParameter: "monthly_spending",
+    parameterChangeType: "absolute",
     parameterChangeValue: 0,
     comparisonPeriodDays: 30
   });
@@ -46,12 +56,20 @@ const PredictionEngineDashboard = ({ userId }) => {
         fetch(`/api/prediction/opportunities?userId=${userId}`)
       ]);
 
-      if (forecastRes.ok) setForecasts((await forecastRes.json()).forecasts);
-      if (scenarioRes.ok) setScenarios((await scenarioRes.json()).scenarios);
-      if (riskRes.ok) setRisks((await riskRes.json()).risks);
-      if (oppRes.ok) setOpportunities((await oppRes.json()).opportunities);
+      if (forecastRes.ok) {
+        setForecasts((await forecastRes.json()).forecasts);
+      }
+      if (scenarioRes.ok) {
+        setScenarios((await scenarioRes.json()).scenarios);
+      }
+      if (riskRes.ok) {
+        setRisks((await riskRes.json()).risks);
+      }
+      if (oppRes.ok) {
+        setOpportunities((await oppRes.json()).opportunities);
+      }
     } catch (error) {
-      console.error('Error loading prediction data:', error);
+      console.error("Error loading prediction data:", error);
     } finally {
       setLoading(false);
     }
@@ -60,9 +78,9 @@ const PredictionEngineDashboard = ({ userId }) => {
   const generateNewForecasts = async () => {
     try {
       setLoading(true);
-      const res = await fetch('/api/prediction/forecasts', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const res = await fetch("/api/prediction/forecasts", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ userId })
       });
 
@@ -70,59 +88,59 @@ const PredictionEngineDashboard = ({ userId }) => {
         await loadPredictionData();
       }
     } catch (error) {
-      console.error('Error generating forecasts:', error);
+      console.error("Error generating forecasts:", error);
     } finally {
       setLoading(false);
     }
   };
 
-  const createScenario = async (e) => {
+  const createScenario = async e => {
     e.preventDefault();
     try {
-      const res = await fetch('/api/prediction/scenarios', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const res = await fetch("/api/prediction/scenarios", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ userId, ...scenarioForm })
       });
 
       if (res.ok) {
         setScenarioForm({
-          scenarioName: '',
-          modifiedParameter: 'monthly_spending',
-          parameterChangeType: 'absolute',
+          scenarioName: "",
+          modifiedParameter: "monthly_spending",
+          parameterChangeType: "absolute",
           parameterChangeValue: 0,
           comparisonPeriodDays: 30
         });
         await loadPredictionData();
       }
     } catch (error) {
-      console.error('Error creating scenario:', error);
+      console.error("Error creating scenario:", error);
     }
   };
 
-  const acknowledgeRisk = async (riskId) => {
+  const acknowledgeRisk = async riskId => {
     try {
       await fetch(`/api/prediction/risks`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ userId, riskId })
       });
       await loadPredictionData();
     } catch (error) {
-      console.error('Error acknowledging risk:', error);
+      console.error("Error acknowledging risk:", error);
     }
   };
 
-  const recordOpportunity = async (opportunityId) => {
+  const recordOpportunity = async opportunityId => {
     try {
       await fetch(`/api/prediction/opportunities`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ userId, opportunityId })
       });
       await loadPredictionData();
     } catch (error) {
-      console.error('Error recording opportunity:', error);
+      console.error("Error recording opportunity:", error);
     }
   };
 
@@ -140,12 +158,13 @@ const PredictionEngineDashboard = ({ userId }) => {
   return (
     <div className="bg-gradient-to-br from-slate-50 to-slate-100 p-8 rounded-xl">
       <div className="max-w-7xl mx-auto">
-        
         {/* Header */}
         <div className="flex justify-between items-center mb-8">
           <div>
             <h1 className="text-4xl font-bold text-slate-900 mb-2">Prediction Engine</h1>
-            <p className="text-slate-600">30, 90 & 180-day financial forecasts with scenario simulation</p>
+            <p className="text-slate-600">
+              30, 90 & 180-day financial forecasts with scenario simulation
+            </p>
           </div>
           <button
             onClick={generateNewForecasts}
@@ -157,14 +176,14 @@ const PredictionEngineDashboard = ({ userId }) => {
 
         {/* Tab Navigation */}
         <div className="flex gap-4 mb-8 border-b border-slate-300">
-          {['forecasts', 'scenarios', 'risks', 'opportunities'].map(tab => (
+          {["forecasts", "scenarios", "risks", "opportunities"].map(tab => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
               className={`px-6 py-3 font-semibold transition ${
                 activeTab === tab
-                  ? 'text-blue-600 border-b-2 border-blue-600'
-                  : 'text-slate-600 hover:text-slate-900'
+                  ? "text-blue-600 border-b-2 border-blue-600"
+                  : "text-slate-600 hover:text-slate-900"
               }`}
             >
               {tab.charAt(0).toUpperCase() + tab.slice(1)}
@@ -173,7 +192,7 @@ const PredictionEngineDashboard = ({ userId }) => {
         </div>
 
         {/* FORECASTS TAB */}
-        {activeTab === 'forecasts' && (
+        {activeTab === "forecasts" && (
           <div className="space-y-8">
             {forecasts.length === 0 ? (
               <div className="bg-white p-8 rounded-lg text-center">
@@ -224,8 +243,11 @@ const PredictionEngineDashboard = ({ userId }) => {
                           <XAxis dataKey="daysAhead" stroke="#64748b" />
                           <YAxis stroke="#64748b" />
                           <Tooltip
-                            contentStyle={{ backgroundColor: '#f8fafc', border: '1px solid #cbd5e1' }}
-                            cursor={{ fill: 'rgba(59, 130, 246, 0.1)' }}
+                            contentStyle={{
+                              backgroundColor: "#f8fafc",
+                              border: "1px solid #cbd5e1"
+                            }}
+                            cursor={{ fill: "rgba(59, 130, 246, 0.1)" }}
                           />
                           <Area
                             type="monotone"
@@ -242,19 +264,24 @@ const PredictionEngineDashboard = ({ userId }) => {
                     <div>
                       <h4 className="font-semibold text-slate-900 mb-4">BAS Components</h4>
                       <ResponsiveContainer width="100%" height={250}>
-                        <BarChart data={[
-                          {
-                            name: 'Predicted',
-                            behaviour: forecast.predicted_behaviour_score,
-                            awareness: forecast.predicted_awareness_score,
-                            stability: forecast.predicted_stability_score
-                          }
-                        ]}>
+                        <BarChart
+                          data={[
+                            {
+                              name: "Predicted",
+                              behaviour: forecast.predicted_behaviour_score,
+                              awareness: forecast.predicted_awareness_score,
+                              stability: forecast.predicted_stability_score
+                            }
+                          ]}
+                        >
                           <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
                           <XAxis dataKey="name" stroke="#64748b" />
                           <YAxis stroke="#64748b" />
                           <Tooltip
-                            contentStyle={{ backgroundColor: '#f8fafc', border: '1px solid #cbd5e1' }}
+                            contentStyle={{
+                              backgroundColor: "#f8fafc",
+                              border: "1px solid #cbd5e1"
+                            }}
                           />
                           <Legend />
                           <Bar dataKey="behaviour" fill="#10b981" />
@@ -273,7 +300,13 @@ const PredictionEngineDashboard = ({ userId }) => {
                         {forecast.predicted_survival_days} days
                       </p>
                       <p className="text-xs text-slate-600 mt-1">
-                        ±{Math.round((forecast.predicted_survival_days_max - forecast.predicted_survival_days_min) / 2)} days
+                        ±
+                        {Math.round(
+                          (forecast.predicted_survival_days_max -
+                            forecast.predicted_survival_days_min) /
+                            2
+                        )}{" "}
+                        days
                       </p>
                     </div>
 
@@ -282,10 +315,15 @@ const PredictionEngineDashboard = ({ userId }) => {
                       <p className="text-2xl font-bold text-emerald-600">
                         {forecast.predicted_behaviour_score.toFixed(1)}/40
                       </p>
-                      <p className={`text-xs font-semibold mt-1 ${
-                        forecast.behaviour_trend === 'improving' ? 'text-emerald-600' : 'text-red-600'
-                      }`}>
-                        {forecast.behaviour_trend === 'improving' ? '↑' : '↓'} {forecast.behaviour_trend}
+                      <p
+                        className={`text-xs font-semibold mt-1 ${
+                          forecast.behaviour_trend === "improving"
+                            ? "text-emerald-600"
+                            : "text-red-600"
+                        }`}
+                      >
+                        {forecast.behaviour_trend === "improving" ? "↑" : "↓"}{" "}
+                        {forecast.behaviour_trend}
                       </p>
                     </div>
 
@@ -294,10 +332,15 @@ const PredictionEngineDashboard = ({ userId }) => {
                       <p className="text-2xl font-bold text-amber-600">
                         {forecast.predicted_awareness_score.toFixed(1)}/30
                       </p>
-                      <p className={`text-xs font-semibold mt-1 ${
-                        forecast.awareness_trend === 'improving' ? 'text-emerald-600' : 'text-red-600'
-                      }`}>
-                        {forecast.awareness_trend === 'improving' ? '↑' : '↓'} {forecast.awareness_trend}
+                      <p
+                        className={`text-xs font-semibold mt-1 ${
+                          forecast.awareness_trend === "improving"
+                            ? "text-emerald-600"
+                            : "text-red-600"
+                        }`}
+                      >
+                        {forecast.awareness_trend === "improving" ? "↑" : "↓"}{" "}
+                        {forecast.awareness_trend}
                       </p>
                     </div>
 
@@ -306,10 +349,15 @@ const PredictionEngineDashboard = ({ userId }) => {
                       <p className="text-2xl font-bold text-indigo-600">
                         {forecast.predicted_stability_score.toFixed(1)}/30
                       </p>
-                      <p className={`text-xs font-semibold mt-1 ${
-                        forecast.stability_trend === 'improving' ? 'text-emerald-600' : 'text-red-600'
-                      }`}>
-                        {forecast.stability_trend === 'improving' ? '↑' : '↓'} {forecast.stability_trend}
+                      <p
+                        className={`text-xs font-semibold mt-1 ${
+                          forecast.stability_trend === "improving"
+                            ? "text-emerald-600"
+                            : "text-red-600"
+                        }`}
+                      >
+                        {forecast.stability_trend === "improving" ? "↑" : "↓"}{" "}
+                        {forecast.stability_trend}
                       </p>
                     </div>
                   </div>
@@ -320,7 +368,7 @@ const PredictionEngineDashboard = ({ userId }) => {
         )}
 
         {/* SCENARIOS TAB */}
-        {activeTab === 'scenarios' && (
+        {activeTab === "scenarios" && (
           <div className="space-y-8">
             {/* Create Scenario Form */}
             <div className="bg-white p-6 rounded-lg shadow">
@@ -331,14 +379,18 @@ const PredictionEngineDashboard = ({ userId }) => {
                     type="text"
                     placeholder="Scenario name (e.g., 'Save ₹5,000/month')"
                     value={scenarioForm.scenarioName}
-                    onChange={(e) => setScenarioForm({ ...scenarioForm, scenarioName: e.target.value })}
+                    onChange={e =>
+                      setScenarioForm({ ...scenarioForm, scenarioName: e.target.value })
+                    }
                     className="w-full px-4 py-2 border border-slate-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
                     required
                   />
 
                   <select
                     value={scenarioForm.modifiedParameter}
-                    onChange={(e) => setScenarioForm({ ...scenarioForm, modifiedParameter: e.target.value })}
+                    onChange={e =>
+                      setScenarioForm({ ...scenarioForm, modifiedParameter: e.target.value })
+                    }
                     className="w-full px-4 py-2 border border-slate-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
                     <option value="monthly_spending">Reduce monthly spending</option>
@@ -351,13 +403,20 @@ const PredictionEngineDashboard = ({ userId }) => {
                       type="number"
                       placeholder="Amount"
                       value={scenarioForm.parameterChangeValue}
-                      onChange={(e) => setScenarioForm({ ...scenarioForm, parameterChangeValue: parseFloat(e.target.value) })}
+                      onChange={e =>
+                        setScenarioForm({
+                          ...scenarioForm,
+                          parameterChangeValue: parseFloat(e.target.value)
+                        })
+                      }
                       className="flex-1 px-4 py-2 border border-slate-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
                       required
                     />
                     <select
                       value={scenarioForm.parameterChangeType}
-                      onChange={(e) => setScenarioForm({ ...scenarioForm, parameterChangeType: e.target.value })}
+                      onChange={e =>
+                        setScenarioForm({ ...scenarioForm, parameterChangeType: e.target.value })
+                      }
                       className="px-4 py-2 border border-slate-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
                     >
                       <option value="absolute">₹</option>
@@ -367,7 +426,12 @@ const PredictionEngineDashboard = ({ userId }) => {
 
                   <select
                     value={scenarioForm.comparisonPeriodDays}
-                    onChange={(e) => setScenarioForm({ ...scenarioForm, comparisonPeriodDays: parseInt(e.target.value) })}
+                    onChange={e =>
+                      setScenarioForm({
+                        ...scenarioForm,
+                        comparisonPeriodDays: parseInt(e.target.value)
+                      })
+                    }
                     className="w-full px-4 py-2 border border-slate-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
                     <option value="30">30 days</option>
@@ -398,11 +462,15 @@ const PredictionEngineDashboard = ({ userId }) => {
                       <h4 className="text-xl font-bold text-slate-900">{scenario.scenario_name}</h4>
                       <p className="text-slate-600 text-sm">{scenario.scenario_description}</p>
                     </div>
-                    <span className={`px-3 py-1 rounded text-sm font-semibold ${
-                      scenario.impact_magnitude === 'high' ? 'bg-red-100 text-red-800' :
-                      scenario.impact_magnitude === 'medium' ? 'bg-yellow-100 text-yellow-800' :
-                      'bg-green-100 text-green-800'
-                    }`}>
+                    <span
+                      className={`px-3 py-1 rounded text-sm font-semibold ${
+                        scenario.impact_magnitude === "high"
+                          ? "bg-red-100 text-red-800"
+                          : scenario.impact_magnitude === "medium"
+                            ? "bg-yellow-100 text-yellow-800"
+                            : "bg-green-100 text-green-800"
+                      }`}
+                    >
                       {scenario.impact_magnitude.toUpperCase()} Impact
                     </span>
                   </div>
@@ -411,20 +479,24 @@ const PredictionEngineDashboard = ({ userId }) => {
                     <div className="bg-slate-50 p-4 rounded">
                       <p className="text-sm text-slate-600 mb-2">Health Score Impact</p>
                       <p className="text-2xl font-bold">
-                        {scenario.health_score_delta > 0 ? '+' : ''}{scenario.health_score_delta.toFixed(1)}
+                        {scenario.health_score_delta > 0 ? "+" : ""}
+                        {scenario.health_score_delta.toFixed(1)}
                       </p>
                       <p className="text-xs text-slate-600 mt-1">
-                        {scenario.baseline_health_score_at_end.toFixed(1)} → {scenario.scenario_health_score_at_end.toFixed(1)}
+                        {scenario.baseline_health_score_at_end.toFixed(1)} →{" "}
+                        {scenario.scenario_health_score_at_end.toFixed(1)}
                       </p>
                     </div>
 
                     <div className="bg-slate-50 p-4 rounded">
                       <p className="text-sm text-slate-600 mb-2">Survival Window Impact</p>
                       <p className="text-2xl font-bold">
-                        {scenario.survival_days_delta > 0 ? '+' : ''}{scenario.survival_days_delta} days
+                        {scenario.survival_days_delta > 0 ? "+" : ""}
+                        {scenario.survival_days_delta} days
                       </p>
                       <p className="text-xs text-slate-600 mt-1">
-                        {scenario.baseline_survival_days_at_end} → {scenario.scenario_survival_days_at_end} days
+                        {scenario.baseline_survival_days_at_end} →{" "}
+                        {scenario.scenario_survival_days_at_end} days
                       </p>
                     </div>
 
@@ -443,7 +515,7 @@ const PredictionEngineDashboard = ({ userId }) => {
         )}
 
         {/* RISKS TAB */}
-        {activeTab === 'risks' && (
+        {activeTab === "risks" && (
           <div className="space-y-4">
             {risks.length === 0 ? (
               <div className="bg-green-50 border border-green-200 p-8 rounded-lg text-center">
@@ -456,23 +528,26 @@ const PredictionEngineDashboard = ({ userId }) => {
                 <div
                   key={risk.id}
                   className={`p-6 rounded-lg border-l-4 ${
-                    risk.risk_category === 'critical'
-                      ? 'bg-red-50 border-red-500'
-                      : risk.risk_category === 'high'
-                      ? 'bg-orange-50 border-orange-500'
-                      : 'bg-yellow-50 border-yellow-500'
+                    risk.risk_category === "critical"
+                      ? "bg-red-50 border-red-500"
+                      : risk.risk_category === "high"
+                        ? "bg-orange-50 border-orange-500"
+                        : "bg-yellow-50 border-yellow-500"
                   }`}
                 >
                   <div className="flex items-start gap-4">
-                    <AlertTriangle className={`w-6 h-6 flex-shrink-0 ${
-                      risk.risk_category === 'critical' ? 'text-red-600' : 'text-orange-600'
-                    }`} />
+                    <AlertTriangle
+                      className={`w-6 h-6 flex-shrink-0 ${
+                        risk.risk_category === "critical" ? "text-red-600" : "text-orange-600"
+                      }`}
+                    />
                     <div className="flex-1">
                       <h4 className="font-bold text-slate-900 mb-2">{risk.risk_description}</h4>
                       <p className="text-slate-700 text-sm mb-3">{risk.risk_description}</p>
                       <div className="flex gap-4 flex-wrap text-sm">
                         <span className="text-slate-600">
-                          <span className="font-semibold">Onset:</span> {new Date(risk.predicted_onset_date).toLocaleDateString()}
+                          <span className="font-semibold">Onset:</span>{" "}
+                          {new Date(risk.predicted_onset_date).toLocaleDateString()}
                         </span>
                         <span className="text-slate-600">
                           <span className="font-semibold">Days until:</span> {risk.days_until_risk}
@@ -498,7 +573,7 @@ const PredictionEngineDashboard = ({ userId }) => {
         )}
 
         {/* OPPORTUNITIES TAB */}
-        {activeTab === 'opportunities' && (
+        {activeTab === "opportunities" && (
           <div className="space-y-4">
             {opportunities.length === 0 ? (
               <div className="bg-slate-50 p-8 rounded-lg text-center">
@@ -513,13 +588,17 @@ const PredictionEngineDashboard = ({ userId }) => {
                   <div className="flex items-start gap-4">
                     <Zap className="w-6 h-6 text-emerald-600 flex-shrink-0" />
                     <div className="flex-1">
-                      <h4 className="font-bold text-slate-900 mb-2">{opp.opportunity_description}</h4>
+                      <h4 className="font-bold text-slate-900 mb-2">
+                        {opp.opportunity_description}
+                      </h4>
                       <div className="flex gap-4 flex-wrap text-sm mb-3">
                         <span className="text-slate-600">
-                          <span className="font-semibold">Available:</span> {new Date(opp.predicted_available_date).toLocaleDateString()}
+                          <span className="font-semibold">Available:</span>{" "}
+                          {new Date(opp.predicted_available_date).toLocaleDateString()}
                         </span>
                         <span className="text-slate-600">
-                          <span className="font-semibold">Potential benefit:</span> +{opp.projected_benefit.toFixed(1)}
+                          <span className="font-semibold">Potential benefit:</span> +
+                          {opp.projected_benefit.toFixed(1)}
                         </span>
                         <span className="text-slate-600">
                           <span className="font-semibold">Action:</span> {opp.suggested_action}

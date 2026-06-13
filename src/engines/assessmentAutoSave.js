@@ -29,11 +29,11 @@
  *   clearDraft()
  */
 
-const DRAFT_KEY = 'arth-os-assessment-draft';
+const DRAFT_KEY = "arth-os-assessment-draft";
 const STALE_THRESHOLD_MS = 30 * 60 * 1000; // 30 minutes
 
 function isBrowser() {
-  return typeof window !== 'undefined';
+  return typeof window !== "undefined";
 }
 
 /**
@@ -45,14 +45,16 @@ function isBrowser() {
  * @param {boolean} expressMode - whether express mode is active
  */
 export function saveDraft(assessment, currentStep, expressMode) {
-  if (!isBrowser()) return;
+  if (!isBrowser()) {
+    return;
+  }
 
   try {
     const draft = {
       assessment,
       currentStep,
       expressMode,
-      savedAt: Date.now(),
+      savedAt: Date.now()
     };
     window.localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
   } catch (e) {
@@ -67,11 +69,15 @@ export function saveDraft(assessment, currentStep, expressMode) {
  * @returns {{ assessment: object, currentStep: number, expressMode: boolean, savedAt: number } | null}
  */
 export function loadDraft() {
-  if (!isBrowser()) return null;
+  if (!isBrowser()) {
+    return null;
+  }
 
   try {
     const raw = window.localStorage.getItem(DRAFT_KEY);
-    if (!raw) return null;
+    if (!raw) {
+      return null;
+    }
 
     const draft = JSON.parse(raw);
 
@@ -83,8 +89,8 @@ export function loadDraft() {
 
     return draft;
   } catch (error) {
-    console.error('[assessmentAutoSave] Failed to load draft:', {
-      error: error?.message,
+    console.error("[assessmentAutoSave] Failed to load draft:", {
+      error: error?.message
     });
     return null;
   }
@@ -102,12 +108,14 @@ export function hasDraft() {
  * Clear the saved draft (e.g., on completion or explicit reset).
  */
 export function clearDraft() {
-  if (!isBrowser()) return;
+  if (!isBrowser()) {
+    return;
+  }
   try {
     window.localStorage.removeItem(DRAFT_KEY);
   } catch (error) {
-    console.warn('[assessmentAutoSave] Failed to clear draft:', {
-      error: error?.message,
+    console.warn("[assessmentAutoSave] Failed to clear draft:", {
+      error: error?.message
     });
   }
 }
@@ -121,7 +129,9 @@ export function clearDraft() {
  * @returns {() => void} cleanup
  */
 export function setupAutoSave(getState) {
-  if (!isBrowser()) return () => {};
+  if (!isBrowser()) {
+    return () => {};
+  }
 
   const interval = setInterval(() => {
     const state = getState();
@@ -143,7 +153,9 @@ export function setupAutoSave(getState) {
  * @returns {() => void} cleanup
  */
 export function setupBeforeUnload(getState) {
-  if (!isBrowser()) return () => {};
+  if (!isBrowser()) {
+    return () => {};
+  }
 
   const handleBeforeUnload = () => {
     const state = getState();
@@ -158,12 +170,12 @@ export function setupBeforeUnload(getState) {
     }
   };
 
-  window.addEventListener('beforeunload', handleBeforeUnload);
-  document.addEventListener('visibilitychange', handleVisibilityChange);
+  window.addEventListener("beforeunload", handleBeforeUnload);
+  document.addEventListener("visibilitychange", handleVisibilityChange);
 
   return () => {
-    window.removeEventListener('beforeunload', handleBeforeUnload);
-    document.removeEventListener('visibilitychange', handleVisibilityChange);
+    window.removeEventListener("beforeunload", handleBeforeUnload);
+    document.removeEventListener("visibilitychange", handleVisibilityChange);
   };
 }
 
@@ -185,7 +197,9 @@ export function createDebouncedSave(fn, delay = 2000) {
       fn.apply(this, args);
     } else {
       // Debounce
-      if (timer) clearTimeout(timer);
+      if (timer) {
+        clearTimeout(timer);
+      }
       timer = setTimeout(() => {
         lastCall = Date.now();
         fn.apply(this, args);
