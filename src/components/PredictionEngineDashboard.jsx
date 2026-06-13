@@ -146,7 +146,7 @@ const PredictionEngineDashboard = ({ userId }) => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-96">
+      <div className="prediction-engine-loading flex items-center justify-center h-96">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
           <p className="text-gray-600">Loading predictions...</p>
@@ -156,10 +156,10 @@ const PredictionEngineDashboard = ({ userId }) => {
   }
 
   return (
-    <div className="bg-gradient-to-br from-slate-50 to-slate-100 p-8 rounded-xl">
-      <div className="max-w-7xl mx-auto">
+    <div className="prediction-engine-dashboard bg-gradient-to-br from-slate-50 to-slate-100 p-8 rounded-xl">
+      <div className="prediction-engine-inner max-w-7xl mx-auto">
         {/* Header */}
-        <div className="flex justify-between items-center mb-8">
+        <div className="prediction-engine-header flex justify-between items-center mb-8">
           <div>
             <h1 className="text-4xl font-bold text-slate-900 mb-2">Prediction Engine</h1>
             <p className="text-slate-600">
@@ -168,14 +168,14 @@ const PredictionEngineDashboard = ({ userId }) => {
           </div>
           <button
             onClick={generateNewForecasts}
-            className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-semibold"
+            className="prediction-primary-btn px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-semibold"
           >
             Generate Forecasts
           </button>
         </div>
 
         {/* Tab Navigation */}
-        <div className="flex gap-4 mb-8 border-b border-slate-300">
+        <div className="prediction-tabs flex gap-4 mb-8 border-b border-slate-300">
           {["forecasts", "scenarios", "risks", "opportunities"].map(tab => (
             <button
               key={tab}
@@ -195,11 +195,11 @@ const PredictionEngineDashboard = ({ userId }) => {
         {activeTab === "forecasts" && (
           <div className="space-y-8">
             {forecasts.length === 0 ? (
-              <div className="bg-white p-8 rounded-lg text-center">
+              <div className="prediction-empty-state bg-white p-8 rounded-lg text-center">
                 <p className="text-slate-600 mb-4">No forecasts generated yet</p>
                 <button
                   onClick={generateNewForecasts}
-                  className="px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                  className="prediction-primary-btn px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
                 >
                   Generate Your First Forecast
                 </button>
