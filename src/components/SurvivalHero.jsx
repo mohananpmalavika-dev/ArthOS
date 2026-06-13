@@ -1,6 +1,7 @@
 import React from "react";
+import PropTypes from "prop-types";
 
-export default function SurvivalHero({ survivalMonths = 0 }) {
+function SurvivalHero({ survivalMonths = 0 }) {
   const days = Math.max(0, Math.round(survivalMonths * 30));
 
   return (
@@ -14,3 +15,13 @@ export default function SurvivalHero({ survivalMonths = 0 }) {
     </section>
   );
 }
+
+SurvivalHero.propTypes = {
+  survivalMonths: PropTypes.number,
+};
+
+SurvivalHero.defaultProps = {
+  survivalMonths: 0,
+};
+
+export default SurvivalHero;

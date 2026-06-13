@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import PropTypes from "prop-types";
 import { CheckCircle2, AlertCircle, Target } from "lucide-react";
 
 /**
@@ -11,7 +12,7 @@ import { CheckCircle2, AlertCircle, Target } from "lucide-react";
  * 3. Concrete micro-goal (e.g., "spend 30 minutes this week...")
  * 4. Engagement tracking (how many users complete the suggested action)
  */
-export default function SingleRecommendedAction({ result, assessment }) {
+function SingleRecommendedAction({ result, assessment }) {
   if (!result || !assessment) return null;
   if (!result || !assessment) return null;
 
@@ -158,3 +159,22 @@ export default function SingleRecommendedAction({ result, assessment }) {
     </section>
   );
 }
+
+SingleRecommendedAction.propTypes = {
+  result: PropTypes.shape({
+    lowestComponent: PropTypes.shape({
+      key: PropTypes.string,
+    }),
+    behaviourScore: PropTypes.number,
+    awarenessScore: PropTypes.number,
+    survivalMonthsDisplay: PropTypes.string,
+    personalityType: PropTypes.string,
+  }).isRequired,
+  assessment: PropTypes.shape({
+    profile: PropTypes.object,
+    behaviour: PropTypes.object,
+    awareness: PropTypes.object,
+  }).isRequired,
+};
+
+export default SingleRecommendedAction;

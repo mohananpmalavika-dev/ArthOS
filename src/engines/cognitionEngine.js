@@ -129,12 +129,26 @@ function safeRead(key) {
   try {
     const raw = window.localStorage.getItem(key);
     return raw ? JSON.parse(raw) : null;
-  } catch { return null; }
+  } catch (error) {
+    console.error('[cognitionEngine] Failed to parse localStorage data:', {
+      key,
+      error: error?.message,
+    });
+    return null;
+  }
 }
 
 function safeWrite(key, value) {
   if (!isBrowser()) return;
-  try { window.localStorage.setItem(key, JSON.stringify(value)); } catch { }
+  try {
+    window.localStorage.setItem(key, JSON.stringify(value));
+  } catch (error) {
+    console.error('[cognitionEngine] Failed to persist calibration to localStorage:', {
+      key,
+      error: error?.message,
+      code: error?.code,
+    });
+  }
 }
 
 /**

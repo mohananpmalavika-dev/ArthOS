@@ -84,7 +84,13 @@ export function trackGoalEvolution(previousGoal, currentGoal, options = {}) {
 
   // Server-side sync (fire-and-forget)
   if (userId && changed) {
-    apiPost("/memory/goal", { userId, ...event }).catch(() => {});
+    apiPost("/memory/goal", { userId, ...event }).catch((error) => {
+      console.warn('[goalEvolutionEngine] Failed to sync goal evolution to server:', {
+        userId,
+        goalId: event?.id,
+        error: error?.message,
+      });
+    });
   }
 
   return event;

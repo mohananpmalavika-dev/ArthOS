@@ -14,6 +14,9 @@ import b2bIntelligenceHandler from '../api_src/b2b/intelligence.js';
 import b2bRegisterHandler from '../api_src/b2b/register.js';
 import b2bValidateKeyHandler from '../api_src/b2b/validate-key.js';
 import b2bWebhooksHandler from '../api_src/b2b/webhooks.js';
+import userAssessmentsHandler from '../api_src/user/assessments.js';
+import userAssessmentDetailHandler from '../api_src/user/assessment-detail.js';
+import userScoresHandler from '../api_src/user/scores.js';
 import userScoreHandler from '../api_src/user/[userId]/score.js';
 import userRiskHandler from '../api_src/user/[userId]/risk.js';
 import remindersHandler from '../api_src/reminders.js';
@@ -55,6 +58,9 @@ const routeDefinitions = [
     handler: userRiskHandler,
     getParams: (match) => ({ userId: match[1] }),
   },
+  { match: (pathname) => pathname === '/api/user/assessments', handler: userAssessmentsHandler },
+  { match: (pathname) => pathname === '/api/user/assessment-detail' || pathname.startsWith('/api/user/assessment-detail/'), handler: userAssessmentDetailHandler },
+  { match: (pathname) => pathname === '/api/user/scores', handler: userScoresHandler },
   { match: (pathname) => pathname === '/api/reminders' || pathname.startsWith('/api/reminders/'), handler: remindersHandler },
   { match: (pathname) => pathname.startsWith('/api/coach'), handler: aiCoachHandler },
   { match: (pathname) => pathname.startsWith('/api/prediction'), handler: predictionEngineHandler },

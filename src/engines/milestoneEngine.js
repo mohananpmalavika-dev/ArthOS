@@ -56,7 +56,15 @@ function safeRead(key) {
 
 function safeWrite(key, value) {
   if (!isBrowser()) return;
-  try { window.localStorage.setItem(key, JSON.stringify(value)); } catch { }
+  try {
+    window.localStorage.setItem(key, JSON.stringify(value));
+  } catch (error) {
+    console.error('[milestoneEngine] Failed to persist milestones:', {
+      key,
+      error: error?.message,
+      code: error?.code,
+    });
+  }
 }
 
 /** Load all unlocked milestone IDs */

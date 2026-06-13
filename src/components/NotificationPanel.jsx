@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useEffect } from "react";
+import PropTypes from "prop-types";
 import { getNotifications, getUnreadCount, markNotificationRead, markAllNotificationsRead, clearNotifications } from "../engines/notificationEngine.js";
 import { Bell, CheckCheck, Trash2, X } from "lucide-react";
 
@@ -6,7 +7,7 @@ import { Bell, CheckCheck, Trash2, X } from "lucide-react";
  * NotificationPanel — slide-out panel showing all in-app notifications.
  * Triggered by clicking the Bell icon in the header.
  */
-export default function NotificationPanel({ isOpen, onClose }) {
+function NotificationPanel({ isOpen, onClose }) {
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
 
@@ -105,3 +106,10 @@ export default function NotificationPanel({ isOpen, onClose }) {
     </div>
   );
 }
+
+NotificationPanel.propTypes = {
+  isOpen: PropTypes.bool.isRequired,
+  onClose: PropTypes.func.isRequired,
+};
+
+export default NotificationPanel;

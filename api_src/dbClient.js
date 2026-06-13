@@ -106,14 +106,26 @@ export async function query(sql, params = []) {
   const supabase = createSupabaseClient();
   if (supabase) {
     // For Supabase RPC or raw SQL through stored procedures
-    // Note: Supabase doesn't support raw SQL queries directly via JS client
-    // This would need to be a stored procedure or use Supabase REST API
-    // For now, return empty array as fallback
-    console.warn("query() with raw SQL not fully supported on Supabase yet");
-    return [];
+// For Supabase RPC — try exec_sql if available, otherwise fallback
+try {
+  const { data, error } = await supabase.rpc('exec_sql', { sql_text: pgSql });
+  if (error) throw error;
+  return data || [];
+} catch (rpcErr) {
+  console.warn("query() with raw SQL not fully supported on Supabase via JS client. Consider using DATABASE_URL for direct PostgreSQL instead.");
+  return [];
+}
   }
 
   throw new Error("No database configuration found. Set DATABASE_URL or SUPABASE_URL/SUPABASE_SERVICE_ROLE_KEY.");
+}
+
+/**
+ * queryTable — Alias for query() with identical signature.
+ * Used by user-scoped endpoint templates (loadDraft, saveDraft, savePreference).
+ */
+export async function queryTable(sql, params = []) {
+  return query(sql, params);
 }
 
 export async function insertIntoTable(tableName, row) {

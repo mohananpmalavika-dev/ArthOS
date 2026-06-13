@@ -152,7 +152,10 @@ export function loadSession() {
   try {
     const raw = window.localStorage.getItem(SESSION_KEY);
     return raw ? JSON.parse(raw) : null;
-  } catch {
+  } catch (error) {
+    console.warn('[assessmentTelemetry] Failed to load session:', {
+      error: error?.message,
+    });
     return null;
   }
 }
@@ -160,8 +163,10 @@ export function loadSession() {
 function persistSession(session) {
   try {
     window.localStorage.setItem(SESSION_KEY, JSON.stringify(session));
-  } catch {
-    // ignore
+  } catch (error) {
+    console.warn('[assessmentTelemetry] Failed to persist session:', {
+      error: error?.message,
+    });
   }
 }
 
@@ -177,7 +182,10 @@ export function loadTelemetryHistory() {
   try {
     const raw = window.localStorage.getItem(TELEMETRY_STORAGE_KEY);
     return raw ? JSON.parse(raw) : [];
-  } catch {
+  } catch (error) {
+    console.warn('[assessmentTelemetry] Failed to load telemetry history:', {
+      error: error?.message,
+    });
     return [];
   }
 }
@@ -185,8 +193,11 @@ export function loadTelemetryHistory() {
 function persistTelemetryHistory(events) {
   try {
     window.localStorage.setItem(TELEMETRY_STORAGE_KEY, JSON.stringify(events));
-  } catch {
-    // ignore
+  } catch (error) {
+    console.warn('[assessmentTelemetry] Failed to persist telemetry history:', {
+      numEvents: events?.length || 0,
+      error: error?.message,
+    });
   }
 }
 
@@ -255,8 +266,10 @@ export function clearSession() {
   if (!hasLocalStorage()) return;
   try {
     window.localStorage.removeItem(SESSION_KEY);
-  } catch {
-    // ignore
+  } catch (error) {
+    console.warn('[assessmentTelemetry] Failed to clear session:', {
+      error: error?.message,
+    });
   }
 }
 

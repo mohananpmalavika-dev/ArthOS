@@ -2,7 +2,7 @@
 // Endpoint to retrieve a specific assessment by ID (user-owned only)
 // GET /api/user/assessment/:id - Returns assessment if user is owner
 
-import { queryDatabase } from "../dbClient.js";
+import { query } from "../dbClient.js";
 import jwt from "jsonwebtoken";
 
 const TABLE_NAME = process.env.SUPABASE_ASSESSMENTS_TABLE || "assessments";
@@ -51,34 +51,34 @@ export default async function handler(req, res) {
     console.log(`[UserAssessmentDetail] Retrieving assessment ${assessmentId} for user: ${user.id}`);
 
     // Query assessment, ensuring it belongs to the current user
-    const { rows, error } = await queryDatabase(
-      `SELECT 
-        id,
-        assessment,
-        result,
-        participant_name,
-        participant_age,
-        participant_email,
-        created_at,
-        user_id
-       FROM ${TABLE_NAME}
-       WHERE id = $1 AND user_id = $2`,
-      [assessmentId, user.id]
-    );
+    try {
+      const rows = await query(
+        `SELECT 
+          id,
+          assessment,
+          result,
+          participant_name,
+          participant_age,
+          participant_email,
+          created_at,
+          user_id
+         FROM ${TABLE_NAME}
+         WHERE id = $1 AND user_id = $2`,
+        [assessmentId, user.id]
+      );
 
-    if (error) {
-      console.error("[UserAssessmentDetail] DB query error:", error.message || error);
+      if (!rows || rows.length === 0) {
+        return res.status(404).json({ error: "Assessment not found or access denied" });
+      }
+
+      return res.status(200).json({
+        status: "success",
+        data: rows[0],
+      });
+    } catch (queryError) {
+      console.error("[UserAssessmentDetail] DB query error:", queryError.message || queryError);
       return res.status(500).json({ status: "error", reason: "db_query_failed" });
     }
-
-    if (!rows || rows.length === 0) {
-      return res.status(404).json({ error: "Assessment not found or access denied" });
-    }
-
-    return res.status(200).json({
-      status: "success",
-      data: rows[0],
-    });
   } catch (error) {
     console.error("[UserAssessmentDetail] handler error:", error?.message || error);
     return res.status(500).json({ status: "error", reason: "internal_error" });

@@ -479,7 +479,12 @@ export default function AssessmentSection({ assessment, result, onChange, onSave
       const next = !prev;
       try {
         window.localStorage.setItem(EXPRESS_MODE_KEY, String(next));
-      } catch {}
+      } catch (error) {
+        console.error('[AssessmentSection] Failed to save express mode preference:', {
+          mode: next,
+          error: error?.message,
+        });
+      }
       return next;
     });
   }, []);

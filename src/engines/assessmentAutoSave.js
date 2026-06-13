@@ -82,7 +82,10 @@ export function loadDraft() {
     }
 
     return draft;
-  } catch {
+  } catch (error) {
+    console.error('[assessmentAutoSave] Failed to load draft:', {
+      error: error?.message,
+    });
     return null;
   }
 }
@@ -102,8 +105,10 @@ export function clearDraft() {
   if (!isBrowser()) return;
   try {
     window.localStorage.removeItem(DRAFT_KEY);
-  } catch {
-    // ignore
+  } catch (error) {
+    console.warn('[assessmentAutoSave] Failed to clear draft:', {
+      error: error?.message,
+    });
   }
 }
 

@@ -39,17 +39,38 @@ function safeRead(key) {
   try {
     const raw = window.localStorage.getItem(key);
     return raw ? JSON.parse(raw) : null;
-  } catch { return null; }
+  } catch (error) {
+    console.error('[financialMemoryEngine] Failed to parse localStorage data:', {
+      key,
+      error: error?.message,
+    });
+    return null;
+  }
 }
 
 function safeWrite(key, value) {
   if (!isBrowser()) return;
-  try { window.localStorage.setItem(key, JSON.stringify(value)); } catch { }
+  try {
+    window.localStorage.setItem(key, JSON.stringify(value));
+  } catch (error) {
+    console.error('[financialMemoryEngine] Failed to persist financial memory:', {
+      key,
+      error: error?.message,
+      code: error?.code,
+    });
+  }
 }
 
 function safeRemove(key) {
   if (!isBrowser()) return;
-  try { window.localStorage.removeItem(key); } catch { }
+  try {
+    window.localStorage.removeItem(key);
+  } catch (error) {
+    console.error('[financialMemoryEngine] Failed to remove financial memory:', {
+      key,
+      error: error?.message,
+    });
+  }
 }
 
 function safeAppend(key, entry) {
@@ -62,6 +83,7 @@ function safeAppend(key, entry) {
 const API_BASE = "/api";
 
 async function apiPost(endpoint, payload, retries = 2) {
+  let lastError = null;
   for (let attempt = 0; attempt <= retries; attempt++) {
     try {
       const resp = await fetch(`${API_BASE}${endpoint}`, {
@@ -71,7 +93,17 @@ async function apiPost(endpoint, payload, retries = 2) {
       });
       if (resp.ok) return true;
       if (resp.status >= 400 && resp.status < 500) return false; // Client errors don't retry
-    } catch { /* network error, retry */ }
+    } catch (error) {
+      lastError = error;
+      if (attempt === retries) {
+        // Final attempt exhausted
+        console.warn('[financialMemoryEngine] apiPost retries exhausted:', {
+          endpoint,
+          attempts: attempt + 1,
+          error: error?.message,
+        });
+      }
+    }
     if (attempt < retries) await new Promise((r) => setTimeout(r, 1000 * Math.pow(2, attempt)));
   }
   return false;
@@ -82,7 +114,13 @@ async function apiGet(endpoint) {
     const resp = await fetch(`${API_BASE}${endpoint}`);
     if (!resp.ok) return null;
     return await resp.json();
-  } catch { return null; }
+  } catch (error) {
+    console.error('[financialMemoryEngine] Failed to fetch from API:', {
+      endpoint,
+      error: error?.message,
+    });
+    return null;
+  }
 }
 
 // ============================================================
@@ -433,7 +471,12 @@ export function getFinancialMemoryTimeline(userId = null, limit = 50) {
       if (remote && Array.isArray(remote.events) && remote.events.length > memory.length) {
         persistFinancialMemory(remote.events);
       }
-    }).catch(() => {});
+    }).catch((error) => {
+      console.warn('[financialMemoryEngine] Failed to sync financial memory from server:', {
+        userId,
+        error: error?.message,
+      });
+    });
   }
   return memory.slice(0, limit);
 }
@@ -468,7 +511,12 @@ export async function trackGoalEvolution(previousGoal, currentGoal, userId = nul
     try {
       const ok = await apiPost("/memory/goal", { userId, ...change });
       if (!ok) enqueueSync("/memory/goal", { userId, ...change });
-    } catch {
+    } catch (error) {
+      console.error('[financialMemoryEngine] Failed to sync goal change:', {
+        userId,
+        changeId: change?.id,
+        error: error?.message,
+      });
       enqueueSync("/memory/goal", { userId, ...change });
     }
   }
@@ -507,7 +555,12 @@ export async function saveTwinSnapshot(snapshot, userId = null) {
     try {
       const ok = await apiPost("/memory/twin", { userId, snapshot: entry });
       if (!ok) enqueueSync("/memory/twin", { userId, snapshot: entry });
-    } catch {
+    } catch (error) {
+      console.error('[financialMemoryEngine] Failed to sync digital twin:', {
+        userId,
+        snapshotId: entry?.id,
+        error: error?.message,
+      });
       enqueueSync("/memory/twin", { userId, snapshot: entry });
     }
   }
@@ -527,6 +580,7 @@ async function apiPostAuthorized(endpoint, payload, authToken, retries = 2) {
   const headers = { "Content-Type": "application/json" };
   if (authToken) headers["Authorization"] = `Bearer ${authToken}`;
 
+  let lastError = null;
   for (let attempt = 0; attempt <= retries; attempt++) {
     try {
       const resp = await fetch(`${API_BASE}${endpoint}`, {
@@ -536,7 +590,17 @@ async function apiPostAuthorized(endpoint, payload, authToken, retries = 2) {
       });
       if (resp.ok) return true;
       if (resp.status >= 400 && resp.status < 500) return false;
-    } catch { /* network error, retry */ }
+    } catch (error) {
+      lastError = error;
+      if (attempt === retries) {
+        // Final attempt exhausted
+        console.warn('[financialMemoryEngine] apiPostAuthorized retries exhausted:', {
+          endpoint,
+          attempts: attempt + 1,
+          error: error?.message,
+        });
+      }
+    }
     if (attempt < retries) await new Promise((r) => setTimeout(r, 1000 * Math.pow(2, attempt)));
   }
   return false;

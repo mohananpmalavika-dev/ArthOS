@@ -91,7 +91,11 @@ export default async function handler(req, res) {
       // Validate URL format
       try {
         new URL(url);
-      } catch {
+      } catch (error) {
+        console.warn('[webhooks] Invalid webhook URL provided:', {
+          url: url?.substring(0, 50) + '...',
+          error: error?.message,
+        });
         return res.status(400).json({ error: 'Invalid webhook URL format' });
       }
 

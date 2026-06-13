@@ -1,8 +1,9 @@
 // src/components/ValidationFeedbackForm.jsx
 import React, { useState, useRef, useEffect } from "react";
+import PropTypes from "prop-types";
 import { MessageSquare, ThumbsUp } from "lucide-react";
 
-export default function ValidationFeedbackForm({ healthScore, onSubmitFeedback }) {
+function ValidationFeedbackForm({ healthScore, onSubmitFeedback }) {
   const [hasVoted, setHasVoted] = useState(false);
   const [selectedImpact, setSelectedImpact] = useState(null);
   const [qualitativeNote, setQualitativeNote] = useState("");
@@ -155,3 +156,10 @@ export default function ValidationFeedbackForm({ healthScore, onSubmitFeedback }
     </div>
   );
 }
+
+ValidationFeedbackForm.propTypes = {
+  healthScore: PropTypes.number.isRequired,
+  onSubmitFeedback: PropTypes.func.isRequired,
+};
+
+export default ValidationFeedbackForm;

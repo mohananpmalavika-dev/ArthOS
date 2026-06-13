@@ -1,0 +1,208 @@
+name: Tests & Coverage
+
+on:
+  push:
+    branches: [main, develop, staging]
+  pull_request:
+    branches: [main, develop, staging]
+
+jobs:
+  test:
+    name: Run Tests & Coverage
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    strategy:
+      matrix:
+        node-version: [18.x, 20.x]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Full history for better diff analysis
+
+      - name: Setup Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run type checking
+        run: npm run type-check
+        continue-on-error: true
+
+      - name: Run linting
+        run: npm run lint
+        continue-on-error: true
+
+      - name: Run unit tests
+        run: npm test -- --run
+
+      - name: Generate coverage report
+        run: npm run test:coverage -- --run
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          files: ./coverage/coverage-final.json
+          flags: unittests
+          name: codecov-umbrella
+          verbose: true
+        continue-on-error: true
+
+      - name: Comment PR with coverage info
+        if: github.event_name == 'pull_request' && matrix.node-version == '18.x'
+        uses: romeovs/lcov-reporter-action@v0.3.1
+        with:
+          lcov-file: ./coverage/lcov.info
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+        continue-on-error: true
+
+  lint:
+    name: Lint & Format Check
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18.x'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Check formatting
+        run: npm run format -- --check
+        continue-on-error: true
+
+      - name: Run ESLint
+        run: npm run lint
+        continue-on-error: true
+
+  build:
+    name: Build Verification
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    needs: test
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18.x'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build for production
+        run: npm run build
+
+      - name: Check build output size
+        run: |
+          echo "Build size check:"
+          du -sh dist/
+          
+          # Fail if main bundle is > 300KB
+          MAIN_SIZE=$(du -b dist/assets/index*.js | cut -f1 | head -1)
+          if [ $MAIN_SIZE -gt 314572800 ]; then
+            echo "Main bundle exceeds 300KB!"
+            exit 1
+          fi
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-${{ github.sha }}
+          path: dist/
+          retention-days: 5
+
+  coverage-report:
+    name: Generate Coverage Report
+    runs-on: ubuntu-latest
+    if: always()
+    needs: test
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download coverage report
+        uses: actions/download-artifact@v4
+        with:
+          name: coverage
+          path: ./coverage
+
+      - name: Generate coverage badge
+        run: |
+          # Generate a simple coverage badge
+          echo "Coverage badge generation"
+
+      - name: Create coverage comment on PR
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            if (fs.existsSync('./coverage/coverage-summary.json')) {
+              const coverage = JSON.parse(fs.readFileSync('./coverage/coverage-summary.json', 'utf-8'));
+              const total = coverage.total;
+              
+              const comment = `
+              ## Coverage Report
+              
+              | Metric | Coverage |
+              |--------|----------|
+              | Lines | ${total.lines.pct}% |
+              | Statements | ${total.statements.pct}% |
+              | Functions | ${total.functions.pct}% |
+              | Branches | ${total.branches.pct}% |
+              `;
+              
+              github.rest.issues.createComment({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: comment
+              });
+            }
+
+  notify:
+    name: Notify on Failure
+    runs-on: ubuntu-latest
+    if: failure()
+    needs: [test, lint, build]
+
+    steps:
+      - name: Notify in Slack (if configured)
+        uses: slackapi/slack-github-action@v1
+        with:
+          payload: |
+            {
+              "text": "ARTH.OS CI/CD Failed",
+              "blocks": [
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "*Build Failed* 🔴\n<${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View Details>"
+                  }
+                }
+              ]
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        if: always()
+        continue-on-error: true

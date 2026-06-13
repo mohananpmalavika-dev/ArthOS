@@ -41,7 +41,13 @@ function saveOutcomes(outcomes) {
   if (!isBrowser()) return;
   try {
     window.localStorage.setItem(DECISION_OUTCOME_KEY, JSON.stringify(outcomes));
-  } catch { }
+  } catch (error) {
+    console.error('[decisionIntelligence] Failed to save decision outcomes:', {
+      numOutcomes: outcomes?.length || 0,
+      error: error?.message,
+      code: error?.code,
+    });
+  }
 }
 
 // ============================================================

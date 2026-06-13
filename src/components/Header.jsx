@@ -1,8 +1,9 @@
 import React from "react";
+import PropTypes from "prop-types";
 import { Search, Bell, Download, LogIn, LogOut, CircleUserRound, ChevronDown } from "lucide-react";
 import { NAV_ITEMS } from "../lib/copy.ts";
 
-export default function Header({
+function Header({
   activeHash,
   saveState,
   saveStatusLabel,
@@ -81,3 +82,40 @@ export default function Header({
     </header>
   );
 }
+
+Header.propTypes = {
+  activeHash: PropTypes.string,
+  saveState: PropTypes.string,
+  saveStatusLabel: PropTypes.string,
+  saveStatusClass: PropTypes.string,
+  onExport: PropTypes.func,
+  onReset: PropTypes.func,
+  onSave: PropTypes.func,
+  isAuthenticated: PropTypes.bool,
+  user: PropTypes.shape({
+    name: PropTypes.string,
+    email: PropTypes.string,
+  }),
+  onOpenAuth: PropTypes.func,
+  onLogout: PropTypes.func,
+  notificationBadgeCount: PropTypes.number,
+  onToggleNotification: PropTypes.func,
+};
+
+Header.defaultProps = {
+  activeHash: "#home",
+  saveState: "saving",
+  saveStatusLabel: "Saved",
+  saveStatusClass: "saved",
+  onExport: () => {},
+  onReset: () => {},
+  onSave: () => {},
+  isAuthenticated: false,
+  user: null,
+  onOpenAuth: () => {},
+  onLogout: () => {},
+  notificationBadgeCount: 0,
+  onToggleNotification: () => {},
+};
+
+export default Header;

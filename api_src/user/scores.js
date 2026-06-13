@@ -2,7 +2,7 @@
 // Endpoint to retrieve authenticated user's score history
 // GET /api/user/scores - Returns score progression for the user
 
-import { queryDatabase } from "../dbClient.js";
+import { query } from "../dbClient.js";
 import jwt from "jsonwebtoken";
 
 const TELEMETRY_TABLE = process.env.SUPABASE_TELEMETRY_TABLE || "anonymous_telemetry";
@@ -48,41 +48,42 @@ export default async function handler(req, res) {
     console.log(`[UserScores] Retrieving score history for user: ${user.id}`);
 
     // Query user's telemetry scores, ordered by most recent first
-    const { rows, error } = await queryDatabase(
-      `SELECT 
-        id,
-        health_score,
-        behaviour_score,
-        awareness_score,
-        stability_score,
-        habits_score,
-        personality_type,
-        future_risk_label,
-        future_risk_score,
-        awareness_gap_months,
-        nominal_survival_months,
-        crisis_survival_months,
-        created_at
-       FROM ${TELEMETRY_TABLE}
-       WHERE user_id = $1 AND is_authenticated = true
-       ORDER BY created_at DESC
-       LIMIT $2 OFFSET $3`,
-      [user.id, limit, offset]
-    );
+    let rows = [];
+    let total = 0;
+    try {
+      rows = await query(
+        `SELECT 
+          id,
+          health_score,
+          behaviour_score,
+          awareness_score,
+          stability_score,
+          habits_score,
+          personality_type,
+          future_risk_label,
+          future_risk_score,
+          awareness_gap_months,
+          nominal_survival_months,
+          crisis_survival_months,
+          created_at
+         FROM ${TELEMETRY_TABLE}
+         WHERE user_id = $1 AND is_authenticated = true
+         ORDER BY created_at DESC
+         LIMIT $2 OFFSET $3`,
+        [user.id, limit, offset]
+      );
 
-    if (error) {
-      console.error("[UserScores] DB query error:", error.message || error);
+      // Get total count for pagination
+      const countRows = await query(
+        `SELECT COUNT(*) as total FROM ${TELEMETRY_TABLE} 
+         WHERE user_id = $1 AND is_authenticated = true`,
+        [user.id]
+      );
+      total = countRows?.[0]?.total || 0;
+    } catch (queryError) {
+      console.error("[UserScores] DB query error:", queryError.message || queryError);
       return res.status(500).json({ status: "error", reason: "db_query_failed" });
     }
-
-    // Get total count for pagination
-    const countResult = await queryDatabase(
-      `SELECT COUNT(*) as total FROM ${TELEMETRY_TABLE} 
-       WHERE user_id = $1 AND is_authenticated = true`,
-      [user.id]
-    );
-
-    const total = countResult.rows?.[0]?.total || 0;
 
     // Calculate trends if enough data
     let trends = null;

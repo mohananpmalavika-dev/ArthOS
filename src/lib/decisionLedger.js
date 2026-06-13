@@ -29,7 +29,13 @@ function safeWrite(store) {
   if (!isBrowser()) return;
   try {
     window.localStorage.setItem(DECISION_LEDGER_KEY, JSON.stringify(store));
-  } catch { }
+  } catch (error) {
+    console.error('[decisionLedger] Failed to persist decision ledger:', {
+      numDecisions: Object.values(store).reduce((sum, arr) => sum + arr.length, 0),
+      error: error?.message,
+      code: error?.code,
+    });
+  }
 }
 
 async function apiPost(endpoint, payload) {
@@ -40,7 +46,13 @@ async function apiPost(endpoint, payload) {
       body: JSON.stringify(payload),
     });
     return resp.ok;
-  } catch { return false; }
+  } catch (error) {
+    console.error('[decisionLedger] Failed to sync decision to server:', {
+      endpoint,
+      error: error?.message,
+    });
+    return false;
+  }
 }
 
 class DecisionLedger {

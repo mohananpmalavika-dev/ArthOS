@@ -30,7 +30,14 @@ export default function NotificationToast() {
     setCurrentToast(next);
     setShownIds((prev) => {
       const updated = [...prev, next.id];
-      try { sessionStorage.setItem("arth-os-toast-shown", JSON.stringify(updated)); } catch {}
+      try {
+        sessionStorage.setItem("arth-os-toast-shown", JSON.stringify(updated));
+      } catch (error) {
+        console.warn('[NotificationToast] Failed to persist shown toast IDs:', {
+          numShown: updated.length,
+          error: error?.message,
+        });
+      }
       return updated;
     });
     markNotificationRead(next.id);
