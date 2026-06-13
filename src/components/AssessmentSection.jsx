@@ -337,8 +337,12 @@ function SegmentedControl({ labelledBy, name, options, value, onChange }) {
 }
 
 function LiveResultSnapshot({ result }) {
-  const score = Math.max(0, Math.min(100, Math.round(result.healthScore ?? 0)));
-  const scoreLabel = result.categoryBand?.label ?? "Live profile";
+  if (!result || !result.healthScore) {
+    return null;
+  }
+
+  const score = Math.max(0, Math.min(100, Math.round((result.healthScore ?? 0) / 10)));
+  const scoreLabel = result.categoryBand?.label;
   const componentRows = result.componentRows ?? [];
 
   return (

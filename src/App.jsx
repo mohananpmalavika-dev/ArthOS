@@ -2037,8 +2037,12 @@ function Header({
 const sIcons = { behaviour: Brain, awareness: BarChart3, stability: ShieldCheck };
 
 function HeroSection({ assessment, result }) {
-  const scorePreview = Math.max(0, Math.min(100, Math.round(result.healthScore ?? 0)));
-  const scoreLabel = result.categoryBand?.label ?? "Live profile";
+  if (!result || !result.healthScore) {
+    return null;
+  }
+
+  const scorePreview = Math.max(0, Math.min(100, Math.round((result.healthScore ?? 0) / 10)));
+  const scoreLabel = result.categoryBand?.label;
   const liveInsights = buildLiveInsightCards(result, assessment);
   const metricRows = [
     {
@@ -2057,9 +2061,10 @@ function HeroSection({ assessment, result }) {
       width: `${Math.min(100, ((result.awarenessScore ?? 0) / componentMaximumsV2.awareness) * 100)}%`,
     },
   ];
-  const perceivedRunway = Number(result.blindSpotPerceived) || 8;
-  const actualRunway = Number(result.blindSpotActual) || 4;
-  const blindSpot = Number(result.blindSpotGap) || Math.max(perceivedRunway - actualRunway, 0);
+  const perceivedRunway = Number(result.blindSpotPerceived);
+  const actualRunway = Number(result.blindSpotActual);
+  const blindSpot = Number(result.blindSpotGap);
+  const hasBlindSpotData = !isNaN(perceivedRunway) && !isNaN(actualRunway) && !isNaN(blindSpot);
 
   return (
     <section className="model-screen" id="home">
@@ -2104,26 +2109,28 @@ function HeroSection({ assessment, result }) {
               <small>Updated just now</small>
             </div>
 
-            <section className="awareness-card">
-              <h3>The Visibility Blindspot</h3>
-              <div className="gap-grid">
-                <div>
-                  <h1>{perceivedRunway}</h1>
-                  <label>You Believe</label>
+            {hasBlindSpotData && (
+              <section className="awareness-card">
+                <h3>The Visibility Blindspot</h3>
+                <div className="gap-grid">
+                  <div>
+                    <h1>{perceivedRunway}</h1>
+                    <label>You Believe</label>
+                  </div>
+                  <div>
+                    <h1>{actualRunway}</h1>
+                    <label>Reality</label>
+                  </div>
+                  <div>
+                    <h1>{blindSpot}</h1>
+                    <label>Gap</label>
+                  </div>
                 </div>
-                <div>
-                  <h1>{actualRunway}</h1>
-                  <label>Reality</label>
-                </div>
-                <div>
-                  <h1>{blindSpot}</h1>
-                  <label>Gap</label>
-                </div>
-              </div>
-              <p className="awareness-copy">
-                You overestimate your financial runway by {blindSpot} months.
-              </p>
-            </section>
+                <p className="awareness-copy">
+                  You overestimate your financial runway by {blindSpot} months.
+                </p>
+              </section>
+            )}
 
             <div className="model-metric-stack">
               {metricRows.map((row) => (
@@ -2152,7 +2159,7 @@ function HeroSection({ assessment, result }) {
           <div className="model-insights-header">
             <h2>Live Insights</h2>
             <div>
-              <a className="model-view-insights">View all</a>
+              <a className="model-view-insights" href="#reports">View all</a>
             </div>
           </div>
 
