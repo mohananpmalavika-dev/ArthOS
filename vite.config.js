@@ -40,7 +40,10 @@ function buildRouteString(segments) {
     }
     return s;
   });
-  return "/" + normalized.join("/");
+  // Remove consecutive duplicates so that e.g.
+  // ["api", "follow-up", "follow-up"] → ["api", "follow-up"] → "/api/follow-up"
+  const deduped = normalized.filter((s, idx) => idx === 0 || s !== normalized[idx - 1]);
+  return "/" + deduped.filter(Boolean).join("/");
 }
 
 function createRouteMatcher(route) {
