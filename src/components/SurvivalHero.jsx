@@ -20,8 +20,4 @@ SurvivalHero.propTypes = {
   survivalMonths: PropTypes.number
 };
 
-SurvivalHero.defaultProps = {
-  survivalMonths: 0
-};
-
 export default SurvivalHero;

@@ -4,19 +4,19 @@ import { Search, Bell, Download, LogIn, LogOut, CircleUserRound, ChevronDown } f
 import { NAV_ITEMS } from "../lib/copy.ts";
 
 function Header({
-  activeHash,
-  saveState,
-  saveStatusLabel,
-  saveStatusClass,
-  onExport,
-  onReset,
-  onSave,
-  isAuthenticated,
-  user,
-  onOpenAuth,
-  onLogout,
+  activeHash = "#home",
+  saveState = "saving",
+  saveStatusLabel = "Saved",
+  saveStatusClass = "saved",
+  onExport = () => {},
+  onReset = () => {},
+  onSave = () => {},
+  isAuthenticated = false,
+  user = null,
+  onOpenAuth = () => {},
+  onLogout = () => {},
   notificationBadgeCount = 0,
-  onToggleNotification
+  onToggleNotification = () => {}
 }) {
   return (
     <header className="topbar">
@@ -110,22 +110,6 @@ Header.propTypes = {
   onLogout: PropTypes.func,
   notificationBadgeCount: PropTypes.number,
   onToggleNotification: PropTypes.func
-};
-
-Header.defaultProps = {
-  activeHash: "#home",
-  saveState: "saving",
-  saveStatusLabel: "Saved",
-  saveStatusClass: "saved",
-  onExport: () => {},
-  onReset: () => {},
-  onSave: () => {},
-  isAuthenticated: false,
-  user: null,
-  onOpenAuth: () => {},
-  onLogout: () => {},
-  notificationBadgeCount: 0,
-  onToggleNotification: () => {}
 };
 
 export default Header;

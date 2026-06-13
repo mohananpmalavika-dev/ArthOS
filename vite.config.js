@@ -8,11 +8,39 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const apiDirectory = path.resolve(__dirname, "api_src");
 
+/**
+ * Files that handle ALL subpaths under their route.
+ * These are "umbrella" handlers (apis/index.js style) that internally
+ * parse the URL to dispatch to sub-handlers.
+ */
+const PREFIX_MATCH_FILES = new Set([
+  "memory.js",
+  "sync.js",
+  "subscriptions-handler.js",
+  "follow-up-handler.js",
+  "reminders.js",
+]);
+
 function normalizeSegment(segment) {
   if (segment.startsWith("[") && segment.endsWith("]")) {
     return `:${segment.slice(1, -1)}`;
   }
   return segment;
+}
+
+/**
+ * Build a route string from directory segments + file.
+ * Strips "-handler" suffixes so subscriptions-handler.js becomes /api/subscriptions.
+ */
+function buildRouteString(segments) {
+  const normalized = segments.map((s) => {
+    // Strip trailing "-handler" from any segment
+    if (s.endsWith("-handler")) {
+      return s.slice(0, -"-handler".length);
+    }
+    return s;
+  });
+  return "/" + normalized.join("/");
 }
 
 function createRouteMatcher(route) {
@@ -40,6 +68,17 @@ function createRouteMatcher(route) {
   };
 }
 
+function createPrefixMatcher(route) {
+  // strip trailing slash
+  const prefix = route.replace(/\/+$/, "");
+  return (pathname) => {
+    if (pathname === prefix || pathname.startsWith(prefix + "/")) {
+      return {};
+    }
+    return null;
+  };
+}
+
 function buildApiRoutes() {
   const routes = [];
   const walk = (dir, routePrefix = "/api") => {
@@ -54,11 +93,17 @@ function buildApiRoutes() {
       const fileBase = entry.name === "index.js" ? "" : entry.name.replace(/\.js$/, "");
       const segments = [...routePrefix.split("/").filter(Boolean)];
       if (fileBase) segments.push(fileBase);
-      const route = "/" + segments.map(normalizeSegment).join("/");
-      const matcher = fileBase === "" && route === "/api"
-        ? (pathname) => pathname === "/api" || pathname.startsWith("/api/")
+
+      const route = buildRouteString(segments);
+
+      // Use prefix matcher for umbrella handlers (match subpaths)
+      // Use exact matcher for everything else
+      const isPrefixMatch = PREFIX_MATCH_FILES.has(entry.name);
+      const matcher = isPrefixMatch
+        ? createPrefixMatcher(route)
         : createRouteMatcher(route);
-      routes.push({ route, matcher, fullPath });
+
+      routes.push({ route, matcher, fullPath, isPrefixMatch });
     }
   };
 
@@ -78,6 +123,7 @@ async function loadApiHandlers(routes) {
         route: entry.route,
         matcher: entry.matcher,
         handler: module.default,
+        isPrefixMatch: entry.isPrefixMatch,
       });
     } catch (error) {
       // Skip modules that can't be loaded as handlers
@@ -114,7 +160,11 @@ function createApiMiddleware(handlers) {
     if (!matched) return next();
 
     req.query = Object.fromEntries(url.searchParams.entries());
-    req.params = matched.matcher(pathname);
+    // For prefix matchers, set params to an empty object;
+    // for exact matchers with captured groups, return them
+    const matchResult = matched.matcher(pathname);
+    req.params = matchResult || {};
+
     if (["POST", "PUT", "PATCH", "DELETE"].includes(req.method)) {
       try {
         req.body = await parseJsonBody(req);
@@ -152,7 +202,7 @@ function createApiPlugin() {
     name: "vite-plugin-local-api",
     async configureServer(server) {
       const handlers = await apiHandlersPromise;
-      
+
       // Add CSP middleware to allow data URIs, external fonts, and unsafe-inline styles
       server.middlewares.use((req, res, next) => {
         res.setHeader(
@@ -161,12 +211,12 @@ function createApiPlugin() {
         );
         next();
       });
-      
+
       server.middlewares.use(createApiMiddleware(handlers));
     },
     async configurePreviewServer(server) {
       const handlers = await apiHandlersPromise;
-      
+
       // Add CSP middleware to allow data URIs, external fonts, and unsafe-inline styles
       server.middlewares.use((req, res, next) => {
         res.setHeader(
@@ -175,7 +225,7 @@ function createApiPlugin() {
         );
         next();
       });
-      
+
       server.middlewares.use(createApiMiddleware(handlers));
     },
   };
@@ -210,7 +260,7 @@ export default defineConfig({
           "vendor-charts": ["recharts"],
           "vendor-icons": ["lucide-react"],
           "vendor-supabase": ["@supabase/supabase-js"],
-          
+
           // Heavy UI components - loaded on-demand
           "feature-dashboard": [
             "./src/components/AnalyticsDashboard.jsx",
@@ -225,7 +275,7 @@ export default defineConfig({
             "./src/components/UserHistory.jsx",
             "./src/components/TraitMatrixVisualizer.jsx",
           ],
-          
+
           // Insight engines - split heavy computation modules
           "engine-narrative": [
             "./src/engines/trajectoryNarrativeEngine.js",
@@ -242,7 +292,7 @@ export default defineConfig({
             "./src/engines/emotionalTriggerEngine.js",
             "./src/engines/counterfactualEngine.js",
           ],
-          
+
           // React and DOM
           "react-vendor": ["react", "react-dom"],
         },

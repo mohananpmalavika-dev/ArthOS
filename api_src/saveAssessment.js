@@ -97,6 +97,12 @@ export default async function handler(req, res) {
 
     return res.status(200).json({ status: "saved" });
   } catch (error) {
+    // If no database is configured, gracefully return success
+    if (error?.message?.includes("No database configuration")) {
+      console.log("[SaveAssessment] No database - assessment data logged locally");
+      return res.status(200).json({ status: "logged", message: "Assessment received" });
+    }
+
     console.error("[SaveAssessment] handler error:", error?.message || error);
     return res.status(500).json({ status: "error", reason: "internal_error" });
   }

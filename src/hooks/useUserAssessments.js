@@ -42,8 +42,17 @@ export function useUserAssessments() {
         );
 
         if (!response.ok) {
-          const errData = await response.json();
-          throw new Error(errData.error || "Failed to fetch assessments");
+          const contentType = response.headers.get("content-type");
+          let errorMsg = "Failed to fetch assessments";
+          if (contentType && contentType.includes("application/json")) {
+            try {
+              const errData = await response.json();
+              errorMsg = errData.error || "Failed to fetch assessments";
+            } catch {
+              // Ignore JSON parse error, use default message
+            }
+          }
+          throw new Error(errorMsg);
         }
 
         const data = await response.json();
@@ -108,8 +117,17 @@ export function useUserScoreHistory() {
         });
 
         if (!response.ok) {
-          const errData = await response.json();
-          throw new Error(errData.error || "Failed to fetch scores");
+          const contentType = response.headers.get("content-type");
+          let errorMsg = "Failed to fetch scores";
+          if (contentType && contentType.includes("application/json")) {
+            try {
+              const errData = await response.json();
+              errorMsg = errData.error || "Failed to fetch scores";
+            } catch {
+              // Ignore JSON parse error, use default message
+            }
+          }
+          throw new Error(errorMsg);
         }
 
         const data = await response.json();

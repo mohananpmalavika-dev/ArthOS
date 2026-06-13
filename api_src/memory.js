@@ -293,10 +293,27 @@ async function handleGet(subroute, query, res) {
 }
 
 export default async function handler(req, res) {
-  // Parse the subroute from the URL path
-  // Expected: /api/memory, /api/memory/score, /api/memory/events, etc.
-  // Vercel rewrites /api/memory/* to /api/memory?route=*
-  const subroute = (req.query.route || "").replace(/\/+$/, "").replace(/^\//, "");
+  // Parse the subroute from the URL path or query param
+  // On Vercel: rewrites /api/memory/* to /api/memory?route=*, so subroute comes from query
+  // On Vite dev server: path is /api/memory/sync/scores, so parse from pathname
+  let subroute = (req.query.route || "").replace(/\/+$/, "").replace(/^\//, "");
+
+  if (!subroute) {
+    // Parse from URL pathname (Vite dev server mode)
+    const url = new URL(req.url || "", "http://localhost");
+    const pathname = url.pathname;
+    // Strip /api/memory prefix
+    const prefix = "/api/memory";
+    if (pathname.startsWith(prefix + "/")) {
+      subroute = pathname.slice(prefix.length + 1).replace(/\/+$/, "").replace(/^\//, "");
+    }
+  }
+
+  // Debug logging
+  if (subroute && subroute.startsWith("sync/")) {
+    console.log(`[Memory API] ${req.method} ${subroute} - userId: ${req.body?.userId || req.query?.userId}`);
+  }
+
   const method = req.method || "GET";
 
   // CORS headers

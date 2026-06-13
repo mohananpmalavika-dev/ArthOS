@@ -24,8 +24,25 @@ export function useSubscription(userId) {
       try {
         setLoading(true);
         const response = await fetch(`/api/subscriptions/${userId}`);
+        
+        // Check if response is ok and is JSON
+        if (!response.ok) {
+          console.error("Failed to fetch subscription:", response.status);
+          setError("Could not load subscription");
+          setTier("free");
+          return;
+        }
+        
+        // Verify content-type is JSON
+        const contentType = response.headers.get("content-type");
+        if (!contentType || !contentType.includes("application/json")) {
+          console.error("API returned non-JSON response");
+          setError("Invalid response from server");
+          setTier("free");
+          return;
+        }
+        
         const data = await response.json();
-
         setSubscription(data);
         setTier(data.tier || "free");
         setError(null);
@@ -66,6 +83,22 @@ export function useSubscription(userId) {
           body: JSON.stringify({ planId: newTier })
         });
 
+        if (!response.ok) {
+          console.error("Failed to upgrade subscription:", response.status);
+          const contentType = response.headers.get("content-type");
+          let errorMsg = "Upgrade failed";
+          if (contentType && contentType.includes("application/json")) {
+            try {
+              const errData = await response.json();
+              errorMsg = errData.message || "Upgrade failed";
+            } catch {
+              // Ignore JSON parse error, use default message
+            }
+          }
+          setError(errorMsg);
+          return false;
+        }
+
         const result = await response.json();
 
         if (result.success || result.subscriptionId) {
@@ -96,6 +129,22 @@ export function useSubscription(userId) {
         method: "POST",
         headers: { "Content-Type": "application/json" }
       });
+
+      if (!response.ok) {
+        console.error("Failed to cancel subscription:", response.status);
+        const contentType = response.headers.get("content-type");
+        let errorMsg = "Cancellation failed";
+        if (contentType && contentType.includes("application/json")) {
+          try {
+            const errData = await response.json();
+            errorMsg = errData.message || "Cancellation failed";
+          } catch {
+            // Ignore JSON parse error, use default message
+          }
+        }
+        setError(errorMsg);
+        return false;
+      }
 
       const result = await response.json();
 

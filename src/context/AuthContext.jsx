@@ -103,12 +103,23 @@ export function AuthProvider({ children }) {
           body: JSON.stringify({ email, password })
         });
 
-        const data = await res.json();
-
+        // Check response status before parsing JSON
         if (!res.ok) {
-          setError(data.error || "Login failed");
+          const contentType = res.headers.get("content-type");
+          let errorMsg = "Login failed";
+          if (contentType && contentType.includes("application/json")) {
+            try {
+              const data = await res.json();
+              errorMsg = data.error || "Login failed";
+            } catch {
+              // Ignore JSON parse error, use default message
+            }
+          }
+          setError(errorMsg);
           return false;
         }
+
+        const data = await res.json();
 
         // Migrate anonymous localStorage data to the new user scope
         migrateAnonymousData(data.user.id);
@@ -142,12 +153,23 @@ export function AuthProvider({ children }) {
           body: JSON.stringify({ name, email, password })
         });
 
-        const data = await res.json();
-
+        // Check response status before parsing JSON
         if (!res.ok) {
-          setError(data.error || "Registration failed");
+          const contentType = res.headers.get("content-type");
+          let errorMsg = "Registration failed";
+          if (contentType && contentType.includes("application/json")) {
+            try {
+              const data = await res.json();
+              errorMsg = data.error || "Registration failed";
+            } catch {
+              // Ignore JSON parse error, use default message
+            }
+          }
+          setError(errorMsg);
           return false;
         }
+
+        const data = await res.json();
 
         // Migrate anonymous localStorage data to the new user scope
         migrateAnonymousData(data.user.id);

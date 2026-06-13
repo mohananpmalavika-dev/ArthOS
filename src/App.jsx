@@ -492,11 +492,21 @@ export default function App() {
     }
     const userId = currentUserId || assessment.participant?.email || "demo";
     void fetch(`/api/decision?userId=${encodeURIComponent(userId)}`)
-      .then(response => response.json())
+      .then(response => {
+        if (!response.ok) {
+          throw new Error(`API returned status ${response.status}`);
+        }
+        const contentType = response.headers.get("content-type");
+        if (!contentType || !contentType.includes("application/json")) {
+          throw new Error("API returned non-JSON response");
+        }
+        return response.json();
+      })
       .then(data => {
         setDecisionHistoryCount(Array.isArray(data.decisions) ? data.decisions.length : 0);
       })
-      .catch(() => {
+      .catch(err => {
+        console.error("Error fetching decision history:", err);
         setDecisionHistoryCount(0);
       });
   }, [currentUserId, assessment.participant?.email, decisionsRefresh]);
@@ -509,7 +519,17 @@ export default function App() {
     void fetch(`/api/follow-up/pending?userId=${encodeURIComponent(currentUserId)}`, {
       headers: { "x-user-id": currentUserId }
     })
-      .then(response => response.json())
+      .then(response => {
+        // Check if response is ok and is JSON
+        if (!response.ok) {
+          throw new Error(`API returned status ${response.status}`);
+        }
+        const contentType = response.headers.get("content-type");
+        if (!contentType || !contentType.includes("application/json")) {
+          throw new Error("API returned non-JSON response");
+        }
+        return response.json();
+      })
       .then(data => {
         if (data.followUps && Array.isArray(data.followUps)) {
           setPendingFollowUps(data.followUps);
@@ -597,7 +617,16 @@ export default function App() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload)
     })
-      .then(response => response.json())
+      .then(response => {
+        if (!response.ok) {
+          throw new Error(`API returned status ${response.status}`);
+        }
+        const contentType = response.headers.get("content-type");
+        if (!contentType || !contentType.includes("application/json")) {
+          throw new Error("API returned non-JSON response");
+        }
+        return response.json();
+      })
       .then(data => {
         if (Array.isArray(data.alerts)) {
           setBackendRiskAlerts(data.alerts);
@@ -606,7 +635,8 @@ export default function App() {
           setBackendMarketplaceRecommendations(data.recommendations);
         }
       })
-      .catch(() => {
+      .catch(err => {
+        console.error("Error fetching risk-opportunity:", err);
         setBackendRiskAlerts([]);
       });
   }, [assessment.profile, assessment.behaviour, result.survivalMonthsRaw]);

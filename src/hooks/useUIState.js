@@ -8,7 +8,7 @@
  * - SMS enrichment UI
  */
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, startTransition } from "react";
 import { isBrowser } from "../lib/app-utils.jsx";
 
 export function useUIState() {

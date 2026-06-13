@@ -2,7 +2,7 @@ import React from "react";
 import PropTypes from "prop-types";
 import { PieChart, Pie, Cell, ResponsiveContainer } from "recharts";
 
-function ScoreRing({ score }) {
+function ScoreRing({ score = 0 }) {
   const normalizedScore = Math.max(0, Math.min(100, Number(score) || 0));
   const ringData = [{ value: normalizedScore }, { value: 100 - normalizedScore }];
 
@@ -34,10 +34,6 @@ function ScoreRing({ score }) {
 
 ScoreRing.propTypes = {
   score: PropTypes.oneOfType([PropTypes.string, PropTypes.number])
-};
-
-ScoreRing.defaultProps = {
-  score: 0
 };
 
 export default ScoreRing;
