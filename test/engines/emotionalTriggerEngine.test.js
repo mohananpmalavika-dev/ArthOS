@@ -49,22 +49,25 @@ describe('emotionalTriggerEngine.js - Emotional Trigger Detection', () => {
     it('should identify stress-related triggers', () => {
       const triggers = detectTriggers(mockUser);
 
-      expect(triggers).toHaveProperty('stress');
-      expect(typeof triggers.stress).toBe('boolean');
+      expect(triggers).toHaveProperty('stressSpending');
+      expect(typeof triggers.stressSpending).toBe('number');
+      expect(triggers.stressSpending).toBeGreaterThanOrEqual(0);
     });
 
     it('should identify social influence triggers', () => {
       const triggers = detectTriggers(mockUser);
 
-      expect(triggers).toHaveProperty('socialInfluence');
-      expect(typeof triggers.socialInfluence).toBe('boolean');
+      expect(triggers).toHaveProperty('socialPressure');
+      expect(typeof triggers.socialPressure).toBe('number');
+      expect(triggers.socialPressure).toBeGreaterThanOrEqual(0);
     });
 
     it('should identify emotional spending triggers', () => {
       const triggers = detectTriggers(mockUser);
 
-      expect(triggers).toHaveProperty('emotional');
-      expect(typeof triggers.emotional).toBe('boolean');
+      expect(triggers).toHaveProperty('anxietyAvoidance');
+      expect(typeof triggers.anxietyAvoidance).toBe('number');
+      expect(triggers.anxietyAvoidance).toBeGreaterThanOrEqual(0);
     });
 
     it('should identify boredom-based triggers', () => {
@@ -97,8 +100,8 @@ describe('emotionalTriggerEngine.js - Emotional Trigger Detection', () => {
 
       const triggers = detectTriggers(emotionalUser);
 
-      expect(triggers.emotional).toBe(true);
-      expect(triggers.stress).toBe(true);
+      // High emotional indicator should correlate with high stress spending
+      expect(triggers.stressSpending).toBeGreaterThan(0);
     });
   });
 

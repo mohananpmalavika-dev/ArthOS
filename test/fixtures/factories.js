@@ -14,24 +14,32 @@ export function createMockAssessment(overrides = {}) {
     userId: 'user_test_123',
     timestamp: new Date().toISOString(),
     
-    // Behavior component
+    // Behaviour component — flat v2 questionnaire keys matching scoring-v2.js
     behaviour: {
-      overall: 65,
-      components: {
-        spending_discipline: 60,
-        saving_consistency: 70,
-        investment_appetite: 55,
-      },
+      emotionalMoneyLevel: "mostly_practical",
+      socialInfluenceLevel: "sometimes",
+      unplannedPurchaseFreq: "rarely",
+      regretImpulseFreq: "rarely",
+      presentFutureMindset: "balance_both",
+      avoidBalanceDuringStress: "rarely",
+      spendWhenBored: "rarely",
+      spendWhenStressed: "rarely",
+      plannedPurchasesOnly: "often",
+      cashflowAwareness: "usually",
+      subscriptionControl: "monthly",
+      impulseWaitRule: "sometimes",
     },
     
-    // Awareness component
+    // Awareness component — flat v2 questionnaire keys matching scoring-v2.js
     awareness: {
-      overall: 72,
-      components: {
-        knowledge_of_finances: 75,
-        understanding_of_risks: 70,
-        planning_sophistication: 70,
-      },
+      comparesLifestyleFreq: "occasionally",
+      hasFinancialPlan: "some_plan",
+      tracksExpenses: "sometimes",
+      knowsTotalDebt: "partially",
+      knowsMonthlyExpenses: "approximate",
+      tracksSavingsRate: "know_some",
+      budgetCycle: "monthly",
+      knowsTop3Expenses: "yes",
     },
     
     // Profile/Personal data (required for scoring-v2 calculations)
@@ -43,16 +51,16 @@ export function createMockAssessment(overrides = {}) {
       dependents: 2,
       location: 'US',
       // Scoring-v2 required fields
-      monthlyIncome: 6250,
-      monthlyExpenses: 3000,
+      monthlyIncome: 75000,
+      monthlyExpenses: 30000,
       emergencySavingsFixed: 15000,
       emergencySavingsDiscretionary: 5000,
       totalDebt: 25000,
       monthlyLiabilities: 800,
       debtRepaymentRatePctOfIncome: 12.8,
       averageInterestRatePct: 6.5,
-      incomeStability: "stable",      // Values: "stable", "variable", "seasonal"
-      dependentsBucket: "2-3",        // Values: "0", "1", "2-3", "4plus"
+      incomeStability: "mostly_consistent",
+      dependentsBucket: "2_3",
     },
     
     // Habits (with scoring-v2 required fields)
@@ -61,8 +69,11 @@ export function createMockAssessment(overrides = {}) {
       weekly_review: true,
       monthly_planning: false,
       yearly_goals: true,
-      habitCheckInsPerWeek: "2_3",        // Required for scoring-v2
-      debtPaymentDiscipline: "often",     // Required for scoring-v2
+      exerciseFrequency: 3,
+      meditationFrequency: 2,
+      sleepQuality: 7,
+      habitCheckInsPerWeek: "2_3",
+      debtPaymentDiscipline: "often",
     },
     
     // Derived fields

@@ -230,7 +230,7 @@ describe("scoring-v2: Financial Health Calculation", () => {
     expect(result.mode).toBe("v2");
     expect(result).toHaveProperty("healthScore");
     expect(result).toHaveProperty("categoryBand");
-    expect(result).toHaveProperty("components");
+    expect(result).toHaveProperty("componentRows");
     expect(result).toHaveProperty("survivalBand");
     expect(result).toHaveProperty("diagnosis");
   });
@@ -269,17 +269,17 @@ describe("scoring-v2: Financial Health Calculation", () => {
     }
   });
 
-  it("components array should have 3 entries (behaviour, awareness, stability)", () => {
+  it("componentRows array should have 3 entries (behaviour, awareness, stability)", () => {
     const result = calculateFinancialHealthV2(mockAssessment);
-    expect(result.components).toHaveLength(3);
-    expect(result.components.map(c => c.key)).toContain("behaviour");
-    expect(result.components.map(c => c.key)).toContain("awareness");
-    expect(result.components.map(c => c.key)).toContain("stability");
+    expect(result.componentRows).toHaveLength(3);
+    expect(result.componentRows.map(c => c.key)).toContain("behaviour");
+    expect(result.componentRows.map(c => c.key)).toContain("awareness");
+    expect(result.componentRows.map(c => c.key)).toContain("stability");
   });
 
-  it("components should have band property with label", () => {
+  it("componentRows should have band property with label", () => {
     const result = calculateFinancialHealthV2(mockAssessment);
-    result.components.forEach(component => {
+    result.componentRows.forEach(component => {
       expect(component).toHaveProperty("band");
       expect(component.band).toHaveProperty("label");
       expect(typeof component.band.label).toBe("string");
@@ -371,15 +371,19 @@ describe("scoring-v2: Edge Cases", () => {
         monthlyExpenses: 30000,
         monthlyLiabilities: 0,
         totalDebt: 0,
+        emergencySavingsFixed: 100000,
+        emergencySavingsDiscretionary: 50000,
         debtRepaymentRatePctOfIncome: 0,
         averageInterestRatePct: 0,
         incomeStability: "very_consistent",
-        dependents: "0_1"
+        dependentsBucket: "0_1"
       },
       habits: {
         exerciseFrequency: 7,
         meditationFrequency: 7,
-        sleepQuality: 10
+        sleepQuality: 10,
+        habitCheckInsPerWeek: "4_5",
+        debtPaymentDiscipline: "always"
       }
     };
     const result = calculateFinancialHealthV2(perfect);
@@ -458,8 +462,11 @@ describe("scoring-v2: Personality Type Analysis", () => {
 
   it("calculatePersonalityReportV2 should return personality report", () => {
     const result = calculatePersonalityReportV2("Guardian");
-    expect(result).toHaveProperty("type");
-    expect(result).toHaveProperty("description");
+    expect(result).toHaveProperty("title");
+    expect(result).toHaveProperty("strengths");
+    expect(result).toHaveProperty("risks");
+    expect(result).toHaveProperty("dangerZone");
+    expect(result).toHaveProperty("recommendedRule");
   });
 });
 
