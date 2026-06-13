@@ -23,6 +23,18 @@ export default async function followUpHandler(req, res) {
   }
 
   const { pathname, searchParams } = new URL(req.url, 'http://localhost');
+
+  // Health check — no auth required
+  if (pathname === '/api/follow-up/health' && req.method === 'GET') {
+    res.status(200).json({
+      success: true,
+      service: 'Action Follow-Up Engine',
+      status: 'operational',
+      timestamp: new Date().toISOString(),
+    });
+    return;
+  }
+
   const userId = req.headers['x-user-id'] || searchParams.get('userId');
 
   if (!userId) {
