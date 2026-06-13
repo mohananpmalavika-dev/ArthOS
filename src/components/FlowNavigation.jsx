@@ -8,6 +8,8 @@ import {
   Users,
   GitBranch,
   History,
+  LineChart,
+  ShieldCheck,
 } from 'lucide-react';
 
 export default function FlowNavigation({ activeHash, onNavigate }) {
@@ -18,6 +20,7 @@ export default function FlowNavigation({ activeHash, onNavigate }) {
       label: 'Home',
       icon: Home,
       description: 'Dashboard & Overview',
+      aliases: ['#intelligence'],
     },
     {
       id: 'assessment',
@@ -69,6 +72,20 @@ export default function FlowNavigation({ activeHash, onNavigate }) {
       icon: Users,
       description: 'B2B Portal',
     },
+    {
+      id: 'predictions',
+      hash: '#predictions',
+      label: 'Predictions',
+      icon: LineChart,
+      description: 'Longitudinal Forecasting',
+    },
+    {
+      id: 'admin',
+      hash: '#admin',
+      label: 'Admin',
+      icon: ShieldCheck,
+      description: 'Operations Console',
+    },
   ], []);
 
   const isActive = (hash) => {
@@ -86,7 +103,7 @@ export default function FlowNavigation({ activeHash, onNavigate }) {
   };
 
   return (
-    <div className="app-nav-tabs">
+    <nav className="app-nav-tabs" aria-label="Product flow navigation">
       {navItems.map((item) => {
         const Icon = item.icon;
         const active = isActive(item.hash);
@@ -97,12 +114,14 @@ export default function FlowNavigation({ activeHash, onNavigate }) {
             className={`app-nav-tab ${active ? 'active' : ''}`}
             onClick={() => handleNavClick(item.hash)}
             title={item.description}
+            aria-current={active ? 'page' : undefined}
           >
-            <Icon size={16} />
-            <span>{item.label}</span>
+            <Icon size={16} aria-hidden="true" />
+            <span className="app-nav-tab-label">{item.label}</span>
+            <small>{item.description}</small>
           </button>
         );
       })}
-    </div>
+    </nav>
   );
 }

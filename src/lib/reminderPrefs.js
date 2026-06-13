@@ -23,7 +23,9 @@ export function loadPrefs() {
       const parsed = JSON.parse(raw);
       return { ...DEFAULT_PREFS, ...parsed };
     }
-  } catch { /* ignore */ }
+  } catch (err) {
+    console.warn('[reminderPrefs] Failed to load preferences:', err.message);
+  }
   return { ...DEFAULT_PREFS };
 }
 
@@ -31,5 +33,7 @@ export function savePrefs(prefs) {
   if (typeof window === "undefined") return;
   try {
     localStorage.setItem(REMINDER_PREFS_KEY, JSON.stringify(prefs));
-  } catch { /* ignore */ }
+  } catch (err) {
+    console.warn('[reminderPrefs] Failed to save preferences:', err.message);
+  }
 }

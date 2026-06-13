@@ -91,9 +91,19 @@ export const componentMaximums = {
 };
 
 export function formatCurrency(value) {
-  return new Intl.NumberFormat("en-IN", {
+  // Support configurable locale and currency via environment variables
+  // Defaults to en-IN/INR for backward compatibility
+  const locale = typeof window !== 'undefined' 
+    ? (window.APP_LOCALE || import.meta.env.VITE_APP_LOCALE || "en-IN")
+    : (process.env.APP_LOCALE || "en-IN");
+  
+  const currency = typeof window !== 'undefined'
+    ? (window.APP_CURRENCY || import.meta.env.VITE_APP_CURRENCY || "INR")
+    : (process.env.APP_CURRENCY || "INR");
+
+  return new Intl.NumberFormat(locale, {
     style: "currency",
-    currency: "INR",
+    currency: currency,
     maximumFractionDigits: 0,
   }).format(Math.max(0, Math.round(value || 0)));
 }

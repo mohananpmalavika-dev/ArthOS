@@ -32,7 +32,9 @@ export function scopedRead(key, userId) {
   try {
     const raw = localStorage.getItem(scoped);
     if (raw !== null) return JSON.parse(raw);
-  } catch { /* ignore */ }
+  } catch (err) {
+    console.warn(`[storageManager] Failed to parse scoped key "${scoped}":`, err.message);
+  }
 
   // Fallback: try the unscoped key
   const unscoped = `${STORAGE_PREFIX}:${key}`;
@@ -40,7 +42,9 @@ export function scopedRead(key, userId) {
     try {
       const raw = localStorage.getItem(unscoped);
       if (raw !== null) return JSON.parse(raw);
-    } catch { /* ignore */ }
+    } catch (err) {
+      console.warn(`[storageManager] Failed to parse unscoped key "${unscoped}":`, err.message);
+    }
   }
 
   return null;
@@ -54,7 +58,9 @@ export function scopedWrite(key, value, userId) {
   if (typeof localStorage === "undefined") return;
   try {
     localStorage.setItem(scopedKey(key, userId), JSON.stringify(value));
-  } catch { /* ignore quota errors */ }
+  } catch (err) {
+    console.warn(`[storageManager] Failed to write key "${key}" (quota or access error):`, err.message);
+  }
 }
 
 /**
@@ -64,7 +70,9 @@ export function scopedRemove(key, userId) {
   if (typeof localStorage === "undefined") return;
   try {
     localStorage.removeItem(scopedKey(key, userId));
-  } catch { /* ignore */ }
+  } catch (err) {
+    console.warn(`[storageManager] Failed to remove key "${key}":`, err.message);
+  }
 }
 
 /**
@@ -97,7 +105,9 @@ export function migrateAnonymousData(userId) {
       if (raw !== null) {
         try {
           localStorage.setItem(scopedK, raw);
-        } catch { /* ignore */ }
+        } catch (err) {
+          console.warn(`[storageManager] Migration failed for key "${key}":`, err.message);
+        }
       }
     }
   }

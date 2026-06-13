@@ -1,0 +1,245 @@
+openapi: 3.0.0
+info:
+  title: ARTH.OS Financial Health API
+  version: 1.0.0
+  description: Financial health assessment and scoring API
+  contact:
+    name: ARTH.OS Team
+  license:
+    name: MIT
+
+servers:
+  - url: http://localhost:5173/api
+    description: Development server
+  - url: https://api.arth-os.example.com
+    description: Production server
+
+paths:
+  /assessment:
+    post:
+      summary: Create and score a financial assessment
+      tags:
+        - Assessments
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                profile:
+                  type: object
+                  properties:
+                    monthlyIncome:
+                      type: number
+                    monthlyExpenses:
+                      type: number
+                    emergencySavingsFixed:
+                      type: number
+                    emergencySavingsDiscretionary:
+                      type: number
+                    totalDebt:
+                      type: number
+                behaviour:
+                  type: object
+                  properties:
+                    plannedPurchasesOnly:
+                      type: string
+                      enum: [always, often, occasionally, never]
+                    impulseWaitRule:
+                      type: string
+                      enum: [always, sometimes, rarely, never]
+                    spendWhenStressed:
+                      type: string
+                      enum: [never, rarely, sometimes, very_likely]
+                    riskTolerance:
+                      type: string
+                      enum: [very_low, low, moderate, high, very_high]
+                awareness:
+                  type: object
+                  properties:
+                    perceiveSurvivalMonths:
+                      type: number
+                    knowMonthlyExpenses:
+                      type: boolean
+                    trackDebtPayments:
+                      type: boolean
+      responses:
+        '200':
+          description: Assessment scored successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  healthScore:
+                    type: number
+                    minimum: 0
+                    maximum: 1000
+                  healthScoreBand:
+                    type: string
+                    enum: [Critical, Fragile, Developing, Resilient, Sovereign]
+                  personalityType:
+                    type: string
+                    enum: [Builder, Survivor, Optimizer, Dreamer, Risk Taker]
+                  survivalMonths:
+                    type: number
+                  behaviourScore:
+                    type: number
+                  awarenessScore:
+                    type: number
+                  stabilityScore:
+                    type: number
+
+  /feedback:
+    post:
+      summary: Submit assessment feedback
+      tags:
+        - Feedback
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                healthScore:
+                  type: number
+                selectedImpact:
+                  type: string
+                  enum: [survival_months, recommended_action, awareness_gap, personality_archetype]
+                qualitativeNote:
+                  type: string
+      responses:
+        '200':
+          description: Feedback received
+
+  /twin:
+    get:
+      summary: Get financial twin profile
+      tags:
+        - DigitalTwin
+      responses:
+        '200':
+          description: Twin profile data
+
+  /telemetry:
+    post:
+      summary: Send anonymous telemetry data
+      tags:
+        - Telemetry
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        '200':
+          description: Telemetry data received
+
+  /banking/plaid/link-token:
+    post:
+      summary: Create Plaid Link token for banking integration
+      tags:
+        - Banking
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                userId:
+                  type: string
+      responses:
+        '200':
+          description: Link token created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  linkToken:
+                    type: string
+                  expiration:
+                    type: string
+                    format: date-time
+
+  /banking/accounts:
+    get:
+      summary: Get linked bank accounts
+      tags:
+        - Banking
+      responses:
+        '200':
+          description: List of linked accounts
+
+  /ai-coach/chat:
+    post:
+      summary: Chat with AI Coach
+      tags:
+        - AiCoach
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                message:
+                  type: string
+                context:
+                  type: object
+      responses:
+        '200':
+          description: AI response received
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    type: string
+                  suggestions:
+                    type: array
+                    items:
+                      type: string
+
+components:
+  schemas:
+    Assessment:
+      type: object
+      properties:
+        id:
+          type: string
+        userId:
+          type: string
+        profile:
+          type: object
+        behaviour:
+          type: object
+        awareness:
+          type: object
+        results:
+          type: object
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+tags:
+  - name: Assessments
+    description: Financial assessment operations
+  - name: Feedback
+    description: Assessment feedback
+  - name: DigitalTwin
+    description: Digital twin profile data
+  - name: Telemetry
+    description: Anonymous usage data
+  - name: Banking
+    description: Banking integration with Plaid
+  - name: AiCoach
+    description: AI Coach chat interface

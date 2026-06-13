@@ -24,9 +24,19 @@ export const healthScoreBandsV2 = {
 };
 
 export function formatCurrency(value) {
-  return new Intl.NumberFormat("en-IN", {
+  // Support configurable locale and currency via environment variables
+  // Defaults to en-IN/INR for backward compatibility
+  const locale = typeof window !== 'undefined' 
+    ? (window.APP_LOCALE || import.meta.env.VITE_APP_LOCALE || "en-IN")
+    : (process.env.APP_LOCALE || "en-IN");
+  
+  const currency = typeof window !== 'undefined'
+    ? (window.APP_CURRENCY || import.meta.env.VITE_APP_CURRENCY || "INR")
+    : (process.env.APP_CURRENCY || "INR");
+
+  return new Intl.NumberFormat(locale, {
     style: "currency",
-    currency: "INR",
+    currency: currency,
     maximumFractionDigits: 0,
   }).format(Math.max(0, Math.round(value || 0)));
 }
@@ -318,7 +328,7 @@ function getBehaviourScore(behaviour) {
     (k) => behaviourScoreMaps[k]?.[behaviour?.[k]] ?? 0,
   );
   const average = values.reduce((t, v) => t + v, 0) / Math.max(1, values.length);
-  return roundToOne((average / 10) * componentMaximumsV2.behaviour);
+  return roundToOne(clamp((average / 10) * componentMaximumsV2.behaviour, 0, componentMaximumsV2.behaviour));
 }
 
 function getAwarenessScore(awareness) {
@@ -655,13 +665,19 @@ function getFutureRiskProfile(profile) {
   return { score, label };
 }
 
+// PERSONALITY TYPE CALCULATION
+// ────────────────────────────────────────────────────────────────────────────
+// Internal trait scoring uses camelCase keys (private implementation detail).
+// Output is standardized to Title Case (public API): "Builder", "Survivor", "Optimizer", "Dreamer", "Risk Taker"
+// This ensures consistency with ARCHETYPES lookups in FinancialTwin.jsx
+// ────────────────────────────────────────────────────────────────────────────
 function getPersonalityType(behaviour) {
   const traits = {
     builder: 0,
     survivor: 0,
     optimizer: 0,
     dreamer: 0,
-    riskTaker: 0,
+    riskTaker: 0,  // Internal camelCase; output will be "Risk Taker" (Title Case with space)
   };
 
   if (behaviour.presentFutureMindset === "enjoy_today") traits.riskTaker += 2;
@@ -695,12 +711,13 @@ function getPersonalityType(behaviour) {
   if (behaviour.subscriptionControl === "never") traits.riskTaker += 1;
 
   const winner = Object.entries(traits).sort((a, b) => b[1] - a[1])[0]?.[0];
+  // Standardized personality type names (matches ARCHETYPES keys in FinancialTwin.jsx)
   const labels = {
     builder: "Builder",
     survivor: "Survivor",
     optimizer: "Optimizer",
     dreamer: "Dreamer",
-    riskTaker: "Risk Taker",
+    riskTaker: "Risk Taker",  // Note: Title Case with space (not "risk_taker", which is for CSS)
   };
 
   return labels[winner] ?? "Survivor";

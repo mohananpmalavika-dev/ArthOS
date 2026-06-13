@@ -1,0 +1,11 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+# Run lint on staged files
+npm run lint -- --fix
+
+# Run tests (optional - uncomment if you want tests on every commit)
+# npm test -- --run
+
+# Run type check
+npm run type-check || true

@@ -177,6 +177,7 @@ export const NAV_ITEMS: NavItem[] = [
   { label: "Memory", href: "#memory" },
   { label: "Predictions", href: "#predictions" },
   { label: "Partners", href: "#b2b" },
+  { label: "Admin", href: "#admin" },
 ];
 
 // ── Hero Section ──

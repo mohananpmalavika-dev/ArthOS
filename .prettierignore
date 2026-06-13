@@ -1,0 +1,18 @@
+# Build outputs
+dist/
+build/
+.next/
+node_modules/
+.git/
+
+# Generated files
+*.min.js
+*.min.css
+
+# Documentation
+CHANGELOG.md
+repomix-output.txt
+repopack-output.txt
+
+# Reports
+*.report.md

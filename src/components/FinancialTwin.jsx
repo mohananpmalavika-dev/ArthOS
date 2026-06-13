@@ -12,10 +12,22 @@ import {
   Activity, Info, ShieldAlert
 } from "lucide-react";
 
+// PERSONALITY TYPE NAMING STANDARDIZATION
+// ────────────────────────────────────────────────────────────────────────────
+// Archetype keys match getPersonalityType() output: Title Case (e.g., "Risk Taker")
+// Color values map to CSS classes: lowercase with underscores (e.g., "risk_taker")
+// This ensures consistent naming across scoring engine → UI component → stylesheet
+//
+// Naming Convention:
+//   getPersonalityType() returns → "Builder", "Survivor", "Optimizer", "Dreamer", "Risk Taker"
+//   ARCHETYPES keys             → "Builder", "Survivor", "Optimizer", "Dreamer", "Risk Taker" ✓
+//   CSS class color values      → "builder", "survivor", "optimizer", "dreamer", "risk_taker" ✓
+// ────────────────────────────────────────────────────────────────────────────
+
 const ARCHETYPES = {
   Builder: {
     icon: Target,
-    color: "builder",
+    color: "builder",  // CSS class: .twin-icon-wrapper.builder
     description: "Strategic planner who builds wealth systematically",
     traits: ["Goal-oriented", "Disciplined", "Long-term focused"],
     strength: "Consistent progress toward financial goals",
@@ -25,7 +37,7 @@ const ARCHETYPES = {
   },
   Survivor: {
     icon: Heart,
-    color: "survivor",
+    color: "survivor",  // CSS class: .twin-icon-wrapper.survivor
     description: "Pragmatic protector focused on stability",
     traits: ["Risk-aware", "Security-first", "Adaptive"],
     strength: "Strong crisis management and resilience",
@@ -35,7 +47,7 @@ const ARCHETYPES = {
   },
   Optimizer: {
     icon: Award,
-    color: "optimizer",
+    color: "optimizer",  // CSS class: .twin-icon-wrapper.optimizer
     description: "Efficiency expert maximizing every rupee",
     traits: ["Detail-oriented", "Resourceful", "Analytical"],
     strength: "Exceptional cost optimization",
@@ -45,7 +57,7 @@ const ARCHETYPES = {
   },
   Dreamer: {
     icon: Sparkles,
-    color: "dreamer",
+    color: "dreamer",  // CSS class: .twin-icon-wrapper.dreamer
     description: "Visionary pursuing ambitious financial dreams",
     traits: ["Creative", "Optimistic", "Forward-thinking"],
     strength: "Inspires action and innovation",
@@ -55,7 +67,7 @@ const ARCHETYPES = {
   },
   "Risk Taker": {
     icon: Zap,
-    color: "risk_taker",
+    color: "risk_taker",  // CSS class: .twin-icon-wrapper.risk_taker
     description: "Bold investor embracing calculated chances",
     traits: ["Confident", "Opportunistic", "Dynamic"],
     strength: "Quick decision-making in changing markets",
@@ -63,6 +75,15 @@ const ARCHETYPES = {
     dangerZone: "High-stress market or income swings",
     recommendedRule: "Pause major commitments and build a 2-month safety runway first.",
   }
+};
+
+// Standardized personality type display names (matches scoring-v2.js calculatePersonalityTypeV2)
+const PERSONALITY_NAMES = {
+  Builder: "Builder",
+  Survivor: "Survivor",
+  Optimizer: "Optimizer",
+  Dreamer: "Dreamer",
+  "Risk Taker": "Risk Taker",
 };
 
 function formatRupees(value) {
