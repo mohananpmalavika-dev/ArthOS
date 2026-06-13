@@ -184,6 +184,14 @@ function createApiPlugin() {
 export default defineConfig({
   base: "./",
   plugins: [react(), createApiPlugin()],
+  test: {
+    // Vitest configuration
+    globals: true,
+    environment: "jsdom",
+    setupFiles: [],
+    include: ["test/**/*.test.{js,jsx,ts,tsx}"],
+    exclude: ["node_modules", "dist"],
+  },
   build: {
     target: "esnext",
     minify: "terser",

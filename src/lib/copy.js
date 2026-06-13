@@ -24,7 +24,7 @@ export const INTELLIGENCE_ROWS = [
     copy: "Connects financial signals with behavioral psychology.",
   },
   {
-    icon: "Cpu",
+    icon: "Zap",
     title: "Behavior Pattern Detection",
     copy: "Reads impulse, avoidance and planning patterns in one score.",
   },

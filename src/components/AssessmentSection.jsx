@@ -300,9 +300,34 @@ function ProfileSection({ values, score, onChange }) {
 }
 
 function MoneyInput({ label, value, onChange }) {
+  const [error, setError] = useState("");
+
+  const handleChange = (event) => {
+    const val = event.target.value;
+    const numVal = val === "" ? 0 : Number.parseFloat(val);
+
+    // Validation
+    if (val === "") {
+      setError("");
+      onChange(0);
+    } else if (isNaN(numVal)) {
+      setError("❌ Please enter a valid number");
+      return;
+    } else if (numVal < 0) {
+      setError("❌ Cannot be negative");
+      onChange(0);
+    } else {
+      setError("");
+      onChange(numVal);
+    }
+  };
+
   return (
     <label className="money-input">
-      <span>{label}</span>
+      <span>
+        {label}
+        <span className="required-indicator" title="Required field">*</span>
+      </span>
       <div>
         <span>INR</span>
         <input
@@ -310,12 +335,16 @@ function MoneyInput({ label, value, onChange }) {
           min="0"
           inputMode="numeric"
           value={value ?? ""}
-          onChange={(event) => {
-            const val = event.target.value;
-            onChange(val === "" ? 0 : Number.parseFloat(val));
-          }}
+          onChange={handleChange}
+          aria-invalid={error ? "true" : "false"}
+          aria-describedby={error ? `error-${label}` : undefined}
         />
       </div>
+      {error && (
+        <span className="validation-error" id={`error-${label}`}>
+          {error}
+        </span>
+      )}
     </label>
   );
 }

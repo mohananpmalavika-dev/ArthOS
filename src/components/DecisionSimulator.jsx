@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from "react";
-import { AlertCircle, Cpu } from "lucide-react";
+import { AlertCircle, Zap } from "lucide-react";
 import { calculateDecisionSimulatorV2, formatMonths as formatMonthsV2 } from "../lib/scoring-v2.js";
 
 export default function DecisionSimulator({ id, profile, behaviour }) {
@@ -25,7 +25,7 @@ export default function DecisionSimulator({ id, profile, behaviour }) {
   return (
     <section className="result-card simulator-card" id={id}>
       <div className="result-heading">
-        <Cpu size={19} />
+        <Zap size={19} />
         <h2>Cognitive Decision Simulator</h2>
       </div>
 

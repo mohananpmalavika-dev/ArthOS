@@ -12,7 +12,7 @@ import {
   Brain,
   ChevronDown,
   CircleUserRound,
-  Cpu,
+  Zap,
   Download,
   LockKeyhole,
   LogIn,
@@ -265,7 +265,7 @@ async function flushQueuedAssessmentSaves() {
   persistQueuedAssessmentSaves(remaining);
 }
 
-const ICON_REGISTRY = { Network, Cpu, Brain };
+const ICON_REGISTRY = { Network, Zap, Brain };
 const intelligenceRows = INTELLIGENCE_ROWS.map((row) => ({
   ...row,
   icon: ICON_REGISTRY[row.icon] ?? Network,
