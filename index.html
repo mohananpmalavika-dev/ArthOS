@@ -10,12 +10,21 @@
     <!-- Content Security Policy to allow external fonts, data URIs, and unsafe-inline styles -->
     <meta
       http-equiv="Content-Security-Policy"
-      content="default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; script-src 'self'; connect-src 'self' https://fonts.googleapis.com https://fonts.gstatic.com"
+      content="default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; script-src 'self'; worker-src 'self'; connect-src 'self' https://fonts.googleapis.com https://fonts.gstatic.com"
     />
     <link
       rel="icon"
       href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%23117a65'/%3E%3Cpath d='M14 34h10l5-15 8 28 5-13h8' fill='none' stroke='white' stroke-width='5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"
     />
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="/manifest.json" />
+    <!-- PWA Theme Color -->
+    <meta name="theme-color" content="#117a65" />
+    <!-- iOS PWA Support -->
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="ARTH.OS" />
+    <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'%3E%3Crect width='180' height='180' rx='40' fill='%23117a65'/%3E%3Cpath d='M40 100h30l15-45 24 84 15-39h24' fill='none' stroke='white' stroke-width='12' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E" />
     <title>ARTH.OS Financial Health Score</title>
     <!-- Premium fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800;900&family=Sora:wght@600;700;800;900&display=swap" rel="stylesheet">
@@ -60,6 +69,51 @@
         </div>
       </div>
     </div>
+    <script type="module">
+      /**
+       * Service Worker Registration
+       * Handles PWA offline support, asset caching, and background sync
+       */
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/public/sw.js')
+            .then((registration) => {
+              console.log('[App] Service Worker registered:', registration.scope);
+              
+              // Listen for updates
+              registration.addEventListener('updatefound', () => {
+                const newWorker = registration.installing;
+                console.log('[App] Service Worker update available');
+                
+                newWorker.addEventListener('statechange', () => {
+                  if (newWorker.state === 'activated') {
+                    console.log('[App] New Service Worker activated');
+                    // Notify user of update (optional)
+                    if (window.confirm('A new version of ARTH.OS is available. Reload to update?')) {
+                      window.location.reload();
+                    }
+                  }
+                });
+              });
+            })
+            .catch((err) => {
+              console.warn('[App] Service Worker registration failed:', err.message);
+            });
+
+          // Handle controller change (user skipped update)
+          navigator.serviceWorker.addEventListener('controllerchange', () => {
+            console.log('[App] Service Worker controller changed');
+          });
+        });
+
+        // Listen for messages from service worker
+        navigator.serviceWorker.addEventListener('message', (event) => {
+          console.log('[App] Message from Service Worker:', event.data);
+        });
+      } else {
+        console.log('[App] Service Workers not supported in this browser');
+      }
+    </script>
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>

@@ -1,92 +1,136 @@
 /**
- * Banking API Vercel Handler
- * Routes all /api/banking/* requests to the appropriate banking handler
+ * Vercel Serverless Handler for Banking APIs
+ *
+ * Wraps the banking route handlers from ./index.js into a single
+ * Vercel-compatible serverless function that routes requests based
+ * on the URL pathname.
  *
  * Mounted at: /api/banking/*
+ *
+ * Sub-route map:
+ *   POST /api/banking/aa/consent-request        → handleAAConsentRequest
+ *   POST /api/banking/aa/consent-callback       → handleAAConsentCallback
+ *   POST /api/banking/aa/data-fetch             → handleAADataFetch
+ *   POST /api/banking/aa/consent-revoke         → handleConsentRevoke
+ *   POST /api/banking/upi/webhook               → handleUPIWebhook
+ *   GET  /api/banking/upi/transactions          → getUPITransactions
+ *   POST /api/banking/feeds/connect             → initiateBankConnection
+ *   POST /api/banking/feeds/oauth-callback      → handleBankOAuthCallback
+ *   GET  /api/banking/accounts/summary          → getAccountSummary
+ *   GET  /api/banking/transactions/summary      → getTransactionSummary
+ *   GET  /api/banking/insurance/policies        → getInsurancePolicies
+ *   GET  /api/banking/insurance/recommendations → getInsuranceRecommendations
+ *   GET  /api/banking/insurance/premium-reminders → getPremiumReminders
+ *   POST /api/banking/insurance/file-claim       → fileInsuranceClaim
+ *   GET  /api/banking/credit/profile            → getCreditProfile
+ *   GET  /api/banking/lending/opportunities     → getLendingOpportunities
+ *   GET  /api/banking/sync/status               → getSyncStatus
+ *   POST /api/banking/sync/settings             → updateSyncSettings
  */
-import bankingHandlers from './index.js';
 
-async function handler(req, res) {
-  const pathname = req.url?.split('?')[0] || '';
-  const method = req.method?.toUpperCase();
+import {
+  handleAAConsentRequest,
+  handleAAConsentCallback,
+  handleAADataFetch,
+  handleConsentRevoke,
+  handleUPIWebhook,
+  getUPITransactions,
+  initiateBankConnection,
+  handleBankOAuthCallback,
+  getAccountSummary,
+  getTransactionSummary,
+  getInsurancePolicies,
+  getInsuranceRecommendations,
+  getPremiumReminders,
+  fileInsuranceClaim,
+  getCreditProfile,
+  getLendingOpportunities,
+  getSyncStatus,
+  updateSyncSettings,
+} from './index.js';
 
+/**
+ * Route definition for each banking sub-path.
+ * @type {Array<{pattern: RegExp, method: string, handler: Function}>}
+ */
+const routes = [
+  // ── Account Aggregator ──────────────────────────────
+  { pattern: /^\/api\/banking\/aa\/consent-request\/?$/i,    method: 'POST', handler: handleAAConsentRequest },
+  { pattern: /^\/api\/banking\/aa\/consent-callback\/?$/i,   method: 'POST', handler: handleAAConsentCallback },
+  { pattern: /^\/api\/banking\/aa\/data-fetch\/?$/i,         method: 'POST', handler: handleAADataFetch },
+  { pattern: /^\/api\/banking\/aa\/consent-revoke\/?$/i,     method: 'POST', handler: handleConsentRevoke },
+
+  // ── UPI ─────────────────────────────────────────────
+  { pattern: /^\/api\/banking\/upi\/webhook\/?$/i,           method: 'POST', handler: handleUPIWebhook },
+  { pattern: /^\/api\/banking\/upi\/transactions\/?$/i,      method: 'GET',  handler: getUPITransactions },
+
+  // ── Bank Feeds ──────────────────────────────────────
+  { pattern: /^\/api\/banking\/feeds\/connect\/?$/i,         method: 'POST', handler: initiateBankConnection },
+  { pattern: /^\/api\/banking\/feeds\/oauth-callback\/?$/i,  method: 'POST', handler: handleBankOAuthCallback },
+
+  // ── Accounts & Transactions ─────────────────────────
+  { pattern: /^\/api\/banking\/accounts\/summary\/?$/i,      method: 'GET',  handler: getAccountSummary },
+  { pattern: /^\/api\/banking\/transactions\/summary\/?$/i,  method: 'GET',  handler: getTransactionSummary },
+
+  // ── Insurance ───────────────────────────────────────
+  { pattern: /^\/api\/banking\/insurance\/policies\/?$/i,        method: 'GET', handler: getInsurancePolicies },
+  { pattern: /^\/api\/banking\/insurance\/recommendations\/?$/i, method: 'GET', handler: getInsuranceRecommendations },
+  { pattern: /^\/api\/banking\/insurance\/premium-reminders\/?$/i, method: 'GET', handler: getPremiumReminders },
+  { pattern: /^\/api\/banking\/insurance\/file-claim\/?$/i,      method: 'POST', handler: fileInsuranceClaim },
+
+  // ── Credit Profile ──────────────────────────────────
+  { pattern: /^\/api\/banking\/credit\/profile\/?$/i,       method: 'GET',  handler: getCreditProfile },
+
+  // ── Lending ─────────────────────────────────────────
+  { pattern: /^\/api\/banking\/lending\/opportunities\/?$/i, method: 'GET', handler: getLendingOpportunities },
+
+  // ── Sync ────────────────────────────────────────────
+  { pattern: /^\/api\/banking\/sync\/status\/?$/i,          method: 'GET',  handler: getSyncStatus },
+  { pattern: /^\/api\/banking\/sync\/settings\/?$/i,        method: 'POST', handler: updateSyncSettings },
+];
+
+/**
+ * Vercel-compatible serverless function handler for all /api/banking/* routes.
+ *
+ * @param {import('http').IncomingMessage} req
+ * @param {import('http').ServerResponse}  res
+ */
+export default async function bankingHandler(req, res) {
+  // Extract pathname from whichever header Vercel provides
+  const rawUrl = req.headers['x-vercel-original-url']
+    || req.headers['x-now-original-url']
+    || req.url
+    || '/api/banking';
+
+  let pathname;
   try {
-    // ─── AA (Account Aggregator) ────────────────────────────
-    if (method === 'POST' && pathname === '/api/banking/aa/consent-request') {
-      return await bankingHandlers.handleAAConsentRequest(req, res);
-    }
-    if (method === 'POST' && pathname === '/api/banking/aa/consent-callback') {
-      return await bankingHandlers.handleAAConsentCallback(req, res);
-    }
-    if (method === 'POST' && pathname === '/api/banking/aa/data-fetch') {
-      return await bankingHandlers.handleAADataFetch(req, res);
-    }
-    if (method === 'POST' && pathname === '/api/banking/aa/consent-revoke') {
-      return await bankingHandlers.handleConsentRevoke(req, res);
-    }
+    pathname = new URL(rawUrl, 'http://localhost').pathname;
+  } catch {
+    pathname = rawUrl;
+  }
 
-    // ─── UPI ────────────────────────────────────────────────
-    if (method === 'POST' && pathname === '/api/banking/upi/webhook') {
-      return await bankingHandlers.handleUPIWebhook(req, res);
-    }
-    if (method === 'GET' && pathname === '/api/banking/upi/transactions') {
-      return await bankingHandlers.getUPITransactions(req, res);
-    }
+  // Normalise trailing slash for matching
+  const normalised = pathname.replace(/\/+$/, '') || '/';
 
-    // ─── Bank Feeds ─────────────────────────────────────────
-    if (method === 'POST' && pathname === '/api/banking/bank-feeds/initiate') {
-      return await bankingHandlers.initiateBankConnection(req, res);
-    }
-    if (method === 'POST' && pathname === '/api/banking/bank-feeds/oauth-callback') {
-      return await bankingHandlers.handleBankOAuthCallback(req, res);
-    }
-    if (method === 'GET' && pathname === '/api/banking/account-summary') {
-      return await bankingHandlers.getAccountSummary(req, res);
-    }
-    if (method === 'GET' && pathname === '/api/banking/transaction-summary') {
-      return await bankingHandlers.getTransactionSummary(req, res);
-    }
+  // Find matching route
+  const route = routes.find((r) => r.pattern.test(normalised));
 
-    // ─── Insurance ──────────────────────────────────────────
-    if (method === 'GET' && pathname === '/api/banking/insurance/policies') {
-      return await bankingHandlers.getInsurancePolicies(req, res);
-    }
-    if (method === 'GET' && pathname === '/api/banking/insurance/recommendations') {
-      return await bankingHandlers.getInsuranceRecommendations(req, res);
-    }
-    if (method === 'GET' && pathname === '/api/banking/insurance/premium-reminders') {
-      return await bankingHandlers.getPremiumReminders(req, res);
-    }
-    if (method === 'POST' && pathname === '/api/banking/insurance/file-claim') {
-      return await bankingHandlers.fileInsuranceClaim(req, res);
-    }
+  if (!route) {
+    res.status(404).json({ error: `Banking route not found: ${pathname}` });
+    return;
+  }
 
-    // ─── Credit Profile ─────────────────────────────────────
-    if (method === 'GET' && pathname === '/api/banking/credit-profile') {
-      return await bankingHandlers.getCreditProfile(req, res);
-    }
+  // Method check
+  if (req.method !== route.method) {
+    res.status(405).json({ error: `Method ${req.method} not allowed for ${pathname}. Use ${route.method}.` });
+    return;
+  }
 
-    // ─── Lending ────────────────────────────────────────────
-    if (method === 'GET' && pathname === '/api/banking/lending-opportunities') {
-      return await bankingHandlers.getLendingOpportunities(req, res);
-    }
-
-    // ─── Sync ───────────────────────────────────────────────
-    if (method === 'GET' && pathname === '/api/banking/sync-status') {
-      return await bankingHandlers.getSyncStatus(req, res);
-    }
-    if (method === 'POST' && pathname === '/api/banking/sync-settings') {
-      return await bankingHandlers.updateSyncSettings(req, res);
-    }
-
-    // ─── 404 ────────────────────────────────────────────────
-    return res.status(404).json({ error: 'Banking endpoint not found' });
-  } catch (error) {
-    console.error('[Banking Handler] Error:', error);
-    return res.status(500).json({
-      error: error.message || 'Internal server error',
-    });
+  // Delegate to the specific handler
+  try {
+    await route.handler(req, res);
+  } catch (err) {
+    console.error('[Banking Vercel Handler] Error:', pathname, err);
+    res.status(500).json({ error: err.message || 'Internal server error' });
   }
 }
-
-export default handler;

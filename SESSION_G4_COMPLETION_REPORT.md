@@ -1,13 +1,9 @@
 
 ### 🟡 HIGH PRIORITY GAPS (Missing features that users expect)
 
-#### 12. **Missing `src/data/questionnaire-v2.js` — `v2DefaultAssessment` references keys like `incomeStability` and `dependentsBucket` that are never displayed as questions in `AssessmentSection.jsx`**
-- `profile.incomeStability` and `profile.dependentsBucket` are referenced in scoring but not asked in the UI (they only exist as default values)
 
-#### 13. **No `api_src/banking/vercel-handler.js` file** (missing entirely)
-- `api/index.js` imports `bankingHandler from '../api_src/banking/vercel-handler.js'`
-- But the directory listing shows `api_src/banking/` files are: `aa-connector.js`, `bank-feeds.js`, `banking-sdk.js`, `banking-security.js`, `insurance-apis.js`, `upi-ingestion.js`, `index.js`
-- No `vercel-handler.js` exists — the banking import will fail
+
+
 
 #### 14. **Missing endpoint: `saveAssessment` references `assessments` table but `api_src/user/assessment-detail.js` (which exists) depends on it without routing**
 - `api/index.js` imports `userAssessmentDetailHandler` but the route for `/api/user/assessment-detail` may not match the handler's expectations

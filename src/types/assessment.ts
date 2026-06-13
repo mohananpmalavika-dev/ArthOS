@@ -102,22 +102,64 @@ export interface AssessmentHistory {
   notes?: string;
 }
 
+// ──────────────────────────────────────────────────────
+// Telemetry payload — matches the nested shape produced
+// by buildAnonymousTelemetryPayload() in scoring-v2.js
+// and expected by api_src/telemetry.js handler.
+// ──────────────────────────────────────────────────────
+
+export interface TelemetryScores {
+  financial_health_score: number;
+  behaviour_score: number;
+  awareness_score: number;
+  stability_score: number;
+  habits_score: number;
+}
+
+export interface TelemetryMetadata {
+  schema_version: string;
+  mode_executed: string;
+}
+
+export interface TelemetryPredictiveAnalytics {
+  personality_type: string;
+  future_risk_label: string;
+  future_risk_score: number;
+  awareness_gap_months: number;
+}
+
+export interface TelemetryRunwayMetrics {
+  nominal_survival_months: number;
+  crisis_optimized_survival_months: number;
+  perceived_survival_months: number;
+  dynamic_elasticity_percent: number;
+}
+
+export interface TelemetryFinancialRatios {
+  savings_rate_proxied: number;
+  debt_to_income_months: number;
+  fixed_liability_pressure: number;
+}
+
 /**
- * Anonymous telemetry data sent to server
+ * Anonymous telemetry payload sent to the server.
+ * Nested shape matches what api_src/telemetry.js expects:
+ *  - payload.scores.financial_health_score
+ *  - payload.telemetry_metadata
+ *  - payload.predictive_analytics
+ *  - payload.runway_metrics
+ *  - payload.financial_ratios
+ *  - payload.lowest_performing_driver
  */
 export interface TelemetryPayload {
-  healthScore: number;
-  healthBand: HealthBand;
-  survivalMonths: number;
-  behaviourScore: number;
-  awarenessScore: number;
-  stabilityScore: number;
-  debtToIncomeRatio: number;
-  savingsRatio: number;
-  hasEmergencyFund: boolean;
-  dependentCount: number;
-  timestamp: string; // ISO date only, no time
-  userAgent?: string;
+  telemetry_metadata: TelemetryMetadata;
+  scores: TelemetryScores;
+  predictive_analytics: TelemetryPredictiveAnalytics;
+  runway_metrics: TelemetryRunwayMetrics;
+  financial_ratios: TelemetryFinancialRatios;
+  lowest_performing_driver: string;
+  step_telemetry?: Record<string, unknown>;
+  adaptive_metrics?: Record<string, unknown>;
 }
 
 /**

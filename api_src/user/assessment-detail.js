@@ -20,8 +20,9 @@ export default async function handler(req, res) {
       return res.status(401).json({ error: "Unauthorized - No valid token" });
     }
 
-    // Get assessment ID from URL (format: /api/user/assessment-[id])
-    const assessmentId = req.query.id || req.path?.split('/').pop();
+    // Get assessment ID from URL params (path segment) or query param (e.g. ?id=...)
+    // Frontend currently uses query param format: /api/user/assessment-detail?id=abc-123
+    const assessmentId = req.params.id || req.query.id;
 
     if (!assessmentId) {
       return res.status(400).json({ error: "Assessment ID is required" });
