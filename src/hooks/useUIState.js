@@ -30,7 +30,9 @@ export function useUIState() {
   // Listen to hash changes
   useEffect(() => {
     const handleHashChange = () => {
-      setActiveHash(window.location.hash || "#home");
+      startTransition(() => {
+        setActiveHash(window.location.hash || "#home");
+      });
     };
 
     if (isBrowser()) {
