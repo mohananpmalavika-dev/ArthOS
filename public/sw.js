@@ -14,11 +14,11 @@ const API_CACHE = `${CACHE_VERSION}-api`;
 const RUNTIME_CACHE = `${CACHE_VERSION}-runtime`;
 
 // Assets to precache on install
+// In production, assets are bundled into dist/assets with hash names
+// Only precache critical files that exist in all environments
 const PRECACHE_URLS = [
   '/',
-  '/index.html',
-  '/src/main.jsx',
-  '/src/App.jsx'
+  '/index.html'
 ];
 
 /**

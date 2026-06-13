@@ -4394,7 +4394,7 @@ main {
 .flow-command-summary h2 {
   color: var(--ink-0);
   font-family: var(--display);
-  font-size: 17px;
+  font-size: 20px;
   font-weight: 900;
   line-height: 1.1;
 }
@@ -4402,7 +4402,7 @@ main {
 .flow-command-summary p {
   margin-top: 4px;
   color: var(--ink-2);
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 650;
   line-height: 1.45;
 }
@@ -4430,7 +4430,7 @@ main {
 .assessment-flow-card small {
   display: block;
   color: var(--ink-3);
-  font-size: 9px;
+  font-size: 11px;
   font-weight: 850;
   line-height: 1.2;
   text-transform: uppercase;
@@ -4441,7 +4441,7 @@ main {
   margin-top: 5px;
   overflow: hidden;
   color: var(--ink-0);
-  font-size: 12px;
+  font-size: 15px;
   font-weight: 900;
   line-height: 1.25;
   text-overflow: ellipsis;
@@ -4521,7 +4521,7 @@ main {
   display: block;
   overflow: hidden;
   color: var(--ink-0);
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 900;
   line-height: 1.1;
   text-overflow: ellipsis;
@@ -4532,7 +4532,7 @@ main {
   margin-top: 3px;
   overflow: hidden;
   color: var(--ink-3);
-  font-size: 9px;
+  font-size: 11px;
   font-weight: 750;
   line-height: 1.15;
   text-overflow: ellipsis;
@@ -4613,7 +4613,7 @@ main {
   min-width: 0;
   overflow: hidden;
   color: var(--ink-0);
-  font-size: 13px;
+  font-size: 15px;
   font-weight: 900;
   line-height: 1.15;
   text-overflow: ellipsis;
@@ -4631,7 +4631,7 @@ main {
   gap: 18px;
   align-items: stretch;
   width: min(1420px, calc(100% - 44px));
-  margin: clamp(28px, 4vw, 48px) auto 0;
+  margin: 42px auto 0;
 }
 
 .flow-report-copy,
@@ -4651,7 +4651,7 @@ main {
   display: grid;
   align-content: center;
   gap: 10px;
-  padding: clamp(24px, 3vw, 36px);
+  padding: 34px;
 }
 
 .flow-report-copy > span {
@@ -4661,7 +4661,7 @@ main {
   border-radius: var(--radius-xs);
   color: var(--cyan);
   background: rgba(98, 228, 209, 0.06);
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 850;
   text-transform: uppercase;
 }
@@ -4670,7 +4670,7 @@ main {
   max-width: 780px;
   color: var(--ink-0);
   font-family: var(--display);
-  font-size: clamp(30px, 3.4vw, 54px);
+  font-size: 46px;
   font-weight: 900;
   line-height: 1;
 }
@@ -4678,7 +4678,7 @@ main {
 .flow-report-copy p {
   max-width: 62ch;
   color: var(--ink-2);
-  font-size: 15px;
+  font-size: 17px;
   font-weight: 650;
   line-height: 1.6;
 }
@@ -4709,7 +4709,7 @@ main {
   overflow-wrap: anywhere;
   color: var(--ink-0);
   font-family: var(--display);
-  font-size: clamp(24px, 2.4vw, 38px);
+  font-size: 34px;
   font-weight: 900;
   line-height: 0.95;
 }
@@ -4752,6 +4752,103 @@ main {
 .flow-insights-section > .trait-matrix-card,
 .flow-insights-section > .result-card {
   min-width: 0;
+}
+
+.app-shell {
+  font-size: 16px;
+}
+
+.nav-links a {
+  font-size: 13px;
+}
+
+.app-nav-tab-label {
+  font-size: 13px;
+}
+
+.app-nav-tab small {
+  max-width: 112px;
+  font-size: 11px;
+}
+
+.model-start-btn,
+.model-primary-cta,
+.model-secondary-cta,
+.wizard-primary-btn,
+.wizard-secondary-btn,
+.enrichment-button,
+.auth-link-btn {
+  font-size: 14px;
+}
+
+.assessment-heading h2 {
+  font-size: 52px;
+  line-height: 1.02;
+}
+
+.assessment-heading p {
+  font-size: 17px;
+}
+
+.assessment-heading > span,
+.express-mode-btn,
+.adaptive-time-badge {
+  font-size: 13px;
+}
+
+.panel-heading h2,
+.result-heading h2 {
+  font-size: 21px;
+}
+
+.field-input span,
+.money-input > span,
+.question-label {
+  font-size: 14px;
+  line-height: 1.35;
+}
+
+.field-input input,
+.money-input input {
+  font-size: 15px;
+}
+
+.segmented-control .segmented-option {
+  min-height: 48px;
+  font-size: 13px;
+  line-height: 1.25;
+}
+
+.live-score-header p,
+.live-score-meta strong,
+.live-breakdown-row strong,
+.premium-report-block-subtitle,
+.premium-metric-desc,
+.premium-metric-longtext,
+.enrichment-copy,
+.action-reason,
+.archetype-guidance,
+.microgola-text {
+  font-size: 14px;
+}
+
+.live-score-meta span,
+.live-breakdown-row span,
+.premium-metric-kicker,
+.metric-label {
+  font-size: 12px;
+}
+
+.premium-report-section-title,
+.premium-report-block-title {
+  font-size: 24px;
+}
+
+.summary-card,
+.premium-metric-tile,
+.result-card,
+.panel {
+  font-size: 15px;
 }
 
 @media (max-width: 1280px) {
@@ -4808,7 +4905,11 @@ main {
   }
 
   .flow-report-copy h1 {
-    font-size: clamp(28px, 9vw, 38px);
+    font-size: 34px;
+  }
+
+  .assessment-heading h2 {
+    font-size: 38px;
   }
 
   .flow-kpi-card {
