@@ -24,7 +24,7 @@ import userRiskHandler from '../api_src/user/[userId]/risk.js';
 import remindersHandler from '../api_src/reminders.js';
 import aiCoachHandler from '../api_src/longitudinal/ai-coach-handler.js';
 import predictionEngineHandler from '../api_src/longitudinal/prediction-engine-handler.js';
-import followUpHandler from '../api_src/follow_up/follow-up-handler.js';
+import followUpHandler from '../api_src/follow-up/follow-up-handler.js';
 import subscriptionsHandler from '../api_src/subscriptions-handler.js';
 // ─── Missing user endpoints ────────────────────────────────────
 import saveDecisionHandler from '../api_src/user/saveDecision.js';

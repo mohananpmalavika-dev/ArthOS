@@ -970,6 +970,32 @@ export default function AssessmentSection({
             </div>
           )}
         </div>
+
+        <div className="assessment-flow-deck" aria-label="Assessment journey">
+          {steps.map((step, index) => {
+            const StepIcon = step.icon;
+            const active = index === currentStep;
+            const complete = index < currentStep;
+
+            return (
+              <div
+                className={`assessment-flow-card ${active ? "active" : ""} ${
+                  complete ? "complete" : ""
+                }`}
+                key={step.id}
+              >
+                <span className="assessment-flow-index">{String(index + 1).padStart(2, "0")}</span>
+                <span className="assessment-flow-icon">
+                  <StepIcon size={17} />
+                </span>
+                <strong>{step.label}</strong>
+                <small>
+                  {active ? "Live now" : complete ? "Captured" : "Queued"}
+                </small>
+              </div>
+            );
+          })}
+        </div>
       </div>
 
       <div className="workspace">

@@ -210,6 +210,171 @@ const intelligenceRows = INTELLIGENCE_ROWS.map(row => ({
 }));
 const businessCards = BUSINESS_CARDS;
 
+const PRODUCT_FLOW_STAGES = [
+  {
+    hash: "#home",
+    aliases: ["#intelligence"],
+    label: "Discover",
+    caption: "Signal map",
+    icon: Sparkles
+  },
+  {
+    hash: "#assessment",
+    label: "Assess",
+    caption: "Behavior score",
+    icon: Brain
+  },
+  {
+    hash: "#reports",
+    aliases: ["#cognition"],
+    label: "Diagnose",
+    caption: "Risk and bias",
+    icon: BarChart3
+  },
+  {
+    hash: "#simulator",
+    label: "Simulate",
+    caption: "Scenario lab",
+    icon: Target
+  },
+  {
+    hash: "#decisions",
+    label: "Decide",
+    caption: "Action ledger",
+    icon: ThumbsUp
+  },
+  {
+    hash: "#memory",
+    aliases: ["#history"],
+    label: "Remember",
+    caption: "Learning loop",
+    icon: Network
+  }
+];
+
+function normalizeScore(result) {
+  return Math.max(0, Math.min(100, Math.round((result?.healthScore ?? 0) / 10)));
+}
+
+function ProductFlowMap({ activeHash = "#home", result }) {
+  const currentHash = activeHash || "#home";
+  const activeIndex = Math.max(
+    0,
+    PRODUCT_FLOW_STAGES.findIndex(
+      stage => stage.hash === currentHash || stage.aliases?.includes(currentHash)
+    )
+  );
+  const score = normalizeScore(result);
+  const category = result?.categoryBand?.label || "Live profile";
+
+  return (
+    <section className="flow-command-center" aria-label="Financial intelligence flow">
+      <div className="flow-command-summary">
+        <span className="flow-command-mark">
+          <Sparkles size={18} />
+        </span>
+        <div>
+          <h2>Financial Intelligence Flow</h2>
+          <p>Signals, diagnosis, simulation, decisions, and memory in one operating path.</p>
+        </div>
+      </div>
+
+      <div className="flow-command-metrics" aria-label="Current financial intelligence status">
+        <div>
+          <span>Live score</span>
+          <strong>{score}/100</strong>
+        </div>
+        <div>
+          <span>Risk posture</span>
+          <strong>{category}</strong>
+        </div>
+        <div>
+          <span>Current phase</span>
+          <strong>{PRODUCT_FLOW_STAGES[activeIndex]?.label}</strong>
+        </div>
+      </div>
+
+      <div
+        className="flow-stage-rail"
+        style={{ "--flow-progress": `${(activeIndex / (PRODUCT_FLOW_STAGES.length - 1)) * 100}%` }}
+      >
+        {PRODUCT_FLOW_STAGES.map((stage, index) => {
+          const Icon = stage.icon;
+          const active = index === activeIndex;
+          const completed = index < activeIndex;
+
+          return (
+            <a
+              href={stage.hash}
+              key={stage.hash}
+              className={`flow-stage-node ${active ? "active" : ""} ${
+                completed ? "completed" : ""
+              }`}
+              aria-current={active ? "step" : undefined}
+            >
+              <span className="flow-stage-icon">
+                <Icon size={15} />
+              </span>
+              <span>
+                <strong>{stage.label}</strong>
+                <small>{stage.caption}</small>
+              </span>
+            </a>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
+
+function ReportsFlowHeader({ result, decisionHistoryCount, memoryTimeline }) {
+  const score = normalizeScore(result);
+  const reportMetrics = [
+    {
+      label: "Health score",
+      value: `${score}/100`,
+      detail: result?.categoryBand?.label || "Live profile"
+    },
+    {
+      label: "Survival runway",
+      value: result?.survivalMonthsDisplay || `${result?.survivalMonthsRaw ?? 0} mo`,
+      detail: "Modeled resilience"
+    },
+    {
+      label: "Decision history",
+      value: decisionHistoryCount,
+      detail: "Tracked choices"
+    },
+    {
+      label: "Memory events",
+      value: memoryTimeline.length,
+      detail: "Learning signals"
+    }
+  ];
+
+  return (
+    <section className="flow-report-hero" aria-labelledby="report-flow-title">
+      <div className="flow-report-copy">
+        <span>Intelligence report</span>
+        <h1 id="report-flow-title">A connected view of financial behavior, risk, and next action.</h1>
+        <p>
+          Your report now moves from the strongest signal into forecast, cognition, simulation,
+          decision history, and memory.
+        </p>
+      </div>
+      <div className="flow-kpi-strip">
+        {reportMetrics.map(metric => (
+          <div className="flow-kpi-card" key={metric.label}>
+            <span>{metric.label}</span>
+            <strong>{metric.value}</strong>
+            <small>{metric.detail}</small>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
 // Note: buildLiveInsightCards, SECTION_ICONS, INCOME_STABILITY_OPTIONS, DEPENDENTS_OPTIONS
 // are now imported from assessmentCardBuilder.js
 const sectionIcons = SECTION_ICONS;
@@ -1091,6 +1256,8 @@ export default function App() {
         />
       )}
 
+      {!showAuthModal && <ProductFlowMap activeHash={activeHash} result={result} />}
+
       <NotificationPanel
         isOpen={showNotificationPanel}
         onClose={() => setShowNotificationPanel(false)}
@@ -1213,8 +1380,14 @@ export default function App() {
             )}
 
             {showReportsSection && (
-              <section className="assessment-summary-grid flow-report-grid" id="reports">
-                <div className="summary-main-column">
+              <>
+                <ReportsFlowHeader
+                  result={result}
+                  decisionHistoryCount={decisionHistoryCount}
+                  memoryTimeline={memoryTimeline}
+                />
+                <section className="assessment-summary-grid flow-report-grid" id="reports">
+                  <div className="summary-main-column">
                   {/* MOST IMPORTANT INSIGHT — Center of the MVP Experience */}
                   <Suspense fallback={<LazyComponentFallback />}>
                     <ErrorBoundary>
@@ -1712,7 +1885,8 @@ export default function App() {
                     </ErrorBoundary>
                   </div>
                 </section>
-              </section>
+                </section>
+              </>
             )}
 
             {showReportsSection && (
