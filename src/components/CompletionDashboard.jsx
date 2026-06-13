@@ -253,7 +253,7 @@ export default function CompletionDashboard() {
         </div>
       </div>
 
-      <style jsx>{`
+      <style jsx="true">{`
         .completion-dashboard {
           display: flex;
           flex-direction: column;

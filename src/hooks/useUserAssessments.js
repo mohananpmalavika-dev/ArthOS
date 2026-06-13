@@ -12,15 +12,9 @@ export function useUserAssessments() {
   const [assessments, setAssessments] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [pagination, setPagination] = useState({
-    limit: 50,
-    offset: 0,
-    total: 0,
-    hasMore: false
-  });
 
   const fetchAssessments = useCallback(
-    async (limit = 50, offset = 0) => {
+    async () => {
       if (!isAuthenticated || !token) {
         setError("Not authenticated");
         return;
@@ -31,7 +25,7 @@ export function useUserAssessments() {
 
       try {
         const response = await fetch(
-          `${API_BASE}/user/assessments?limit=${limit}&offset=${offset}`,
+          `${API_BASE}/user/assessments`,
           {
             method: "GET",
             headers: {
@@ -57,7 +51,6 @@ export function useUserAssessments() {
 
         const data = await response.json();
         setAssessments(data.data || []);
-        setPagination(data.pagination);
       } catch (err) {
         console.error("[useUserAssessments] Error:", err);
         setError(err.message || "Failed to fetch assessments");
@@ -79,7 +72,6 @@ export function useUserAssessments() {
     assessments,
     loading,
     error,
-    pagination,
     refetch: fetchAssessments
   };
 }
@@ -90,15 +82,9 @@ export function useUserScoreHistory() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [trends, setTrends] = useState(null);
-  const [pagination, setPagination] = useState({
-    limit: 50,
-    offset: 0,
-    total: 0,
-    hasMore: false
-  });
 
   const fetchScores = useCallback(
-    async (limit = 50, offset = 0) => {
+    async () => {
       if (!isAuthenticated || !token) {
         setError("Not authenticated");
         return;
@@ -108,7 +94,7 @@ export function useUserScoreHistory() {
       setError(null);
 
       try {
-        const response = await fetch(`${API_BASE}/user/scores?limit=${limit}&offset=${offset}`, {
+        const response = await fetch(`${API_BASE}/user/scores`, {
           method: "GET",
           headers: {
             Authorization: `Bearer ${token}`,
@@ -133,7 +119,6 @@ export function useUserScoreHistory() {
         const data = await response.json();
         setScores(data.data || []);
         setTrends(data.trends || null);
-        setPagination(data.pagination);
       } catch (err) {
         console.error("[useUserScoreHistory] Error:", err);
         setError(err.message || "Failed to fetch scores");
@@ -156,7 +141,6 @@ export function useUserScoreHistory() {
     loading,
     error,
     trends,
-    pagination,
     refetch: fetchScores
   };
 }

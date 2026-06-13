@@ -20,15 +20,10 @@ export default async function handler(req, res) {
       return res.status(401).json({ error: "Unauthorized - No valid token" });
     }
 
-    // Parse pagination params
-    const limit = Math.min(parseInt(req.query.limit || "50", 10), 100);
-    const offset = parseInt(req.query.offset || "0", 10);
-
     console.log(`[UserScores] Retrieving score history for user: ${user.id}`);
 
     // Query user's telemetry scores, ordered by most recent first
     let rows = [];
-    let total = 0;
     try {
       rows = await query(
         `SELECT 
@@ -47,18 +42,9 @@ export default async function handler(req, res) {
           created_at
          FROM ${TELEMETRY_TABLE}
          WHERE user_id = $1 AND is_authenticated = true
-         ORDER BY created_at DESC
-         LIMIT $2 OFFSET $3`,
-        [user.id, limit, offset]
-      );
-
-      // Get total count for pagination
-      const countRows = await query(
-        `SELECT COUNT(*) as total FROM ${TELEMETRY_TABLE} 
-         WHERE user_id = $1 AND is_authenticated = true`,
+         ORDER BY created_at DESC`,
         [user.id]
       );
-      total = countRows?.[0]?.total || 0;
     } catch (queryError) {
       console.error("[UserScores] DB query error:", queryError.message || queryError);
       return res.status(500).json({ status: "error", reason: "db_query_failed" });
@@ -91,13 +77,7 @@ export default async function handler(req, res) {
     return res.status(200).json({
       status: "success",
       data: rows || [],
-      trends,
-      pagination: {
-        limit,
-        offset,
-        total,
-        hasMore: offset + limit < total,
-      },
+      trends
     });
   } catch (error) {
     console.error("[UserScores] handler error:", error?.message || error);

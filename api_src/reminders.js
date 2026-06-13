@@ -102,18 +102,15 @@ async function handleCreate(req, res) {
 // ============================================================
 
 async function handleList(req, res) {
-  const { userId, status, limit: limitStr, offset: offsetStr } = req.query;
+  const { userId, status } = req.query;
 
   if (!userId) {
     return res.status(400).json({ error: "Missing userId query parameter." });
   }
 
-  const limit = Math.min(parseInt(limitStr) || 50, 100);
-  const offset = parseInt(offsetStr) || 0;
-
   // When no database, return empty — in production all reminders are server-side
   if (!hasDatabaseConfig()) {
-    return res.status(200).json({ reminders: [], total: 0, limit, offset });
+    return res.status(200).json({ reminders: [] });
   }
 
   try {
@@ -122,30 +119,29 @@ async function handleList(req, res) {
     const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
     if (!supabaseUrl || !supabaseKey) {
-      return res.status(200).json({ reminders: [], total: 0, limit, offset, source: "no_db" });
+      return res.status(200).json({ reminders: [], source: "no_db" });
     }
 
     const supabase = createClient(supabaseUrl, supabaseKey, { auth: { persistSession: false } });
 
     let query = supabase
       .from(REMINDERS_TABLE)
-      .select("*", { count: "exact" })
+      .select("*")
       .eq("user_id", userId)
-      .order("remind_at", { ascending: false })
-      .range(offset, offset + limit - 1);
+      .order("remind_at", { ascending: false });
 
     if (status && ["pending", "sent", "failed", "cancelled"].includes(status)) {
       query = query.eq("status", status);
     }
 
-    const { data, error, count } = await query;
+    const { data, error } = await query;
 
     if (error) {
       console.error("[Reminders] List query error:", error);
       return res.status(500).json({ error: "db_query_failed", detail: error.message });
     }
 
-    return res.status(200).json({ reminders: data || [], total: count || 0, limit, offset });
+    return res.status(200).json({ reminders: data || [] });
   } catch (err) {
     console.error("[Reminders] List error:", err);
     return res.status(500).json({ error: "internal_error", detail: err.message });

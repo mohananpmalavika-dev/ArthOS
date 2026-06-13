@@ -103,6 +103,7 @@ import CompletionDashboard from "./components/CompletionDashboard.jsx";
 import SubscriptionManagement from "./components/SubscriptionManagement.jsx";
 import FeaturePaywall from "./components/FeaturePaywall.jsx";
 import AssessmentLimitNotice from "./components/AssessmentLimitNotice.jsx";
+import { PanelMinimizeButton } from "./components/PanelMinimizer.jsx";
 import { useSubscription } from "./hooks/useSubscription.js";
 import { useAssessmentState } from "./hooks/useAssessmentState.js";
 import { useNotificationState } from "./hooks/useNotificationState.js";
@@ -529,6 +530,9 @@ export default function App() {
   const [adminCredentials, setAdminCredentials] = useState({ username: "", password: "" });
   const [adminLoginError, setAdminLoginError] = useState("");
   const [adminReport, setAdminReport] = useState(null);
+
+  // Minimize states for panels
+  const [minimizeMemoryTimeline, setMinimizeMemoryTimeline] = useState(false);
 
   // Marketplace and other secondary states (not yet in hooks)
   const [marketplaceRecommendations, setMarketplaceRecommendations] = useState([]);
@@ -1887,61 +1891,74 @@ export default function App() {
                 </div>
 
                 <section id="memory" className="summary-span">
-                  <div className="summary-card">
-                    <div className="premium-report-section-header">
-                      <h2 className="premium-report-section-title">🧠 Memory Timeline</h2>
-                      <p className="premium-report-block-subtitle">
-                        A dedicated memory view for your recorded financial events, reflections and
-                        decision milestones.
-                      </p>
+                  <div className={`summary-card ${minimizeMemoryTimeline ? 'is-minimized' : ''}`}>
+                    <div className="premium-report-section-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px' }}>
+                      <div>
+                        <h2 className="premium-report-section-title">🧠 Memory Timeline</h2>
+                        {!minimizeMemoryTimeline && (
+                          <p className="premium-report-block-subtitle">
+                            A dedicated memory view for your recorded financial events, reflections and
+                            decision milestones.
+                          </p>
+                        )}
+                      </div>
+                      <PanelMinimizeButton
+                        isMinimized={minimizeMemoryTimeline}
+                        onToggle={() => setMinimizeMemoryTimeline(!minimizeMemoryTimeline)}
+                        title="Memory Timeline"
+                      />
                     </div>
-                    {memoryTimeline.length > 0 ? (
+                    {!minimizeMemoryTimeline && (
                       <>
-                        <div className="premium-report-grid-2">
-                          <div className="premium-metric-tile">
-                            <div className="premium-metric-kicker">Memory events</div>
-                            <div className="premium-metric-value">{memoryTimeline.length}</div>
-                            <div className="premium-metric-desc">
-                              Events captured from assessments, forecasts, and decisions.
+                        {memoryTimeline.length > 0 ? (
+                          <>
+                            <div className="premium-report-grid-2">
+                              <div className="premium-metric-tile">
+                                <div className="premium-metric-kicker">Memory events</div>
+                                <div className="premium-metric-value">{memoryTimeline.length}</div>
+                                <div className="premium-metric-desc">
+                                  Events captured from assessments, forecasts, and decisions.
+                                </div>
+                              </div>
+                              <div className="premium-metric-tile">
+                                <div className="premium-metric-kicker">Latest entry</div>
+                                <div className="premium-metric-value">
+                                  {new Date(
+                                    fullMemoryEvents[0]?.timestamp || Date.now()
+                                  ).toLocaleDateString()}
+                                </div>
+                                <div className="premium-metric-desc">
+                                  Most recent financial memory update.
+                                </div>
+                              </div>
                             </div>
-                          </div>
-                          <div className="premium-metric-tile">
-                            <div className="premium-metric-kicker">Latest entry</div>
-                            <div className="premium-metric-value">
-                              {new Date(
-                                fullMemoryEvents[0]?.timestamp || Date.now()
-                              ).toLocaleDateString()}
-                            </div>
-                            <div className="premium-metric-desc">
-                              Most recent financial memory update.
-                            </div>
-                          </div>
-                        </div>
-                        <ul className="memory-timeline-list memory-timeline-page-list">
-                          {fullMemoryEvents.map((event, index) => (
-                            <li key={`${event.type}-${event.timestamp}-${index}`}>
-                              <strong>{event.type.replaceAll("_", " ")}</strong>
-                              <span>
-                                {event.score !== undefined
-                                  ? `Score ${event.score}`
-                                  : event.name || event.description || "Event recorded"}
-                              </span>
-                              <span>
-                                {new Date(event.timestamp).toLocaleDateString()} ·{" "}
-                                {new Date(event.timestamp).toLocaleTimeString([], {
-                                  hour: "2-digit",
-                                  minute: "2-digit"
-                                })}
-                              </span>
-                            </li>
-                          ))}
-                        </ul>
+                            <ul className="memory-timeline-list memory-timeline-page-list">
+                              {fullMemoryEvents.map((event, index) => (
+                                <li key={`${event.type}-${event.timestamp}-${index}`}>
+                                  <strong>{event.type.replaceAll("_", " ")}</strong>
+                                  <span>
+                                    {event.score !== undefined
+                                      ? `Score ${event.score}`
+                                      : event.name || event.description || "Event recorded"}
+                                  </span>
+                                  <span>
+                                    {new Date(event.timestamp).toLocaleDateString()} ·{" "}
+                                    {new Date(event.timestamp).toLocaleTimeString([], {
+                                      hour: "2-digit",
+                                      minute: "2-digit"
+                                    })}
+                                  </span>
+                                </li>
+                              ))}
+                            </ul>
+                          </>
+                        ) : (
+                          <p className="premium-metric-longtext">
+                            No financial memory events yet. Keep using the app to build a richer
+                            timeline of your financial journey.
+                          </p>
+                        )}
                       </>
-                    ) : (
-                      <p className="premium-metric-longtext">
-                        No financial memory events yet. Keep using the app to build a richer
-                        timeline of your financial journey.
-                      </p>
                     )}
                   </div>
                 </section>
