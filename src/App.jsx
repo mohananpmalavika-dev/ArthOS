@@ -171,10 +171,12 @@ import ActionFollowUpPanel from "./components/ActionFollowUpPanel.jsx";
 import DecisionSimulator from "./components/DecisionSimulator.jsx";
 import ExportPDF from "./components/ExportPDF.jsx";
 import RealityScreen from "./components/RealityScreen.jsx";
+import WhyScreen from "./components/WhyScreen.jsx";
 import MindDashboard from "./components/MindDashboard.jsx";
 import FutureScreen from "./components/FutureScreen.jsx";
 import ActionScreen from "./components/ActionScreen.jsx";
 import CoachScreen from "./components/CoachScreen.jsx";
+import DeveloperIntelligenceSection from "./components/DeveloperIntelligenceSection.jsx";
 import { ConsequenceForecastCard } from "./components/ConsequenceForecastCard.jsx";
 import { InterventionsPrescriptionCard } from "./components/InterventionsPrescriptionCard.jsx";
 import { StrategicMetricsCard } from "./components/StrategicMetricsCard.jsx";
@@ -1361,14 +1363,10 @@ export default function App() {
       )}
 
       <main>
-        {activeHash === "#b2b" ? (
-          <Suspense fallback={<LazyComponentFallback />}>
-            <B2BPartnerPortal userId={effectiveUserId} assessment={assessment} />
-          </Suspense>
-        ) : activeHash === "#predictions" ? (
+        {(activeHash === "#predictions" || activeHash === "#assessment" || activeHash === "#b2b" || activeHash === "#intelligence") ? (
           <Suspense fallback={<LazyComponentFallback />}>
             <ErrorBoundary>
-              <PredictionEngineDashboard userId={effectiveUserId} />
+              <DeveloperIntelligenceSection userId={effectiveUserId} result={result} assessment={assessment} />
             </ErrorBoundary>
           </Suspense>
         ) : activeHash === "#ai-coach" ? (
@@ -1386,13 +1384,7 @@ export default function App() {
         ) : activeHash === "#reality" ? (
           <RealityScreen result={result} assessment={assessment} />
         ) : activeHash === "#mind" ? (
-          <MindDashboard
-            result={result}
-            moneyBeliefs={moneyBeliefs}
-            biasProfile={biasProfile}
-            emotionalTriggers={emotionalTriggers}
-            financialMindProfile={financialMindProfile}
-          />
+          <WhyScreen result={result} assessment={assessment} />
         ) : activeHash === "#future" ? (
           <FutureScreen result={result} assessment={assessment} />
         ) : activeHash === "#action" ? (

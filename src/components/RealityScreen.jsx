@@ -5,6 +5,7 @@ import UserHistory from "./UserHistory.jsx";
 import FinancialWeatherCard from "./FinancialWeatherCard.jsx";
 import JourneyLevelCard from "./JourneyLevelCard.jsx";
 import ScoreTrendStrip from "./ScoreTrendStrip.jsx";
+import ContextualCoachPrompt from "./ContextualCoachPrompt.jsx";
 
 export default function RealityScreen({ result, assessment }) {
   const healthScore = result?.healthScore ?? 0;
@@ -100,6 +101,15 @@ export default function RealityScreen({ result, assessment }) {
         <p style={{ margin: 0, color: "var(--ink-3)", maxWidth: "760px", lineHeight: 1.7 }}>
           This screen brings your state, score, runway and direction into one clear story. It is the reality lens for the rest of your journey.
         </p>
+      </section>
+
+      {/* Contextual Coach */}
+      <section style={{ marginTop: "32px" }}>
+        <ContextualCoachPrompt
+          context="reality"
+          headline="Questions About Your Reality?"
+          prompt="Your score, runway, and direction are all connected. Ask your coach why your score is where it is, or what any of these metrics mean for your future."
+        />
       </section>
     </section>
   );
