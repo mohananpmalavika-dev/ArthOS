@@ -19,6 +19,8 @@ const PREFIX_MATCH_FILES = new Set([
   "subscriptions-handler.js",
   "follow-up-handler.js",
   "reminders.js",
+  "ai-coach-handler.js",
+  "coach-handler.js",
 ]);
 
 function normalizeSegment(segment) {

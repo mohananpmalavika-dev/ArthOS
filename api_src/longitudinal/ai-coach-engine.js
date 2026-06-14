@@ -9,17 +9,40 @@
  * The coach acts as a trusted advisor, not just a recommendation engine.
  */
 
+import 'dotenv/config';
 import { createClient } from '@supabase/supabase-js';
 import OpenAI from 'openai';
 
-const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY);
+const SUPABASE_URL = process.env.SUPABASE_URL;
+const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
+
+function isPlaceholderValue(value) {
+  if (!value) return true;
+  const lower = String(value).toLowerCase();
+  return lower.includes('your-project') || lower.includes('your-service-role-key') || lower.includes('your-openai-key') || lower.includes('xxx') || lower.includes('replace');
+}
+
+function ensureSupabaseConfigured() {
+  if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY || isPlaceholderValue(SUPABASE_URL) || isPlaceholderValue(SUPABASE_SERVICE_ROLE_KEY)) {
+    throw new Error('Missing or placeholder Supabase configuration. Set valid SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY in your environment.');
+  }
+}
+
+function ensureOpenAIConfigured() {
+  if (!OPENAI_API_KEY || isPlaceholderValue(OPENAI_API_KEY)) {
+    throw new Error('Missing or placeholder OPENAI_API_KEY. Set a valid OpenAI API key in your environment.');
+  }
+}
+
+ensureSupabaseConfigured();
+const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
 let _openai = null;
 function getOpenAI() {
   if (!_openai) {
-    _openai = new OpenAI({
-      apiKey: process.env.OPENAI_API_KEY,
-    });
+    ensureOpenAIConfigured();
+    _openai = new OpenAI({ apiKey: OPENAI_API_KEY });
   }
   return _openai;
 }

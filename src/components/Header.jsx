@@ -1,10 +1,10 @@
 import React from "react";
 import PropTypes from "prop-types";
-import { Search, Bell, Download, LogIn, LogOut, CircleUserRound, ChevronDown } from "lucide-react";
+import { Search, Bell, Download, LogIn, LogOut, CircleUserRound, ChevronDown, LineChart } from "lucide-react";
 import { NAV_ITEMS } from "../lib/copy.ts";
 
 function Header({
-  activeHash = "#home",
+  activeHash = "#",
   saveState = "saving",
   saveStatusLabel = "Saved",
   saveStatusClass = "saved",
@@ -20,7 +20,7 @@ function Header({
 }) {
   return (
     <header className="topbar">
-      <a className="brand" href="#home" aria-label="ARTH.OS home">
+      <a className="brand" href="#" aria-label="ARTH.OS home">
         <span className="logo-word">
           ARTH.<span>OS</span>
         </span>
@@ -80,6 +80,11 @@ function Header({
             <LogIn size={18} />
           </button>
         )}
+
+        <a className="dev-intelligence-link" href="#intelligence" aria-label="Developer Intelligence">
+          <LineChart size={16} />
+          <span>Dev Intelligence</span>
+        </a>
 
         <a className="model-avatar-btn" href="#admin" aria-label="Admin dashboard">
           <span>A</span>

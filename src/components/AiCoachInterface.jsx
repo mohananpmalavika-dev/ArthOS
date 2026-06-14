@@ -28,7 +28,7 @@ import {
   Zap
 } from "lucide-react";
 
-const AiCoachInterface = ({ userId, result, assessment }) => {
+const AiCoachInterface = ({ userId, result, assessment, coachPrimaryConcern }) => {
   // Session state
   const [sessionId, setSessionId] = useState(null);
   const [messages, setMessages] = useState([]);
@@ -63,6 +63,13 @@ const AiCoachInterface = ({ userId, result, assessment }) => {
     loadCoachingMemory();
     loadAnalytics();
   }, [userId]);
+
+  useEffect(() => {
+    if (coachPrimaryConcern && !sessionActive) {
+      startSession(coachPrimaryConcern);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [coachPrimaryConcern, sessionActive]);
 
   // Load coaching memory and preferences
   const loadCoachingMemory = async () => {

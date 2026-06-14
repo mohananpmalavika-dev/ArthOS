@@ -21,7 +21,7 @@ export default function FlowNavigation({ activeHash, onNavigate }) {
   const coreNarrative = useMemo(
     () => [
       { id: "assess", hash: "#assessment", label: "Assessment", icon: ClipboardList, description: "Financial Health Quiz" },
-      { id: "reality", hash: "#reality", label: "Reality", icon: Home, description: "Where am I?" },
+      { id: "reality", hash: "#", label: "Reality", icon: Home, description: "Where am I?" },
       { id: "mind", hash: "#mind", label: "Why", icon: Brain, description: "Why am I here?" },
       { id: "future", hash: "#future", label: "Future", icon: Target, description: "What happens next?" },
       { id: "action", hash: "#action", label: "Actions", icon: GitBranch, description: "What should I do?" },
@@ -47,7 +47,7 @@ export default function FlowNavigation({ activeHash, onNavigate }) {
   );
 
   const isActive = hash => {
-    const currentHash = activeHash || "#reality";
+    const currentHash = activeHash || "#";
     const allItems = [...coreNarrative, ...developerMenu];
     const item = allItems.find(navItem => navItem.hash === hash);
     return currentHash === hash || (item?.aliases && item.aliases.includes(currentHash));

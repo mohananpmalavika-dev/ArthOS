@@ -13,7 +13,7 @@ import { isBrowser } from "../lib/app-utils.jsx";
 
 export function useUIState() {
   const [activeHash, setActiveHash] = useState(() =>
-    isBrowser() ? window.location.hash || "#home" : "#home"
+    isBrowser() ? window.location.hash || "#" : "#"
   );
   const [showOnboarding, setShowOnboarding] = useState(() => {
     if (!isBrowser()) {
@@ -31,7 +31,7 @@ export function useUIState() {
   useEffect(() => {
     const handleHashChange = () => {
       startTransition(() => {
-        setActiveHash(window.location.hash || "#home");
+        setActiveHash(window.location.hash || "#");
       });
     };
 

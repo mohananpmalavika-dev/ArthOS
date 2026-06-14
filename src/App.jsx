@@ -438,6 +438,7 @@ export default function App({ demoMode = false }) {
   const [adminCredentials, setAdminCredentials] = useState({ username: "", password: "" });
   const [adminLoginError, setAdminLoginError] = useState("");
   const [adminReport, setAdminReport] = useState(null);
+  const [coachPrimaryConcern, setCoachPrimaryConcern] = useState(null);
 
   // Minimize states for panels
   const [minimizeMemoryTimeline, setMinimizeMemoryTimeline] = useState(false);
@@ -501,6 +502,21 @@ export default function App({ demoMode = false }) {
     setPaywallFeature(null);
     setShowPaywall(false);
   };
+
+  function handleOpenPanel(hash, primaryConcern = null) {
+    if (primaryConcern) {
+      setCoachPrimaryConcern(primaryConcern);
+    } else {
+      setCoachPrimaryConcern(null);
+    }
+
+    startTransition(() => {
+      setActiveHash(hash);
+      if (isBrowser()) {
+        window.location.hash = hash;
+      }
+    });
+  }
 
   const handleUpgradeFromPaywall = async () => {
     const success = await upgradeSubscription("plus");
@@ -1038,7 +1054,7 @@ export default function App({ demoMode = false }) {
   const isWorkflowRoute = activeHash === "#assessment" || activeHash === "#simulator";
   const isReportsRoute = reportRoutes.includes(activeHash);
   const showHeroSection =
-    activeHash === "#home" ||
+    activeHash === "#" ||
     activeHash === "#intelligence" ||
     (!isWorkflowRoute && !isReportsRoute);
   const showAssessmentSection = activeHash === "#assessment";
@@ -1140,7 +1156,7 @@ export default function App({ demoMode = false }) {
     setAdminLoggedIn(false);
     setAdminCredentials({ username: "", password: "" });
     setAdminLoginError("");
-    window.location.hash = "#home";
+    window.location.hash = "#";
   }
 
   function generateAdminReport() {
@@ -1301,7 +1317,12 @@ export default function App({ demoMode = false }) {
             onAssessmentUpdate={(updates) => updateGroup('behaviour', null, updates)}
           />
         ) : activeHash === "#coach" ? (
-          <CoachScreen userId={effectiveUserId} result={result} assessment={assessment} />
+          <CoachScreen
+            userId={effectiveUserId}
+            result={result}
+            assessment={assessment}
+            coachPrimaryConcern={coachPrimaryConcern}
+          />
         ) : activeHash === "#admin" ? (
           <AdminSection
             assessment={assessment}
