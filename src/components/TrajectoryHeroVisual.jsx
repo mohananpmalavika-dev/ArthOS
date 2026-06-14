@@ -2,8 +2,12 @@ import React, { useMemo } from "react";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, ReferenceLine } from "recharts";
 import { AlertTriangle, TrendingUp } from "lucide-react";
 
-export default function TrajectoryHeroVisual({ result, assessment }) {
+export default function TrajectoryHeroVisual({ result, assessment, data }) {
   const trajectoryData = useMemo(() => {
+    if (Array.isArray(data) && data.length > 0) {
+      return data;
+    }
+
     // Simulate two paths: current (if no action) and recommended (if action taken)
     const currentTrajectory = [
       { year: "Now", current: 72, recommended: 72 },
@@ -13,7 +17,7 @@ export default function TrajectoryHeroVisual({ result, assessment }) {
     ];
 
     return currentTrajectory;
-  }, [result]);
+  }, [data, result]);
 
   const currentScore = result?.healthScore ? Math.round(result.healthScore / 10) : 72;
   const projectedWorst = 48; // 5-year projection without action

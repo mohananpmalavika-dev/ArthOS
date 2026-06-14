@@ -25,7 +25,14 @@ function ScoreRing({ score = 0, size = "default" }) {
   // Observer for visibility-based animation
   useEffect(() => {
     const el = ringRef.current;
-    if (!el) return;
+    if (!el) {
+      return;
+    }
+
+    if (typeof IntersectionObserver === "undefined") {
+      setIsVisible(true);
+      return;
+    }
 
     const observer = new IntersectionObserver(
       ([entry]) => {

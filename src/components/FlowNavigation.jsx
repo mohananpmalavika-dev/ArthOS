@@ -20,6 +20,7 @@ export default function FlowNavigation({ activeHash, onNavigate }) {
 
   const coreNarrative = useMemo(
     () => [
+      { id: "assess", hash: "#assessment", label: "Assessment", icon: ClipboardList, description: "Financial Health Quiz" },
       { id: "reality", hash: "#reality", label: "Reality", icon: Home, description: "Where am I?" },
       { id: "mind", hash: "#mind", label: "Why", icon: Brain, description: "Why am I here?" },
       { id: "future", hash: "#future", label: "Future", icon: Target, description: "What happens next?" },
@@ -31,9 +32,15 @@ export default function FlowNavigation({ activeHash, onNavigate }) {
 
   const developerMenu = useMemo(
     () => [
-      { id: "assess", hash: "#assessment", label: "Assessment", icon: ClipboardList, description: "Financial Health Quiz" },
       { id: "b2b", hash: "#b2b", label: "Partners", icon: Users, description: "B2B Portal" },
-      { id: "predictions", hash: "#predictions", label: "Intelligence", icon: LineChart, description: "Prediction Engine" },
+      {
+        id: "developer-intelligence",
+        hash: "#intelligence",
+        aliases: ["#predictions"],
+        label: "Developer Intelligence",
+        icon: LineChart,
+        description: "Internal intelligence layers"
+      },
       { id: "admin", hash: "#admin", label: "Admin", icon: ShieldCheck, description: "Operations Console" }
     ],
     []
@@ -64,7 +71,7 @@ export default function FlowNavigation({ activeHash, onNavigate }) {
           return (
             <button
               key={item.id}
-              className={`app-nav-tab ${active ? "active" : ""}`}
+              className={`app-nav-tab ${item.hash === "#assessment" ? "primary" : ""} ${active ? "active" : ""}`}
               onClick={() => handleNavClick(item.hash)}
               title={item.description}
               aria-current={active ? "page" : undefined}

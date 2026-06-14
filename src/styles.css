@@ -520,6 +520,17 @@ main {
   color: var(--ink-0);
 }
 
+.app-nav-tab.primary {
+  border-color: rgba(75, 218, 236, 0.25);
+  background: linear-gradient(180deg, rgba(75, 218, 236, 0.16), rgba(75, 218, 236, 0.08));
+  color: var(--cyan);
+}
+
+.app-nav-tab.primary:hover {
+  background: linear-gradient(180deg, rgba(75, 218, 236, 0.22), rgba(75, 218, 236, 0.12));
+  color: var(--cyan);
+}
+
 .app-nav-tab.active {
   border-color: rgba(98, 228, 209, 0.3);
   background:

@@ -17,6 +17,8 @@ import { useAuth } from "./context/AuthContext.jsx";
  */
 function AppRouter() {
   const { isAuthenticated, loading } = useAuth();
+  const demoMode = typeof window !== "undefined" &&
+    window.location.pathname.startsWith("/demo");
 
   // Show nothing while checking authentication status
   if (loading) {
@@ -40,11 +42,16 @@ function AppRouter() {
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
 
-          {/* Main app - shows login if not authenticated. In local dev allow bypass. */}
+          {/* Main app demo route - the same app but with investor demo framing. */}
           {(() => {
             const isLocalDev = typeof window !== "undefined" &&
               (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1");
-            return <Route path="/*" element={isAuthenticated || isLocalDev ? <App /> : <Navigate to="/login" replace />} />;
+            return (
+              <>
+                <Route path="/demo/*" element={isAuthenticated || isLocalDev ? <App demoMode={true} /> : <Navigate to="/login" replace />} />
+                <Route path="/*" element={isAuthenticated || isLocalDev ? <App demoMode={false} /> : <Navigate to="/login" replace />} />
+              </>
+            );
           })()}
         </Routes>
       </ErrorBoundary>
