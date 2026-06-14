@@ -39,6 +39,19 @@ export function AuthProvider({ children }) {
         if (stored) {
           const parsed = JSON.parse(stored);
           if (parsed.token && parsed.user) {
+            // Local dev convenience: accept a 'dev-token' without remote validation
+            const isLocalhost = window.location.hostname === "localhost" ||
+              window.location.hostname === "127.0.0.1";
+            if (isLocalhost && parsed.token === "dev-token") {
+              setToken(parsed.token);
+              setUser(parsed.user);
+              // Do not attempt remote validation in dev shortcut
+              if (!cancelled) {
+                setLoading(false);
+              }
+              return;
+            }
+
             setToken(parsed.token);
             setUser(parsed.user);
 

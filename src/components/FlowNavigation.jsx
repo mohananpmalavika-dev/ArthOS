@@ -17,92 +17,15 @@ import {
 export default function FlowNavigation({ activeHash, onNavigate }) {
   const navItems = useMemo(
     () => [
-      {
-        id: "home",
-        hash: "#home",
-        label: "Home",
-        icon: Home,
-        description: "Dashboard & Overview",
-        aliases: ["#intelligence"]
-      },
-      {
-        id: "assessment",
-        hash: "#assessment",
-        label: "Assess",
-        icon: ClipboardList,
-        description: "Financial Health Quiz"
-      },
-      {
-        id: "reports",
-        hash: "#reports",
-        label: "Reports",
-        icon: BarChart3,
-        description: "Analytics & Insights"
-      },
-      {
-        id: "cognition",
-        hash: "#cognition",
-        label: "Cognition",
-        icon: Brain,
-        description: "Decision Patterns"
-      },
-      {
-        id: "simulator",
-        hash: "#simulator",
-        label: "Simulator",
-        icon: Target,
-        description: "What-If Scenarios"
-      },
-      {
-        id: "decisions",
-        hash: "#decisions",
-        label: "Decisions",
-        icon: GitBranch,
-        description: "Decision Ledger"
-      },
-      {
-        id: "memory",
-        hash: "#memory",
-        label: "Memory",
-        icon: History,
-        description: "Timeline & History",
-        aliases: ["#history"]
-      },
-      {
-        id: "b2b",
-        hash: "#b2b",
-        label: "Partners",
-        icon: Users,
-        description: "B2B Portal"
-      },
-      {
-        id: "ai-coach",
-        hash: "#ai-coach",
-        label: "AI Coach",
-        icon: MessageCircle,
-        description: "Personal Financial Coach"
-      },
-      {
-        id: "longitudinal",
-        hash: "#longitudinal",
-        label: "Longitudinal",
-        icon: TrendingUp,
-        description: "Learning Dashboard"
-      },
-      {
-        id: "predictions",
-        hash: "#predictions",
-        label: "Predictions",
-        icon: LineChart,
-        description: "Longitudinal Forecasting"
-      },
-      {
-        id: "admin",
-        hash: "#admin",
-        label: "Admin",
-        icon: ShieldCheck,
-        description: "Operations Console"
-      }
+      { id: "reality", hash: "#reality", label: "Reality", icon: Home, description: "Current state" },
+      { id: "mind", hash: "#mind", label: "Mind", icon: Brain, description: "Beliefs & bias" },
+      { id: "future", hash: "#future", label: "Future", icon: Target, description: "Forecast" },
+      { id: "action", hash: "#action", label: "Action", icon: GitBranch, description: "Mission plan" },
+      { id: "coach", hash: "#coach", label: "Coach", icon: MessageCircle, description: "AI guidance" },
+      { id: "assess", hash: "#assessment", label: "Assess", icon: ClipboardList, description: "Financial Health Quiz" },
+      { id: "b2b", hash: "#b2b", label: "Partners", icon: Users, description: "B2B Portal" },
+      { id: "predictions", hash: "#predictions", label: "Predictions", icon: LineChart, description: "Longitudinal Forecasting" },
+      { id: "admin", hash: "#admin", label: "Admin", icon: ShieldCheck, description: "Operations Console" }
     ],
     []
   );
@@ -110,7 +33,7 @@ export default function FlowNavigation({ activeHash, onNavigate }) {
   const isActive = hash => {
     const currentHash = activeHash || "#home";
     const item = navItems.find(navItem => navItem.hash === hash);
-    return currentHash === hash || item?.aliases?.includes(currentHash);
+    return currentHash === hash || (item?.aliases && item.aliases.includes(currentHash));
   };
 
   const handleNavClick = hash => {

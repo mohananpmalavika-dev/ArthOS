@@ -40,8 +40,12 @@ function AppRouter() {
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
 
-          {/* Main app - shows login if not authenticated */}
-          <Route path="/*" element={isAuthenticated ? <App /> : <Navigate to="/login" replace />} />
+          {/* Main app - shows login if not authenticated. In local dev allow bypass. */}
+          {(() => {
+            const isLocalDev = typeof window !== "undefined" &&
+              (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1");
+            return <Route path="/*" element={isAuthenticated || isLocalDev ? <App /> : <Navigate to="/login" replace />} />;
+          })()}
         </Routes>
       </ErrorBoundary>
     </BrowserRouter>

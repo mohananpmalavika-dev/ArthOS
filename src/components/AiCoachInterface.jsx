@@ -1,12 +1,10 @@
 /**
  * AI Coach Chat Interface
  *
- * Real-time conversation interface with ARTH.OS Financial Coach.
- * Features:
- * - Live conversation with GPT-powered coach
- * - Conversation memory and context
- * - Personalized recommendations
- * - Session management
+ * ARTH.OS V4 Context-First Coach Architecture
+ * - Context panel shows user's financial situation, health score, and weekly mission
+ * - Chat interface for personalized coaching below
+ * - Integrated with assessment results for personalized guidance
  */
 
 import React, { useState, useEffect, useRef } from "react";
@@ -23,10 +21,14 @@ import {
   Plus,
   Clock,
   Loader,
-  Star
+  Star,
+  Brain,
+  TrendingDown,
+  Target,
+  Zap
 } from "lucide-react";
 
-const AICoachrInterface = ({ userId }) => {
+const AiCoachInterface = ({ userId, result, assessment }) => {
   // Session state
   const [sessionId, setSessionId] = useState(null);
   const [messages, setMessages] = useState([]);
@@ -278,17 +280,19 @@ const AICoachrInterface = ({ userId }) => {
   // Not in session
   if (!sessionActive) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-6">
-        <div className="max-w-4xl mx-auto">
+      <div style={{ minHeight: "100vh", backgroundColor: "var(--blue-50)", padding: "var(--space-4)" }}>
+        <div style={{ maxWidth: "1024px", margin: "0 auto" }}>
           {/* Header */}
-          <div className="mb-8">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="bg-blue-600 text-white p-3 rounded-lg">
-                <MessageCircle size={28} />
+          <div style={{ marginBottom: "var(--space-6)" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "var(--space-3)", marginBottom: "var(--space-3)" }}>
+              <div style={{ backgroundColor: "var(--cyan)", color: "white", padding: "var(--space-3)", borderRadius: "var(--radius-2)" }}>
+                <Brain size={28} />
               </div>
               <div>
-                <h1 className="text-4xl font-bold text-gray-900">ARTH.OS Financial Coach</h1>
-                <p className="text-gray-600 mt-1">
+                <h1 style={{ fontSize: "var(--type-xxl)", fontWeight: "700", color: "var(--ink-0)", margin: 0 }}>
+                  ARTH.OS Financial Coach
+                </h1>
+                <p style={{ color: "var(--ink-2)", marginTop: "var(--space-1)", margin: 0, fontSize: "var(--type-sm)" }}>
                   Your AI-powered financial advisor powered by your cognition data
                 </p>
               </div>
@@ -296,10 +300,12 @@ const AICoachrInterface = ({ userId }) => {
           </div>
 
           {/* Start Session Options */}
-          <div className="bg-white rounded-lg shadow-lg p-8 mb-8">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">Start a Coaching Session</h2>
+          <div style={{ backgroundColor: "white", borderRadius: "var(--radius-2)", padding: "var(--space-4)", marginBottom: "var(--space-4)", boxShadow: "0 1px 3px rgba(0,0,0,0.1)" }}>
+            <h2 style={{ fontSize: "var(--type-lg)", fontWeight: "700", color: "var(--ink-0)", marginBottom: "var(--space-3)" }}>
+              Start a Coaching Session
+            </h2>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: "var(--space-2)", marginBottom: "var(--space-3)" }}>
               {[
                 { concern: "Spending Control", emoji: "💰", desc: "Control your spending habits" },
                 { concern: "Savings Building", emoji: "🏦", desc: "Build sustainable savings" },
@@ -312,11 +318,32 @@ const AICoachrInterface = ({ userId }) => {
                   key={option.concern}
                   onClick={() => startSession(option.concern)}
                   disabled={isLoading}
-                  className="text-left p-4 border border-gray-200 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition disabled:opacity-50"
+                  style={{
+                    textAlign: "left",
+                    padding: "var(--space-3)",
+                    border: "1px solid var(--blue-50)",
+                    borderRadius: "var(--radius-1)",
+                    backgroundColor: "white",
+                    cursor: isLoading ? "not-allowed" : "pointer",
+                    opacity: isLoading ? 0.5 : 1,
+                    transition: "all 0.2s ease",
+                  }}
+                  onMouseEnter={(e) => {
+                    e.target.style.borderColor = "var(--cyan)";
+                    e.target.style.backgroundColor = "var(--blue-50)";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.target.style.borderColor = "var(--blue-50)";
+                    e.target.style.backgroundColor = "white";
+                  }}
                 >
-                  <p className="text-2xl mb-2">{option.emoji}</p>
-                  <p className="font-semibold text-gray-900">{option.concern}</p>
-                  <p className="text-sm text-gray-600">{option.desc}</p>
+                  <div style={{ fontSize: "var(--type-xl)", marginBottom: "var(--space-2)" }}>{option.emoji}</div>
+                  <p style={{ fontWeight: "600", color: "var(--ink-0)", margin: 0, fontSize: "var(--type-sm)" }}>
+                    {option.concern}
+                  </p>
+                  <p style={{ fontSize: "var(--type-xs)", color: "var(--ink-2)", margin: "var(--space-1) 0 0 0" }}>
+                    {option.desc}
+                  </p>
                 </button>
               ))}
             </div>
@@ -324,7 +351,21 @@ const AICoachrInterface = ({ userId }) => {
             <button
               onClick={() => startSession()}
               disabled={isLoading}
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg font-semibold transition disabled:opacity-50"
+              style={{
+                width: "100%",
+                backgroundColor: "var(--cyan)",
+                color: "white",
+                border: "none",
+                padding: "var(--space-3)",
+                borderRadius: "var(--radius-1)",
+                fontWeight: "600",
+                fontSize: "var(--type-sm)",
+                cursor: isLoading ? "not-allowed" : "pointer",
+                opacity: isLoading ? 0.5 : 1,
+                transition: "all 0.2s ease",
+              }}
+              onMouseEnter={(e) => !isLoading && (e.target.style.backgroundColor = "var(--teal-700)")}
+              onMouseLeave={(e) => (e.target.style.backgroundColor = "var(--cyan)")}
             >
               {isLoading ? "Starting..." : "Start Free-Form Session"}
             </button>
@@ -332,32 +373,46 @@ const AICoachrInterface = ({ userId }) => {
 
           {/* Statistics */}
           {analytics && (
-            <div className="bg-white rounded-lg shadow-lg p-8">
-              <h2 className="text-xl font-bold text-gray-900 mb-6">Your Coaching Journey</h2>
+            <div style={{ backgroundColor: "white", borderRadius: "var(--radius-2)", padding: "var(--space-4)", boxShadow: "0 1px 3px rgba(0,0,0,0.1)" }}>
+              <h2 style={{ fontSize: "var(--type-lg)", fontWeight: "700", color: "var(--ink-0)", marginBottom: "var(--space-3)" }}>
+                Your Coaching Journey
+              </h2>
 
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <div className="text-center p-4 bg-blue-50 rounded">
-                  <p className="text-3xl font-bold text-blue-600">{analytics.totalSessions}</p>
-                  <p className="text-sm text-gray-600 mt-1">Sessions</p>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "var(--space-2)" }}>
+                <div style={{ textAlign: "center", padding: "var(--space-3)", backgroundColor: "var(--blue-50)", borderRadius: "var(--radius-1)" }}>
+                  <div style={{ fontSize: "var(--type-xxl)", fontWeight: "700", color: "var(--cyan)" }}>
+                    {analytics.totalSessions}
+                  </div>
+                  <p style={{ fontSize: "var(--type-xs)", color: "var(--ink-2)", marginTop: "var(--space-1)" }}>
+                    Sessions
+                  </p>
                 </div>
 
-                <div className="text-center p-4 bg-green-50 rounded">
-                  <p className="text-3xl font-bold text-green-600">
+                <div style={{ textAlign: "center", padding: "var(--space-3)", backgroundColor: "var(--green-50)", borderRadius: "var(--radius-1)" }}>
+                  <div style={{ fontSize: "var(--type-xxl)", fontWeight: "700", color: "var(--green-700)" }}>
                     {analytics.totalRecommendations}
+                  </div>
+                  <p style={{ fontSize: "var(--type-xs)", color: "var(--ink-2)", marginTop: "var(--space-1)" }}>
+                    Recommendations
                   </p>
-                  <p className="text-sm text-gray-600 mt-1">Recommendations</p>
                 </div>
 
-                <div className="text-center p-4 bg-purple-50 rounded">
-                  <p className="text-3xl font-bold text-purple-600">{analytics.acceptanceRate}%</p>
-                  <p className="text-sm text-gray-600 mt-1">Acceptance Rate</p>
+                <div style={{ textAlign: "center", padding: "var(--space-3)", backgroundColor: "#f3e8ff", borderRadius: "var(--radius-1)" }}>
+                  <div style={{ fontSize: "var(--type-xxl)", fontWeight: "700", color: "#9333ea" }}>
+                    {analytics.acceptanceRate}%
+                  </div>
+                  <p style={{ fontSize: "var(--type-xs)", color: "var(--ink-2)", marginTop: "var(--space-1)" }}>
+                    Acceptance Rate
+                  </p>
                 </div>
 
-                <div className="text-center p-4 bg-orange-50 rounded">
-                  <p className="text-3xl font-bold text-orange-600">
+                <div style={{ textAlign: "center", padding: "var(--space-3)", backgroundColor: "var(--orange-50)", borderRadius: "var(--radius-1)" }}>
+                  <div style={{ fontSize: "var(--type-xxl)", fontWeight: "700", color: "var(--orange-707)" }}>
                     {analytics.averageUserSatisfaction || "N/A"}
+                  </div>
+                  <p style={{ fontSize: "var(--type-xs)", color: "var(--ink-2)", marginTop: "var(--space-1)" }}>
+                    Avg Satisfaction
                   </p>
-                  <p className="text-sm text-gray-600 mt-1">Avg Satisfaction</p>
                 </div>
               </div>
             </div>
@@ -369,47 +424,221 @@ const AICoachrInterface = ({ userId }) => {
 
   // In active session
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex flex-col">
-      {/* Header */}
-      <div className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="bg-blue-600 text-white p-2 rounded">
-            <MessageCircle size={20} />
+    <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column", backgroundColor: "var(--blue-50)" }}>
+      {/* Context Panel - User's Current Situation */}
+      <div
+        style={{
+          background: "linear-gradient(135deg, var(--cyan) 0%, var(--teal-700) 100%)",
+          color: "white",
+          padding: "var(--space-4)",
+          borderBottom: "1px solid rgba(255,255,255,0.1)",
+        }}
+      >
+        <div style={{ maxWidth: "100%", margin: "0 auto" }}>
+          {/* Context Header */}
+          <div style={{ display: "flex", alignItems: "center", gap: "var(--space-3)", marginBottom: "var(--space-3)" }}>
+            <div
+              style={{
+                width: "44px",
+                height: "44px",
+                borderRadius: "50%",
+                background: "rgba(255,255,255,0.2)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              <Brain size={22} style={{ color: "white" }} />
+            </div>
+            <div>
+              <h1 style={{ fontSize: "var(--type-lg)", fontWeight: "600", margin: 0, color: "white" }}>
+                Your Financial Coach
+              </h1>
+              <p style={{ fontSize: "var(--type-xs)", opacity: 0.9, margin: "var(--space-1) 0 0 0", color: "white" }}>
+                {messages.length} messages in this session
+              </p>
+            </div>
           </div>
+
+          {/* Situation Context Grid */}
+          {(result || assessment) && (
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: "var(--space-2)" }}>
+              {/* Health Score Card */}
+              {result?.healthScore !== undefined && (
+                <div
+                  style={{
+                    padding: "var(--space-2)",
+                    background: "rgba(255,255,255,0.1)",
+                    borderRadius: "var(--radius-1)",
+                    border: "1px solid rgba(255,255,255,0.2)",
+                    backdropFilter: "blur(10px)",
+                  }}
+                >
+                  <div style={{ fontSize: "var(--type-xs)", opacity: 0.9 }}>Health Score</div>
+                  <div style={{ fontSize: "var(--type-xl)", fontWeight: "700", marginTop: "var(--space-1)" }}>
+                    {Math.round(result.healthScore)}/100
+                  </div>
+                  <div style={{ fontSize: "var(--type-xs)", opacity: 0.8, marginTop: "var(--space-1)" }}>
+                    {result.categoryBand?.label}
+                  </div>
+                </div>
+              )}
+
+              {/* Survival Window Card */}
+              {result?.survivalMonthsRaw !== undefined && (
+                <div
+                  style={{
+                    padding: "var(--space-2)",
+                    background: "rgba(255,255,255,0.1)",
+                    borderRadius: "var(--radius-1)",
+                    border: "1px solid rgba(255,255,255,0.2)",
+                    backdropFilter: "blur(10px)",
+                  }}
+                >
+                  <div style={{ fontSize: "var(--type-xs)", opacity: 0.9 }}>Runway</div>
+                  <div style={{ fontSize: "var(--type-xl)", fontWeight: "700", marginTop: "var(--space-1)" }}>
+                    {Math.round(result.survivalMonthsRaw)} mo
+                  </div>
+                  <div style={{ fontSize: "var(--type-xs)", opacity: 0.8, marginTop: "var(--space-1)" }}>
+                    Financial cushion
+                  </div>
+                </div>
+              )}
+
+              {/* Awareness Gap Card */}
+              {result?.awarenessGapDisplay && (
+                <div
+                  style={{
+                    padding: "var(--space-2)",
+                    background: "rgba(255,255,255,0.1)",
+                    borderRadius: "var(--radius-1)",
+                    border: "1px solid rgba(255,255,255,0.2)",
+                    backdropFilter: "blur(10px)",
+                  }}
+                >
+                  <div style={{ fontSize: "var(--type-xs)", opacity: 0.9 }}>Awareness Gap</div>
+                  <div style={{ fontSize: "var(--type-xl)", fontWeight: "700", marginTop: "var(--space-1)" }}>
+                    {result.awarenessGapDisplay}
+                  </div>
+                  <div style={{ fontSize: "var(--type-xs)", opacity: 0.8, marginTop: "var(--space-1)" }}>
+                    Hidden blind spot
+                  </div>
+                </div>
+              )}
+
+              {/* Primary Focus Card */}
+              {assessment?.profile?.monthlyExpenses && (
+                <div
+                  style={{
+                    padding: "var(--space-2)",
+                    background: "rgba(255,255,255,0.1)",
+                    borderRadius: "var(--radius-1)",
+                    border: "1px solid rgba(255,255,255,0.2)",
+                    backdropFilter: "blur(10px)",
+                  }}
+                >
+                  <div style={{ fontSize: "var(--type-xs)", opacity: 0.9 }}>Monthly Spend</div>
+                  <div style={{ fontSize: "var(--type-xl)", fontWeight: "700", marginTop: "var(--space-1)" }}>
+                    ₹{(assessment.profile.monthlyExpenses / 1000).toFixed(0)}k
+                  </div>
+                  <div style={{ fontSize: "var(--type-xs)", opacity: 0.8, marginTop: "var(--space-1)" }}>
+                    Core expenses
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Situation Summary Line */}
+          {result && (
+            <div
+              style={{
+                marginTop: "var(--space-3)",
+                padding: "var(--space-2)",
+                background: "rgba(255,255,255,0.08)",
+                borderRadius: "var(--radius-1)",
+                fontSize: "var(--type-sm)",
+                fontStyle: "italic",
+              }}
+            >
+              <strong>Coach Context:</strong> {
+                result.healthScore >= 80
+                  ? `You're in good shape with ${result.categoryBand?.label}. Let's work on optimizing your growth.`
+                  : result.healthScore >= 60
+                    ? `Your situation is ${result.categoryBand?.label?.toLowerCase()}. Focus on strengthening your runway and reducing blind spots.`
+                    : `You're under pressure. Let's create an action plan to improve your financial stability.`
+              }
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Header with Controls */}
+      <div style={{ backgroundColor: "white", borderBottom: "1px solid var(--blue-50)", padding: "var(--space-3)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "var(--space-2)" }}>
+          <MessageCircle size={20} style={{ color: "var(--cyan)" }} />
           <div>
-            <h1 className="font-bold text-gray-900">Financial Coach</h1>
-            <p className="text-xs text-gray-500">{messages.length} messages in this session</p>
+            <h2 style={{ fontSize: "var(--type-sm)", fontWeight: "600", color: "var(--ink-0)", margin: 0 }}>Financial Coach Chat</h2>
           </div>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div style={{ display: "flex", alignItems: "center", gap: "var(--space-2)" }}>
           <button
             onClick={() => setShowSettings(!showSettings)}
-            className="p-2 hover:bg-gray-100 rounded transition"
+            style={{
+              padding: "var(--space-2)",
+              background: "none",
+              border: "none",
+              cursor: "pointer",
+              borderRadius: "var(--radius-1)",
+            }}
+            onMouseEnter={(e) => (e.target.style.backgroundColor = "var(--blue-50)")}
+            onMouseLeave={(e) => (e.target.style.backgroundColor = "transparent")}
           >
-            <Settings size={20} className="text-gray-600" />
+            <Settings size={18} style={{ color: "var(--ink-2)" }} />
           </button>
-          <button onClick={() => endSession()} className="p-2 hover:bg-red-100 rounded transition">
-            <X size={20} className="text-red-600" />
+          <button
+            onClick={() => endSession()}
+            style={{
+              padding: "var(--space-2)",
+              background: "none",
+              border: "none",
+              cursor: "pointer",
+              borderRadius: "var(--radius-1)",
+              color: "var(--red-600)",
+            }}
+            onMouseEnter={(e) => (e.target.style.backgroundColor = "#fee2e2")}
+            onMouseLeave={(e) => (e.target.style.backgroundColor = "transparent")}
+          >
+            <X size={18} />
           </button>
         </div>
       </div>
 
       {/* Settings Panel */}
       {showSettings && (
-        <div className="bg-gray-50 border-b p-4">
-          <div className="max-w-4xl mx-auto">
-            <h3 className="font-semibold text-gray-900 mb-4">Coaching Preferences</h3>
+        <div style={{ backgroundColor: "var(--blue-50)", borderBottom: "1px solid var(--blue-50)", padding: "var(--space-4)" }}>
+          <div style={{ maxWidth: "100%" }}>
+            <h3 style={{ fontSize: "var(--type-sm)", fontWeight: "600", color: "var(--ink-0)", marginBottom: "var(--space-3)" }}>
+              Coaching Preferences
+            </h3>
 
-            <div className="grid grid-cols-2 gap-4 mb-4">
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "var(--space-3)", marginBottom: "var(--space-3)" }}>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label style={{ display: "block", fontSize: "var(--type-xs)", fontWeight: "500", color: "var(--ink-0)", marginBottom: "var(--space-2)" }}>
                   Coaching Style
                 </label>
                 <select
                   value={preferences.coachingStyle}
                   onChange={e => setPreferences({ ...preferences, coachingStyle: e.target.value })}
-                  className="w-full border border-gray-300 rounded px-3 py-2"
+                  style={{
+                    width: "100%",
+                    border: "1px solid var(--blue-50)",
+                    borderRadius: "var(--radius-1)",
+                    padding: "var(--space-2)",
+                    fontSize: "var(--type-xs)",
+                    fontFamily: "inherit",
+                  }}
                 >
                   <option value="compassionate">Compassionate & Supportive</option>
                   <option value="analytical">Analytical & Data-Driven</option>
@@ -419,13 +648,20 @@ const AICoachrInterface = ({ userId }) => {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label style={{ display: "block", fontSize: "var(--type-xs)", fontWeight: "500", color: "var(--ink-0)", marginBottom: "var(--space-2)" }}>
                   Response Length
                 </label>
                 <select
                   value={preferences.responseLength}
                   onChange={e => setPreferences({ ...preferences, responseLength: e.target.value })}
-                  className="w-full border border-gray-300 rounded px-3 py-2"
+                  style={{
+                    width: "100%",
+                    border: "1px solid var(--blue-50)",
+                    borderRadius: "var(--radius-1)",
+                    padding: "var(--space-2)",
+                    fontSize: "var(--type-xs)",
+                    fontFamily: "inherit",
+                  }}
                 >
                   <option value="concise">Concise</option>
                   <option value="detailed">Detailed</option>
@@ -436,7 +672,19 @@ const AICoachrInterface = ({ userId }) => {
 
             <button
               onClick={updatePreferences}
-              className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded transition"
+              style={{
+                background: "var(--cyan)",
+                color: "white",
+                border: "none",
+                padding: "var(--space-2) var(--space-3)",
+                borderRadius: "var(--radius-1)",
+                fontSize: "var(--type-xs)",
+                fontWeight: "600",
+                cursor: "pointer",
+                transition: "all 0.2s ease",
+              }}
+              onMouseEnter={(e) => (e.target.style.background = "var(--teal-700)")}
+              onMouseLeave={(e) => (e.target.style.background = "var(--cyan)")}
             >
               Save Preferences
             </button>
@@ -445,27 +693,44 @@ const AICoachrInterface = ({ userId }) => {
       )}
 
       {/* Messages Area */}
-      <div className="flex-1 overflow-y-auto p-6">
-        <div className="max-w-4xl mx-auto space-y-4">
+      <div style={{ flex: 1, overflowY: "auto", padding: "var(--space-4)", backgroundColor: "white" }}>
+        <div style={{ maxWidth: "100%", display: "flex", flexDirection: "column", gap: "var(--space-3)" }}>
           {messages.map(msg => (
             <div
               key={msg.id}
-              className={`flex ${msg.type === "user" ? "justify-end" : "justify-start"}`}
+              style={{
+                display: "flex",
+                justifyContent: msg.type === "user" ? "flex-end" : "flex-start",
+              }}
             >
               <div
-                className={`max-w-lg px-4 py-3 rounded-lg ${
-                  msg.type === "user"
-                    ? "bg-blue-600 text-white rounded-br-none"
-                    : msg.type === "error"
-                      ? "bg-red-100 text-red-800 rounded-bl-none"
-                      : "bg-gray-100 text-gray-900 rounded-bl-none"
-                }`}
+                style={{
+                  maxWidth: "60%",
+                  padding: "var(--space-3)",
+                  borderRadius: "var(--radius-2)",
+                  background:
+                    msg.type === "user"
+                      ? "var(--cyan)"
+                      : msg.type === "error"
+                        ? "var(--red-100)"
+                        : "var(--blue-50)",
+                  color:
+                    msg.type === "user"
+                      ? "white"
+                      : msg.type === "error"
+                        ? "var(--red-700)"
+                        : "var(--ink-0)",
+                  borderBottomLeftRadius: msg.type !== "user" ? 0 : "var(--radius-2)",
+                  borderBottomRightRadius: msg.type === "user" ? 0 : "var(--radius-2)",
+                }}
               >
-                <p className="text-sm">{msg.content}</p>
+                <p style={{ fontSize: "var(--type-sm)", margin: 0, lineHeight: 1.5 }}>{msg.content}</p>
                 <p
-                  className={`text-xs mt-1 ${
-                    msg.type === "user" ? "text-blue-100" : "text-gray-500"
-                  }`}
+                  style={{
+                    fontSize: "var(--type-xs)",
+                    marginTop: "var(--space-2)",
+                    opacity: msg.type === "user" ? 0.7 : 0.6,
+                  }}
                 >
                   {new Date(msg.timestamp).toLocaleTimeString()}
                 </p>
@@ -474,10 +739,21 @@ const AICoachrInterface = ({ userId }) => {
           ))}
 
           {isLoading && (
-            <div className="flex justify-start">
-              <div className="bg-gray-100 text-gray-900 px-4 py-3 rounded-lg rounded-bl-none flex items-center gap-2">
-                <Loader size={16} className="animate-spin" />
-                <p className="text-sm">Coach is thinking...</p>
+            <div style={{ display: "flex", justifyContent: "flex-start" }}>
+              <div
+                style={{
+                  padding: "var(--space-3)",
+                  borderRadius: "var(--radius-2)",
+                  background: "var(--blue-50)",
+                  color: "var(--ink-0)",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "var(--space-2)",
+                  borderBottomLeftRadius: 0,
+                }}
+              >
+                <Loader size={16} style={{ animation: "spin 1s linear infinite" }} />
+                <p style={{ fontSize: "var(--type-sm)", margin: 0 }}>Coach is thinking...</p>
               </div>
             </div>
           )}
@@ -488,37 +764,52 @@ const AICoachrInterface = ({ userId }) => {
 
       {/* Recommendations Sidebar */}
       {showRecommendations && recommendations.length > 0 && (
-        <div className="bg-white border-l border-gray-200 w-80 p-4 max-h-96 overflow-y-auto">
-          <h3 className="font-bold text-gray-900 mb-4 flex items-center gap-2">
-            <Lightbulb size={18} className="text-yellow-600" />
+        <div style={{ backgroundColor: "white", borderLeft: "1px solid var(--blue-50)", width: "300px", padding: "var(--space-3)", maxHeight: "400px", overflowY: "auto" }}>
+          <h3 style={{ fontSize: "var(--type-sm)", fontWeight: "600", color: "var(--ink-0)", marginBottom: "var(--space-3)", display: "flex", alignItems: "center", gap: "var(--space-2)" }}>
+            <Lightbulb size={18} style={{ color: "var(--orange-700)" }} />
             Recommendations
           </h3>
 
-          <div className="space-y-3">
+          <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-2)" }}>
             {recommendations.slice(0, 5).map(rec => (
-              <div key={rec.id} className="border border-gray-200 rounded p-3">
-                <div className="flex items-start gap-2 mb-2">
-                  <div className="bg-yellow-100 text-yellow-700 p-1 rounded">
+              <div
+                key={rec.id}
+                style={{
+                  border: "1px solid var(--blue-50)",
+                  borderRadius: "var(--radius-1)",
+                  padding: "var(--space-2)",
+                  backgroundColor: "var(--blue-50)",
+                }}
+              >
+                <div style={{ display: "flex", alignItems: "flex-start", gap: "var(--space-2)", marginBottom: "var(--space-2)" }}>
+                  <div style={{ backgroundColor: "var(--orange-700)", color: "white", padding: "var(--space-1)", borderRadius: "var(--radius-1)" }}>
                     <Lightbulb size={14} />
                   </div>
-                  <p className="text-sm font-semibold text-gray-900 flex-1">
+                  <p style={{ fontSize: "var(--type-xs)", fontWeight: "600", color: "var(--ink-0)", flex: 1, margin: 0 }}>
                     {rec.recommendation_text.substring(0, 50)}...
                   </p>
                 </div>
 
-                <div className="text-xs text-gray-600 space-y-1">
-                  <p>
+                <div style={{ fontSize: "var(--type-xs)", color: "var(--ink-2)", display: "flex", flexDirection: "column", gap: "var(--space-1)", marginBottom: "var(--space-2)" }}>
+                  <div>
                     <strong>Priority:</strong> {rec.priority_level}
-                  </p>
-                  <p>
+                  </div>
+                  <div>
                     <strong>Timeframe:</strong> {rec.time_frame}
-                  </p>
+                  </div>
                 </div>
 
                 <select
                   value={rec.recommendation_status}
                   onChange={e => updateRecommendationStatus(rec.id, e.target.value)}
-                  className="w-full text-xs border border-gray-300 rounded mt-2 px-2 py-1"
+                  style={{
+                    width: "100%",
+                    fontSize: "var(--type-xs)",
+                    border: "1px solid var(--blue-50)",
+                    borderRadius: "var(--radius-1)",
+                    padding: "var(--space-1)",
+                    fontFamily: "inherit",
+                  }}
                 >
                   <option value="offered">Offered</option>
                   <option value="accepted">Accepted</option>
@@ -532,9 +823,9 @@ const AICoachrInterface = ({ userId }) => {
       )}
 
       {/* Input Area */}
-      <div className="bg-white border-t border-gray-200 px-6 py-4">
-        <div className="max-w-4xl mx-auto">
-          <form onSubmit={sendMessage} className="flex gap-3">
+      <div style={{ backgroundColor: "white", borderTop: "1px solid var(--blue-50)", padding: "var(--space-4)" }}>
+        <div style={{ maxWidth: "100%" }}>
+          <form onSubmit={sendMessage} style={{ display: "flex", gap: "var(--space-2)" }}>
             <input
               ref={inputRef}
               type="text"
@@ -542,13 +833,39 @@ const AICoachrInterface = ({ userId }) => {
               onChange={e => setInputMessage(e.target.value)}
               placeholder="Ask your coach anything about your finances..."
               disabled={isLoading}
-              className="flex-1 border border-gray-300 rounded-lg px-4 py-3 disabled:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              style={{
+                flex: 1,
+                border: "1px solid var(--blue-50)",
+                borderRadius: "var(--radius-1)",
+                padding: "var(--space-2) var(--space-3)",
+                backgroundColor: isLoading ? "var(--blue-50)" : "white",
+                fontSize: "var(--type-sm)",
+                fontFamily: "inherit",
+                outline: "none",
+              }}
+              onFocus={(e) => (e.target.style.borderColor = "var(--cyan)")}
+              onBlur={(e) => (e.target.style.borderColor = "var(--blue-50)")}
             />
 
             <button
               type="submit"
               disabled={isLoading || !inputMessage.trim()}
-              className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-semibold transition disabled:opacity-50 flex items-center gap-2"
+              style={{
+                background: "var(--cyan)",
+                color: "white",
+                border: "none",
+                padding: "var(--space-2) var(--space-3)",
+                borderRadius: "var(--radius-1)",
+                fontWeight: "600",
+                transition: "all 0.2s ease",
+                cursor: isLoading || !inputMessage.trim() ? "not-allowed" : "pointer",
+                opacity: isLoading || !inputMessage.trim() ? 0.5 : 1,
+                display: "flex",
+                alignItems: "center",
+                gap: "var(--space-2)",
+              }}
+              onMouseEnter={(e) => !isLoading && !inputMessage.trim() && (e.target.style.background = "var(--teal-700)")}
+              onMouseLeave={(e) => (e.target.style.background = "var(--cyan)")}
             >
               <Send size={18} />
             </button>
@@ -557,18 +874,33 @@ const AICoachrInterface = ({ userId }) => {
               type="button"
               onClick={generateRecommendation}
               disabled={isLoading}
-              className="bg-yellow-600 hover:bg-yellow-700 text-white px-6 py-3 rounded-lg font-semibold transition disabled:opacity-50 flex items-center gap-2"
+              style={{
+                background: "var(--orange-707)",
+                color: "white",
+                border: "none",
+                padding: "var(--space-2) var(--space-3)",
+                borderRadius: "var(--radius-1)",
+                fontWeight: "600",
+                transition: "all 0.2s ease",
+                cursor: isLoading ? "not-allowed" : "pointer",
+                opacity: isLoading ? 0.5 : 1,
+                display: "flex",
+                alignItems: "center",
+                gap: "var(--space-2)",
+              }}
               title="Generate a recommendation"
+              onMouseEnter={(e) => !isLoading && (e.target.style.background = "#b45309")}
+              onMouseLeave={(e) => (e.target.style.background = "var(--orange-707)")}
             >
               <Lightbulb size={18} />
             </button>
           </form>
 
-          <div className="mt-3 flex gap-2 text-xs text-gray-600">
+          <div style={{ marginTop: "var(--space-2)", display: "flex", gap: "var(--space-2)", fontSize: "var(--type-xs)", color: "var(--ink-2)" }}>
             <button
               type="button"
               onClick={() => endSession(5)}
-              className="text-blue-600 hover:underline"
+              style={{ background: "none", border: "none", color: "var(--cyan)", cursor: "pointer", textDecoration: "underline" }}
             >
               End with 5-star feedback
             </button>
@@ -576,7 +908,7 @@ const AICoachrInterface = ({ userId }) => {
             <button
               type="button"
               onClick={() => setShowRecommendations(!showRecommendations)}
-              className="text-blue-600 hover:underline"
+              style={{ background: "none", border: "none", color: "var(--cyan)", cursor: "pointer", textDecoration: "underline" }}
             >
               {showRecommendations ? "Hide" : "Show"} recommendations
             </button>
@@ -600,4 +932,4 @@ async function updateRecommendationStatus(recommendationId, status) {
   }
 }
 
-export default AICoachrInterface;
+export default AiCoachInterface;

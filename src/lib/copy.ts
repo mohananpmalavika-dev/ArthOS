@@ -168,14 +168,12 @@ interface CommonActions {
 // ── Navigation ──
 
 export const NAV_ITEMS: NavItem[] = [
-  { label: "Home", href: "#home" },
+  { label: "Reality", href: "#reality" },
+  { label: "Mind", href: "#mind" },
+  { label: "Future", href: "#future" },
+  { label: "Action", href: "#action" },
+  { label: "Coach", href: "#coach" },
   { label: "Assess", href: "#assessment" },
-  { label: "Reports", href: "#reports" },
-  { label: "Cognition", href: "#cognition" },
-  { label: "Simulator", href: "#simulator" },
-  { label: "Decisions", href: "#decisions" },
-  { label: "Memory", href: "#memory" },
-  { label: "Predictions", href: "#predictions" },
   { label: "Partners", href: "#b2b" },
   { label: "Admin", href: "#admin" },
 ];

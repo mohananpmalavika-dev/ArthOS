@@ -1,0 +1,105 @@
+:root {
+  /* BAS colour bands (0-1000) */
+  --bas-critical: #ef4444; /* 0-199 */
+  --bas-warning: #f97316; /* 200-399 */
+  --bas-developing: #f59e0b; /* 400-599 */
+  --bas-resilient: #06b6d4; /* 600-799 */
+  --bas-sovereign: #10b981; /* 800-1000 */
+
+  /* Brand accents */
+  --cyan: #06b6d4;
+  --teal-700: #0ea5a4;
+  --green-700: #16a34a;
+  --orange-700: #ea580c;
+
+  /* Semantic colours used across the app (legacy names preserved) */
+  --ink-0: #0f172a; /* primary text */
+  --ink-1: #111827;
+  --ink-2: #475569; /* secondary text */
+  --ink-3: #64748b; /* muted */
+
+  --white: #ffffff;
+  --surface: #ffffff;
+  --surface-light: #f8fafc;
+  --surface-2: #eef2f7;
+
+  --gray-50: #f9fafb;
+  --gray-100: #f3f4f6;
+  --gray-300: #d1d5db;
+  --gray-400: #9ca3af;
+  --gray-500: #6b7280;
+  --gray-900: #0b1220;
+
+  --red-50: #fff1f2;
+  --red-100: #fee2e2;
+  --red-600: #dc2626;
+  --red-700: #b91c1c;
+
+  --green-50: #f0fdf4;
+  --green-800: #166534;
+
+  --blue-50: #eff6ff;
+  --blue-700: #1d4ed8;
+
+  /* Legacy semantic names (mapped to new tokens) */
+  --text: var(--ink-0);
+  --text-strong: var(--ink-0);
+  --green: var(--green-700);
+  --coral: var(--orange-700);
+
+  /* Layout tokens */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+
+  --elevation-1: 0 1px 2px rgba(2,6,23,0.06), 0 1px 3px rgba(2,6,23,0.04);
+  --elevation-2: 0 6px 18px rgba(2,6,23,0.08);
+
+  --transition-fast: 160ms cubic-bezier(.4,0,.2,1);
+  --transition-base: 280ms cubic-bezier(.4,0,.2,1);
+
+  /* Type scale */
+  --font-sans: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+  --type-xxs: 10px;
+  --type-xs: 12px;
+  --type-sm: 14px;
+  --type-md: 16px;
+  --type-lg: 20px;
+  --type-xl: 24px;
+  --type-xxl: 32px;
+
+  /* Journey levels */
+  --journey-survival: var(--bas-critical);
+  --journey-stability: var(--bas-warning);
+  --journey-growth: var(--bas-developing);
+  --journey-freedom: var(--bas-resilient);
+  --journey-sovereign: var(--bas-sovereign);
+}
+
+/* Base helpers (used sparingly in components) */
+html, body {
+  font-family: var(--font-sans);
+  color: var(--ink-0);
+  background: var(--surface);
+}
+
+.result-card {
+  background: var(--surface);
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
+  box-shadow: var(--elevation-1);
+}
+
+.partner-register-title {
+  font-size: var(--type-lg);
+}
+
+/* small utility for small labels */
+.muted { color: var(--ink-2); }

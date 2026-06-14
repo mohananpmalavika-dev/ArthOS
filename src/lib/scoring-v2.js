@@ -321,7 +321,58 @@ function getDebtScheduleEstimate(profile) {
   };
 }
 
-function getBehaviourScore(behaviour) {
+/**
+ * Estimate monthly impulse spend from frequency data when explicit amount is missing.
+ * Uses unplanned purchase frequency as a proxy for what % of expenses is impulsive.
+ */
+function estimateMonthlyImpulseSpend(behaviour, monthlyIncome, monthlyExpenses) {
+  const freq = behaviour?.unplannedPurchaseFreq;
+  const freqFraction = {
+    very_frequently: 0.20,
+    sometimes: 0.08,
+    rarely: 0.03,
+    never: 0
+  }[freq] ?? 0.05;
+
+  // Estimate from expenses (more realistic than income for spend-based estimate)
+  const baseEstimate = Math.max(monthlyExpenses, monthlyIncome * 0.3) * freqFraction;
+  // Cap at a reasonable fraction of income
+  return Math.min(baseEstimate, monthlyIncome * 0.5);
+}
+
+/**
+ * Calculate income-proportional impulse penalty.
+ *
+ * Behaviour Impact = Frequency × Amount × Income %
+ * Penalty = min(10, ImpulseSpendPct × 100)
+ *
+ * Where ImpulseSpendPct = Monthly Impulse Spend / Monthly Income
+ *
+ * This makes penalty proportional to financial impact:
+ * - Rich user spending ₹500 impulsively → small penalty
+ * - Poor user spending ₹500 impulsively → larger penalty
+ */
+function calculateImpulsePenalty(behaviour, profile = {}) {
+  const monthlyIncome = toNumber(profile.monthlyIncome);
+  const monthlyExpenses = toNumber(profile.monthlyExpenses);
+  let monthlyImpulseSpend = toNumber(profile.monthlyImpulseSpend);
+
+  // If explicit monthlyImpulseSpend is not provided, estimate from frequency data
+  if (monthlyImpulseSpend <= 0) {
+    monthlyImpulseSpend = estimateMonthlyImpulseSpend(behaviour, monthlyIncome, monthlyExpenses);
+  }
+
+  if (monthlyIncome <= 0 || monthlyImpulseSpend <= 0) {
+    return 0;
+  }
+
+  const impulseSpendPct = Math.min(1, monthlyImpulseSpend / monthlyIncome);
+  // Penalty = min(10, ImpulseSpendPct × 100) — capped at 10 (max penalty on 0-10 scale)
+  const penalty = Math.min(10, impulseSpendPct * 100);
+  return penalty;
+}
+
+function getBehaviourScore(behaviour, profile = {}) {
   // Iterate explicit schema keys to avoid skew if an assessment object is
   // missing/extra properties (e.g., loading partially from storage).
   const keys = [
@@ -341,9 +392,14 @@ function getBehaviourScore(behaviour) {
   ];
 
   const values = keys.map(k => behaviourScoreMaps[k]?.[behaviour?.[k]] ?? 0);
-  const average = values.reduce((t, v) => t + v, 0) / Math.max(1, values.length);
+  const baseAverage = values.reduce((t, v) => t + v, 0) / Math.max(1, values.length);
+
+  // Apply income-proportional impulse penalty
+  const impulsePenalty = calculateImpulsePenalty(behaviour, profile);
+  const adjustedAverage = Math.max(0, baseAverage - impulsePenalty);
+
   return roundToOne(
-    clamp((average / 10) * componentMaximumsV2.behaviour, 0, componentMaximumsV2.behaviour)
+    clamp((adjustedAverage / 10) * componentMaximumsV2.behaviour, 0, componentMaximumsV2.behaviour)
   );
 }
 
@@ -410,6 +466,23 @@ export function calculateDynamicElasticity(behaviour = {}) {
   return Number(clamp(maxElasticityOffset - degradationDelta, 0.15, 0.5).toFixed(3));
 }
 
+/**
+ * Calculate savings rate score (0-5 raw) based on monthly cashflow health.
+ * Savings Rate = max(0, (Income - Expenses) / Income)
+ *
+ * Linear mapping: score = min(5, savingsRate * 12.5)
+ *   0%   → 0.0
+ *   10%  → 1.25
+ *   20%  → 2.5
+ *   30%  → 3.75
+ *   40%+ → 5.0
+ */
+function getSavingsRateScore(monthlyIncome, monthlyExpenses) {
+  if (monthlyIncome <= 0) return 0;
+  const savingsRate = Math.max(0, (monthlyIncome - monthlyExpenses) / monthlyIncome);
+  return Math.min(5, savingsRate * 12.5);
+}
+
 function getStabilityScore(profile, behaviour) {
   const monthlyExpenses = toNumber(profile.monthlyExpenses);
   const fixedSavings = toNumber(profile.emergencySavingsFixed);
@@ -438,15 +511,25 @@ function getStabilityScore(profile, behaviour) {
   const discretionaryBufferMonths =
     monthlyExpenses > 0 ? discretionarySavings / monthlyExpenses : 0;
 
-  const emergencyScore = Math.min(survivalMonthsRaw, 6) * 1.5;
+  // Savings rate (cashflow health) — 20% of stability component
+  const savingsRateScore = getSavingsRateScore(monthlyIncome, monthlyExpenses);
+  const savingsRate = monthlyIncome > 0
+    ? Math.max(0, (monthlyIncome - monthlyExpenses) / monthlyIncome)
+    : 0;
+
+  // Legacy sub-scores — 80% of stability component
+  // Logarithmic scaling rewards larger buffers without capping at 6 months
+  const emergencyScore = survivalMonthsRaw > 0 ? Math.log(survivalMonthsRaw + 1) : 0;
   const debtScore = getDebtScore(totalDebt, monthlyIncome);
   const incomeScore = incomeStabilityScores[profile.incomeStability] ?? 0;
   const dependentsScore = dependentsScores[profile.dependentsBucket] ?? 0;
   const liabilityScore = getLiabilityScore(monthlyLiabilities, monthlyIncome);
 
-  const raw = emergencyScore + debtScore + incomeScore + dependentsScore + liabilityScore;
+  // Raw max: legacy = 25 (9+4+6+3+3), savings rate = 5, total = 30
+  // Divisor was 20 before adding savings rate; now 25 so savings rate is 20% (5/25)
+  const raw = emergencyScore + debtScore + incomeScore + dependentsScore + liabilityScore + savingsRateScore;
   const normalized = clamp(
-    (raw / 20) * componentMaximumsV2.stability,
+    (raw / 25) * componentMaximumsV2.stability,
     0,
     componentMaximumsV2.stability
   );
@@ -462,7 +545,11 @@ function getStabilityScore(profile, behaviour) {
     discretionaryBufferMonths,
     fixedEmergencySavings: fixedSavings,
     discretionaryEmergencySavings: discretionarySavings,
-    totalEmergencySavings: totalSavings
+    totalEmergencySavings: totalSavings,
+    // Cashflow health metrics
+    savingsRate: roundToOne(savingsRate),
+    savingsRateScore: roundToOne(savingsRateScore),
+    monthlyCashflow: roundToOne(monthlyIncome - monthlyExpenses)
   };
 }
 
@@ -974,8 +1061,8 @@ function toNumber(value) {
   return Number.isFinite(numeric) ? numeric : 0;
 }
 
-export function calculateBehaviourScoreV2(behaviour) {
-  return getBehaviourScore(behaviour);
+export function calculateBehaviourScoreV2(behaviour, profile) {
+  return getBehaviourScore(behaviour, profile);
 }
 
 export function calculateAwarenessScoreV2(awareness) {
@@ -1021,7 +1108,7 @@ export function calculatePersonalityReportV2(personalityType) {
 export function calculateFinancialHealthV2(assessment) {
   const safe = assessment || v2DefaultAssessment;
 
-  const behaviourScore = calculateBehaviourScoreV2(safe.behaviour);
+  const behaviourScore = calculateBehaviourScoreV2(safe.behaviour, safe.profile);
   const awarenessScore = calculateAwarenessScoreV2(safe.awareness);
   const stability = calculateStabilityScoreV2(safe.profile, safe.behaviour);
   const futureRisk = calculateFutureRiskV2(safe.profile);
@@ -1103,6 +1190,12 @@ export function calculateFinancialHealthV2(assessment) {
     stabilityScore: stability.score,
     healthScore,
     categoryBand,
+
+    // Cashflow health metrics (new — 20% of stability component)
+    savingsRate: stability.savingsRate,
+    savingsRateScore: stability.savingsRateScore,
+    monthlyCashflow: stability.monthlyCashflow,
+
     survivalMonthsRaw: stability.survivalMonthsRaw,
     survivalMonthsDisplay: formatMonths(stability.survivalMonthsRaw),
     bareMinimumSurvivalMonthsRaw: stability.bareMinimumSurvivalMonthsRaw,

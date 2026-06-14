@@ -122,8 +122,37 @@ export function formatMonths(months) {
   return Number.isInteger(months) ? String(months) : months.toFixed(1);
 }
 
+function estimateMonthlyImpulseSpendV1(behaviour, monthlyIncome, monthlyExpenses) {
+  const freq = behaviour?.unplannedPurchaseFreq;
+  const freqFraction = {
+    very_frequently: 0.20,
+    sometimes: 0.08,
+    rarely: 0.03,
+    never: 0
+  }[freq] ?? 0.05;
+
+  const baseEstimate = Math.max(monthlyExpenses, monthlyIncome * 0.3) * freqFraction;
+  return Math.min(baseEstimate, monthlyIncome * 0.5);
+}
+
+function calculateImpulsePenaltyV1(behaviour, profile) {
+  if (!profile) return 0;
+  const monthlyIncome = toNumber(profile.monthlyIncome);
+  const monthlyExpenses = toNumber(profile.monthlyExpenses);
+  let monthlyImpulseSpend = toNumber(profile.monthlyImpulseSpend);
+
+  if (monthlyImpulseSpend <= 0) {
+    monthlyImpulseSpend = estimateMonthlyImpulseSpendV1(behaviour, monthlyIncome, monthlyExpenses);
+  }
+
+  if (monthlyIncome <= 0 || monthlyImpulseSpend <= 0) return 0;
+
+  const impulseSpendPct = Math.min(1, monthlyImpulseSpend / monthlyIncome);
+  return Math.min(10, impulseSpendPct * 100);
+}
+
 export function calculateFinancialHealth(assessment) {
-  const behaviourScore = calculateBehaviourScore(assessment.behaviour);
+  const behaviourScore = calculateBehaviourScore(assessment.behaviour, assessment.profile);
   const awarenessScore = calculateAwarenessScore(assessment.awareness);
   const stability = calculateStabilityScore(assessment.profile);
   const healthScore = Math.round(behaviourScore + awarenessScore + stability.score);
@@ -159,12 +188,17 @@ export function calculateFinancialHealth(assessment) {
   };
 }
 
-function calculateBehaviourScore(behaviour) {
+function calculateBehaviourScore(behaviour, profile) {
   const values = Object.entries(behaviourScores).map(([key, scoreMap]) => {
     return scoreMap[behaviour[key]] ?? 0;
   });
-  const average = values.reduce((total, value) => total + value, 0) / values.length;
-  return roundToOne((average / 10) * componentMaximums.behaviour);
+  const baseAverage = values.reduce((total, value) => total + value, 0) / values.length;
+
+  // Apply income-proportional impulse penalty
+  const impulsePenalty = calculateImpulsePenaltyV1(behaviour, profile);
+  const adjustedAverage = Math.max(0, baseAverage - impulsePenalty);
+
+  return roundToOne((adjustedAverage / 10) * componentMaximums.behaviour);
 }
 
 function calculateAwarenessScore(awareness) {

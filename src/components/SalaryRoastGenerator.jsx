@@ -8,7 +8,10 @@ import {
   Loader2,
   Link,
   Globe,
-  Smartphone
+  Smartphone,
+  Flame,
+  TrendingUp,
+  Zap
 } from "lucide-react";
 import {
   generateComparisonReport,
@@ -315,24 +318,71 @@ export function SalaryRoastGenerator({ assessmentResult, profile }) {
       </div>
 
       {/* Action buttons */}
-      <div className="salary-roast-actions">
+      <div
+        style={{
+          display: "flex",
+          gap: "var(--space-2)",
+          padding: "var(--space-3)",
+          backgroundColor: "var(--blue-50)",
+          borderRadius: "var(--radius-1)",
+          marginBottom: "var(--space-3)",
+          alignItems: "center",
+          flexWrap: "wrap",
+        }}
+      >
         <button
           type="button"
-          className="salary-roast-tool-button"
           onClick={() => setShowShare(current => !current)}
           aria-expanded={showShare}
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "var(--space-2)",
+            padding: "var(--space-2) var(--space-3)",
+            borderRadius: "var(--radius-1)",
+            border: "none",
+            backgroundColor: "var(--cyan)",
+            color: "white",
+            fontWeight: "600",
+            cursor: "pointer",
+            fontSize: "var(--type-sm)",
+            transition: "all 0.2s ease",
+          }}
+          onMouseEnter={(e) => (e.target.style.backgroundColor = "var(--teal-700)")}
+          onMouseLeave={(e) => (e.target.style.backgroundColor = "var(--cyan)")}
         >
           <Share2 size={18} />
-          Share tools
+          {showShare ? "Hide" : "Show"} viral tools
         </button>
+
         <button
           type="button"
-          className="salary-roast-tool-button"
           onClick={handleDownloadImage}
           disabled={exporting}
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "var(--space-2)",
+            padding: "var(--space-2) var(--space-3)",
+            borderRadius: "var(--radius-1)",
+            border: "none",
+            backgroundColor: exporting ? "var(--blue-50)" : "var(--orange-707)",
+            color: exporting ? "var(--ink-2)" : "white",
+            fontWeight: "600",
+            cursor: exporting ? "not-allowed" : "pointer",
+            fontSize: "var(--type-sm)",
+            transition: "all 0.2s ease",
+            opacity: exporting ? 0.6 : 1,
+          }}
+          onMouseEnter={(e) =>
+            !exporting && (e.target.style.backgroundColor = "#b45309")
+          }
+          onMouseLeave={(e) =>
+            !exporting && (e.target.style.backgroundColor = "var(--orange-707)")
+          }
         >
           {exporting ? (
-            <Loader2 size={18} className="salary-roast-spinner" />
+            <Loader2 size={18} style={{ animation: "spin 1s linear infinite" }} />
           ) : exportDone ? (
             <CheckCircle size={18} />
           ) : (
@@ -340,30 +390,93 @@ export function SalaryRoastGenerator({ assessmentResult, profile }) {
           )}
           {exporting ? "Exporting…" : exportDone ? "Downloaded!" : "Export card"}
         </button>
-        {copyFeedback && !exportDone && (
-          <span className="salary-roast-copy-feedback">{copyFeedback}</span>
+
+        {copyFeedback && (
+          <span
+            style={{
+              fontSize: "var(--type-xs)",
+              color: "var(--green-700)",
+              fontWeight: "500",
+              animation: "fadeIn 0.2s ease-in",
+            }}
+          >
+            ✓ {copyFeedback}
+          </span>
         )}
       </div>
 
       {showShare && (
-        <section className="salary-roast-share-panel">
+        <section
+          style={{
+            padding: "var(--space-4)",
+            backgroundColor: "var(--blue-50)",
+            borderRadius: "var(--radius-2)",
+            border: "1px solid var(--cyan)",
+          }}
+        >
           {/* 🌐 NATIVE SHARE — Mobile-first, opens OS share sheet */}
           {supportsNativeShare() && (
             <button
               type="button"
               onClick={handleNativeShare}
-              className="salary-roast-share-button salary-roast-share-button-native"
+              style={{
+                width: "100%",
+                padding: "var(--space-3)",
+                borderRadius: "var(--radius-1)",
+                border: "2px solid var(--cyan)",
+                backgroundColor: "var(--cyan)",
+                color: "white",
+                fontWeight: "700",
+                cursor: "pointer",
+                fontSize: "var(--type-sm)",
+                marginBottom: "var(--space-3)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: "var(--space-2)",
+                transition: "all 0.2s ease",
+              }}
+              onMouseEnter={(e) => {
+                e.target.style.backgroundColor = "var(--teal-700)";
+                e.target.style.borderColor = "var(--teal-700)";
+                e.target.style.transform = "scale(1.02)";
+              }}
+              onMouseLeave={(e) => {
+                e.target.style.backgroundColor = "var(--cyan)";
+                e.target.style.borderColor = "var(--cyan)";
+                e.target.style.transform = "scale(1)";
+              }}
             >
-              <Smartphone size={18} /> Share via ... (share sheet)
+              <Smartphone size={18} />
+              <span>💡 Share with One Tap</span>
+              <Flame size={16} style={{ color: "var(--orange-707)" }} />
             </button>
           )}
 
-          <div className="salary-roast-share-section-label">
-            <Globe size={14} />
-            <span>Send to social & messaging</span>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "var(--space-2)",
+              marginBottom: "var(--space-3)",
+              paddingBottom: "var(--space-3)",
+              borderBottom: "1px solid var(--blue-50)",
+            }}
+          >
+            <Globe size={14} style={{ color: "var(--cyan)" }} />
+            <span style={{ fontWeight: "600", fontSize: "var(--type-sm)", color: "var(--ink-0)" }}>
+              Instant Viral Channels
+            </span>
           </div>
 
-          <div className="salary-roast-share-grid">
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))",
+              gap: "var(--space-2)",
+              marginBottom: "var(--space-4)",
+            }}
+          >
             {/* WhatsApp */}
             <button
               type="button"
@@ -371,9 +484,31 @@ export function SalaryRoastGenerator({ assessmentResult, profile }) {
                 roastAnalytics.trackShare("whatsapp", { assessmentResult });
                 window.open(`https://wa.me/?text=${shareTextEncoded}`, "_blank");
               }}
-              className="salary-roast-share-button salary-roast-share-button-whatsapp"
+              style={{
+                padding: "var(--space-2) var(--space-3)",
+                borderRadius: "var(--radius-1)",
+                border: "1px solid #25D366",
+                backgroundColor: "white",
+                color: "#25D366",
+                fontWeight: "600",
+                cursor: "pointer",
+                fontSize: "var(--type-xs)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: "var(--space-1)",
+                transition: "all 0.2s ease",
+              }}
+              onMouseEnter={(e) => {
+                e.target.style.backgroundColor = "#25D366";
+                e.target.style.color = "white";
+              }}
+              onMouseLeave={(e) => {
+                e.target.style.backgroundColor = "white";
+                e.target.style.color = "#25D366";
+              }}
             >
-              <MessageCircle size={18} /> Share on WhatsApp
+              <MessageCircle size={16} /> WhatsApp
             </button>
 
             {/* Telegram */}
@@ -386,9 +521,31 @@ export function SalaryRoastGenerator({ assessmentResult, profile }) {
                   "_blank"
                 );
               }}
-              className="salary-roast-share-button salary-roast-share-button-telegram"
+              style={{
+                padding: "var(--space-2) var(--space-3)",
+                borderRadius: "var(--radius-1)",
+                border: "1px solid #0088cc",
+                backgroundColor: "white",
+                color: "#0088cc",
+                fontWeight: "600",
+                cursor: "pointer",
+                fontSize: "var(--type-xs)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: "var(--space-1)",
+                transition: "all 0.2s ease",
+              }}
+              onMouseEnter={(e) => {
+                e.target.style.backgroundColor = "#0088cc";
+                e.target.style.color = "white";
+              }}
+              onMouseLeave={(e) => {
+                e.target.style.backgroundColor = "white";
+                e.target.style.color = "#0088cc";
+              }}
             >
-              <MessageCircle size={18} /> Share on Telegram
+              <MessageCircle size={16} /> Telegram
             </button>
 
             {/* Twitter */}
@@ -398,94 +555,255 @@ export function SalaryRoastGenerator({ assessmentResult, profile }) {
                 roastAnalytics.trackShare("twitter", { assessmentResult });
                 window.open(`https://twitter.com/intent/tweet?text=${shareTextEncoded}`, "_blank");
               }}
-              className="salary-roast-share-button salary-roast-share-button-twitter"
+              style={{
+                padding: "var(--space-2) var(--space-3)",
+                borderRadius: "var(--radius-1)",
+                border: "1px solid #000000",
+                backgroundColor: "white",
+                color: "#000000",
+                fontWeight: "600",
+                cursor: "pointer",
+                fontSize: "var(--type-xs)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: "var(--space-1)",
+                transition: "all 0.2s ease",
+              }}
+              onMouseEnter={(e) => {
+                e.target.style.backgroundColor = "#000000";
+                e.target.style.color = "white";
+              }}
+              onMouseLeave={(e) => {
+                e.target.style.backgroundColor = "white";
+                e.target.style.color = "#000000";
+              }}
             >
-              <MessageCircle size={18} /> Share on Twitter
+              <Zap size={16} /> Twitter
             </button>
 
             {/* Facebook */}
             <button
               type="button"
               onClick={() => {
+                roastAnalytics.trackShare("facebook", { assessmentResult });
                 window.open(
                   `https://www.facebook.com/sharer/sharer.php?u=${shareUrlEncoded}&quote=${shareTextEncoded}`,
                   "_blank"
                 );
               }}
-              className="salary-roast-share-button salary-roast-share-button-facebook"
+              style={{
+                padding: "var(--space-2) var(--space-3)",
+                borderRadius: "var(--radius-1)",
+                border: "1px solid #1877F2",
+                backgroundColor: "white",
+                color: "#1877F2",
+                fontWeight: "600",
+                cursor: "pointer",
+                fontSize: "var(--type-xs)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: "var(--space-1)",
+                transition: "all 0.2s ease",
+              }}
+              onMouseEnter={(e) => {
+                e.target.style.backgroundColor = "#1877F2";
+                e.target.style.color = "white";
+              }}
+              onMouseLeave={(e) => {
+                e.target.style.backgroundColor = "white";
+                e.target.style.color = "#1877F2";
+              }}
             >
-              <Globe size={18} /> Share on Facebook
+              <Globe size={16} /> Facebook
             </button>
 
             {/* LinkedIn */}
             <button
               type="button"
               onClick={() => {
+                roastAnalytics.trackShare("linkedin", { assessmentResult });
                 window.open(
                   `https://www.linkedin.com/sharing/share-offsite/?url=${shareUrlEncoded}`,
                   "_blank"
                 );
               }}
-              className="salary-roast-share-button salary-roast-share-button-linkedin"
+              style={{
+                padding: "var(--space-2) var(--space-3)",
+                borderRadius: "var(--radius-1)",
+                border: "1px solid #0A66C2",
+                backgroundColor: "white",
+                color: "#0A66C2",
+                fontWeight: "600",
+                cursor: "pointer",
+                fontSize: "var(--type-xs)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: "var(--space-1)",
+                transition: "all 0.2s ease",
+              }}
+              onMouseEnter={(e) => {
+                e.target.style.backgroundColor = "#0A66C2";
+                e.target.style.color = "white";
+              }}
+              onMouseLeave={(e) => {
+                e.target.style.backgroundColor = "white";
+                e.target.style.color = "#0A66C2";
+              }}
             >
-              <Share2 size={18} /> Share on LinkedIn
+              <Share2 size={16} /> LinkedIn
             </button>
           </div>
 
-          <div className="salary-roast-share-section-label">
-            <Copy size={14} />
-            <span>Copy & paste</span>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "var(--space-2)",
+              marginBottom: "var(--space-3)",
+              paddingBottom: "var(--space-3)",
+              borderBottom: "1px solid var(--blue-50)",
+            }}
+          >
+            <Copy size={14} style={{ color: "var(--cyan)" }} />
+            <span style={{ fontWeight: "600", fontSize: "var(--type-sm)", color: "var(--ink-0)" }}>
+              Copy Smart Text
+            </span>
           </div>
 
-          <div className="salary-roast-share-grid">
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))",
+              gap: "var(--space-2)",
+              marginBottom: "var(--space-3)",
+            }}
+          >
             {/* Copy share link */}
             <button
               type="button"
               onClick={handleCopyLink}
-              className="salary-roast-share-button salary-roast-share-button-link"
+              style={{
+                padding: "var(--space-2) var(--space-3)",
+                borderRadius: "var(--radius-1)",
+                border: "1px solid var(--cyan)",
+                backgroundColor: copyFeedback === "Link copied!" ? "var(--green-50)" : "white",
+                color: copyFeedback === "Link copied!" ? "var(--green-700)" : "var(--cyan)",
+                fontWeight: "600",
+                cursor: "pointer",
+                fontSize: "var(--type-xs)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: "var(--space-1)",
+                transition: "all 0.2s ease",
+              }}
             >
-              <Link size={18} />
-              {copyFeedback === "Link copied!" ? "Copied ✓" : "Copy Share Link"}
+              <Link size={16} />
+              {copyFeedback === "Link copied!" ? "✓ Copied!" : "Copy Link"}
             </button>
 
             {/* Copy share text */}
             <button
               type="button"
               onClick={() => handleCopyText(roast.shareText, "Share text copied!")}
-              className="salary-roast-share-button salary-roast-share-button-text"
+              style={{
+                padding: "var(--space-2) var(--space-3)",
+                borderRadius: "var(--radius-1)",
+                border: "1px solid var(--orange-707)",
+                backgroundColor: copyFeedback === "Share text copied!" ? "var(--orange-50)" : "white",
+                color: copyFeedback === "Share text copied!" ? "var(--orange-707)" : "var(--orange-707)",
+                fontWeight: "600",
+                cursor: "pointer",
+                fontSize: "var(--type-xs)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: "var(--space-1)",
+                transition: "all 0.2s ease",
+              }}
             >
-              <Copy size={18} />
-              {copyFeedback === "Share text copied!" ? "Copied ✓" : "Copy Share Text"}
+              <Copy size={16} />
+              {copyFeedback === "Share text copied!" ? "✓ Copied!" : "Copy Text"}
             </button>
 
             {/* Copy Instagram caption */}
             <button
               type="button"
               onClick={() => handleCopyText(instagramCaption, "Instagram caption copied!")}
-              className="salary-roast-share-button salary-roast-share-button-caption"
+              style={{
+                padding: "var(--space-2) var(--space-3)",
+                borderRadius: "var(--radius-1)",
+                border: "1px solid #E4405F",
+                backgroundColor: copyFeedback === "Instagram caption copied!" ? "#FFE5EC" : "white",
+                color: copyFeedback === "Instagram caption copied!" ? "#E4405F" : "#E4405F",
+                fontWeight: "600",
+                cursor: "pointer",
+                fontSize: "var(--type-xs)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: "var(--space-1)",
+                transition: "all 0.2s ease",
+              }}
             >
-              <Copy size={18} />
-              {copyFeedback === "Instagram caption copied!" ? "Copied ✓" : "Copy Instagram Caption"}
+              <Flame size={16} />
+              {copyFeedback === "Instagram caption copied!" ? "✓ Copied!" : "Copy Insta"}
             </button>
           </div>
 
-          <label className="salary-roast-share-copy">
-            <span>Share Text Preview</span>
+          {/* Share Text Preview */}
+          <label
+            style={{
+              display: "block",
+              marginBottom: "var(--space-3)",
+            }}
+          >
+            <span style={{ fontWeight: "600", fontSize: "var(--type-xs)", color: "var(--ink-0)", display: "block", marginBottom: "var(--space-2)" }}>
+              Share Text Preview
+            </span>
             <textarea
               readOnly
               value={roast.shareText}
-              className="salary-roast-share-text"
-              rows="3"
+              style={{
+                width: "100%",
+                padding: "var(--space-2)",
+                borderRadius: "var(--radius-1)",
+                border: "1px solid var(--blue-50)",
+                backgroundColor: "white",
+                fontSize: "var(--type-xs)",
+                fontFamily: "inherit",
+                resize: "none",
+              }}
+              rows="2"
             />
           </label>
 
-          <label className="salary-roast-share-copy">
-            <span>Instagram Caption Preview</span>
+          {/* Instagram Caption Preview */}
+          <label
+            style={{
+              display: "block",
+            }}
+          >
+            <span style={{ fontWeight: "600", fontSize: "var(--type-xs)", color: "var(--ink-0)", display: "block", marginBottom: "var(--space-2)" }}>
+              Instagram Caption Preview
+            </span>
             <textarea
               readOnly
               value={instagramCaption}
-              className="salary-roast-share-text"
-              rows="3"
+              style={{
+                width: "100%",
+                padding: "var(--space-2)",
+                borderRadius: "var(--radius-1)",
+                border: "1px solid var(--blue-50)",
+                backgroundColor: "white",
+                fontSize: "var(--type-xs)",
+                fontFamily: "inherit",
+                resize: "none",
+              }}
+              rows="2"
             />
           </label>
         </section>

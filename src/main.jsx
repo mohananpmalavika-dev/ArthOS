@@ -7,6 +7,7 @@ import { initializeErrorMonitoring } from "./lib/errorMonitoring.ts";
 import ErrorBoundary from "./components/ErrorBoundary.jsx";
 import ConsentBanner from "./components/ConsentBanner.jsx";
 import "./styles.css";
+import "./styles/vars.css";
 
 // Initialize global error logging
 initializeErrorLogging();

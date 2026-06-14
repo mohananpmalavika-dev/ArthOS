@@ -18,6 +18,7 @@ import ValidationFeedbackForm from "./ValidationFeedbackForm.jsx";
 import DecisionSimulator from "./DecisionSimulator.jsx";
 import InsightNarrative from "./InsightNarrative.jsx";
 import SurvivalHero from "./SurvivalHero.jsx";
+import WeeklyMissionCard from "./WeeklyMissionCard.jsx";
 import {
   buildAnonymousTelemetryPayload,
   dispatchAnonymousTelemetry,
@@ -1184,17 +1185,28 @@ export default function AssessmentSection({
         >
           {result && result.healthScore !== undefined && (
             <div className="result-stack-inner">
-              <LiveResultSnapshot result={result} />
+              {/* REALITY: Lead with Financial Health Score gauge + Survival window hero */}
+              <SurvivalHero survivalMonths={result.survivalMonthsRaw} score={result.basScore} />
 
-              {/* Blueprint key moment: Survival Engine right after assessment completion */}
-              <SurvivalHero survivalMonths={result.survivalMonthsRaw} />
-
+              {/* MIND: Consolidated narrative insights */}
               <InsightNarrative result={result} assessment={assessment} />
+
+              {/* FUTURE: Multi-path decision simulator */}
               <DecisionSimulator
                 id="simulator"
                 profile={assessment.profile}
                 behaviour={assessment.behaviour}
               />
+
+              {/* ACTION: One weekly mission */}
+              <WeeklyMissionCard
+                result={result}
+                assessment={assessment}
+                onAssessmentUpdate={onChange}
+              />
+
+              {/* DETAILED ANALYSIS: Health metrics breakdown */}
+              <LiveResultSnapshot result={result} />
             </div>
           )}
         </aside>
