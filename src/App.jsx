@@ -170,6 +170,11 @@ import SingleMostImportantInsight from "./components/SingleMostImportantInsight.
 import ActionFollowUpPanel from "./components/ActionFollowUpPanel.jsx";
 import DecisionSimulator from "./components/DecisionSimulator.jsx";
 import ExportPDF from "./components/ExportPDF.jsx";
+import RealityScreen from "./components/RealityScreen.jsx";
+import MindDashboard from "./components/MindDashboard.jsx";
+import FutureScreen from "./components/FutureScreen.jsx";
+import ActionScreen from "./components/ActionScreen.jsx";
+import CoachScreen from "./components/CoachScreen.jsx";
 import { ConsequenceForecastCard } from "./components/ConsequenceForecastCard.jsx";
 import { InterventionsPrescriptionCard } from "./components/InterventionsPrescriptionCard.jsx";
 import { StrategicMetricsCard } from "./components/StrategicMetricsCard.jsx";
@@ -1378,6 +1383,26 @@ export default function App() {
               <LongitudinalLearningDashboard userId={effectiveUserId} />
             </ErrorBoundary>
           </Suspense>
+        ) : activeHash === "#reality" ? (
+          <RealityScreen result={result} assessment={assessment} />
+        ) : activeHash === "#mind" ? (
+          <MindDashboard
+            result={result}
+            moneyBeliefs={moneyBeliefs}
+            biasProfile={biasProfile}
+            emotionalTriggers={emotionalTriggers}
+            financialMindProfile={financialMindProfile}
+          />
+        ) : activeHash === "#future" ? (
+          <FutureScreen result={result} assessment={assessment} />
+        ) : activeHash === "#action" ? (
+          <ActionScreen
+            result={result}
+            assessment={assessment}
+            onAssessmentUpdate={(updates) => updateGroup('behaviour', null, updates)}
+          />
+        ) : activeHash === "#coach" ? (
+          <CoachScreen userId={effectiveUserId} result={result} assessment={assessment} />
         ) : activeHash === "#admin" ? (
           <AdminSection
             assessment={assessment}
@@ -1479,25 +1504,43 @@ export default function App() {
                     </ErrorBoundary>
                   </Suspense>
 
-                  <Suspense fallback={<LazyComponentFallback />}>
-                    <ErrorBoundary>
-                      <AnalyticsDashboard result={result} />
-                    </ErrorBoundary>
-                  </Suspense>
+                  {result ? (
+                    <Suspense fallback={<LazyComponentFallback />}>
+                      <ErrorBoundary>
+                        <AnalyticsDashboard result={result} />
+                      </ErrorBoundary>
+                    </Suspense>
+                  ) : (
+                    <div className="summary-card">
+                      <p>Analytics unavailable — complete an assessment to populate insights.</p>
+                    </div>
+                  )}
 
                   {/* Retention & Cohort Analytics Dashboard */}
-                  <Suspense fallback={<LazyComponentFallback />}>
-                    <ErrorBoundary>
-                      <RetentionDashboard />
-                    </ErrorBoundary>
-                  </Suspense>
+                  {result ? (
+                    <Suspense fallback={<LazyComponentFallback />}>
+                      <ErrorBoundary>
+                        <RetentionDashboard result={result} />
+                      </ErrorBoundary>
+                    </Suspense>
+                  ) : (
+                    <div className="summary-card">
+                      <p>Retention analytics unavailable — complete an assessment to enable.</p>
+                    </div>
+                  )}
 
                   {/* Assessment Completion Rate Dashboard */}
-                  <Suspense fallback={<LazyComponentFallback />}>
-                    <ErrorBoundary>
-                      <CompletionDashboard />
-                    </ErrorBoundary>
-                  </Suspense>
+                  {result ? (
+                    <Suspense fallback={<LazyComponentFallback />}>
+                      <ErrorBoundary>
+                        <CompletionDashboard result={result} />
+                      </ErrorBoundary>
+                    </Suspense>
+                  ) : (
+                    <div className="summary-card">
+                      <p>Completion metrics unavailable — complete an assessment to populate.</p>
+                    </div>
+                  )}
 
                   {currentUserId && (
                     <section className="summary-card">
@@ -1506,11 +1549,17 @@ export default function App() {
                   )}
 
                   {/* Digital Twin Dashboard - Flight Simulator for Financial Life */}
-                  <Suspense fallback={<LazyComponentFallback />}>
-                    <ErrorBoundary>
-                      <DigitalTwinDashboard twin={digitalTwin} assessment={result} />
-                    </ErrorBoundary>
-                  </Suspense>
+                  {digitalTwin ? (
+                    <Suspense fallback={<LazyComponentFallback />}>
+                      <ErrorBoundary>
+                        <DigitalTwinDashboard twin={digitalTwin} assessment={result} />
+                      </ErrorBoundary>
+                    </Suspense>
+                  ) : (
+                    <div className="summary-card">
+                      <p>Digital Twin unavailable — run an assessment to build your twin.</p>
+                    </div>
+                  )}
 
                   <CollapsiblePanel
                     className="summary-card"
@@ -1564,7 +1613,17 @@ export default function App() {
                         Ensemble
                       </p>
                     </div>
-                    <ForecastModelCard forecast={predictionEngineForecast} />
+                    {predictionEngineForecast && predictionEngineForecast.horizons && predictionEngineForecast.horizons.day30 ? (
+                      <Suspense fallback={<LazyComponentFallback />}>
+                        <ErrorBoundary>
+                          <ForecastModelCard forecast={predictionEngineForecast} />
+                        </ErrorBoundary>
+                      </Suspense>
+                    ) : (
+                      <div className="forecast-empty-state">
+                        <p>Forecast unavailable — complete an assessment to generate model forecasts.</p>
+                      </div>
+                    )}
                   </CollapsiblePanel>
                   <section className="summary-card premium-report-block" id="cognition">
                     <div className="premium-report-block-header">
