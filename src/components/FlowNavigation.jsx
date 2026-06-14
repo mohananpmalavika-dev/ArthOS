@@ -15,7 +15,7 @@ import {
   Sparkles
 } from "lucide-react";
 
-export default function FlowNavigation({ activeHash, onNavigate }) {
+export default function FlowNavigation({ activeHash, onNavigate, devMode, onToggleDev }) {
   const [showDeveloperMenu, setShowDeveloperMenu] = useState(false);
 
   const coreNarrative = useMemo(
@@ -85,8 +85,11 @@ export default function FlowNavigation({ activeHash, onNavigate }) {
         
         {/* Developer Menu Toggle */}
         <button
-          className="app-nav-tab app-nav-dev-toggle"
-          onClick={() => setShowDeveloperMenu(!showDeveloperMenu)}
+          className={`app-nav-tab app-nav-dev-toggle ${devMode ? 'dev-active' : ''}`}
+          onClick={() => {
+            setShowDeveloperMenu(!showDeveloperMenu);
+            if (onToggleDev) onToggleDev();
+          }}
           title="Developer & Admin Tools"
           aria-expanded={showDeveloperMenu}
         >

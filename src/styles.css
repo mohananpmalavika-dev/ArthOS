@@ -9018,6 +9018,135 @@ main {
    STORY HOME — Financial Story Single-Scroll UX
    ════════════════════════════════════════════════ */
 
+:root {
+  /* Design tokens: hi-tech palette */
+  --bg-900: #050713;
+  --bg-800: #0B1220;
+  --accent-cyan: #06b6d4;
+  --accent-purple: #7c3aed;
+  --accent-emerald: #10b981;
+  --glass-bg: rgba(255,255,255,0.04);
+  --glass-border: rgba(255,255,255,0.08);
+  --glass-blur: 18px;
+  --hero-gradient-1: linear-gradient(135deg, rgba(6,182,212,0.08), rgba(124,58,237,0.06));
+}
+
+/* Hi‑tech full screen hero */
+.hi-tech-hero {
+  position: relative;
+  display: grid;
+  gap: 20px;
+  align-items: center;
+  justify-items: center;
+  min-height: clamp(520px, 70vh, 780px);
+  padding: 48px 20px;
+  color: white;
+  background: radial-gradient(1200px 600px at 10% 10%, rgba(6,182,212,0.06), transparent 8%), radial-gradient(1000px 500px at 90% 90%, rgba(124,58,237,0.05), transparent 12%), var(--bg-800);
+  overflow: hidden;
+}
+
+.hi-tech-hero::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(circle at 10% 20%, rgba(6,182,212,0.06) 0, transparent 20%), radial-gradient(circle at 80% 80%, rgba(124,58,237,0.04) 0, transparent 18%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* subtle animated particle field (CSS-only approximation) */
+.hi-tech-hero .particle-field {
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(circle at 10% 10%, rgba(255,255,255,0.02) 0, transparent 2%), radial-gradient(circle at 30% 70%, rgba(255,255,255,0.01) 0, transparent 2%), radial-gradient(circle at 80% 40%, rgba(255,255,255,0.015) 0, transparent 2%);
+  background-size: 1200px 800px, 900px 600px, 1400px 1000px;
+  animation: particleShift 18s linear infinite;
+  z-index: 0;
+}
+
+@keyframes particleShift {
+  from { transform: translate3d(0,0,0); opacity: 0.95 }
+  50% { transform: translate3d(-30px,10px,0); opacity: 1 }
+  to { transform: translate3d(0,0,0); opacity: 0.95 }
+}
+
+.hi-tech-hero .hero-grid {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  gap: 18px;
+  align-items: center;
+  justify-items: center;
+  width: 100%;
+  max-width: 1100px;
+}
+
+.hi-tech-hero .hero-title {
+  font-size: clamp(20px, 3vw, 28px);
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  color: rgba(255,255,255,0.75);
+  margin: 0;
+}
+
+.hi-tech-hero .hero-subtitle {
+  font-size: clamp(36px, 6vw, 64px);
+  font-weight: 900;
+  line-height: 1;
+  margin: 6px 0 0 0;
+  color: white;
+}
+
+.score-ring {
+  --size: 220px;
+  width: var(--size);
+  height: var(--size);
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: conic-gradient(var(--accent-cyan) calc(var(--score) * 1%), rgba(255,255,255,0.06) 0 100%);
+  box-shadow: 0 12px 40px rgba(6,182,212,0.08), 0 6px 18px rgba(124,58,237,0.04);
+  border: 1px solid rgba(255,255,255,0.04);
+}
+
+.score-ring .score-inner {
+  width: calc(var(--size) - 44px);
+  height: calc(var(--size) - 44px);
+  border-radius: 50%;
+  background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(0,0,0,0.06));
+  display: grid;
+  place-items: center;
+}
+
+.score-number-hero {
+  font-size: clamp(36px, 6vw, 56px);
+  font-weight: 900;
+  color: white;
+}
+
+.score-meta {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  color: rgba(255,255,255,0.75);
+}
+
+.hero-cta {
+  margin-top: 6px;
+  padding: 12px 18px;
+  border-radius: 10px;
+  background: linear-gradient(90deg, var(--accent-cyan), var(--accent-purple));
+  color: white;
+  border: none;
+  cursor: pointer;
+  font-weight: 800;
+}
+
+/* glass card variant for small stats */
+.mini-glass-row { display:flex; gap:12px; align-items:stretch; justify-content:center; z-index:2 }
+.mini-glass { padding:14px 18px; border-radius:12px; backdrop-filter: blur(var(--glass-blur)); background: var(--glass-bg); border:1px solid var(--glass-border); color: rgba(255,255,255,0.9); min-width:140px; text-align:center }
+
+
 .story-home {
   display: grid;
   gap: 48px;

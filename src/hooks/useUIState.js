@@ -26,6 +26,10 @@ export function useUIState() {
   const [paywallFeature, setPaywallFeature] = useState(null);
   const [smsEnrichment, setSmsEnrichment] = useState(null);
   const [showSmsForm, setShowSmsForm] = useState(false);
+  const [devMode, setDevMode] = useState(() => {
+    if (!isBrowser()) return false;
+    return window.localStorage.getItem("arth-os-dev-mode") === "true";
+  });
 
   // Listen to hash changes
   useEffect(() => {
@@ -75,6 +79,16 @@ export function useUIState() {
     setShowSmsForm(prev => !prev);
   }, []);
 
+  const toggleDevMode = useCallback(() => {
+    setDevMode(prev => {
+      const next = !prev;
+      if (isBrowser()) {
+        window.localStorage.setItem("arth-os-dev-mode", next ? "true" : "false");
+      }
+      return next;
+    });
+  }, []);
+
   return {
     // State
     activeHash,
@@ -97,6 +111,8 @@ export function useUIState() {
     closeAuthModal,
     completeOnboarding,
     resetOnboarding,
-    toggleSmsForm
+    toggleSmsForm,
+    devMode,
+    toggleDevMode
   };
 }

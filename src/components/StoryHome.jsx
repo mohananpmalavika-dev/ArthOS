@@ -23,6 +23,20 @@ import {
   CartesianGrid
 } from "recharts";
 import TrajectoryHeroVisual from "./TrajectoryHeroVisual.jsx";
+import FutureYou from "./FutureYou.jsx";
+import { motion, AnimatePresence } from "framer-motion";
+
+const sectionMotion = {
+  hidden: { opacity: 0, y: 20 },
+  visible: { opacity: 1, y: 0 }
+};
+
+const itemMotion = {
+  hidden: { opacity: 0, y: 22 },
+  visible: { opacity: 1, y: 0 }
+};
+
+const easeOut = [0.22, 1, 0.36, 1];
 
 function clampScore(value) {
   return Math.max(0, Math.min(100, Math.round(value)));
@@ -30,6 +44,8 @@ function clampScore(value) {
 
 export default function StoryHome({ result, assessment, onCoachOpen }) {
   const [expandedReason, setExpandedReason] = useState(null);
+  const [actionExpanded, setActionExpanded] = useState(false);
+  const [showCoachSuggestions, setShowCoachSuggestions] = useState(false);
 
   const currentScore = useMemo(
     () => clampScore((result?.healthScore ?? 0) / 10),
@@ -134,83 +150,122 @@ export default function StoryHome({ result, assessment, onCoachOpen }) {
   return (
     <section className="story-home">
       {/* ════════════════════════════════════════════════
-          TITLE + SCORE HERO
+          HI‑TECH HERO
           ════════════════════════════════════════════════ */}
-      <div className="story-hero">
-        <div className="story-header">
-          <h1 className="story-title">Your Financial Story</h1>
-          <p className="story-subtitle">Everything you need to know in one screen</p>
-        </div>
+      <motion.section
+        className="hi-tech-hero"
+        initial="hidden"
+        animate="visible"
+        variants={sectionMotion}
+        transition={{ duration: 0.72, ease: easeOut }}
+      >
+        <div className="particle-field" aria-hidden="true" />
+        <motion.div
+          className="hero-grid"
+          initial="hidden"
+          animate="visible"
+          variants={{ visible: { transition: { staggerChildren: 0.14 } } }}
+        >
+          <motion.div
+            style={{ textAlign: "center" }}
+            variants={itemMotion}
+          >
+            <div className="hero-title">YOUR FINANCIAL OPERATING SYSTEM</div>
+            <h2 className="hero-subtitle">Score: <span style={{ opacity: 0.98 }}>{currentScore}</span></h2>
+            <div className="score-meta">↗ {scoreChange.direction === 'up' ? Math.abs(scoreChange.value) : `-${Math.abs(scoreChange.value)}`} this month • You're outperforming 73% of people like you</div>
+          </motion.div>
 
-        <div className="score-hero">
-          <div className="score-display">
-            <div className="score-number">{currentScore}</div>
-            <div className="score-label">Financial Health</div>
-          </div>
+          <motion.div
+            style={{ display: "flex", gap: 24, alignItems: "center", justifyContent: "center", flexWrap: "wrap" }}
+            variants={itemMotion}
+          >
+            <motion.div className="score-ring" style={{ ["--score"]: currentScore }}
+              initial={{ scale: 0.98, rotate: 0 }}
+              animate={{ scale: [1, 1.03, 1], rotate: [0, 2, 0] }}
+              transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+            >
+              <div className="score-inner">
+                <motion.div className="score-number-hero" animate={{ scale: [1, 1.08, 1] }} transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut" }}>
+                  {currentScore}
+                </motion.div>
+                <div style={{ fontSize: 12, color: "rgba(255,255,255,0.75)" }}>Financial Health</div>
+              </div>
+            </motion.div>
 
-          <div className="score-change">
-            {scoreChange.direction === "up" ? (
-              <TrendingUp size={20} color="var(--cyan)" />
-            ) : (
-              <TrendingDown size={20} color="var(--orange)" />
-            )}
-            <span className="score-change-value">
-              {scoreChange.direction === "up" ? "↑" : "↓"} {Math.abs(scoreChange.value)} this month
-            </span>
-          </div>
+            <motion.div style={{ display: "grid", gap: 12 }} variants={itemMotion}>
+              <motion.div className="mini-glass-row" variants={itemMotion} style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
+                <div className="mini-glass">
+                  <div style={{ fontSize: 12, opacity: 0.8 }}>Cashflow</div>
+                  <div style={{ fontWeight: 800, fontSize: 18 }}>{result?.cashflowDisplay || '₹0'}</div>
+                </div>
+                <div className="mini-glass">
+                  <div style={{ fontSize: 12, opacity: 0.8 }}>Runway</div>
+                  <div style={{ fontWeight: 800, fontSize: 18 }}>{result?.survivalMonthsDisplay || '0'} mo</div>
+                </div>
+                <div className="mini-glass">
+                  <div style={{ fontSize: 12, opacity: 0.8 }}>Risk</div>
+                  <div style={{ fontWeight: 800, fontSize: 18 }}>{realityCard.risk}</div>
+                </div>
+              </motion.div>
 
-          <p className="emotional-narrative">{emotionalNarrative}</p>
-        </div>
-      </div>
+              <div style={{ display: 'flex', gap: 12, justifyContent: 'center' }}>
+                <button className="hero-cta" onClick={() => document.getElementById('future')?.scrollIntoView({ behavior: 'smooth' })}>View Future</button>
+                <button className="hero-cta" onClick={() => onCoachOpen && onCoachOpen()}>Open Coach</button>
+              </div>
+            </motion.div>
+          </motion.div>
+        </motion.div>
+      </motion.section>
 
       {/* ════════════════════════════════════════════════
           SECTION 1: REALITY (TODAY)
           ════════════════════════════════════════════════ */}
-      <div className="story-section">
+      <motion.div
+        className="story-section"
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, amount: 0.2 }}
+        variants={sectionMotion}
+        transition={{ duration: 0.65, ease: easeOut }}
+      >
         <h2 className="section-title">TODAY</h2>
-
-        <div className="reality-card">
-          <div className="reality-row">
-            <div className="reality-item">
-              <span className="reality-label">Financial Health</span>
-              <span className="reality-value">{currentScore}</span>
+        <motion.div className="reality-card compact" variants={itemMotion}>
+          <div className="mini-glass-row" style={{ justifyContent: 'space-between' }}>
+            <div className="mini-glass">
+              <div style={{ fontSize: 12, opacity: 0.8 }}>Financial Health</div>
+              <div style={{ fontWeight: 800, fontSize: 18 }}>{currentScore}</div>
             </div>
-            <div className="reality-item">
-              <span className="reality-label">Cash Runway</span>
-              <span className="reality-value">{realityCard.runway} months</span>
+            <div className="mini-glass">
+              <div style={{ fontSize: 12, opacity: 0.8 }}>Cashflow</div>
+              <div style={{ fontWeight: 800, fontSize: 18 }}>{result?.cashflowDisplay || '₹0'}</div>
             </div>
-          </div>
-
-          <div className="reality-divider" />
-
-          <div className="reality-row">
-            <div className="reality-insight">
-              <AlertCircle size={18} color="var(--orange)" />
-              <div>
-                <span className="insight-label">Biggest Risk</span>
-                <span className="insight-value">{realityCard.risk}</span>
-              </div>
-            </div>
-            <div className="reality-insight">
-              <CheckCircle2 size={18} color="var(--cyan)" />
-              <div>
-                <span className="insight-label">Biggest Strength</span>
-                <span className="insight-value">{realityCard.strength}</span>
-              </div>
+            <div className="mini-glass">
+              <div style={{ fontSize: 12, opacity: 0.8 }}>Runway</div>
+              <div style={{ fontWeight: 800, fontSize: 18 }}>{realityCard.runway} mo</div>
             </div>
           </div>
-        </div>
-      </div>
+          <div style={{ marginTop: 12, display: 'flex', justifyContent: 'center' }}>
+            <button className="hero-cta" onClick={() => onCoachOpen && onCoachOpen('today')}>Talk to Coach</button>
+          </div>
+        </motion.div>
+      </motion.div>
 
       {/* ════════════════════════════════════════════════
           SECTION 2: WHY (Top 3 Reasons)
           ════════════════════════════════════════════════ */}
-      <div className="story-section">
+      <motion.div
+        className="story-section"
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, amount: 0.2 }}
+        variants={sectionMotion}
+        transition={{ duration: 0.65, ease: easeOut }}
+      >
         <h2 className="section-title">Why your score isn't higher</h2>
 
-        <div className="reasons-list">
+        <motion.div className="reasons-list" variants={{ visible: { transition: { staggerChildren: 0.1 } } }} initial="hidden" animate="visible">
           {topReasons.map((reason, idx) => (
-            <div key={reason.id} className="reason-card">
+            <motion.div key={reason.id} className="reason-card" variants={itemMotion}>
               <div
                 className="reason-header"
                 onClick={() => setExpandedReason(expandedReason === reason.id ? null : reason.id)}
@@ -263,111 +318,96 @@ export default function StoryHome({ result, assessment, onCoachOpen }) {
       <div className="story-section">
         <h2 className="section-title">Your Future</h2>
 
-        <div className="future-card">
-          <div className="future-chart-header">
-            <div>
-              <span className="path-label">Projected Trajectory</span>
-              <p className="future-chart-copy">A visual forecast of current behavior vs recommended choices.</p>
-            </div>
-            <div className="future-legend">
-              <div className="legend-item"><span className="legend-dot current" /> Current</div>
-              <div className="legend-item"><span className="legend-dot recommended" /> Recommended</div>
-            </div>
-          </div>
-
-          <div className="future-chart-wrapper">
-            <ResponsiveContainer width="100%" height={240}>
-              <LineChart data={timelineData} margin={{ top: 20, right: 24, left: 0, bottom: 0 }}>
-                <CartesianGrid stroke="#e6fffb" strokeDasharray="3 3" />
-                <XAxis dataKey="label" axisLine={false} tickLine={false} tick={{ fill: "var(--ink-2)", fontSize: 12 }} />
-                <YAxis axisLine={false} tickLine={false} tick={{ fill: "var(--ink-2)", fontSize: 12 }} width={36} />
-                <Tooltip
-                  contentStyle={{ borderRadius: 12, border: "1px solid rgba(0,0,0,0.08)", backgroundColor: "white", color: "var(--ink-0)" }}
-                  cursor={{ stroke: "rgba(98,228,209,0.45)", strokeDasharray: "3 3" }}
-                />
-                <Line type="monotone" dataKey="current" stroke="#f97316" strokeWidth={3} dot={{ r: 4, fill: "#fb923c" }} activeDot={{ r: 6 }} />
-                <Line type="monotone" dataKey="recommended" stroke="#06b6d4" strokeWidth={3} dot={{ r: 4, fill: "#22d3ee" }} activeDot={{ r: 6 }} />
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
-
-          <p className="future-note">
-            Your choices this month compound into +{timelineData[3].recommended - timelineData[0].current} points by year 3.
-          </p>
-        </div>
+        <TrajectoryHeroVisual data={timelineData} result={result} assessment={assessment} />
       </div>
 
       {/* ════════════════════════════════════════════════
           SECTION 4: FINANCIAL TWIN
           ════════════════════════════════════════════════ */}
-      <div className="story-section">
-        <h2 className="section-title">Future You</h2>
+      <motion.div
+        className="story-section"
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, amount: 0.2 }}
+        variants={sectionMotion}
+        transition={{ duration: 0.65, ease: easeOut }}
+      >
+        <h2 className="section-title">Your Future</h2>
 
-        <div className="twin-card">
-          <span className="twin-label">At age {futureYouCard.age}</span>
-
-          <div className="twin-metrics">
-            <div className="twin-metric">
-              <Wallet size={20} color="var(--cyan)" />
-              <div>
-                <span className="twin-metric-label">Emergency Fund</span>
-                <span className="twin-metric-value">{futureYouCard.emergency}</span>
-              </div>
-            </div>
-            <div className="twin-metric">
-              <Heart size={20} color="var(--green)" />
-              <div>
-                <span className="twin-metric-label">Debt</span>
-                <span className="twin-metric-value">{futureYouCard.debt}</span>
-              </div>
-            </div>
-            <div className="twin-metric">
-              <Zap size={20} color="var(--purple)" />
-              <div>
-                <span className="twin-metric-label">Stress Level</span>
-                <span className="twin-metric-value">{futureYouCard.stress}</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+        <motion.div id="future" variants={itemMotion}>
+          <FutureYou data={futureYouCard} />
+        </motion.div>
+      </motion.div>
 
       {/* ════════════════════════════════════════════════
           SECTION 5: THIS WEEK
           ════════════════════════════════════════════════ */}
-      <div className="story-section story-action">
+      <motion.div
+        className="story-section story-action"
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, amount: 0.2 }}
+        variants={sectionMotion}
+        transition={{ duration: 0.65, ease: easeOut }}
+      >
         <h2 className="section-title">This Week</h2>
 
-        <div className="action-card">
-          <div className="action-main">
-            <Zap size={24} color="var(--cyan)" />
-            <span className="action-text">{actionCard.action}</span>
+        <motion.div className="action-card compact-action" variants={itemMotion}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <Zap size={28} color="var(--cyan)" />
+            <div style={{ flex: 1 }}>
+              <div style={{ fontSize: 14, fontWeight: 700 }}>{actionCard.action}</div>
+              <div style={{ fontSize: 12, color: 'var(--ink-3)' }}>{actionCard.week}</div>
+            </div>
+            <button className="hero-cta" onClick={() => setActionExpanded(!actionExpanded)}>
+              {actionExpanded ? 'Hide' : "Today's Move"}
+            </button>
           </div>
 
-          <div className="action-impacts">
-            {actionCard.impacts.map((impact, i) => (
-              <div key={i} className="impact-item">
-                <span className="impact-metric">{impact.metric}</span>
-                <span className={`impact-change ${impact.tone}`}>{impact.change}</span>
-              </div>
-            ))}
-          </div>
-
-          <button className="action-cta">
-            See the plan
-            <ArrowRight size={16} />
-          </button>
-        </div>
-      </div>
+          {actionExpanded && (
+            <motion.div style={{ marginTop: 12, display: 'flex', gap: 12 }} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, ease: easeOut }}>
+              {actionCard.impacts.map((impact, i) => (
+                <div key={i} style={{ padding: 12, borderRadius: 10, background: 'var(--white)', border: '1px solid var(--gray-100)', minWidth: 120 }}>
+                  <div style={{ fontSize: 12, color: 'var(--ink-3)' }}>{impact.metric}</div>
+                  <div style={{ fontWeight: 700 }}>{impact.change}</div>
+                </div>
+              ))}
+            </motion.div>
+          )}
+        </motion.div>
+      </motion.div>
 
       {/* ════════════════════════════════════════════════
           FLOATING COACH
           ════════════════════════════════════════════════ */}
-      <div className="floating-coach">
-        <button className="coach-button" onClick={onCoachOpen} title="Open Coach">
-          <MessageCircle size={20} />
-        </button>
-      </div>
+      <motion.div className="floating-coach" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.66, ease: easeOut }}>
+        <div style={{ position: 'relative' }}>
+          <motion.button
+            className="coach-button"
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.98 }}
+            onClick={() => {
+              if (onCoachOpen) onCoachOpen();
+              setShowCoachSuggestions(false);
+            }}
+            title="Open Coach"
+            onMouseEnter={() => setShowCoachSuggestions(true)}
+            onMouseLeave={() => setShowCoachSuggestions(false)}
+          >
+            <MessageCircle size={20} />
+          </motion.button>
+
+          <AnimatePresence>
+            {showCoachSuggestions && (
+              <motion.div className="coach-suggestions" role="dialog" aria-label="Coach suggestions" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 10 }} transition={{ duration: 0.18, ease: easeOut }}>
+                <button onClick={() => onCoachOpen && onCoachOpen('cashflow')}>Improve Cashflow</button>
+                <button onClick={() => onCoachOpen && onCoachOpen('runway')}>Extend Runway</button>
+                <button onClick={() => onCoachOpen && onCoachOpen('reduce-risk')}>Reduce Risk</button>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+      </motion.div>
     </section>
   );
 }

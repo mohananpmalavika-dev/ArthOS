@@ -430,7 +430,9 @@ export default function App({ demoMode = false }) {
     setShowSmsForm,
     navigateTo,
     completeOnboarding,
-    resetOnboarding
+    resetOnboarding,
+    devMode,
+    toggleDevMode
   } = uiState;
 
   // Admin-related states (not yet in hooks - kept for now)
@@ -1246,6 +1248,8 @@ export default function App({ demoMode = false }) {
               window.location.hash = hash;
             });
           }}
+          devMode={devMode}
+          onToggleDev={toggleDevMode}
         />
       )}
 
@@ -1280,7 +1284,7 @@ export default function App({ demoMode = false }) {
       )}
 
       <main>
-        {(activeHash === "#predictions" || activeHash === "#intelligence") ? (
+        {(activeHash === "#predictions" || activeHash === "#intelligence") && devMode ? (
           <Suspense fallback={<LazyComponentFallback />}>
             <ErrorBoundary>
               <DeveloperIntelligenceSection userId={effectiveUserId} result={result} assessment={assessment} />

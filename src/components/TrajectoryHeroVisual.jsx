@@ -1,8 +1,15 @@
-import React, { useMemo } from "react";
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, ReferenceLine } from "recharts";
+import React, { useEffect, useMemo, useState } from "react";
+import { motion } from "framer-motion";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 import { AlertTriangle, TrendingUp } from "lucide-react";
 
+const easeOut = [0.22, 1, 0.36, 1];
+
 export default function TrajectoryHeroVisual({ result, assessment, data }) {
+  const [countedCurrent, setCountedCurrent] = useState(0);
+  const [countedWorst, setCountedWorst] = useState(0);
+  const [countedBest, setCountedBest] = useState(0);
+
   const trajectoryData = useMemo(() => {
     if (Array.isArray(data) && data.length > 0) {
       return data;
@@ -23,8 +30,34 @@ export default function TrajectoryHeroVisual({ result, assessment, data }) {
   const projectedWorst = 48; // 5-year projection without action
   const projectedBest = 88; // 5-year projection with action
 
+  useEffect(() => {
+    const duration = 1200;
+    const steps = 36;
+    const interval = duration / steps;
+    let frame = 0;
+    const currentTarget = currentScore;
+    const worstTarget = projectedWorst;
+    const bestTarget = projectedBest;
+
+    const timer = window.setInterval(() => {
+      frame += 1;
+      const progress = Math.min(1, frame / steps);
+      const eased = 1 - Math.pow(1 - progress, 3);
+
+      setCountedCurrent(Math.round(currentTarget * eased));
+      setCountedWorst(Math.round(worstTarget * eased));
+      setCountedBest(Math.round(bestTarget * eased));
+
+      if (progress >= 1) {
+        window.clearInterval(timer);
+      }
+    }, interval);
+
+    return () => window.clearInterval(timer);
+  }, [currentScore, projectedBest, projectedWorst]);
+
   return (
-    <section className="result-card trajectory-hero-card" style={{ padding: "32px" }}>
+    <motion.section className="result-card trajectory-hero-card" style={{ padding: "32px" }} initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, ease: easeOut }}>
       {/* Header */}
       <div style={{ marginBottom: "32px" }}>
         <p style={{ margin: 0, fontSize: "13px", color: "var(--ink-2)", textTransform: "uppercase", letterSpacing: "0.1em" }}>
@@ -37,7 +70,8 @@ export default function TrajectoryHeroVisual({ result, assessment, data }) {
 
       {/* Chart Container */}
       <div style={{ marginBottom: "32px", background: "var(--white)", borderRadius: "12px", overflow: "hidden", border: "1px solid var(--gray-200)" }}>
-        <ResponsiveContainer width="100%" height={300}>
+        <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, ease: easeOut }}>
+          <ResponsiveContainer width="100%" height={300}>
           <LineChart data={trajectoryData} margin={{ top: 5, right: 30, left: 0, bottom: 5 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="var(--gray-200)" vertical={false} />
             <XAxis
@@ -74,6 +108,9 @@ export default function TrajectoryHeroVisual({ result, assessment, data }) {
               strokeWidth={3}
               dot={{ fill: "var(--red-500)", r: 5 }}
               activeDot={{ r: 7 }}
+              isAnimationActive={true}
+              animationDuration={1200}
+              animationEasing="ease-out"
             />
             
             {/* Recommended path (improving) */}
@@ -85,15 +122,22 @@ export default function TrajectoryHeroVisual({ result, assessment, data }) {
               strokeWidth={3}
               dot={{ fill: "var(--green-500)", r: 5 }}
               activeDot={{ r: 7 }}
+              isAnimationActive={true}
+              animationDuration={1300}
+              animationEasing="ease-out"
             />
           </LineChart>
-        </ResponsiveContainer>
+          </ResponsiveContainer>
+        </motion.div>
       </div>
 
       {/* Summary Cards */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "16px", marginBottom: "24px" }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: "16px", marginBottom: "24px" }}>
         {/* Current State */}
-        <div
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, ease: easeOut, delay: 0.1 }}
           style={{
             padding: "20px",
             borderRadius: "12px",
@@ -105,15 +149,18 @@ export default function TrajectoryHeroVisual({ result, assessment, data }) {
             Today
           </p>
           <h3 style={{ margin: "0 0 8px", fontSize: "2rem", fontWeight: 700, color: "var(--blue-600)" }}>
-            {currentScore}
+            {countedCurrent}
           </h3>
           <p style={{ margin: 0, fontSize: "0.85rem", color: "var(--ink-3)", lineHeight: 1.4 }}>
             Your current readiness score
           </p>
-        </div>
+        </motion.div>
 
         {/* Without Action */}
-        <div
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, ease: easeOut, delay: 0.18 }}
           style={{
             padding: "20px",
             borderRadius: "12px",
@@ -125,15 +172,18 @@ export default function TrajectoryHeroVisual({ result, assessment, data }) {
             In 5 Years (No Action)
           </p>
           <h3 style={{ margin: "0 0 8px", fontSize: "2rem", fontWeight: 700, color: "var(--red-600)" }}>
-            {projectedWorst}
+            {countedWorst}
           </h3>
           <p style={{ margin: 0, fontSize: "0.85rem", color: "var(--ink-3)", lineHeight: 1.4 }}>
-            <strong style={{ color: "var(--red-600)" }}>-{currentScore - projectedWorst}</strong> if patterns continue
+            <strong style={{ color: "var(--red-600)" }}>-{currentScore - countedWorst}</strong> if patterns continue
           </p>
-        </div>
+        </motion.div>
 
         {/* With Action */}
-        <div
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, ease: easeOut, delay: 0.24 }}
           style={{
             padding: "20px",
             borderRadius: "12px",
@@ -145,12 +195,12 @@ export default function TrajectoryHeroVisual({ result, assessment, data }) {
             In 5 Years (With Action)
           </p>
           <h3 style={{ margin: "0 0 8px", fontSize: "2rem", fontWeight: 700, color: "var(--green-600)" }}>
-            {projectedBest}
+            {countedBest}
           </h3>
           <p style={{ margin: 0, fontSize: "0.85rem", color: "var(--ink-3)", lineHeight: 1.4 }}>
-            <strong style={{ color: "var(--green-600)" }}>+{projectedBest - currentScore}</strong> with focused effort
+            <strong style={{ color: "var(--green-600)" }}>+{countedBest - currentScore}</strong> with focused effort
           </p>
-        </div>
+        </motion.div>
       </div>
 
       {/* Insight Cards */}
@@ -199,6 +249,6 @@ export default function TrajectoryHeroVisual({ result, assessment, data }) {
           </div>
         </div>
       </div>
-    </section>
+    </motion.section>
   );
 }

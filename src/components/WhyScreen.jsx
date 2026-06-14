@@ -1,8 +1,9 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useState } from "react";
 import { AlertCircle, TrendingDown, Zap, Heart } from "lucide-react";
 import ContextualCoachPrompt from "./ContextualCoachPrompt.jsx";
 
-export default function WhyScreen({ result, assessment }) {
+export default function WhyScreen({ result, assessment, onCoachOpen }) {
+  const [openId, setOpenId] = useState(null);
   const {
     biases = [],
     moneyBeliefs = [],
@@ -101,74 +102,51 @@ export default function WhyScreen({ result, assessment }) {
                 const impactPercent = Math.round((factor.impact || 0) * 100);
                 const barWidth = Math.max(20, impactPercent);
 
+                const isOpen = openId === idx;
+
                 return (
-                  <div
-                    key={idx}
-                    className="result-card why-driver-card"
-                    style={{
-                      padding: "20px",
-                      borderRadius: "16px",
-                      background: "var(--white)",
-                      border: "1px solid var(--gray-200)"
-                    }}
-                  >
-                    <div style={{ display: "flex", gap: "16px", alignItems: "flex-start" }}>
-                      <div
-                        style={{
-                          width: "40px",
-                          height: "40px",
-                          borderRadius: "12px",
-                          background: "var(--gray-100)",
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          flexShrink: 0,
-                          color: factor.type === "bias" ? "var(--red-500)" : factor.type === "trigger" ? "var(--orange-500)" : "var(--purple-500)"
-                        }}
-                      >
-                        <Icon size={20} />
+                  <div key={idx} className="result-card why-driver-card" style={{ padding: "0", borderRadius: "12px", overflow: "hidden" }}>
+                    <button
+                      className="why-driver-toggle"
+                      onClick={() => setOpenId(isOpen ? null : idx)}
+                      style={{
+                        display: "flex",
+                        gap: "12px",
+                        alignItems: "center",
+                        width: "100%",
+                        padding: "14px",
+                        background: "var(--white)",
+                        border: "1px solid var(--gray-200)",
+                        cursor: "pointer"
+                      }}
+                    >
+                      <div style={{ width: 44, height: 44, borderRadius: 10, background: "var(--gray-100)", display: "flex", alignItems: "center", justifyContent: "center", color: factor.type === "bias" ? "var(--red-500)" : factor.type === "trigger" ? "var(--orange-500)" : "var(--purple-500)" }}>
+                        <Icon size={18} />
                       </div>
+                      <div style={{ textAlign: "left", flex: 1 }}>
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                          <strong style={{ fontSize: "1rem" }}>{factor.label}</strong>
+                          <span style={{ fontSize: "0.9rem", color: impactPercent > 70 ? "var(--red-600)" : impactPercent > 40 ? "var(--orange-600)" : "var(--ink-2)", fontWeight: 700 }}>{impactPercent}%</span>
+                        </div>
+                        <div style={{ fontSize: "0.9rem", color: "var(--ink-3)", marginTop: 6 }}>{factor.description}</div>
+                      </div>
+                    </button>
 
-                      <div style={{ flex: 1 }}>
-                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "8px" }}>
-                          <h3 style={{ margin: 0, fontSize: "1rem", fontWeight: 600, color: "var(--ink-0)" }}>
-                            {factor.label}
-                          </h3>
-                          <span
-                            style={{
-                              fontSize: "0.85rem",
-                              fontWeight: 600,
-                              color: impactPercent > 70 ? "var(--red-600)" : impactPercent > 40 ? "var(--orange-600)" : "var(--ink-2)"
-                            }}
+                    {isOpen && (
+                      <div style={{ padding: 16, background: "var(--gray-50)", borderTop: "1px solid var(--gray-100)" }}>
+                        <p style={{ margin: 0, color: "var(--ink-3)", lineHeight: 1.6 }}>{factor.description}</p>
+                        <div style={{ marginTop: 12, display: "flex", gap: 8 }}>
+                          <button
+                            className="btn btn-primary"
+                            onClick={() => onCoachOpen && onCoachOpen(factor.label)}
+                            aria-label={`Ask coach about ${factor.label}`}
                           >
-                            {impactPercent}%
-                          </span>
-                        </div>
-
-                        <p style={{ margin: "0 0 12px", fontSize: "0.9rem", color: "var(--ink-3)", lineHeight: 1.5 }}>
-                          {factor.description}
-                        </p>
-
-                        {/* Impact bar */}
-                        <div
-                          style={{
-                            height: "4px",
-                            background: "var(--gray-100)",
-                            borderRadius: "2px",
-                            overflow: "hidden"
-                          }}
-                        >
-                          <div
-                            style={{
-                              height: "100%",
-                              width: `${barWidth}%`,
-                              background: impactPercent > 70 ? "var(--red-500)" : impactPercent > 40 ? "var(--orange-500)" : "var(--ink-1)",
-                              transition: "width 0.3s ease"
-                            }}
-                          />
+                            Ask Coach
+                          </button>
+                          <button className="btn" onClick={() => navigator.clipboard?.writeText(factor.label)}>Copy</button>
                         </div>
                       </div>
-                    </div>
+                    )}
                   </div>
                 );
               })}
