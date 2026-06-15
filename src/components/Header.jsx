@@ -1,6 +1,6 @@
 import React from "react";
 import PropTypes from "prop-types";
-import { useLocation } from "react-router-dom";
+import { Link, NavLink, useLocation } from "react-router-dom";
 import {
   Search,
   Bell,
@@ -30,26 +30,40 @@ function Header({
 
   return (
     <header className="topbar">
-      <a className="brand" href="/dashboard" aria-label="ARTH.OS home">
+      <Link className="brand" to="/dashboard" aria-label="ARTH.OS home">
         <span className="logo-word">
           ARTH.<span>OS</span>
         </span>
         <small>POWERED BY SANKHYA</small>
-      </a>
+      </Link>
 
       <nav className="nav-links" aria-label="Primary navigation">
-        {NAV_ITEMS.map(item => (
-          <a
-            href={item.href}
-            key={item.label}
-            className={item.href === currentPath || activeHash === item.href ? "active" : ""}
-            aria-current={
-              item.href === currentPath || activeHash === item.href ? "page" : undefined
-            }
-          >
-            {item.label}
-          </a>
-        ))}
+        {NAV_ITEMS.map(item => {
+          const isHashLink = item.href.startsWith("#");
+          const active = isHashLink
+            ? activeHash === item.href
+            : currentPath === item.href;
+
+          return isHashLink ? (
+            <a
+              href={item.href}
+              key={item.label}
+              className={active ? "active" : ""}
+              aria-current={active ? "page" : undefined}
+            >
+              {item.label}
+            </a>
+          ) : (
+            <NavLink
+              key={item.label}
+              to={item.href}
+              end={item.href === "/dashboard"}
+              className={({ isActive }) => (isActive ? "active" : "")}
+            >
+              {item.label}
+            </NavLink>
+          );
+        })}
       </nav>
 
       <div className="model-header-actions" aria-label="Product actions">

@@ -37,48 +37,29 @@ export function calculateAdaptiveBASTWeights(
   awarenessMetrics = {}
 ) {
   const defaultWeights = { behaviour: 0.4, awareness: 0.3, stability: 0.3 };
-  const survivalMonths = stability.survivalMonthsRaw || 0;
-  const gap = awarenessMetrics.awarenessGap || 0;
-  const futureRiskScore = calculateFutureRiskV2(profile).score || 50;
+  const userProfileType = getUserProfileType(stability, awarenessMetrics);
 
   const weights = { ...defaultWeights };
 
-  if (survivalMonths < 3) {
-    weights.stability += 0.1;
-    weights.awareness -= 0.04;
-    weights.behaviour -= 0.06;
-  } else if (survivalMonths < 6) {
-    weights.stability += 0.06;
-    weights.awareness += 0.02;
-    weights.behaviour -= 0.04;
-  }
-
-  if (gap >= 3) {
-    weights.awareness += 0.08;
-    weights.behaviour -= 0.03;
-    weights.stability -= 0.05;
-  }
-
-  if (behaviourScore < 18) {
-    weights.behaviour += 0.08;
-    weights.awareness -= 0.03;
-    weights.stability -= 0.05;
-  }
-
-  if (profile.incomeStability === "highly_variable") {
-    weights.stability += 0.05;
-    weights.awareness += 0.03;
-    weights.behaviour -= 0.08;
-  } else if (profile.incomeStability === "very_consistent") {
-    weights.behaviour += 0.02;
-    weights.awareness += 0.02;
-    weights.stability -= 0.04;
-  }
-
-  if (futureRiskScore <= 35) {
-    weights.awareness += 0.04;
-    weights.stability += 0.04;
-    weights.behaviour -= 0.08;
+  switch (userProfileType) {
+    case "Crisis":
+      weights.stability = 0.6;
+      weights.behaviour = 0.2; // Adjust other weights proportionally
+      weights.awareness = 0.2;
+      break;
+    case "Stable":
+      weights.behaviour = 0.45;
+      weights.stability = 0.25; // Adjust other weights proportionally
+      weights.awareness = 0.3;
+      break;
+    case "Growth":
+      weights.awareness = 0.4;
+      weights.behaviour = 0.3; // Adjust other weights proportionally
+      weights.stability = 0.3;
+      break;
+    default:
+      // Keep default weights if profile is unknown
+      break;
   }
 
   return normalizeWeights(weights);
@@ -88,6 +69,19 @@ function getScoreLabel(score, { high, medium, low }) {
   if (score >= 75) return high;
   if (score >= 50) return medium;
   return low;
+}
+
+function getUserProfileType(stability = {}, awarenessMetrics = {}) {
+  const survivalMonths = stability.survivalMonthsRaw || 0;
+  const awarenessGap = awarenessMetrics.awarenessGap || 0;
+
+  if (survivalMonths < 3) {
+    return "Crisis";
+  } else if (survivalMonths >= 3 && survivalMonths < 6) {
+    return "Stable";
+  } else {
+    return "Growth";
+  }
 }
 
 function calculateIncomeVolatilityIndex(profile = {}, stability = {}) {

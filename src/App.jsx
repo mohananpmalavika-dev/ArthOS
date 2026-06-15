@@ -8,7 +8,7 @@ import React, {
   useCallback,
   startTransition
 } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "./context/AuthContext.jsx";
 import LoginPage from "./pages/LoginPage.jsx";
 import RegisterPage from "./pages/RegisterPage.jsx";
@@ -153,6 +153,9 @@ const PredictionEngineDashboard = lazy(() => import("./components/PredictionEngi
 const AiCoachInterface = lazy(() => import("./components/AiCoachInterface.jsx"));
 const LongitudinalLearningDashboard = lazy(
   () => import("./components/LongitudinalLearningDashboard.jsx")
+);
+const BankingIntegrationDashboard = lazy(
+  () => import("./components/BankingIntegrationDashboard.jsx")
 );
 // Always-needed components (in main bundle)
 import OnboardingOverlay from "./components/OnboardingOverlay.jsx";
@@ -377,6 +380,20 @@ const dependentsOptions = DEPENDENTS_OPTIONS;
 export default function App({ demoMode = false }) {
   const { user, token, isAuthenticated, loading: authLoading, logout } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+
+  // Route-aware dashboard view state
+  const pathname = location.pathname || "/dashboard";
+  const pathSegments = pathname.split("/").filter(Boolean);
+  const dashboardSection = pathSegments[0] === "dashboard" ? pathSegments[1] || "home" : null;
+  const isDashboardRoute = pathname.startsWith("/dashboard");
+  const showDashboardHome = dashboardSection === "home";
+  const showInsightsPage = dashboardSection === "insights";
+  const showPlanPage = dashboardSection === "plan";
+  const showAccountsPage = dashboardSection === "accounts";
+  const showSettingsPage = dashboardSection === "settings";
+  const showHistoryPage = dashboardSection === "history";
+  const showNotificationsPage = dashboardSection === "notifications";
 
   // Initialize custom hooks for organized state management
   const assessmentState = useAssessmentState();
@@ -403,8 +420,6 @@ export default function App({ demoMode = false }) {
   } = assessmentState;
 
   const {
-    showNotificationPanel,
-    setShowNotificationPanel,
     notificationBadgeCount,
     setNotificationBadgeCount,
     newlyUnlockedMilestones,
@@ -532,8 +547,17 @@ export default function App({ demoMode = false }) {
 
     startTransition(() => {
       setActiveHash(hash);
-      if (isBrowser() && hash) {
-        navigate(`${window.location.pathname}${hash}`);
+      if (!hash) {
+        return;
+      }
+
+      if (hash.startsWith("/")) {
+        navigate(hash);
+      } else {
+        const basePath = location.pathname.startsWith("/dashboard")
+          ? "/dashboard"
+          : location.pathname;
+        navigate(`${basePath}${hash}`);
       }
     });
   }
@@ -1200,9 +1224,8 @@ export default function App({ demoMode = false }) {
     setAdminLoggedIn(false);
     setAdminCredentials({ username: "", password: "" });
     setAdminLoginError("");
-    if (isBrowser()) {
-      navigate(`${window.location.pathname}#`);
-    }
+    navigate(location.pathname, { replace: true });
+    startTransition(() => setActiveHash("#"));
   }
 
   function generateAdminReport() {
@@ -1293,7 +1316,7 @@ export default function App({ demoMode = false }) {
               if (hash && hash.startsWith("/")) {
                 navigate(hash);
               } else if (hash && hash.startsWith("#")) {
-                navigate(`${window.location.pathname}${hash}`);
+                navigate(`${location.pathname}${hash}`);
               }
             });
           }}
@@ -1305,7 +1328,7 @@ export default function App({ demoMode = false }) {
       {demoMode && !showAuthModal && <DemoBanner />}
 
       <NotificationPanel
-        isOpen={showNotificationPanel}
+        isOpen={showNotificationPanel && !showNotificationsPage}
         onClose={() => setShowNotificationPanel(false)}
       />
 
@@ -1333,66 +1356,222 @@ export default function App({ demoMode = false }) {
       )}
 
       <main>
-        {(activeHash === "#predictions" || activeHash === "#intelligence") && devMode ? (
-          <Suspense fallback={<LazyComponentFallback />}>
-            <ErrorBoundary>
-              <DeveloperIntelligenceSection
-                userId={effectiveUserId}
-                result={result}
-                assessment={assessment}
-              />
-            </ErrorBoundary>
-          </Suspense>
-        ) : activeHash === "#b2b" ? (
-          <Suspense fallback={<LazyComponentFallback />}>
-            <ErrorBoundary>
-              <B2BPartnerPortal userId={effectiveUserId} assessment={assessment} />
-            </ErrorBoundary>
-          </Suspense>
-        ) : activeHash === "#ai-coach" ? (
-          <Suspense fallback={<LazyComponentFallback />}>
-            <ErrorBoundary>
-              <AiCoachInterface userId={effectiveUserId} />
-            </ErrorBoundary>
-          </Suspense>
-        ) : activeHash === "#longitudinal" ? (
-          <Suspense fallback={<LazyComponentFallback />}>
-            <ErrorBoundary>
-              <LongitudinalLearningDashboard userId={effectiveUserId} />
-            </ErrorBoundary>
-          </Suspense>
-        ) : activeHash === "#reality" ? (
-          <RealityScreen result={result} assessment={assessment} />
-        ) : activeHash === "#mind" ? (
-          <WhyScreen result={result} assessment={assessment} />
-        ) : activeHash === "#future" ? (
-          <FutureScreen result={result} assessment={assessment} />
-        ) : activeHash === "#action" ? (
-          <ActionScreen
-            result={result}
-            assessment={assessment}
-            onAssessmentUpdate={updates => updateGroup("behaviour", null, updates)}
-          />
-        ) : activeHash === "#coach" ? (
-          <CoachScreen
-            userId={effectiveUserId}
-            result={result}
-            assessment={assessment}
-            coachPrimaryConcern={coachPrimaryConcern}
-          />
-        ) : activeHash === "#admin" ? (
-          <AdminSection
-            assessment={assessment}
-            result={result}
-            adminLoggedIn={adminLoggedIn}
-            adminCredentials={adminCredentials}
-            adminLoginError={adminLoginError}
-            adminReport={adminReport}
-            onAdminCredentialChange={setAdminCredentials}
-            onAdminLogin={handleAdminLogin}
-            onAdminLogout={handleAdminLogout}
-            onGenerateReport={generateAdminReport}
-          />
+        {isDashboardRoute ? (
+          showNotificationsPage ? (
+            <section className="dashboard-page">
+              <div className="dashboard-page-header">
+                <h1>Notifications & Alerts</h1>
+                <p>Review your unread alerts, milestone updates, and system messages in one place.</p>
+              </div>
+              <NotificationPanel isOpen onClose={() => navigate("/dashboard")} />
+            </section>
+          ) : showInsightsPage ? (
+            <section className="dashboard-page">
+              <div className="dashboard-page-header">
+                <h1>Insights & Analytics</h1>
+                <p>Track score evolution, behavioral trends, forecast accuracy, and team-level analytics.</p>
+              </div>
+              <div className="dashboard-grid">
+                <div className="dashboard-grid-item">
+                  <Suspense fallback={<LazyComponentFallback />}>
+                    <ErrorBoundary>
+                      <AnalyticsDashboard result={result} />
+                    </ErrorBoundary>
+                  </Suspense>
+                </div>
+                <div className="dashboard-grid-item">
+                  <Suspense fallback={<LazyComponentFallback />}>
+                    <ErrorBoundary>
+                      <PredictionEngineDashboard userId={effectiveUserId} />
+                    </ErrorBoundary>
+                  </Suspense>
+                </div>
+                <div className="dashboard-grid-item">
+                  <Suspense fallback={<LazyComponentFallback />}>
+                    <ErrorBoundary>
+                      <DigitalTwinDashboard twin={digitalTwin} assessment={result} />
+                    </ErrorBoundary>
+                  </Suspense>
+                </div>
+                <div className="dashboard-grid-item">
+                  <Suspense fallback={<LazyComponentFallback />}>
+                    <ErrorBoundary>
+                      <UserHistory
+                        className="summary-span"
+                        currentScore={result.healthScore}
+                        personalityType={result.personalityType}
+                      />
+                    </ErrorBoundary>
+                  </Suspense>
+                </div>
+              </div>
+            </section>
+          ) : showPlanPage ? (
+            <section className="dashboard-page">
+              <div className="dashboard-page-header">
+                <h1>Plan & Execution</h1>
+                <p>Turn insights into action with coaching, decision simulation, and prioritized tasks.</p>
+              </div>
+              <div className="dashboard-grid">
+                <div className="dashboard-grid-item">
+                  <Suspense fallback={<LazyComponentFallback />}>
+                    <ErrorBoundary>
+                      <AiCoachInterface userId={effectiveUserId} />
+                    </ErrorBoundary>
+                  </Suspense>
+                </div>
+                <div className="dashboard-grid-item">
+                  <section className="summary-card">
+                    <h2>Decision Simulator</h2>
+                    <DecisionSimulator assessment={assessment} result={result} />
+                  </section>
+                </div>
+                <div className="dashboard-grid-item">
+                  <ActionScreen
+                    result={result}
+                    assessment={assessment}
+                    onAssessmentUpdate={updates => updateGroup("behaviour", null, updates)}
+                  />
+                </div>
+                <div className="dashboard-grid-item">
+                  <SingleRecommendedAction result={result} assessment={assessment} />
+                </div>
+              </div>
+            </section>
+          ) : showAccountsPage ? (
+            <section className="dashboard-page">
+              <div className="dashboard-page-header">
+                <h1>Accounts & Data</h1>
+                <p>Connect banking feeds, inspect account health, and keep your money profile up to date.</p>
+              </div>
+              <Suspense fallback={<LazyComponentFallback />}>
+                <ErrorBoundary>
+                  <BankingIntegrationDashboard userId={effectiveUserId} />
+                </ErrorBoundary>
+              </Suspense>
+            </section>
+          ) : showSettingsPage ? (
+            <section className="dashboard-page">
+              <div className="dashboard-page-header">
+                <h1>Settings & Billing</h1>
+                <p>Manage your subscription, partner integrations, and account preferences.</p>
+              </div>
+              <div className="dashboard-grid">
+                <div className="dashboard-grid-item">
+                  <SubscriptionManagement userId={currentUserId} />
+                </div>
+                <div className="dashboard-grid-item">
+                  <Suspense fallback={<LazyComponentFallback />}>
+                    <ErrorBoundary>
+                      <B2BPartnerPortal userId={effectiveUserId} assessment={assessment} />
+                    </ErrorBoundary>
+                  </Suspense>
+                </div>
+              </div>
+            </section>
+          ) : showHistoryPage ? (
+            <section className="dashboard-page">
+              <div className="dashboard-page-header">
+                <h1>History & Timeline</h1>
+                <p>Review your score evolution, memory timeline, and decision history in one place.</p>
+              </div>
+              <div className="dashboard-grid">
+                <div className="dashboard-grid-item">
+                  <Suspense fallback={<LazyComponentFallback />}>
+                    <ErrorBoundary>
+                      <UserHistory
+                        className="summary-span"
+                        currentScore={result.healthScore}
+                        personalityType={result.personalityType}
+                      />
+                    </ErrorBoundary>
+                  </Suspense>
+                </div>
+                <div className="dashboard-grid-item">
+                  <CollapsiblePanel
+                    className="summary-card premium-report-block"
+                    headerClassName="premium-report-block-header"
+                    titleClassName="premium-report-block-title"
+                    subtitleClassName="premium-report-block-subtitle"
+                    title="Decisions"
+                    subtitle="Track your choices, review recent outcomes, and keep decision-making aligned to your financial goals."
+                    icon={<Target size={20} />}
+                  >
+                    <div className="premium-report-block-header">
+                      <h2 className="premium-report-block-title">Decisions</h2>
+                      <p className="premium-report-block-subtitle">
+                        Track your choices, review recent outcomes, and keep decision-making aligned to your financial goals.
+                      </p>
+                    </div>
+                    <div className="decision-section-grid">
+                      <DecisionHistory userId={effectiveUserId} refreshSignal={decisionsRefresh} />
+                      <RecordDecision
+                        userId={effectiveUserId}
+                        onSaved={() => {
+                          setDecisionsRefresh(c => c + 1);
+                        }}
+                      />
+                    </div>
+                  </CollapsiblePanel>
+                </div>
+                <div className="dashboard-grid-item">
+                  <Suspense fallback={<LazyComponentFallback />}>
+                    <ErrorBoundary>
+                      <LongitudinalLearningDashboard userId={effectiveUserId} />
+                    </ErrorBoundary>
+                  </Suspense>
+                </div>
+              </div>
+            </section>
+          ) : showDashboardHome ? (
+            <section className="dashboard-page">
+              <div className="dashboard-page-header">
+                <h1>Dashboard</h1>
+                <p>Your ARTH.OS home base for insights, plans, accounts, and score history.</p>
+              </div>
+              <div className="dashboard-grid">
+                <div className="dashboard-grid-item">
+                  <Suspense fallback={<LazyComponentFallback />}>
+                    <ErrorBoundary>
+                      <AnalyticsDashboard result={result} />
+                    </ErrorBoundary>
+                  </Suspense>
+                </div>
+                <div className="dashboard-grid-item">
+                  <Suspense fallback={<LazyComponentFallback />}>
+                    <ErrorBoundary>
+                      <PredictionEngineDashboard userId={effectiveUserId} />
+                    </ErrorBoundary>
+                  </Suspense>
+                </div>
+                <div className="dashboard-grid-item">
+                  <Suspense fallback={<LazyComponentFallback />}>
+                    <ErrorBoundary>
+                      <DigitalTwinDashboard twin={digitalTwin} assessment={result} />
+                    </ErrorBoundary>
+                  </Suspense>
+                </div>
+                <div className="dashboard-grid-item">
+                  <Suspense fallback={<LazyComponentFallback />}>
+                    <ErrorBoundary>
+                      <UserHistory
+                        className="summary-span"
+                        currentScore={result.healthScore}
+                        personalityType={result.personalityType}
+                      />
+                    </ErrorBoundary>
+                  </Suspense>
+                </div>
+              </div>
+            </section>
+          ) : (
+            <section className="dashboard-page">
+              <div className="dashboard-page-header">
+                <h1>Dashboard</h1>
+                <p>Explore your core OS modules from the navigation above.</p>
+              </div>
+            </section>
+          )
         ) : (
           <>
             {showHeroSection && (

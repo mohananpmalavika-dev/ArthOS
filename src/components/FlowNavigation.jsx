@@ -119,7 +119,8 @@ export default function FlowNavigation({ activeHash, onNavigate, devMode, onTogg
     }
 
     if (hash.startsWith("#")) {
-      navigate(`${currentPath}${hash}`);
+      const basePath = currentPath.startsWith("/dashboard") ? "/dashboard" : currentPath;
+      navigate(`${basePath}${hash}`);
     }
   };
 

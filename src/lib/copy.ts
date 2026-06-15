@@ -168,17 +168,14 @@ interface CommonActions {
 // ── Navigation ──
 
 export const NAV_ITEMS: NavItem[] = [
-  { label: "Assess", href: "#assessment" },
-  { label: "Big Reveal", href: "/big-reveal" },
-  { label: "Home", href: "/dashboard" },
-  { label: "Reality", href: "/reality" },
-  { label: "Why", href: "/why" },
-  { label: "Future", href: "/future" },
-  { label: "Future You", href: "/future-you" },
-  { label: "Action", href: "/action" },
-  { label: "Coach", href: "#coach" },
-  { label: "Partners", href: "#b2b" },
-  { label: "Advanced Insights", href: "#advanced" }
+  { label: "Dashboard", href: "/dashboard" },
+  { label: "Insights", href: "/dashboard/insights" },
+  { label: "Plan", href: "/dashboard/plan" },
+  { label: "Accounts", href: "/dashboard/accounts" },
+  { label: "History", href: "/dashboard/history" },
+  { label: "Notifications", href: "/dashboard/notifications" },
+  { label: "Settings", href: "/dashboard/settings" },
+  { label: "Advanced", href: "/advanced" }
 ];
 
 // ── Human-Friendly Feature Labels ──
