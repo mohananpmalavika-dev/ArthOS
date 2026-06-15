@@ -1062,7 +1062,7 @@ export default function AssessmentSection({
               <QuestionSection
                 icon={Brain}
                 title="Psychology"
-                score={`${result.behaviourScore}/${ui.componentMaximums.behaviour}`}
+                score={`${result?.behaviourScore ?? 0}/${ui?.componentMaximums?.behaviour ?? 40}`}
                 questions={adaptation.behaviour.visible}
                 values={assessment.behaviour}
                 onChange={(key, value) => handleFieldChange("behaviour", key, value)}
@@ -1090,7 +1090,7 @@ export default function AssessmentSection({
               <QuestionSection
                 icon={BarChart3}
                 title="Clarity"
-                score={`${result.awarenessScore}/${ui.componentMaximums.awareness}`}
+                score={`${result?.awarenessScore ?? 0}/${ui?.componentMaximums?.awareness ?? 30}`}
                 questions={adaptation.awareness.visible}
                 values={assessment.awareness}
                 onChange={(key, value) => handleFieldChange("awareness", key, value)}
@@ -1112,7 +1112,7 @@ export default function AssessmentSection({
           {!showFeedback && currentStep === 2 && !celebration?.visible && (
             <ProfileSection
               values={assessment.profile}
-              score={`${result.stabilityScore}/${ui.componentMaximums.stability}`}
+              score={`${result?.stabilityScore ?? 0}/${ui?.componentMaximums?.stability ?? 30}`}
               onChange={(key, value) => handleFieldChange("profile", key, value)}
             />
           )}
