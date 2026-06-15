@@ -11,6 +11,7 @@ export default function LoginPage({ onSwitchToRegister, onClose }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
   const [oauthError, setOauthError] = useState(null);
 
   useEffect(() => {
@@ -19,8 +20,12 @@ export default function LoginPage({ onSwitchToRegister, onClose }) {
     const oauthErrorParam = params.get('oauthError');
 
     if (oauthErrorParam) {
-      setOauthError(decodeURIComponent(oauthErrorParam));
-      clearError();
+      const t = setTimeout(() => {
+        setOauthError(decodeURIComponent(oauthErrorParam));
+        clearError();
+      }, 0);
+      // ensure we clear on unmount
+      return () => clearTimeout(t);
     }
 
     if (!token) return;
@@ -150,7 +155,7 @@ export default function LoginPage({ onSwitchToRegister, onClose }) {
 
         <div className="auth-footer">
           <p>
-            Don't have an account?{" "}
+            Don&apos;t have an account?{" "}
             <button type="button" className="auth-link-btn" onClick={onSwitchToRegister}>
               Create one
             </button>
