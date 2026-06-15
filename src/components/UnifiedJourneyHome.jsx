@@ -343,7 +343,7 @@ export default function UnifiedJourneyHome({ result, assessment, onCoachOpen }) 
 
         <div className="digital-twin-grid">
           <FutureYou data={futureYouData} />
-          <FinancialWeatherCard healthScore={result?.healthScore ?? 0} />
+          <FinancialWeatherCard weatherIndex={result?.weatherIndex} healthScore={result?.healthScore ?? 0} />
         </div>
       </div>
 

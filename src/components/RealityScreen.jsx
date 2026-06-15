@@ -68,7 +68,7 @@ export default function RealityScreen({ result, assessment }) {
       </div>
 
       <div style={{ display: "grid", gap: "20px", gridTemplateColumns: "repeat(3, minmax(0, 1fr))" }}>
-        <FinancialWeatherCard healthScore={healthScoreValue} />
+        <FinancialWeatherCard weatherIndex={result?.weatherIndex} healthScore={healthScoreValue} />
         <JourneyLevelCard healthScore={healthScoreValue} />
         <ScoreTrendStrip currentScore={healthScoreValue} />
       </div>

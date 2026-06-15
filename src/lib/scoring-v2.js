@@ -164,11 +164,28 @@ function derivePeerCohortComparison(profile = {}, result = {}) {
   };
 }
 
-function calculateWeatherIndex(healthScore = 0, incomeVolatilityIndex = 0, awarenessIntegrityScore = 0, consistencyScore = 0) {
-  const healthNormalized = normalizeScore(healthScore);
+function normalizeSurvivalMonths(months = 0) {
+  return Math.round(clamp((months / 24) * 100, 0, 100));
+}
+
+function calculateWeatherIndex(
+  stabilityScore = 0,
+  riskAdjustedSurvivalMonthsRaw = 0,
+  trendScore = 0,
+  incomeVolatilityIndex = 0,
+  futureRiskScore = 0
+) {
+  const stabilityNormalized = clamp((stabilityScore / componentMaximumsV2.stability) * 100, 0, 100);
+  const survivalNormalized = normalizeSurvivalMonths(riskAdjustedSurvivalMonthsRaw);
+  const volatilityNormalized = clamp(100 - incomeVolatilityIndex, 0, 100);
+
   return Math.round(
     clamp(
-      healthNormalized * 0.35 + (100 - incomeVolatilityIndex) * 0.2 + awarenessIntegrityScore * 0.25 + consistencyScore * 0.2,
+      stabilityNormalized * 0.35 +
+        survivalNormalized * 0.25 +
+        clamp(trendScore, 0, 100) * 0.2 +
+        volatilityNormalized * 0.1 +
+        clamp(futureRiskScore, 0, 100) * 0.1,
       0,
       100
     )
@@ -1431,10 +1448,11 @@ export function calculateFinancialHealthV2(assessment) {
     futureRiskScore: futureRisk.score
   });
   const weatherIndex = calculateWeatherIndex(
-    normalizeScore(healthScore),
+    stability.score,
+    riskAdjustedSurvivalMonthsRaw,
+    strategyConsistencyScore,
     incomeVolatilityIndex,
-    awarenessIntegrityScore,
-    strategyConsistencyScore
+    futureRisk.score
   );
   const decisionQuality = calculateDecisionQualityIndex({
     awarenessScore,

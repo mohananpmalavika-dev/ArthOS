@@ -4,27 +4,27 @@ import { normalizeScore } from "../lib/scoring-v2";
 
 const WEATHER_TIERS = [
   {
-    threshold: 800,
+    threshold: 80,
     label: "Sovereign",
     detail: "Calm markets and strong financial footing.",
     color: "var(--green-700)"
   },
   {
-    threshold: 650,
+    threshold: 65,
     label: "Clear",
     detail: "Healthy momentum with room to grow.",
     color: "var(--blue-700)"
   },
   {
-    threshold: 500,
+    threshold: 50,
     label: "Watchful",
     detail: "Stable, but worth keeping an eye on risk.",
     color: "var(--amber-700)"
   },
   {
-    threshold: 350,
-    label: "Vulnerable",
-    detail: "Stress is growing. Strengthen your runway.",
+    threshold: 35,
+    label: "Recovery",
+    detail: "Recovering momentum after recent stress.",
     color: "var(--orange-700)"
   },
   {
@@ -35,11 +35,12 @@ const WEATHER_TIERS = [
   }
 ];
 
-export default function FinancialWeatherCard({ healthScore = 0 }) {
-  const rawScore = Math.max(0, Math.min(1000, healthScore));
-  const normalizedScore = normalizeScore(rawScore);
+export default function FinancialWeatherCard({ weatherIndex, healthScore = 0 }) {
+  const rawScore = typeof weatherIndex === "number"
+    ? Math.max(0, Math.min(100, weatherIndex))
+    : normalizeScore(healthScore);
   const tier =
-    WEATHER_TIERS.find(item => rawScore > item.threshold) ||
+    WEATHER_TIERS.find(item => rawScore >= item.threshold) ||
     WEATHER_TIERS[WEATHER_TIERS.length - 1];
 
   return (
@@ -97,5 +98,6 @@ export default function FinancialWeatherCard({ healthScore = 0 }) {
 }
 
 FinancialWeatherCard.propTypes = {
+  weatherIndex: PropTypes.number,
   healthScore: PropTypes.number
 };
