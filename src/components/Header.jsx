@@ -11,7 +11,7 @@ import {
   ChevronDown,
   LineChart
 } from "lucide-react";
-import { NAV_ITEMS } from "../lib/copy.ts";
+import { OS_SHELL_ROUTES } from "../lib/routeMap.js";
 
 function Header({
   activeHash = "#",
@@ -38,16 +38,14 @@ function Header({
       </Link>
 
       <nav className="nav-links" aria-label="Primary navigation">
-        {NAV_ITEMS.map(item => {
-          const isHashLink = item.href.startsWith("#");
-          const active = isHashLink
-            ? activeHash === item.href
-            : currentPath === item.href;
+        {OS_SHELL_ROUTES.map(item => {
+          const isHashLink = item.path?.startsWith("#");
+          const active = isHashLink ? activeHash === item.path : currentPath === item.path;
 
           return isHashLink ? (
             <a
-              href={item.href}
-              key={item.label}
+              href={item.path}
+              key={item.id}
               className={active ? "active" : ""}
               aria-current={active ? "page" : undefined}
             >
@@ -55,9 +53,9 @@ function Header({
             </a>
           ) : (
             <NavLink
-              key={item.label}
-              to={item.href}
-              end={item.href === "/dashboard"}
+              key={item.id}
+              to={item.path}
+              end={item.path === "/dashboard"}
               className={({ isActive }) => (isActive ? "active" : "")}
             >
               {item.label}

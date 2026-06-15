@@ -15,6 +15,7 @@ import PageShell from "./components/PageShell.jsx";
 import AdvancedArea from "./pages/AdvancedArea.jsx";
 import ErrorBoundary from "./components/ErrorBoundary.jsx";
 import { useAuth } from "./context/AuthContext.jsx";
+import { OS_SHELL_ROUTES } from "./lib/routeMap.js";
 
 /**
  * AppRouter
@@ -27,6 +28,10 @@ import { useAuth } from "./context/AuthContext.jsx";
 function AppRouter() {
   const { isAuthenticated, loading } = useAuth();
   const demoMode = typeof window !== "undefined" && window.location.pathname.startsWith("/demo");
+  const dashboardRoute = OS_SHELL_ROUTES.find(route => route.id === "dashboard");
+  const advancedRoute = OS_SHELL_ROUTES.find(route => route.id === "advanced");
+  const futureYouRoute = OS_SHELL_ROUTES.find(route => route.id === "future-you");
+  const dashboardBasePath = dashboardRoute?.path || "/dashboard";
 
   // Show nothing while checking authentication status
   if (loading) {
@@ -112,7 +117,7 @@ function AppRouter() {
             }
           />
           <Route
-            path="/future-you"
+            path={futureYouRoute?.path || "/future-you"}
             element={
               isAuthenticated ? (
                 <PageShell>
@@ -137,10 +142,17 @@ function AppRouter() {
           />
 
           {/* Advanced area (not on the primary nav) */}
-          <Route
-            path="/advanced"
-            element={isAuthenticated ? <AdvancedArea /> : <Navigate to="/login" replace />}
-          />
+          {advancedRoute ? (
+            <Route
+              path={advancedRoute.path}
+              element={isAuthenticated ? <AdvancedArea /> : <Navigate to="/login" replace />}
+            />
+          ) : (
+            <Route
+              path="/advanced"
+              element={isAuthenticated ? <AdvancedArea /> : <Navigate to="/login" replace />}
+            />
+          )}
 
           {/* Root: send authenticated users to the OS dashboard by default.
               First-time users are still redirected to onboarding from inside App.jsx. */}
@@ -148,13 +160,13 @@ function AppRouter() {
             path="/"
             element={
               isAuthenticated ? (
-                <Navigate to="/dashboard" replace />
+                <Navigate to={dashboardBasePath} replace />
               ) : (
                 <Navigate to="/login" replace />
               )
             }
           />
-          <Route path="/home" element={<Navigate to="/dashboard" replace />} />
+          <Route path="/home" element={<Navigate to={dashboardBasePath} replace />} />
           <Route
             path="/dashboard/*"
             element={

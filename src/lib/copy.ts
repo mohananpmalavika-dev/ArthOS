@@ -170,6 +170,11 @@ interface CommonActions {
 export const NAV_ITEMS: NavItem[] = [
   { label: "Dashboard", href: "/dashboard" },
   { label: "Insights", href: "/dashboard/insights" },
+  { label: "Forecast", href: "/dashboard/forecast" },
+  { label: "Peer cohorts", href: "/dashboard/cohorts" },
+  { label: "Decision quality", href: "/dashboard/decisions" },
+  { label: "Learning", href: "/dashboard/learning" },
+  { label: "Digital Twin", href: "/dashboard/twin" },
   { label: "Future You", href: "/future-you" },
   { label: "Plan", href: "/dashboard/plan" },
   { label: "Accounts", href: "/dashboard/accounts" },

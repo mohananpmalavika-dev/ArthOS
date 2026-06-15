@@ -205,7 +205,6 @@ import {
   v2DefaultAssessment
 } from "./data/questionnaire-v2.js";
 import {
-  NAV_ITEMS,
   HERO_STATS,
   HERO_ACTIONS,
   ASSESSMENT_BANNER,
@@ -389,6 +388,11 @@ export default function App({ demoMode = false }) {
   const isDashboardRoute = pathname.startsWith("/dashboard");
   const showDashboardHome = dashboardSection === "home";
   const showInsightsPage = dashboardSection === "insights";
+  const showForecastPage = dashboardSection === "forecast";
+  const showCohortsPage = dashboardSection === "cohorts";
+  const showDecisionQualityPage = dashboardSection === "decisions";
+  const showLearningPage = dashboardSection === "learning";
+  const showTwinPage = dashboardSection === "twin";
   const showPlanPage = dashboardSection === "plan";
   const showAccountsPage = dashboardSection === "accounts";
   const showSettingsPage = dashboardSection === "settings";
@@ -1405,6 +1409,135 @@ export default function App({ demoMode = false }) {
                         className="summary-span"
                         currentScore={result.healthScore}
                         personalityType={result.personalityType}
+                      />
+                    </ErrorBoundary>
+                  </Suspense>
+                </div>
+              </div>
+            </section>
+          ) : showForecastPage ? (
+            <section className="dashboard-page">
+              <div className="dashboard-page-header">
+                <h1>Weather & Scenario Forecasting</h1>
+                <p>Explore runway risk, macro weather, and outcome scenarios for the next 30–180 days.</p>
+              </div>
+              <div className="dashboard-grid">
+                <div className="dashboard-grid-item">
+                  <Suspense fallback={<LazyComponentFallback />}>
+                    <ErrorBoundary>
+                      <ScenarioForecast profile={assessment.profile} assessmentResult={result} />
+                    </ErrorBoundary>
+                  </Suspense>
+                </div>
+                <div className="dashboard-grid-item">
+                  <Suspense fallback={<LazyComponentFallback />}>
+                    <ErrorBoundary>
+                      <PredictionEngineDashboard userId={effectiveUserId} />
+                    </ErrorBoundary>
+                  </Suspense>
+                </div>
+              </div>
+            </section>
+          ) : showCohortsPage ? (
+            <section className="dashboard-page">
+              <div className="dashboard-page-header">
+                <h1>Peer Cohorts</h1>
+                <p>Compare your performance with cohort retention, assessment completion, and engagement patterns.</p>
+              </div>
+              <div className="dashboard-grid">
+                <div className="dashboard-grid-item">
+                  <Suspense fallback={<LazyComponentFallback />}>
+                    <ErrorBoundary>
+                      <RetentionDashboard result={result} />
+                    </ErrorBoundary>
+                  </Suspense>
+                </div>
+                <div className="dashboard-grid-item">
+                  <section className="summary-card">
+                    <h2>Peer Comparison</h2>
+                    <PeerComparisonCard userScore={normalizeScore(result)} />
+                  </section>
+                </div>
+              </div>
+            </section>
+          ) : showDecisionQualityPage ? (
+            <section className="dashboard-page">
+              <div className="dashboard-page-header">
+                <h1>Decision Quality</h1>
+                <p>Review decision history, outcome patterns, and simulation-backed improvement levers.</p>
+              </div>
+              <div className="dashboard-grid">
+                <div className="dashboard-grid-item">
+                  <CollapsiblePanel
+                    className="summary-card premium-report-block"
+                    headerClassName="premium-report-section-header"
+                    titleClassName="premium-report-section-title"
+                    title="Decision History"
+                    subtitle="Track your recent decisions and the outcomes they produced."
+                  >
+                    <DecisionHistory userId={effectiveUserId} refreshSignal={decisionsRefresh} />
+                  </CollapsiblePanel>
+                </div>
+                <div className="dashboard-grid-item">
+                  <Suspense fallback={<LazyComponentFallback />}>
+                    <ErrorBoundary>
+                      <DecisionSimulator assessment={assessment} result={result} />
+                    </ErrorBoundary>
+                  </Suspense>
+                </div>
+                <div className="dashboard-grid-item">
+                  <ActionScreen
+                    result={result}
+                    assessment={assessment}
+                    onAssessmentUpdate={updates => updateGroup("behaviour", null, updates)}
+                  />
+                </div>
+              </div>
+            </section>
+          ) : showLearningPage ? (
+            <section className="dashboard-page">
+              <div className="dashboard-page-header">
+                <h1>Longitudinal Learning</h1>
+                <p>Track how your past decisions and habits evolve into stronger financial behaviors over time.</p>
+              </div>
+              <div className="dashboard-grid">
+                <div className="dashboard-grid-item">
+                  <Suspense fallback={<LazyComponentFallback />}>
+                    <ErrorBoundary>
+                      <LongitudinalLearningDashboard userId={effectiveUserId} />
+                    </ErrorBoundary>
+                  </Suspense>
+                </div>
+                <div className="dashboard-grid-item">
+                  <section className="summary-card">
+                    <h2>Weekly Mission</h2>
+                    <WeeklyMissionCard result={result} assessment={assessment} />
+                  </section>
+                </div>
+              </div>
+            </section>
+          ) : showTwinPage ? (
+            <section className="dashboard-page">
+              <div className="dashboard-page-header">
+                <h1>Digital Twin</h1>
+                <p>Use your financial twin to simulate life events, cashflow stress, and future states.</p>
+              </div>
+              <div className="dashboard-grid">
+                <div className="dashboard-grid-item">
+                  <Suspense fallback={<LazyComponentFallback />}>
+                    <ErrorBoundary>
+                      <DigitalTwinDashboard twin={digitalTwin} assessment={result} />
+                    </ErrorBoundary>
+                  </Suspense>
+                </div>
+                <div className="dashboard-grid-item">
+                  <Suspense fallback={<LazyComponentFallback />}>
+                    <ErrorBoundary>
+                      <FinancialTwin
+                        personalityType={result.personalityType}
+                        behaviourScore={result.behaviourScore}
+                        awarenessScore={result.awarenessScore}
+                        scenarios={twinScenarios}
                       />
                     </ErrorBoundary>
                   </Suspense>

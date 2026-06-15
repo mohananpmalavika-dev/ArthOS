@@ -1,126 +1,52 @@
 import React, { useMemo, useState } from "react";
 import PropTypes from "prop-types";
 import { useLocation, useNavigate } from "react-router-dom";
-import {
-  Home,
-  ClipboardList,
-  Brain,
-  Target,
-  Users,
-  GitBranch,
-  LineChart,
-  ShieldCheck,
-  MessageCircle,
-  Sparkles
-} from "lucide-react";
+import { Sparkles } from "lucide-react";
+import { OS_SHELL_ROUTES, STORY_NAV_ITEMS, DEV_NAV_ITEMS } from "../lib/routeMap.js";
 
 export default function FlowNavigation({ activeHash, onNavigate, devMode, onToggleDev }) {
   const navigate = useNavigate();
   const location = useLocation();
   const [showDeveloperMenu, setShowDeveloperMenu] = useState(false);
 
-  const coreNarrative = useMemo(
-    () => [
-      {
-        id: "assess",
-        hash: "#assessment",
-        label: "Assessment",
-        icon: ClipboardList,
-        description: "Financial Health Quiz"
-      },
-      {
-        id: "big-reveal",
-        hash: "/big-reveal",
-        label: "Big Reveal",
-        icon: Sparkles,
-        description: "Cinematic score reveal"
-      },
-      { id: "home", hash: "#", label: "Home", icon: Home, description: "Story home" },
-      { id: "reality", hash: "#reality", label: "Reality", icon: Home, description: "Where am I?" },
-      { id: "mind", hash: "#mind", label: "Why", icon: Brain, description: "Why am I here?" },
-      {
-        id: "future",
-        hash: "#future",
-        label: "Future",
-        icon: Target,
-        description: "What happens next?"
-      },
-      {
-        id: "future-you",
-        hash: "/future-you",
-        label: "Future You",
-        icon: Target,
-        description: "Future You preview"
-      },
-      {
-        id: "action",
-        hash: "#action",
-        label: "Actions",
-        icon: GitBranch,
-        description: "What should I do?"
-      },
-      {
-        id: "coach",
-        hash: "#coach",
-        label: "Coach",
-        icon: MessageCircle,
-        description: "Help me execute"
-      }
-    ],
-    []
-  );
-
-  const developerMenu = useMemo(
-    () => [
-      { id: "b2b", hash: "#b2b", label: "Partners", icon: Users, description: "B2B Portal" },
-      {
-        id: "developer-intelligence",
-        hash: "#intelligence",
-        aliases: ["#predictions"],
-        label: "Advanced Intelligence",
-        icon: LineChart,
-        description: "Understand your financial engines"
-      },
-      {
-        id: "admin",
-        hash: "#admin",
-        label: "Admin",
-        icon: ShieldCheck,
-        description: "Operations Console"
-      }
-    ],
-    []
-  );
-
   const currentHash = activeHash || "#";
   const currentPath = location?.pathname || "";
-  const allItems = [...coreNarrative, ...developerMenu];
-  const isActive = hash => {
-    const item = allItems.find(navItem => navItem.hash === hash);
-    if (hash && hash.startsWith("/")) {
-      return currentPath === hash;
+  const isOSContext = OS_SHELL_ROUTES.some(route => route.path === currentPath);
+  const coreNarrative = useMemo(
+    () => (isOSContext ? OS_SHELL_ROUTES : STORY_NAV_ITEMS),
+    [isOSContext]
+  );
+  const developerMenu = useMemo(() => DEV_NAV_ITEMS, []);
+
+  const isActive = item => {
+    if (item.path) {
+      return currentPath === item.path;
     }
-    return currentHash === hash || (item?.aliases && item.aliases.includes(currentHash));
+    if (item.hash) {
+      return currentHash === item.hash || (item.aliases && item.aliases.includes(currentHash));
+    }
+    return false;
   };
 
-  const handleNavClick = hash => {
+  const handleNavClick = item => {
+    const target = item.path || item.hash;
     if (onNavigate) {
-      onNavigate(hash);
+      onNavigate(target);
       return;
     }
 
-    if (!hash) {
+    if (!target) {
       return;
     }
 
-    if (hash.startsWith("/")) {
-      navigate(hash);
+    if (target.startsWith("/")) {
+      navigate(target);
       return;
     }
 
-    if (hash.startsWith("#")) {
+    if (target.startsWith("#")) {
       const basePath = currentPath.startsWith("/dashboard") ? "/dashboard" : currentPath;
-      navigate(`${basePath}${hash}`);
+      navigate(`${basePath}${target}`);
     }
   };
 
@@ -129,28 +55,27 @@ export default function FlowNavigation({ activeHash, onNavigate, devMode, onTogg
       <nav className="app-nav-tabs" aria-label="Financial Cognition Journey">
         {coreNarrative.map(item => {
           const Icon = item.icon;
-          const active = isActive(item.hash);
+          const active = isActive(item);
 
           return (
             <button
               key={item.id}
-              className={`app-nav-tab ${item.hash === "#assessment" ? "primary" : ""} ${active ? "active" : ""}`}
-              onClick={() => handleNavClick(item.hash)}
+              className={`app-nav-tab ${item.id === "assessment" ? "primary" : ""} ${active ? "active" : ""}`}
+              onClick={() => handleNavClick(item)}
               title={item.description}
               aria-current={active ? "page" : undefined}
             >
-              <Icon size={16} aria-hidden="true" />
+              {Icon && <Icon size={16} aria-hidden="true" />}
               <span className="app-nav-tab-label">{item.label}</span>
               <small>{item.description}</small>
             </button>
           );
         })}
 
-        {/* Developer Menu Toggle */}
         <button
           className={`app-nav-tab app-nav-dev-toggle ${devMode ? "dev-active" : ""}`}
           onClick={() => {
-            setShowDeveloperMenu(!showDeveloperMenu);
+            setShowDeveloperMenu(prev => !prev);
             if (onToggleDev) {
               onToggleDev();
             }
@@ -164,7 +89,6 @@ export default function FlowNavigation({ activeHash, onNavigate, devMode, onTogg
         </button>
       </nav>
 
-      {/* Developer Menu Dropdown */}
       {showDeveloperMenu && (
         <nav className="app-nav-developer-menu" aria-label="Developer Tools">
           <div className="dev-menu-header">
@@ -173,19 +97,19 @@ export default function FlowNavigation({ activeHash, onNavigate, devMode, onTogg
           <div className="dev-menu-items">
             {developerMenu.map(item => {
               const Icon = item.icon;
-              const active = isActive(item.hash);
+              const active = isActive(item);
 
               return (
                 <button
                   key={item.id}
                   className={`dev-menu-item ${active ? "active" : ""}`}
                   onClick={() => {
-                    handleNavClick(item.hash);
+                    handleNavClick(item);
                     setShowDeveloperMenu(false);
                   }}
                   title={item.description}
                 >
-                  <Icon size={14} />
+                  {Icon && <Icon size={14} />}
                   <span>{item.label}</span>
                   <small>{item.description}</small>
                 </button>

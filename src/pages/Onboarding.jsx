@@ -4,15 +4,15 @@ import { ArrowRight } from "lucide-react";
 import { useAssessmentState } from "../hooks/useAssessmentState.js";
 import {
   calculateFinancialHealthV2,
-  formatCurrency as formatCurrencyV2
+  formatCurrency as formatCurrencyV2,
+  componentMaximumsV2
 } from "../lib/scoring-v2.js";
 import AssessmentSection from "../components/AssessmentSection.jsx";
 import AssessmentBuildingScreen from "../components/AssessmentBuildingScreen.jsx";
 import {
   v2BehaviourQuestions,
   v2AwarenessQuestions,
-  v2HabitsQuestions,
-  componentMaximumsV2
+  v2HabitsQuestions
 } from "../data/questionnaire-v2.js";
 import "./onboarding.css";
 
