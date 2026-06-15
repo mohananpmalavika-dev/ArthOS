@@ -220,8 +220,10 @@ const intelligenceRows = INTELLIGENCE_ROWS.map(row => ({
 }));
 const businessCards = BUSINESS_CARDS;
 
+import { normalizeScore as normalizeResultScore } from "./lib/scoring-v2.js";
+
 function normalizeScore(result) {
-  return Math.max(0, Math.min(100, Math.round((result?.healthScore ?? 0) / 10)));
+  return normalizeResultScore(result?.healthScore ?? 0);
 }
 
 function DemoBanner() {
@@ -1237,6 +1239,7 @@ export default function App({ demoMode = false }) {
         onLogout={logout}
         notificationBadgeCount={notificationBadgeCount}
         onToggleNotification={() => setShowNotificationPanel(prev => !prev)}
+        devMode={devMode}
       />
 
       {!showAuthModal && (
@@ -1342,7 +1345,7 @@ export default function App({ demoMode = false }) {
           />
         ) : (
           <>
-            {showHeroSection && <UnifiedJourneyHome assessment={assessment} result={result} />}
+            {showHeroSection && <UnifiedJourneyHome assessment={assessment} result={result} onCoachOpen={(topic) => handleOpenPanel("#coach", topic)} />}
             {showAssessmentSection && (
               <ErrorBoundary>
                 {tier === "free" && remainingAssessments === 0 && (
@@ -1811,7 +1814,7 @@ export default function App({ demoMode = false }) {
                       />
                     </ErrorBoundary>
                   </Suspense>
-                  <PeerComparisonCard userScore={result.healthScore} />
+                  <PeerComparisonCard userScore={normalizeScore(result)} />
                   <FinancialDNA result={result} />
                   {isAuthenticated ? (
                     <div className="summary-card padded" style={{ marginTop: "18px" }}>
@@ -1853,7 +1856,7 @@ export default function App({ demoMode = false }) {
                       </div>
                     </div>
                   )}
-                  <UpgradeJourney result={result} currentScore={result.healthScore} />
+                  <UpgradeJourney result={result} currentScore={normalizeScore(result)} />
                   {!showSmsForm && !smsEnrichment && (
                     <section className="enrichment-banner">
                       <p className="enrichment-banner-title">{ASSESSMENT_BANNER.title}</p>
@@ -2183,7 +2186,7 @@ function HeroSection({ assessment, result }) {
     return null;
   }
 
-  const scorePreview = Math.max(0, Math.min(100, Math.round((result.healthScore ?? 0) / 10)));
+  const scorePreview = normalizeScore(result);
   const scoreLabel = result.categoryBand?.label;
   const liveInsights = buildLiveInsightCards(result, assessment);
   const metricRows = [

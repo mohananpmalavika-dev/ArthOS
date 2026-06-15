@@ -115,26 +115,27 @@ export default function WhyScreen({ result, assessment, onCoachOpen }) {
                         alignItems: "center",
                         width: "100%",
                         padding: "14px",
-                        background: "var(--white)",
-                        border: "1px solid var(--gray-200)",
-                        cursor: "pointer"
+                        background: "var(--surface-2)",
+                        border: "1px solid var(--border)",
+                        cursor: "pointer",
+                        borderRadius: "12px"
                       }}
                     >
-                      <div style={{ width: 44, height: 44, borderRadius: 10, background: "var(--gray-100)", display: "flex", alignItems: "center", justifyContent: "center", color: factor.type === "bias" ? "var(--red-500)" : factor.type === "trigger" ? "var(--orange-500)" : "var(--purple-500)" }}>
+                      <div style={{ width: 44, height: 44, borderRadius: 10, background: "var(--surface-3)", display: "flex", alignItems: "center", justifyContent: "center", color: factor.type === "bias" ? "var(--red-500)" : factor.type === "trigger" ? "var(--orange-500)" : "var(--purple-500)" }}>
                         <Icon size={18} />
                       </div>
                       <div style={{ textAlign: "left", flex: 1 }}>
                         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                          <strong style={{ fontSize: "1rem" }}>{factor.label}</strong>
-                          <span style={{ fontSize: "0.9rem", color: impactPercent > 70 ? "var(--red-600)" : impactPercent > 40 ? "var(--orange-600)" : "var(--ink-2)", fontWeight: 700 }}>{impactPercent}%</span>
+                          <strong style={{ fontSize: "1rem", color: "var(--ink-0)" }}>{factor.label}</strong>
+                          <span style={{ fontSize: "0.9rem", color: impactPercent > 70 ? "var(--red-500)" : impactPercent > 40 ? "var(--orange-500)" : "var(--ink-2)", fontWeight: 700 }}>{impactPercent}%</span>
                         </div>
                         <div style={{ fontSize: "0.9rem", color: "var(--ink-3)", marginTop: 6 }}>{factor.description}</div>
                       </div>
                     </button>
 
                     {isOpen && (
-                      <div style={{ padding: 16, background: "var(--gray-50)", borderTop: "1px solid var(--gray-100)" }}>
-                        <p style={{ margin: 0, color: "var(--ink-3)", lineHeight: 1.6 }}>{factor.description}</p>
+                      <div style={{ padding: 16, background: "var(--surface-3)", borderTop: "1px solid var(--border)" }}>
+                        <p style={{ margin: 0, color: "var(--ink-2)", lineHeight: 1.6 }}>{factor.description}</p>
                         <div style={{ marginTop: 12, display: "flex", gap: 8 }}>
                           <button
                             className="btn btn-primary"

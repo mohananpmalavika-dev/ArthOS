@@ -89,8 +89,8 @@ export default function DecisionSimulator({ id, profile, behaviour, assessment }
               style={{
                 padding: "var(--space-3)",
                 borderRadius: "var(--radius-2)",
-                border: `2px solid ${path.color}`,
-                backgroundColor: key === "conservative" ? "var(--green-50)" : key === "balanced" ? "var(--blue-50)" : "var(--red-50)",
+                border: `1px solid ${path.color}`,
+                backgroundColor: "var(--surface-2)",
               }}
             >
               <div style={{ display: "flex", alignItems: "center", gap: "var(--space-2)", marginBottom: "var(--space-2)" }}>
@@ -100,7 +100,7 @@ export default function DecisionSimulator({ id, profile, behaviour, assessment }
               <p style={{ color: "var(--ink-2)", fontSize: "var(--type-xs)", marginBottom: "var(--space-2)", margin: 0 }}>
                 {path.description}
               </p>
-              <div style={{ backgroundColor: "rgba(255,255,255,0.5)", padding: "var(--space-2)", borderRadius: "var(--radius-1)" }}>
+              <div style={{ backgroundColor: "var(--surface-2)", padding: "var(--space-2)", borderRadius: "var(--radius-1)", border: "1px solid rgba(255,255,255,0.08)" }}>
                 <div style={{ fontSize: "var(--type-xs)", color: "var(--ink-3)", marginBottom: "var(--space-1)" }}>
                   60-month runway:
                 </div>
@@ -119,7 +119,7 @@ export default function DecisionSimulator({ id, profile, behaviour, assessment }
       </div>
 
       {/* Interactive Simulator Section */}
-      <div style={{ marginTop: "var(--space-5)", paddingTop: "var(--space-4)", borderTop: "2px solid var(--blue-50)" }}>
+      <div style={{ marginTop: "var(--space-5)", paddingTop: "var(--space-4)", borderTop: "2px solid rgba(98, 228, 209, 0.16)" }}>
         <h3 style={{ color: "var(--ink-0)", marginBottom: "var(--space-3)", display: "flex", alignItems: "center", gap: "var(--space-2)" }}>
           <AlertCircle size={16} />
           Test a Decision

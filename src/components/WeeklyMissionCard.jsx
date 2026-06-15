@@ -31,8 +31,9 @@ export default function WeeklyMissionCard({ result, assessment, onAssessmentUpda
     <section
       className="result-card mission-card"
       style={{
-        background: "linear-gradient(135deg, var(--orange-700) 0%, var(--orange-700) 100%)",
+        background: "var(--surface-2)",
         color: "white",
+        border: "1px solid var(--border)",
         borderRadius: "var(--radius-2)",
         overflow: "hidden",
         position: "relative",
@@ -46,7 +47,7 @@ export default function WeeklyMissionCard({ result, assessment, onAssessmentUpda
           left: 0,
           right: 0,
           height: "4px",
-          background: "rgba(255,255,255,0.3)",
+          background: "linear-gradient(90deg, rgba(255, 135, 37, 0.95), rgba(255, 183, 77, 0.95))",
         }}
       />
 
@@ -59,7 +60,7 @@ export default function WeeklyMissionCard({ result, assessment, onAssessmentUpda
                 width: "36px",
                 height: "36px",
                 borderRadius: "50%",
-                background: "rgba(255,255,255,0.2)",
+                background: "rgba(255,255,255,0.12)",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
@@ -96,12 +97,12 @@ export default function WeeklyMissionCard({ result, assessment, onAssessmentUpda
             style={{
               display: "inline-block",
               padding: "var(--space-1) var(--space-2)",
-              background: "rgba(255,255,255,0.15)",
+              background: "var(--surface-3)",
               borderRadius: "var(--radius-1)",
               fontSize: "var(--type-xs)",
               marginBottom: "var(--space-3)",
               color: "white",
-              border: "1px solid rgba(255,255,255,0.3)",
+              border: "1px solid var(--border)",
             }}
           >
             💡 {primaryMission.impact}
@@ -113,11 +114,11 @@ export default function WeeklyMissionCard({ result, assessment, onAssessmentUpda
           <div
             style={{
               padding: "var(--space-2)",
-              backgroundColor: "rgba(255,255,255,0.1)",
-              borderLeft: "2px solid rgba(255,255,255,0.3)",
+              backgroundColor: "var(--surface-3)",
+              borderLeft: "2px solid rgba(255,255,255,0.2)",
               marginBottom: "var(--space-3)",
               fontSize: "var(--type-xs)",
-              opacity: 0.9,
+              opacity: 0.95,
               borderRadius: "2px",
             }}
           >
@@ -133,14 +134,14 @@ export default function WeeklyMissionCard({ result, assessment, onAssessmentUpda
           style={{
             width: "100%",
             padding: "var(--space-2) var(--space-3)",
-            background: completed ? "rgba(255,255,255,0.2)" : "white",
-            color: completed ? "rgba(255,255,255,0.6)" : "var(--orange-700)",
-            border: "none",
+            background: completed ? "rgba(255,255,255,0.06)" : "var(--cyan)",
+            color: completed ? "rgba(255,255,255,0.8)" : "white",
+            border: completed ? "1px solid rgba(255,255,255,0.14)" : "1px solid transparent",
             borderRadius: "var(--radius-1)",
             fontSize: "var(--type-sm)",
             fontWeight: "600",
             cursor: completed ? "default" : "pointer",
-            transition: "all 0.2s ease",
+            transition: "background 0.2s ease, transform 0.2s ease",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
@@ -148,12 +149,12 @@ export default function WeeklyMissionCard({ result, assessment, onAssessmentUpda
           }}
           onMouseEnter={(e) => {
             if (!completed) {
-              e.target.style.background = "rgba(255,255,255,0.9)";
+              e.target.style.background = "rgba(0, 255, 255, 0.95)";
             }
           }}
           onMouseLeave={(e) => {
             if (!completed) {
-              e.target.style.background = "white";
+              e.target.style.background = "var(--cyan)";
             }
           }}
         >

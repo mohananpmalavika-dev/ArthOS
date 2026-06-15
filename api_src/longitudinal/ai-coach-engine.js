@@ -35,8 +35,7 @@ function ensureOpenAIConfigured() {
   }
 }
 
-ensureSupabaseConfigured();
-const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+const supabase = createClient(SUPABASE_URL || '', SUPABASE_SERVICE_ROLE_KEY || '');
 
 let _openai = null;
 function getOpenAI() {

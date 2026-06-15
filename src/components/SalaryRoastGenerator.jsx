@@ -18,6 +18,7 @@ import {
   generateInstagramCaption,
   generateSalaryRoast
 } from "../engines/salaryRoast";
+import { normalizeScore } from "../lib/scoring-v2.js";
 import { roastAnalytics } from "../lib/roastAnalytics.js";
 
 const FEATURED_STAT_LABELS = new Set(["Financial Health Score", "vs National Average"]);
@@ -69,30 +70,41 @@ export function SalaryRoastGenerator({ assessmentResult, profile }) {
   const [exportDone, setExportDone] = useState(false);
   const roastRef = useRef(null);
 
+  const normalizedHealthScore = useMemo(
+    () => normalizeScore(assessmentResult?.healthScore ?? 0),
+    [assessmentResult]
+  );
+
+  const normalizedAssessmentResult = useMemo(
+    () =>
+      assessmentResult ? { ...assessmentResult, healthScore: normalizedHealthScore } : assessmentResult,
+    [assessmentResult, normalizedHealthScore]
+  );
+
   const roast = useMemo(
-    () => (assessmentResult && profile ? generateSalaryRoast(assessmentResult, profile) : null),
-    [assessmentResult, profile]
+    () => (normalizedAssessmentResult && profile ? generateSalaryRoast(normalizedAssessmentResult, profile) : null),
+    [normalizedAssessmentResult, profile]
   );
 
   const comparison = useMemo(
     () =>
-      assessmentResult
-        ? generateComparisonReport(assessmentResult.healthScore, assessmentResult.personalityType)
+      normalizedAssessmentResult
+        ? generateComparisonReport(normalizedAssessmentResult.healthScore, normalizedAssessmentResult.personalityType)
         : null,
-    [assessmentResult]
+    [normalizedAssessmentResult]
   );
 
   const instagramCaption = useMemo(
     () =>
-      assessmentResult && profile
+      normalizedAssessmentResult && profile
         ? generateInstagramCaption(
-            assessmentResult.healthScore,
-            assessmentResult.personalityType,
+            normalizedAssessmentResult.healthScore,
+            normalizedAssessmentResult.personalityType,
             profile.monthlyIncome,
-            assessmentResult.survivalMonthsRaw
+            normalizedAssessmentResult.survivalMonthsRaw
           )
         : "",
-    [assessmentResult, profile]
+    [normalizedAssessmentResult, profile]
   );
 
   const uniqueStats = useMemo(
@@ -235,7 +247,7 @@ export function SalaryRoastGenerator({ assessmentResult, profile }) {
 
           <div className="salary-roast-score-panel">
             <span>Financial Health Score</span>
-            <strong>{Math.round(assessmentResult.healthScore)}</strong>
+            <strong>{Math.round(normalizedHealthScore)}</strong>
             <small>/100</small>
             <div className="salary-roast-score-meta">
               <div>

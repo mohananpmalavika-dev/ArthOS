@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Download, Loader } from "lucide-react";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
+import { normalizeScore } from "../lib/scoring-v2";
 
 export default function ExportPDF({ result, assessmentData }) {
   const [isExporting, setIsExporting] = useState(false);
@@ -27,7 +28,7 @@ export default function ExportPDF({ result, assessmentData }) {
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
       `;
 
-      const healthScorePercentage = Math.round((result.healthScore ?? 0) / 10);
+      const healthScorePercentage = normalizeScore(result.healthScore ?? 0);
       const timestamp = new Date().toLocaleDateString("en-IN", {
         year: "numeric",
         month: "long",

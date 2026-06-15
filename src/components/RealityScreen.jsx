@@ -1,5 +1,6 @@
 import React from "react";
 import ScoreCard from "./ScoreCard.jsx";
+import { normalizeScore } from "../lib/scoring-v2";
 import UserHistory from "./UserHistory.jsx";
 import FinancialWeatherCard from "./FinancialWeatherCard.jsx";
 import JourneyLevelCard from "./JourneyLevelCard.jsx";
@@ -9,7 +10,7 @@ import ContextualCoachPrompt from "./ContextualCoachPrompt.jsx";
 
 export default function RealityScreen({ result, assessment }) {
   const healthScoreValue = result?.healthScore ?? 0;
-  const healthScore = Math.round(healthScoreValue / 10);
+  const healthScore = normalizeScore(healthScoreValue);
   const stateLabel = result?.categoryBand?.label || "Live profile";
   const runway = result?.survivalMonthsDisplay || "0";
   const realitySummary =

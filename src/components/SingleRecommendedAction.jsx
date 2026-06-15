@@ -3,35 +3,19 @@ import PropTypes from "prop-types";
 import { CheckCircle2, AlertCircle, Target } from "lucide-react";
 import CollapsiblePanel from "./CollapsiblePanel.jsx";
 
-/**
- * SingleRecommendedAction — delivers ONE single highest-impact action
- * based on the lowest scoring component and behavioral profile.
- *
- * This component focuses on behavioral receptivity by showing:
- * 1. The single most impactful action (not a laundry list)
- * 2. Measurable impact (e.g., "adds 4 months to runway")
- * 3. Concrete micro-goal (e.g., "spend 30 minutes this week...")
- * 4. Engagement tracking (how many users complete the suggested action)
- */
 function SingleRecommendedAction({ result, assessment }) {
-  if (!result || !assessment) {
-    return null;
-  }
-  if (!result || !assessment) {
-    return null;
-  }
-
   const [engaged, setEngaged] = useState(false);
   const [completed, setCompleted] = useState(false);
 
-  // Determine the single highest-impact action
-  const lowestComponent = result.lowestComponent?.key || "behaviour";
-  const personalityType = result.personalityType || "Optimizer";
+  const hasValidProps = Boolean(result && assessment);
+
+  const lowestComponent = result?.lowestComponent?.key || "behaviour";
+  const personalityType = result?.personalityType || "Optimizer";
 
   const actionMap = {
     behaviour: {
       headline: "Implement a 48-Hour Wait Rule",
-      reason: `Your behaviour score (${result.behaviourScore}/45) is your weakest link. Impulse purchases compound financial stress.`,
+      reason: `Your behaviour score (${result?.behaviourScore ?? 0}/45) is your weakest link. Impulse purchases compound financial stress.`,
       impact: "Could recover 1–3 months of runway annually",
       microGoal:
         "This week: identify your top 3 impulse triggers and create a written wait rule for each.",
@@ -42,13 +26,13 @@ function SingleRecommendedAction({ result, assessment }) {
         Planner: "Use YNAB or Kakeibo to auto-track impulse categories. Weekly review ritual.",
         Dreamer: "Create a visual 'wish list' board—move items there instead of buying on impulse.",
         Optimizer: "A/B test your current wait period vs. 48-hour rule for one month.",
-        "Risk Taker": "Gamify it: save the ₹ you *didn't* spend this week as a 'win fund'."
+        "Risk Taker": "Gamify it: save the ₹ you *didn&apos;t* spend this week as a 'win fund'."
       },
       trackingLabel: "Wait Rule Engagement"
     },
     awareness: {
       headline: "Know Your Monthly Burn Rate",
-      reason: `Your awareness score (${result.awarenessScore}/30) shows you may be flying blind. You can't fix what you don't measure.`,
+      reason: `Your awareness score (${result?.awarenessScore ?? 0}/30) shows you may be flying blind. You can't fix what you don't measure.`,
       impact: "Increased clarity leads to 2–5x faster debt payoff",
       microGoal:
         "Today: list your top 3 monthly expenses. Tomorrow: track one category for 7 days.",
@@ -64,7 +48,7 @@ function SingleRecommendedAction({ result, assessment }) {
     },
     stability: {
       headline: `Build Your Emergency Buffer`,
-      reason: `Your survival runway is ${result.survivalMonthsDisplay} months. That's not enough cushion for life's surprises.`,
+      reason: `Your survival runway is ${result?.survivalMonthsDisplay || "0"} months. It&apos;s not enough cushion for life's surprises.`,
       impact: "Every ₹10,000 saved = 1 month more runway = reduced financial anxiety",
       microGoal: "This month: save just ₹2,000–₹3,000. That's 15–20 minutes of your hourly income.",
       archetype: {
@@ -82,11 +66,13 @@ function SingleRecommendedAction({ result, assessment }) {
 
   const action = actionMap[lowestComponent] || actionMap.behaviour;
   const archetypeGuidance = action.archetype[personalityType] || action.archetype.Optimizer;
-
-  const trackingKey = `arth-os-action-${lowestComponent}-${Date.now()}`;
+  const [trackingKey] = useState(() => `arth-os-action-${lowestComponent}-${Date.now()}`);
 
   useEffect(() => {
-    // Log engagement telemetry (placeholder for future API)
+    if (!hasValidProps) {
+      return;
+    }
+
     if (engaged && !completed) {
       console.log(`[Telemetry] Action Engagement: ${lowestComponent}`);
     }
@@ -97,7 +83,11 @@ function SingleRecommendedAction({ result, assessment }) {
         JSON.stringify({ completed: true, timestamp: new Date().toISOString() })
       );
     }
-  }, [engaged, completed, lowestComponent, trackingKey]);
+  }, [engaged, completed, lowestComponent, trackingKey, hasValidProps]);
+
+  if (!hasValidProps) {
+    return null;
+  }
 
   return (
     <CollapsiblePanel
@@ -136,7 +126,7 @@ function SingleRecommendedAction({ result, assessment }) {
             className={`engagement-btn ${engaged ? "engaged" : ""}`}
             onClick={() => setEngaged(!engaged)}
           >
-            {engaged ? "✓ I'm committed" : "I'll try this"}
+            {engaged ? "✓ I&apos;m committed" : "I&apos;ll try this"}
           </button>
 
           {engaged && (
@@ -162,7 +152,7 @@ function SingleRecommendedAction({ result, assessment }) {
         {completed && (
           <div className="completion-badge">
             <CheckCircle2 size={20} />
-            <span>Great work! You're building financial resilience one action at a time.</span>
+            <span>Great work! You&apos;re building financial resilience one action at a time.</span>
           </div>
         )}
       </div>

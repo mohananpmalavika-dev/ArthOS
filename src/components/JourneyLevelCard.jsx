@@ -27,7 +27,7 @@ export default function JourneyLevelCard({ healthScore = 0 }) {
         <span style={{ color: "var(--ink-3)" }}>Score progress</span>
         <strong style={{ fontSize: "1rem", color: level.color }}>{progress}%</strong>
       </div>
-      <div style={{ width: "100%", height: "10px", background: "var(--gray-100)", borderRadius: 999, overflow: "hidden", marginBottom: "16px" }}>
+      <div style={{ width: "100%", height: "10px", background: "var(--surface-2)", borderRadius: 999, overflow: "hidden", marginBottom: "16px", border: "1px solid var(--border)" }}>
         <div style={{ width: `${progress}%`, height: "100%", background: level.color }} />
       </div>
       <p style={{ margin: 0, color: "var(--ink-3)", lineHeight: 1.6 }}>{level.tone}</p>

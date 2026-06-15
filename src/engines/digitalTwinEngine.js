@@ -86,11 +86,13 @@ class FinancialState {
     nextState.median.runway =
       nextState.median.expenses > 0 ? nextState.median.savings / nextState.median.expenses : 0;
 
-    // Health score evolution (moves toward 50-70 baseline + behavior effect)
+    // Health score evolution (driver-based using runway and behavior)
     const healthBaseline = 55;
-    const healthChange =
-      (healthBaseline - this.median.healthScore) * 0.05 +
-      (nextState.median.runway > 3 ? 1 : nextState.median.runway < 1 ? -2 : 0);
+    const runway = nextState.median.runway;
+    const runwayEffect = runway > 6 ? 1.2 : runway > 3 ? 0.6 : runway > 1 ? 0 : -1.5;
+    const behaviourEffect = (this.behavior.savingsDiscipline - this.behavior.impulseProbability) * 5; // -5..+5
+    const meanReversion = (healthBaseline - this.median.healthScore) * 0.04;
+    const healthChange = meanReversion + runwayEffect + behaviourEffect * 0.5;
     nextState.median.healthScore = Math.max(
       0,
       Math.min(100, this.median.healthScore + healthChange)

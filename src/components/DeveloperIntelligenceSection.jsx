@@ -94,8 +94,8 @@ export default function DeveloperIntelligenceSection({ result, assessment, userI
                   width: "100%",
                   padding: "16px",
                   borderRadius: "12px",
-                  background: "var(--white)",
-                  border: `1px solid var(--gray-200)`,
+                  background: "var(--surface-2)",
+                  border: `1px solid var(--border)`,
                   display: "flex",
                   alignItems: "center",
                   gap: "12px",
@@ -103,11 +103,11 @@ export default function DeveloperIntelligenceSection({ result, assessment, userI
                   transition: "all 0.2s"
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.background = "var(--gray-50)";
+                  e.currentTarget.style.background = "var(--surface-3)";
                   e.currentTarget.style.borderColor = dashboard.color;
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.background = "var(--white)";
+                  e.currentTarget.style.background = "var(--surface-2)";
                   e.currentTarget.style.borderColor = "var(--gray-200)";
                 }}
               >

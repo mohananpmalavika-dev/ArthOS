@@ -4,9 +4,10 @@ import { ScenarioForecast } from "./ScenarioForecast.jsx";
 import TrajectoryHeroVisual from "./TrajectoryHeroVisual.jsx";
 import ContextualCoachPrompt from "./ContextualCoachPrompt.jsx";
 import ScoreCard from "./ScoreCard.jsx";
+import { normalizeScore } from "../lib/scoring-v2";
 
 export default function FutureScreen({ result, assessment }) {
-  const currentScore = result?.healthScore ? Math.round(result.healthScore / 10) : 0;
+  const currentScore = result?.healthScore ? normalizeScore(result.healthScore) : 0;
   const riskLabel = result?.futureRiskLabel || "Emerging risk";
   const runway = result?.survivalMonthsDisplay || "0";
   const heroMessage =

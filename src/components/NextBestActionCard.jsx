@@ -73,20 +73,20 @@ export default function NextBestActionCard({ result, assessment, onExpand }) {
           style={{
             padding: "16px",
             borderRadius: "12px",
-            background: "var(--white)",
-            border: "1px solid var(--blue-200)"
+            background: "var(--surface-2)",
+            border: "1px solid var(--border)"
           }}
         >
           <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "8px" }}>
-            <TrendingUp size={18} style={{ color: "var(--green-600)" }} />
+            <TrendingUp size={18} style={{ color: "var(--emerald)" }} />
             <span style={{ fontSize: "13px", color: "var(--ink-2)", textTransform: "uppercase", fontWeight: 600 }}>
               Impact
             </span>
           </div>
-          <p style={{ margin: 0, fontSize: "1.8rem", fontWeight: 700, color: "var(--green-600)" }}>
+          <p style={{ margin: 0, fontSize: "1.8rem", fontWeight: 700, color: "var(--emerald)" }}>
             +{action.impact}
           </p>
-          <p style={{ margin: "4px 0 0", fontSize: "12px", color: "var(--ink-3)" }}>
+          <p style={{ margin: "4px 0 0", fontSize: "12px", color: "var(--muted)" }}>
             readiness pts
           </p>
         </div>
@@ -96,20 +96,20 @@ export default function NextBestActionCard({ result, assessment, onExpand }) {
           style={{
             padding: "16px",
             borderRadius: "12px",
-            background: "var(--white)",
-            border: "1px solid var(--orange-200)"
+            background: "var(--surface-2)",
+            border: "1px solid var(--border)"
           }}
         >
           <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "8px" }}>
-            <Zap size={18} style={{ color: "var(--orange-600)" }} />
+            <Zap size={18} style={{ color: "#f59e0b" }} />
             <span style={{ fontSize: "13px", color: "var(--ink-2)", textTransform: "uppercase", fontWeight: 600 }}>
               Difficulty
             </span>
           </div>
-          <p style={{ margin: 0, fontSize: "1.2rem", fontWeight: 700, color: "var(--orange-600)" }}>
+          <p style={{ margin: 0, fontSize: "1.2rem", fontWeight: 700, color: "#f59e0b" }}>
             {action.difficulty}
           </p>
-          <p style={{ margin: "4px 0 0", fontSize: "12px", color: "var(--ink-3)" }}>
+          <p style={{ margin: "4px 0 0", fontSize: "12px", color: "var(--muted)" }}>
             achievable level
           </p>
         </div>
@@ -119,20 +119,20 @@ export default function NextBestActionCard({ result, assessment, onExpand }) {
           style={{
             padding: "16px",
             borderRadius: "12px",
-            background: "var(--white)",
-            border: "1px solid var(--purple-200)"
+            background: "var(--surface-2)",
+            border: "1px solid var(--border)"
           }}
         >
           <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "8px" }}>
-            <Clock size={18} style={{ color: "var(--purple-600)" }} />
+            <Clock size={18} style={{ color: "var(--cyan)" }} />
             <span style={{ fontSize: "13px", color: "var(--ink-2)", textTransform: "uppercase", fontWeight: 600 }}>
               Timeline
             </span>
           </div>
-          <p style={{ margin: 0, fontSize: "1.2rem", fontWeight: 700, color: "var(--purple-600)" }}>
+          <p style={{ margin: 0, fontSize: "1.2rem", fontWeight: 700, color: "var(--cyan)" }}>
             {action.timeframe}
           </p>
-          <p style={{ margin: "4px 0 0", fontSize: "12px", color: "var(--ink-3)" }}>
+          <p style={{ margin: "4px 0 0", fontSize: "12px", color: "var(--muted)" }}>
             to completion
           </p>
         </div>
@@ -143,15 +143,15 @@ export default function NextBestActionCard({ result, assessment, onExpand }) {
         style={{
           padding: "16px",
           borderRadius: "12px",
-          background: "var(--white)",
-          border: "1px solid var(--blue-100)",
+          background: "var(--surface-2)",
+          border: "1px solid var(--border)",
           marginBottom: "24px"
         }}
       >
         <p style={{ margin: 0, fontSize: "13px", color: "var(--ink-2)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "8px" }}>
           Why This Move?
         </p>
-        <p style={{ margin: 0, fontSize: "0.95rem", color: "var(--ink-1)", lineHeight: 1.6 }}>
+        <p style={{ margin: 0, fontSize: "0.95rem", color: "var(--text)", lineHeight: 1.6 }}>
           {action.why}
         </p>
       </div>
@@ -162,7 +162,7 @@ export default function NextBestActionCard({ result, assessment, onExpand }) {
           width: "100%",
           padding: "14px 20px",
           borderRadius: "12px",
-          background: "var(--blue-600)",
+          background: "var(--grad-accent)",
           color: "var(--white)",
           border: "none",
           fontSize: "1rem",
@@ -172,10 +172,17 @@ export default function NextBestActionCard({ result, assessment, onExpand }) {
           alignItems: "center",
           justifyContent: "center",
           gap: "8px",
-          transition: "background 0.2s"
+          transition: "all 170ms ease",
+          boxShadow: "0 12px 32px rgba(109, 76, 255, 0.25)"
         }}
-        onMouseEnter={(e) => (e.target.style.background = "var(--blue-700)")}
-        onMouseLeave={(e) => (e.target.style.background = "var(--blue-600)")}
+        onMouseEnter={(e) => {
+          e.target.style.transform = "translateY(-1px)";
+          e.target.style.boxShadow = "0 18px 40px rgba(109, 76, 255, 0.32)";
+        }}
+        onMouseLeave={(e) => {
+          e.target.style.transform = "translateY(0)";
+          e.target.style.boxShadow = "0 12px 32px rgba(109, 76, 255, 0.25)";
+        }}
         onClick={onExpand}
       >
         Learn Implementation Steps <ChevronRight size={18} />

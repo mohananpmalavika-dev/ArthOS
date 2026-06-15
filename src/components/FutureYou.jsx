@@ -1,39 +1,163 @@
 import React from "react";
 import { motion } from "framer-motion";
+import { Sparkles, ShieldCheck, HeartHandshake } from "lucide-react";
 
 export default function FutureYou({ data = {} }) {
-  const { age = 35, emergency = '₹0', debt = '₹0', stress = 'Unknown' } = data;
+  const { age = 36, emergency = "₹18,500", debt = "₹9,200", stress = "Lower" } = data;
 
   return (
-    <motion.div className="future-you-card" style={{ padding: 24, borderRadius: 14, background: 'linear-gradient(135deg, rgba(6,182,212,0.06), rgba(70,102,228,0.04))', border: '1px solid rgba(6,182,212,0.08)' }} animate={{ y: [0, -6, 0] }} transition={{ duration: 6, repeat: Infinity }}>
-      <div style={{ display: 'flex', gap: 16, alignItems: 'center' }}>
-        <div className="future-avatar" style={{ width: 96, height: 96, borderRadius: 12, background: 'linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02))', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700 }}>
-          <div style={{ textAlign: 'center' }}>
-            <div style={{ fontSize: 18 }}>Future</div>
-            <div style={{ fontSize: 12, opacity: 0.8 }}>You • {age}</div>
+    <motion.section
+      className="future-you-card hologram"
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+    >
+      <div style={{ display: "grid", gap: 20 }}>
+        <div
+          style={{
+            display: "flex",
+            gap: 16,
+            alignItems: "center",
+            justifyContent: "space-between",
+            flexWrap: "wrap"
+          }}
+        >
+          <div>
+            <p
+              style={{
+                margin: 0,
+                textTransform: "uppercase",
+                letterSpacing: "0.16em",
+                color: "rgba(15,23,42,0.65)",
+                fontSize: "0.8rem"
+              }}
+            >
+              Future You
+            </p>
+            <h3
+              style={{ margin: "10px 0 0", fontSize: "1.45rem", lineHeight: 1.1, fontWeight: 800 }}
+            >
+              A calmer, more confident version of you.
+            </h3>
+          </div>
+
+          <div className="future-avatar-holo">
+            <div className="holo-silhouette" />
+            <div className="holo-details">
+              <div className="holo-name">Future Mohanan</div>
+              <div className="holo-stats">
+                <div>Financial Health <strong>92</strong></div>
+                <div>Stress <strong>Low</strong></div>
+                <div>Debt <strong>Free</strong></div>
+                <div>Emergency <strong>₹12.4L</strong></div>
+              </div>
+            </div>
           </div>
         </div>
 
-        <div style={{ flex: 1 }}>
-          <h3 style={{ margin: 0 }}>Projected Snapshot</h3>
-          <p style={{ margin: '6px 0 12px', color: 'var(--ink-3)' }}>A holographic glimpse of a focused, resilient future you.</p>
+        <p style={{ margin: 0, color: "rgba(15,23,42,0.72)", lineHeight: 1.8 }}>
+          Projected stability, a stronger emergency buffer and a lower stress profile. This view
+          shows the person you become when the plan is active.
+        </p>
 
-          <div style={{ display: 'flex', gap: 12 }}>
-            <div style={{ padding: 12, borderRadius: 10, background: 'var(--white)', border: '1px solid var(--gray-100)' }}>
-              <div style={{ fontSize: 12, color: 'var(--ink-3)' }}>Emergency Fund</div>
-              <div style={{ fontWeight: 700 }}>{emergency}</div>
+        <div style={{ display: "grid", gap: 14 }}>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 14,
+              padding: 16,
+              borderRadius: 18,
+              background: "rgba(59,130,246,0.08)",
+              border: "1px solid rgba(59,130,246,0.12)"
+            }}
+          >
+            <Sparkles size={20} color="#0ea5e9" />
+            <div>
+              <p
+                style={{
+                  margin: 0,
+                  fontSize: 12,
+                  color: "rgba(15,23,42,0.72)",
+                  textTransform: "uppercase",
+                  letterSpacing: "0.12em"
+                }}
+              >
+                Emergency fund
+              </p>
+              <strong
+                style={{ display: "block", marginTop: 6, fontSize: "1rem", color: "#0f172a" }}
+              >
+                {emergency}
+              </strong>
             </div>
-            <div style={{ padding: 12, borderRadius: 10, background: 'var(--white)', border: '1px solid var(--gray-100)' }}>
-              <div style={{ fontSize: 12, color: 'var(--ink-3)' }}>Debt</div>
-              <div style={{ fontWeight: 700 }}>{debt}</div>
+          </div>
+
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 14,
+              padding: 16,
+              borderRadius: 18,
+              background: "rgba(16,185,129,0.08)",
+              border: "1px solid rgba(16,185,129,0.12)"
+            }}
+          >
+            <ShieldCheck size={20} color="#10b981" />
+            <div>
+              <p
+                style={{
+                  margin: 0,
+                  fontSize: 12,
+                  color: "rgba(15,23,42,0.72)",
+                  textTransform: "uppercase",
+                  letterSpacing: "0.12em"
+                }}
+              >
+                Debt outlook
+              </p>
+              <strong
+                style={{ display: "block", marginTop: 6, fontSize: "1rem", color: "#0f172a" }}
+              >
+                {debt}
+              </strong>
             </div>
-            <div style={{ padding: 12, borderRadius: 10, background: 'var(--white)', border: '1px solid var(--gray-100)' }}>
-              <div style={{ fontSize: 12, color: 'var(--ink-3)' }}>Stress</div>
-              <div style={{ fontWeight: 700 }}>{stress}</div>
+          </div>
+
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 14,
+              padding: 16,
+              borderRadius: 18,
+              background: "rgba(236,72,153,0.08)",
+              border: "1px solid rgba(236,72,153,0.12)"
+            }}
+          >
+            <HeartHandshake size={20} color="#db2777" />
+            <div>
+              <p
+                style={{
+                  margin: 0,
+                  fontSize: 12,
+                  color: "rgba(15,23,42,0.72)",
+                  textTransform: "uppercase",
+                  letterSpacing: "0.12em"
+                }}
+              >
+                Stress
+              </p>
+              <strong
+                style={{ display: "block", marginTop: 6, fontSize: "1rem", color: "#0f172a" }}
+              >
+                {stress}
+              </strong>
             </div>
           </div>
         </div>
       </div>
-    </div>
+    </motion.section>
   );
 }

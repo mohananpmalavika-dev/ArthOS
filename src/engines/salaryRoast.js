@@ -3,6 +3,7 @@
  * Creates shareable, viral financial reports with personality & humor
  * Designed to drive engagement and word-of-mouth growth
  */
+import { normalizeScore } from "../lib/scoring-v2.js";
 
 export function generateSalaryRoast(assessmentResult, profile) {
   if (!assessmentResult || !profile) {
@@ -10,7 +11,7 @@ export function generateSalaryRoast(assessmentResult, profile) {
   }
 
   const {
-    healthScore,
+    healthScore: rawHealthScore,
     behaviourScore,
     awarenessScore,
     stabilityScore,
@@ -19,6 +20,8 @@ export function generateSalaryRoast(assessmentResult, profile) {
     futureRiskLabel,
     categoryBand
   } = assessmentResult;
+
+  const healthScore = normalizeScore(rawHealthScore);
 
   const monthlyIncome = Number(profile.monthlyIncome) || 0;
   const monthlyExpenses = Number(profile.monthlyExpenses) || 0;

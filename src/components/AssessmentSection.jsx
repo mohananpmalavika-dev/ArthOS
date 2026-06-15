@@ -24,6 +24,7 @@ import {
   dispatchAnonymousTelemetry,
   dispatchAnonymousFeedbackEvent
 } from "../lib/scoring-v2.js";
+import { normalizeScore } from "../lib/scoring-v2";
 import {
   startAssessmentSession,
   recordStepEntry,
@@ -398,7 +399,7 @@ function LiveResultSnapshot({ result }) {
     return null;
   }
 
-  const score = Math.max(0, Math.min(100, Math.round((result.healthScore ?? 0) / 10)));
+  const score = Math.max(0, Math.min(100, normalizeScore(result.healthScore ?? 0)));
   const scoreLabel = result.categoryBand?.label;
   const componentRows = result.componentRows ?? [];
 

@@ -1,6 +1,7 @@
 import React from "react";
 import { ArrowRight, Brain, BarChart3, ShieldCheck } from "lucide-react";
 import { componentMaximumsV2 } from "../lib/scoring-v2.js";
+import { normalizeScore } from "../lib/scoring-v2";
 import { HERO_STATS, HERO_ACTIONS } from "../lib/copy.ts";
 import ScoreRing from "./ScoreRing.jsx";
 
@@ -50,7 +51,7 @@ export default function HeroSection({ assessment, result }) {
     return null;
   }
 
-  const scorePreview = Math.max(0, Math.min(100, Math.round((result.healthScore ?? 0) / 10)));
+  const scorePreview = Math.max(0, Math.min(100, normalizeScore(result.healthScore ?? 0)));
   const scoreLabel = result.categoryBand?.label;
   const liveInsights = buildLiveInsightCards(result, assessment);
   const metricRows = [

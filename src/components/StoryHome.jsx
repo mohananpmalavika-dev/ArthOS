@@ -23,6 +23,7 @@ import {
   CartesianGrid
 } from "recharts";
 import TrajectoryHeroVisual from "./TrajectoryHeroVisual.jsx";
+import { normalizeScore } from "../lib/scoring-v2";
 import FutureYou from "./FutureYou.jsx";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -47,14 +48,12 @@ export default function StoryHome({ result, assessment, onCoachOpen }) {
   const [actionExpanded, setActionExpanded] = useState(false);
   const [showCoachSuggestions, setShowCoachSuggestions] = useState(false);
 
-  const currentScore = useMemo(
-    () => clampScore((result?.healthScore ?? 0) / 10),
-    [result]
-  );
+  const currentScore = useMemo(() => clampScore(normalizeScore(result?.healthScore ?? 0)), [result]);
 
   const scoreChange = useMemo(() => {
-    const prev = result?.previousHealthScore || currentScore;
-    const change = Math.round((currentScore - prev) / 10);
+    const prevRaw = result?.previousHealthScore ?? result?.healthScore ?? 0;
+    const prev = normalizeScore(prevRaw);
+    const change = Math.round(currentScore - prev);
     return { value: change, direction: change >= 0 ? "up" : "down" };
   }, [result, currentScore]);
 
@@ -113,16 +112,29 @@ export default function StoryHome({ result, assessment, onCoachOpen }) {
 
   const timelineData = useMemo(() => {
     const baseYear = new Date().getFullYear();
-    const decline = [0, -3, -8, -12].map(delta => clampScore(currentScore + delta));
-    const improve = [0, 6, 14, 24].map(delta => clampScore(currentScore + delta));
+    const profile = assessment?.profile || {};
+    const monthlyIncome = Number(profile.monthlyIncome) || 0;
+    const monthlyExpenses = Number(profile.monthlyExpenses) || 1;
+    const totalSavings = (Number(profile.emergencySavingsFixed) || 0) + (Number(profile.emergencySavingsDiscretionary) || 0);
+    const totalDebt = Number(profile.totalDebt) || 0;
 
-    return [
-      { year: `${baseYear}`, current: decline[0], recommended: improve[0], label: "Now" },
-      { year: `${baseYear + 1}`, current: decline[1], recommended: improve[1], label: "1Y" },
-      { year: `${baseYear + 2}`, current: decline[2], recommended: improve[2], label: "2Y" },
-      { year: `${baseYear + 3}`, current: decline[3], recommended: improve[3], label: "3Y" }
-    ];
-  }, [currentScore]);
+    const monthlySurplus = Math.max(0, monthlyIncome - monthlyExpenses);
+    const emergencyFundMonths = monthlyExpenses > 0 ? totalSavings / monthlyExpenses : 0;
+    const debtRatio = monthlyIncome > 0 ? totalDebt / (monthlyIncome * 12) : 1;
+
+    const yearlyGainFromSurplus = (monthlySurplus / Math.max(1, monthlyExpenses)) * 10;
+    const yearlyGainFromEmergency = emergencyFundMonths * 2;
+    const yearlyPenaltyFromDebt = debtRatio * 25;
+
+    const netYearlyDelta = yearlyGainFromSurplus + yearlyGainFromEmergency - yearlyPenaltyFromDebt;
+
+    const years = [0, 1, 2, 3];
+    return years.map(offset => {
+      const projected = clampScore(currentScore + Math.round(netYearlyDelta * offset));
+      const pess = clampScore(currentScore + Math.round((netYearlyDelta * 0.5) * offset) - 6 * offset);
+      return { year: `${baseYear + offset}`, current: pess, recommended: projected, label: offset === 0 ? "Now" : `${offset}y` };
+    });
+  }, [currentScore, assessment]);
 
   const actionCard = useMemo(() => {
     const recommendation = result?.topRecommendation || {};
@@ -367,9 +379,9 @@ export default function StoryHome({ result, assessment, onCoachOpen }) {
           {actionExpanded && (
             <motion.div style={{ marginTop: 12, display: 'flex', gap: 12 }} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, ease: easeOut }}>
               {actionCard.impacts.map((impact, i) => (
-                <div key={i} style={{ padding: 12, borderRadius: 10, background: 'var(--white)', border: '1px solid var(--gray-100)', minWidth: 120 }}>
+                <div key={i} style={{ padding: 12, borderRadius: 10, background: 'var(--surface-2)', border: '1px solid var(--border)', minWidth: 120 }}>
                   <div style={{ fontSize: 12, color: 'var(--ink-3)' }}>{impact.metric}</div>
-                  <div style={{ fontWeight: 700 }}>{impact.change}</div>
+                  <div style={{ fontWeight: 700, color: 'var(--ink-0)' }}>{impact.change}</div>
                 </div>
               ))}
             </motion.div>

@@ -4,7 +4,16 @@
  * This is the core defensibility feature: what happens if nothing changes?
  */
 
-import { formatMonths as formatMonthsV2 } from "../lib/scoring-v2.js";
+import { formatMonths as formatMonthsV2, componentMaximumsV2, normalizeScore } from "../lib/scoring-v2.js";
+
+function toNumber(v) {
+  const n = Number.parseFloat(v);
+  return Number.isFinite(n) ? n : 0;
+}
+
+function clamp(v, a, b) {
+  return Math.max(a, Math.min(b, v));
+}
 
 /**
  * Calculate trajectory decay based on behavioral patterns
@@ -45,40 +54,77 @@ export function projectHealthTrajectory(result) {
     };
   }
 
-  const healthScore = result.healthScore || 0;
+  const healthScore = result.healthScore || 0; // internal 0..1000
   const behaviourScore = result.behaviourScore || 0;
-  const awarenessScore = result.awarenessScore || 0;
-  const stabilityScore = result.stabilityScore || 0;
 
-  const decayRate = calculateDecayRate(behaviourScore, awarenessScore, stabilityScore);
+  // Profile drivers
+  const profile = result.profile || {};
+  const monthlyIncome = toNumber(profile.monthlyIncome);
+  const monthlyExpenses = toNumber(profile.monthlyExpenses);
+  const totalSavings = toNumber(profile.emergencySavingsFixed) + toNumber(profile.emergencySavingsDiscretionary);
+  const totalDebt = toNumber(profile.totalDebt);
 
-  // Calculate projections at different time points
+  const monthlySurplus = Math.max(0, monthlyIncome - monthlyExpenses);
+  const emergencyFundMonths = monthlyExpenses > 0 ? totalSavings / monthlyExpenses : 0;
+  const debtRatio = monthlyIncome > 0 ? totalDebt / (monthlyIncome * 12) : 1;
+
+  // Behaviour factor normalized 0..1 (1 = worst behaviour)
+  const behaviourFactor = 1 - clamp(behaviourScore / componentMaximumsV2.behaviour, 0, 1);
+
+  // Driver-based annual percent change estimate (conservative bounds)
+  const baseAnnual = -0.02; // small base decay
+  const surplusEffect = monthlyIncome > 0 ? (monthlySurplus / monthlyIncome) * 0.6 : 0; // up to +60% p.a. at extreme
+  const emergencyEffect = Math.min(0.25, (Math.min(emergencyFundMonths, 60) / 60) * 0.25); // up to +25%
+  const debtPenalty = clamp(debtRatio, 0, 1) * 0.5; // up to -50%
+  const behaviourPenalty = behaviourFactor * 0.25; // up to -25%
+
+  let annualPercent = baseAnnual + surplusEffect + emergencyEffect - debtPenalty - behaviourPenalty;
+  annualPercent = clamp(annualPercent, -0.5, 0.5);
+  const monthlyRate = annualPercent / 12;
+
   const today = healthScore;
-  const threeMonths = Math.max(20, today * Math.pow(1 - decayRate, 3));
-  const sixMonths = Math.max(20, today * Math.pow(1 - decayRate, 6));
-  const oneYear = Math.max(20, today * Math.pow(1 - decayRate, 12));
-  const twoYears = Math.max(20, today * Math.pow(1 - decayRate, 24));
 
-  // Build trajectory data for charting
   const trajectoryData = [];
-  for (let month = 0; month <= 24; month += 3) {
+  const baseConfidence = 80; // starting confidence in projections
+  const decayPerMonth = 1.2; // confidence decay per month
+
+  for (let month = 0; month <= 24; month += 1) {
+    const projected = Math.max(0, today * Math.pow(1 + monthlyRate, month));
+    const confidence = Math.max(10, Math.round(baseConfidence - month * decayPerMonth));
+    const volatility = Math.min(0.6, Math.abs(monthlyRate) * 1.5 + 0.02);
+    const uncertainty = Math.min(0.6, (1 - confidence / 100) + volatility);
+
     trajectoryData.push({
       month: month === 0 ? "Today" : `${month}mo`,
-      healthScore: Math.max(20, Math.round(today * Math.pow(1 - decayRate, month) * 10) / 10),
-      monthNumber: month
+      monthNumber: month,
+      healthScore: Math.round(projected),
+      lower: Math.round(Math.max(0, projected * (1 - uncertainty))),
+      upper: Math.round(projected * (1 + uncertainty)),
+      confidence
     });
   }
 
+  // Aggregate points at typical UX intervals
+  const threeMonths = trajectoryData.find(d => d.monthNumber === 3)?.healthScore ?? 0;
+  const sixMonths = trajectoryData.find(d => d.monthNumber === 6)?.healthScore ?? 0;
+  const oneYear = trajectoryData.find(d => d.monthNumber === 12)?.healthScore ?? 0;
+  const twoYears = trajectoryData.find(d => d.monthNumber === 24)?.healthScore ?? 0;
+
+  const decayRatePct = Math.round(annualPercent * 1000) / 10;
+
+  // Use normalized score for risk level text (0-100)
+  const normalizedOneYear = normalizeScore(oneYear);
+
   return {
-    today: Math.round(today * 10) / 10,
-    threeMonths: Math.round(threeMonths * 10) / 10,
-    sixMonths: Math.round(sixMonths * 10) / 10,
-    oneYear: Math.round(oneYear * 10) / 10,
-    twoYears: Math.round(twoYears * 10) / 10,
+    today: Math.round(today),
+    threeMonths: Math.round(threeMonths),
+    sixMonths: Math.round(sixMonths),
+    oneYear: Math.round(oneYear),
+    twoYears: Math.round(twoYears),
     trajectoryData,
-    decayRate: Math.round(decayRate * 1000) / 10, // As percentage
-    riskLevel: getRiskLevel(oneYear),
-    consequence: getConsequenceNarrative(today, oneYear)
+    decayRate: decayRatePct,
+    riskLevel: getRiskLevel(normalizedOneYear),
+    consequence: getConsequenceNarrative(normalizeScore(today), normalizedOneYear)
   };
 }
 

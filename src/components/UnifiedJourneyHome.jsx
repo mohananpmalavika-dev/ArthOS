@@ -1,380 +1,552 @@
-import React, { useMemo } from "react";
-import { Home, Brain, Target, Sparkles, ArrowRight } from "lucide-react";
+import React, { useMemo, useState, useRef, useEffect } from "react";
+import PropTypes from "prop-types";
+import { AnimatePresence, motion } from "framer-motion";
+import { MessageCircle } from "lucide-react";
 import TrajectoryHeroVisual from "./TrajectoryHeroVisual.jsx";
-import NextBestActionCard from "./NextBestActionCard.jsx";
+import { normalizeScore } from "../lib/scoring-v2";
+import { buildLiveInsightCards } from "../lib/assessmentCardBuilder.js";
+import SingleRecommendedAction from "./SingleRecommendedAction.jsx";
+import SingleMostImportantInsight from "./SingleMostImportantInsight.jsx";
+import FutureYou from "./FutureYou.jsx";
+import FinancialWeatherCard from "./FinancialWeatherCard.jsx";
+import WeeklyMissionCard from "./WeeklyMissionCard.jsx";
+import { ScenarioForecast } from "./ScenarioForecast.jsx";
 
 function clampScore(value) {
   return Math.max(0, Math.min(100, Math.round(value)));
 }
 
-export default function UnifiedJourneyHome({ result, assessment }) {
+export default function UnifiedJourneyHome({ result, assessment, onCoachOpen }) {
+  const [coachMenuOpen, setCoachMenuOpen] = useState(false);
+
   const currentScore = useMemo(
-    () => clampScore((result?.healthScore ?? 0) / 10),
+    () => clampScore(normalizeScore(result?.healthScore ?? 0)),
     [result]
   );
 
-  const realitySummary = result?.blindSpotHeadline || result?.blindSpotSummary || "Your score, runway and risk outlook form the clearest picture of your money life today.";
   const futureRisk = result?.futureRiskLabel || "Future risk";
   const runway = result?.survivalMonthsDisplay || "0";
   const scoreLabel = result?.categoryBand?.label || "Live profile";
 
-  const topFactors = useMemo(() => {
-    const factors = [];
-    const biases = result?.biases || [];
-    const beliefs = result?.moneyBeliefs || [];
-    const triggers = result?.emotionalTriggers || [];
-
-    biases.forEach(bias => {
-      factors.push({
-        label: bias.name || bias.label || "Cognitive bias",
-        detail: bias.description || "This cognitive pattern shapes your decisions.",
-        impact: Math.round((bias.severity || bias.strength || 0.5) * 100),
-        tone: "risk"
-      });
-    });
-
-    beliefs.forEach(belief => {
-      factors.push({
-        label: belief.name || belief.belief || "Money belief",
-        detail: belief.description || "This belief is influencing your financial mindset.",
-        impact: Math.round((belief.strength || 0.5) * 100),
-        tone: "signal"
-      });
-    });
-
-    triggers.forEach(trigger => {
-      factors.push({
-        label: trigger.name || trigger.trigger || "Emotional trigger",
-        detail: trigger.description || "This emotional pattern affects your spending.",
-        impact: Math.round((trigger.severity || trigger.impact || 0.5) * 100),
-        tone: "warning"
-      });
-    });
-
-    return factors.sort((a, b) => (b.impact || 0) - (a.impact || 0)).slice(0, 5);
+  const basBreakdown = useMemo(() => {
+    if (!result?.componentRows?.length) {
+      return [];
+    }
+    return result.componentRows.map(row => ({
+      key: row.key,
+      label: row.label,
+      score: row.percent,
+      band: row.band?.label || ""
+    }));
   }, [result]);
 
   const timelineData = useMemo(() => {
     const baseYear = new Date().getFullYear();
-    const decline = [0, -4, -11, -14].map(delta => clampScore(currentScore + delta));
-    const improve = [0, 8, 16, 20].map(delta => clampScore(currentScore + delta));
+    // derive drivers
+    const profile = assessment?.profile || {};
+    const monthlyIncome = Number(profile.monthlyIncome) || 0;
+    const monthlyExpenses = Number(profile.monthlyExpenses) || 1; // avoid div by zero
+    const totalSavings =
+      (Number(profile.emergencySavingsFixed) || 0) +
+      (Number(profile.emergencySavingsDiscretionary) || 0);
+    const totalDebt = Number(profile.totalDebt) || 0;
 
-    return [
-      { year: `${baseYear}`, current: decline[0], recommended: improve[0] },
-      { year: `${baseYear + 1}`, current: decline[1], recommended: improve[1] },
-      { year: `${baseYear + 2}`, current: decline[2], recommended: improve[2] },
-      { year: `${baseYear + 3}`, current: decline[3], recommended: improve[3] }
-    ];
+    const monthlySurplus = Math.max(0, monthlyIncome - monthlyExpenses);
+    const emergencyFundMonths = monthlyExpenses > 0 ? totalSavings / monthlyExpenses : 0;
+    const debtRatio = monthlyIncome > 0 ? totalDebt / (monthlyIncome * 12) : 1;
+
+    // heuristic growth per year (points per year)
+    const yearlyGainFromSurplus = (monthlySurplus / Math.max(1, monthlyExpenses)) * 10; // proportional
+    const yearlyGainFromEmergency = emergencyFundMonths * 2; // months -> points
+    const yearlyPenaltyFromDebt = debtRatio * 25; // scaled penalty
+
+    const netYearlyDelta = yearlyGainFromSurplus + yearlyGainFromEmergency - yearlyPenaltyFromDebt;
+
+    const years = [0, 1, 2, 3];
+    const data = years.map(offset => {
+      const projected = clampScore(currentScore + Math.round(netYearlyDelta * offset));
+      // pessimistic path reduces by half the net delta
+      const pess = clampScore(
+        currentScore + Math.round(netYearlyDelta * 0.5 * offset) - 6 * offset
+      );
+      return { year: `${baseYear + offset}`, current: pess, recommended: projected };
+    });
+
+    return data;
+  }, [currentScore, assessment]);
+
+  const futureYouData = {
+    age: result?.projectedAge || 36,
+    emergency: result?.emergencyBufferDisplay || "₹18,500",
+    debt: result?.projectedDebtDisplay || "₹9,200",
+    stress: result?.projectedStressLabel || "Lower"
+  };
+
+  const coachQuickActions = [
+    { label: "Improve cashflow", concern: "cashflow" },
+    { label: "Extend runway", concern: "runway" },
+    { label: "Reduce risk", concern: "reduce-risk" }
+  ];
+
+  const heroRef = useRef(null);
+
+  useEffect(() => {
+    const el = heroRef.current;
+    if (!el) {
+      return;
+    }
+
+    const onMove = e => {
+      const rect = el.getBoundingClientRect();
+      const x = ((e.clientX - rect.left) / rect.width - 0.5) * 2; // -1 to 1
+      const y = ((e.clientY - rect.top) / rect.height - 0.5) * 2;
+      el.style.setProperty("--mx", x.toFixed(4));
+      el.style.setProperty("--my", y.toFixed(4));
+    };
+
+    el.addEventListener("mousemove", onMove);
+    return () => el.removeEventListener("mousemove", onMove);
+  }, []);
+
+  const [particles] = useState(() =>
+    Array.from({ length: 22 }).map(() => ({
+      left: Math.round(Math.random() * 100) + "%",
+      top: Math.round(Math.random() * 100) + "%",
+      size: 4 + Math.round(Math.random() * 10),
+      delay: (Math.random() * 3).toFixed(2) + "s"
+    }))
+  );
+
+  UnifiedJourneyHome.propTypes = {
+    result: PropTypes.shape({
+      componentRows: PropTypes.arrayOf(
+        PropTypes.shape({
+          key: PropTypes.string,
+          label: PropTypes.string,
+          percent: PropTypes.number,
+          band: PropTypes.shape({ label: PropTypes.string })
+        })
+      ),
+      healthScore: PropTypes.number,
+      futureRiskLabel: PropTypes.string,
+      survivalMonthsDisplay: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+      cashflowDisplay: PropTypes.string,
+      categoryBand: PropTypes.shape({ label: PropTypes.string })
+    }),
+    assessment: PropTypes.object,
+    onCoachOpen: PropTypes.func
+  };
+
+  const insightCards = useMemo(
+    () => buildLiveInsightCards(result, assessment),
+    [result, assessment]
+  );
+  const scorePhrase = useMemo(() => {
+    if (currentScore >= 85) {
+      return "Commanding financial momentum";
+    }
+    if (currentScore >= 70) {
+      return "Strong stability with room to grow";
+    }
+    if (currentScore >= 50) {
+      return "A solid foundation and clear next steps";
+    }
+    return "Stabilize first, then accelerate from here";
   }, [currentScore]);
 
-  const actionImpact = useMemo(
-    () => {
-      return [
-        { label: "Readiness", value: "+9 pts", description: "Stronger financial stability", tone: "positive" },
-        { label: "Risk", value: "-12 pts", description: "Lower downside exposure", tone: "positive" },
-        { label: "Stress", value: "-15 pts", description: "Less emotional pressure", tone: "positive" },
-        { label: "Survival", value: "+4 mo", description: "More runway for unexpected expenses", tone: "positive" }
-      ];
-    }, []);
+  const mriMetrics = [
+    {
+      title: "Awareness gap",
+      value: result?.awarenessGap ? `${result.awarenessGap} mo` : "—",
+      detail: "How clearly your runway matches your expectations"
+    },
+    {
+      title: "Emergency strength",
+      value: result?.emergencyBufferDisplay || "₹0",
+      detail: "Buffer available for unexpected expenses"
+    },
+    {
+      title: "Behavior signal",
+      value: result?.futureRiskLabel || "Moderate",
+      detail: "Emotional and spending signals in your profile"
+    }
+  ];
+
+  const liveInsights = useMemo(() => insightCards, [insightCards]);
 
   return (
-    <section className="page-section unified-journey-home" style={{ padding: "24px 16px" }}>
-      <div className="unified-header" style={{ marginBottom: "28px" }}>
-        <p style={{ margin: 0, color: "var(--ink-2)", textTransform: "uppercase", letterSpacing: "0.14em", fontSize: "0.85rem" }}>
-          Your One-Screen Financial Story
-        </p>
-        <h1 style={{ margin: "14px 0 12px", fontSize: "2.6rem", lineHeight: 1.03, fontWeight: 800, color: "var(--ink-0)" }}>
-          Reality, Why, Future, Action — all on a single page.
-        </h1>
-        <p style={{ margin: 0, color: "var(--ink-3)", maxWidth: "760px", lineHeight: 1.7 }}>
-          Investors and users need one narrative flow, not five separate screens. This page brings your score, your behavior drivers, the future timeline and the highest-impact action into one coherent launchpad.
-        </p>
-      </div>
-
-      <div className="unified-journey-links" style={{ display: "grid", gridTemplateColumns: "repeat(4, minmax(0, 1fr))", gap: "12px", marginBottom: "32px" }}>
-        {[
-          { id: "reality", label: "Reality", icon: Home },
-          { id: "why", label: "Why", icon: Brain },
-          { id: "future", label: "Future", icon: Target },
-          { id: "action", label: "Action", icon: Sparkles }
-        ].map(item => {
-          const Icon = item.icon;
-          return (
-            <a
-              key={item.id}
-              href={`#${item.id}`}
-              className="unified-journey-link"
+    <main className="home-hero" ref={heroRef}>
+      <section className="cinematic-hero">
+        <div className="cinematic-mesh" aria-hidden="true" />
+        <div className="cinematic-content">
+          <div className="cinematic-left">
+            <p className="cinematic-eyebrow">YOUR FINANCIAL OS</p>
+            <h1 className="cinematic-score">
+              <span className="score-number">{currentScore}</span>
+            </h1>
+            <div className="cinematic-metrics">
+              <div className="metric-delta">
+                {currentScore >= 0
+                  ? `${currentScore >= 50 ? "+" : ""}${Math.round((currentScore - 50) / 2)} pts`
+                  : ""}{" "}
+                today
+              </div>
+              <div className="metric-percent">{scorePhrase}</div>
+            </div>
+            <div className="cinematic-cta-row">
+              <button className="hero-cta" onClick={() => onCoachOpen?.("start")}>
+                Talk to your AI coach
+              </button>
+              <button
+                className="hero-secondary"
+                onClick={() =>
+                  document.getElementById("journey")?.scrollIntoView({ behavior: "smooth" })
+                }
+              >
+                View journey map
+              </button>
+            </div>
+          </div>
+          <div className="cinematic-right">
+            <div className="score-ring-large" style={{ ["--score"]: currentScore }}>
+              <div className="score-inner-large">
+                <motion.div
+                  className="score-number-hero-large"
+                  animate={{ scale: [1, 1.06, 1] }}
+                  transition={{ duration: 2.6, repeat: Infinity, ease: "easeInOut" }}
+                >
+                  {currentScore}
+                </motion.div>
+                <div className="score-label-large">{scoreLabel}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div className="cinematic-particles" aria-hidden="true">
+          {particles.map((p, idx) => (
+            <span
+              key={idx}
+              className="particle"
               style={{
-                display: "flex",
-                alignItems: "center",
-                gap: "10px",
-                padding: "18px 20px",
-                borderRadius: "18px",
-                background: "var(--white)",
-                border: "1px solid var(--gray-200)",
-                color: "var(--ink-0)",
-                textDecoration: "none",
-                fontWeight: 600
+                left: p.left,
+                top: p.top,
+                width: p.size,
+                height: p.size,
+                animationDelay: p.delay
               }}
-            >
-              <Icon size={18} />
-              {item.label}
-            </a>
-          );
-        })}
-      </div>
-
-      <section id="reality" style={{ marginBottom: "36px" }}>
-        <div style={{ display: "grid", gap: "24px", gridTemplateColumns: "1.7fr 1fr", alignItems: "start" }}>
-          <div style={{ padding: "32px", borderRadius: "28px", background: "var(--slate-950)", color: "var(--white)" }}>
-            <p style={{ margin: 0, color: "rgba(255,255,255,0.72)", textTransform: "uppercase", letterSpacing: "0.16em", fontSize: "0.8rem" }}>
-              Reality
-            </p>
-            <h2 style={{ margin: "18px 0 0", fontSize: "2.4rem", lineHeight: 1.05, fontWeight: 800 }}>
-              The true state of your money life today
-            </h2>
-            <p style={{ margin: "24px 0 0", color: "rgba(255,255,255,0.78)", maxWidth: "720px", lineHeight: 1.75 }}>
-              {realitySummary}
-            </p>
-
-            <div style={{ display: "grid", gap: "18px", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", marginTop: "32px" }}>
-              <div style={{ padding: "20px", borderRadius: "20px", background: "rgba(255,255,255,0.08)" }}>
-                <span style={{ display: "block", marginBottom: "10px", color: "rgba(255,255,255,0.65)", textTransform: "uppercase", letterSpacing: "0.08em", fontSize: "0.76rem" }}>
-                  Score
-                </span>
-                <strong style={{ fontSize: "2.8rem", lineHeight: 1, color: "var(--white)" }}>{currentScore}/100</strong>
-              </div>
-              <div style={{ padding: "20px", borderRadius: "20px", background: "rgba(255,255,255,0.08)" }}>
-                <span style={{ display: "block", marginBottom: "10px", color: "rgba(255,255,255,0.65)", textTransform: "uppercase", letterSpacing: "0.08em", fontSize: "0.76rem" }}>
-                  Runway
-                </span>
-                <strong style={{ fontSize: "2.8rem", lineHeight: 1, color: "var(--white)" }}>{runway} mo</strong>
-              </div>
-              <div style={{ padding: "20px", borderRadius: "20px", background: "rgba(255,255,255,0.08)" }}>
-                <span style={{ display: "block", marginBottom: "10px", color: "rgba(255,255,255,0.65)", textTransform: "uppercase", letterSpacing: "0.08em", fontSize: "0.76rem" }}>
-                  Outlook
-                </span>
-                <strong style={{ fontSize: "2.2rem", lineHeight: 1, color: "var(--white)" }}>{futureRisk}</strong>
-              </div>
-            </div>
-          </div>
-
-          <div style={{ display: "grid", gap: "20px" }}>
-            <div style={{ padding: "24px", borderRadius: "24px", background: "var(--white)", border: "1px solid var(--gray-200)" }}>
-              <h3 style={{ margin: 0, fontSize: "1.1rem", fontWeight: 700, color: "var(--ink-0)" }}>
-                Reality snapshot
-              </h3>
-              <p style={{ margin: "16px 0 0", color: "var(--ink-3)", lineHeight: 1.7 }}>
-                Your score is not just a number — it is the summary of how your behavior, awareness and stability are interacting right now.
-              </p>
-            </div>
-            <div style={{ padding: "24px", borderRadius: "24px", background: "var(--white)", border: "1px solid var(--gray-200)" }}>
-              <h3 style={{ margin: 0, fontSize: "1.1rem", fontWeight: 700, color: "var(--ink-0)" }}>
-                What investors want to see
-              </h3>
-              <ul style={{ margin: "16px 0 0", paddingLeft: "18px", color: "var(--ink-3)", lineHeight: 1.8 }}>
-                <li>Current financial health score and trend</li>
-                <li>Runway clarity and risk posture</li>
-                <li>Reality-based insight, not just optimistic projections</li>
-              </ul>
-            </div>
-          </div>
+            />
+          ))}
         </div>
       </section>
 
-      <section id="why" style={{ marginBottom: "36px" }}>
-        <div style={{ display: "grid", gap: "24px", gridTemplateColumns: "1fr 0.9fr" }}>
-          <div>
-            <p style={{ margin: 0, color: "var(--ink-2)", textTransform: "uppercase", letterSpacing: "0.14em", fontSize: "0.85rem" }}>
-              Why
-            </p>
-            <h2 style={{ margin: "12px 0 0", fontSize: "2.2rem", fontWeight: 800, color: "var(--ink-0)" }}>
-              The patterns that explain your score
-            </h2>
-            <p style={{ margin: "16px 0 0", color: "var(--ink-3)", maxWidth: "720px", lineHeight: 1.7 }}>
-              This section surfaces the top biases, beliefs and emotional triggers that are shaping your financial behavior right now.
+      <div className="home-block">
+        <div className="section-header">
+          <span className="section-eyebrow">Command Center</span>
+          <h2 className="section-title">Financial command center</h2>
+          <p className="section-copy">
+            One place for score, runway, risk, and the right decisions your AI coach is already
+            tracking.
+          </p>
+        </div>
+
+        <div className="command-center-grid">
+          <div className="glass-panel">
+            <p className="glass-panel-label">Financial health</p>
+            <p className="glass-panel-value">{currentScore}/100</p>
+            <p className="section-copy">Core score normalized for simple decision-making.</p>
+          </div>
+          <div className="glass-panel">
+            <p className="glass-panel-label">Runway</p>
+            <p className="glass-panel-value">{runway} mo</p>
+            <p className="section-copy">
+              How long your reserves and cashflow support your current lifestyle.
             </p>
           </div>
-
-          <div style={{ padding: "24px", borderRadius: "24px", background: "var(--white)", border: "1px solid var(--gray-200)" }}>
-            <p style={{ margin: 0, fontSize: "0.95rem", fontWeight: 700, color: "var(--ink-0)" }}>
-              Why this matters
-            </p>
-            <p style={{ margin: "14px 0 0", color: "var(--ink-3)", lineHeight: 1.7 }}>
-              When you know why the score is where it is, you can choose the right action instead of guessing. The top drivers here are your biggest levers for improvement.
+          <div className="glass-panel">
+            <p className="glass-panel-label">Cashflow</p>
+            <p className="glass-panel-value">{result?.cashflowDisplay || "₹0"}</p>
+            <p className="section-copy">The live margin between money in and money out.</p>
+          </div>
+          <div className="glass-panel">
+            <p className="glass-panel-label">Outlook</p>
+            <p className="glass-panel-value">{futureRisk}</p>
+            <p className="section-copy">
+              The projected risk profile based on behavior, runway and awareness.
             </p>
           </div>
         </div>
+      </div>
 
-        <div style={{ display: "grid", gap: "18px", marginTop: "24px" }}>
-          {topFactors.length > 0 ? (
-            topFactors.map((factor, index) => (
+      <div className="home-block bas-breakdown-block">
+        <div className="section-header">
+          <span className="section-eyebrow">BAS™ Breakdown</span>
+          <h2 className="section-title">Why your score is what it is</h2>
+          <p className="section-copy">
+            See behaviour, awareness, and stability in one place so you can understand the score and
+            the first place to improve.
+          </p>
+        </div>
+
+        <div className="bas-breakdown-grid">
+          {basBreakdown.map(item => (
+            <div key={item.key} className="bas-card">
+              <div className="bas-card-header">
+                <span>{item.label}</span>
+                <strong>{item.score}%</strong>
+              </div>
+              <p className="bas-card-band">{item.band}</p>
+              <div className="bas-card-bar">
+                <div className="bas-card-fill" style={{ width: `${item.score}%` }} />
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="home-block">
+        <div className="section-header">
+          <span className="section-eyebrow">The one thing</span>
+          <h2 className="section-title">Your most important insight</h2>
+          <p className="section-copy">
+            This is the single insight the app has chosen as the most impactful next step for you.
+          </p>
+        </div>
+
+        <SingleMostImportantInsight assessmentResult={result} assessment={assessment} />
+      </div>
+
+      <div className="home-block">
+        <div className="section-header">
+          <span className="section-eyebrow">Digital Twin</span>
+          <h2 className="section-title">Your future self preview</h2>
+          <p className="section-copy">
+            A holographic glimpse of your future financial profile if you stay on the current plan.
+          </p>
+        </div>
+
+        <div className="digital-twin-grid">
+          <FutureYou data={futureYouData} />
+          <FinancialWeatherCard healthScore={result?.healthScore ?? 0} />
+        </div>
+      </div>
+
+      <div className="home-block">
+        <div className="section-header">
+          <span className="section-eyebrow">Financial MRI</span>
+          <h2 className="section-title">What the score is really made of</h2>
+          <p className="section-copy">
+            A deeper scan of awareness, reserve strength, and behavior signals that shape your
+            score.
+          </p>
+        </div>
+
+        <div className="mri-grid">
+          {mriMetrics.map(metric => (
+            <div key={metric.title} className="glass-panel">
+              <p className="glass-panel-label">{metric.title}</p>
+              <p className="glass-panel-value">{metric.value}</p>
+              <p className="section-copy" style={{ margin: 0 }}>
+                {metric.detail}
+              </p>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="home-block">
+        <div className="section-header">
+          <span className="section-eyebrow">Scenario Lab</span>
+          <h2 className="section-title">Test plan outcomes with the AI lab</h2>
+          <p className="section-copy">
+            Compare your baseline with recommended actions and see which choices move your score
+            forward.
+          </p>
+        </div>
+
+        <ScenarioForecast profile={assessment?.profile} assessmentResult={result} />
+      </div>
+
+      <div className="home-block">
+        <div className="section-header">
+          <span className="section-eyebrow">AI command center</span>
+          <h2 className="section-title">Conversation-ready signals</h2>
+          <p className="section-copy">
+            Talk to the coach about the exact levers that matter most right now.
+          </p>
+        </div>
+
+        <div className="hero-actions">
+          <button className="hero-cta" onClick={() => onCoachOpen?.("cashflow")}>
+            Improve cashflow
+          </button>
+          <button className="hero-secondary" onClick={() => onCoachOpen?.("runway")}>
+            Extend runway
+          </button>
+          <button className="hero-secondary" onClick={() => onCoachOpen?.("reduce-risk")}>
+            Reduce risk
+          </button>
+        </div>
+      </div>
+
+      <div className="home-block">
+        <div className="section-header">
+          <span className="section-eyebrow">Live insights</span>
+          <h2 className="section-title">Netflix-style insight stream</h2>
+          <p className="section-copy">
+            High-value takeaways surfaced in a quick, swipeable format.
+          </p>
+        </div>
+
+        <div className="insight-rail">
+          {liveInsights.map((item, index) => (
+            <article key={index} className="insight-card">
               <div
-                key={index}
                 style={{
-                  padding: "22px 24px",
-                  borderRadius: "18px",
-                  background: "var(--white)",
-                  border: "1px solid var(--gray-200)",
-                  display: "grid",
-                  gridTemplateColumns: "1fr auto",
-                  gap: "16px"
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  gap: 12,
+                  marginBottom: 14
                 }}
               >
-                <div>
-                  <p style={{ margin: 0, fontSize: "0.85rem", textTransform: "uppercase", letterSpacing: "0.08em", color: "var(--ink-3)", marginBottom: "8px" }}>
-                    {factor.tone === "risk" ? "Bias" : factor.tone === "signal" ? "Belief" : "Trigger"}
-                  </p>
-                  <h3 style={{ margin: 0, fontSize: "1.1rem", fontWeight: 700, color: "var(--ink-0)" }}>
-                    {factor.label}
-                  </h3>
-                  <p style={{ margin: "10px 0 0", color: "var(--ink-3)", lineHeight: 1.7 }}>
-                    {factor.detail}
-                  </p>
-                </div>
-                <div style={{ alignSelf: "center", minWidth: "80px", textAlign: "right" }}>
-                  <span style={{ display: "block", fontSize: "0.75rem", color: "var(--ink-2)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "6px" }}>
-                    Impact
-                  </span>
-                  <strong style={{ fontSize: "1.6rem", lineHeight: 1, color: "var(--ink-0)" }}>
-                    {factor.impact}%
-                  </strong>
-                </div>
-              </div>
-            ))
-          ) : (
-            <div style={{ padding: "24px", borderRadius: "18px", background: "var(--white)", border: "1px solid var(--gray-200)" }}>
-              <p style={{ margin: 0, color: "var(--ink-3)", lineHeight: 1.7 }}>
-                Complete your assessment to reveal the top behavioral drivers behind your financial score.
-              </p>
-            </div>
-          )}
-        </div>
-      </section>
-
-      <section id="future" style={{ marginBottom: "36px" }}>
-        <div style={{ display: "grid", gap: "24px" }}>
-          <div style={{ display: "grid", gap: "10px" }}>
-            <p style={{ margin: 0, color: "var(--ink-2)", textTransform: "uppercase", letterSpacing: "0.14em", fontSize: "0.85rem" }}>
-              Future
-            </p>
-            <h2 style={{ margin: 0, fontSize: "2.2rem", fontWeight: 800, color: "var(--ink-0)" }}>
-              The biggest missing feature: a future timeline hero
-            </h2>
-            <p style={{ margin: "12px 0 0", color: "var(--ink-3)", lineHeight: 1.7, maxWidth: "760px" }}>
-              This is the hero visual investors need: if nothing changes versus if you follow the recommendation.
-            </p>
-          </div>
-
-          <TrajectoryHeroVisual result={result} data={timelineData} />
-
-          <div style={{ display: "grid", gap: "18px", gridTemplateColumns: "repeat(2, minmax(0, 1fr))" }}>
-            <div style={{ padding: "24px", borderRadius: "20px", background: "var(--red-50)", border: "1px solid var(--red-200)" }}>
-              <p style={{ margin: 0, color: "var(--red-700)", fontWeight: 700, fontSize: "0.95rem" }}>
-                If nothing changes
-              </p>
-              <ul style={{ margin: "18px 0 0", paddingLeft: "18px", color: "var(--ink-3)", lineHeight: 1.8 }}>
-                {timelineData.map(item => (
-                  <li key={item.year}>
-                    {item.year} → {item.current}
-                  </li>
-                ))}
-              </ul>
-            </div>
-            <div style={{ padding: "24px", borderRadius: "20px", background: "var(--green-50)", border: "1px solid var(--green-200)" }}>
-              <p style={{ margin: 0, color: "var(--green-700)", fontWeight: 700, fontSize: "0.95rem" }}>
-                If recommendations followed
-              </p>
-              <ul style={{ margin: "18px 0 0", paddingLeft: "18px", color: "var(--ink-3)", lineHeight: 1.8 }}>
-                {timelineData.map(item => (
-                  <li key={item.year}>
-                    {item.year} → {item.recommended}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section id="action" style={{ marginBottom: "36px" }}>
-        <div style={{ display: "grid", gap: "24px" }}>
-          <div>
-            <p style={{ margin: 0, color: "var(--ink-2)", textTransform: "uppercase", letterSpacing: "0.14em", fontSize: "0.85rem" }}>
-              Action
-            </p>
-            <h2 style={{ margin: "12px 0 0", fontSize: "2.2rem", fontWeight: 800, color: "var(--ink-0)" }}>
-              The recommendation and its impact, instantly
-            </h2>
-            <p style={{ margin: "16px 0 0", color: "var(--ink-3)", maxWidth: "760px", lineHeight: 1.7 }}>
-              See the one action that matters, plus the outcome it moves across readiness, risk, stress and survival.
-            </p>
-          </div>
-
-          <div style={{ display: "grid", gap: "24px", gridTemplateColumns: "1.2fr 0.8fr" }}>
-            <NextBestActionCard result={result} assessment={assessment} />
-
-            <div style={{ display: "grid", gap: "16px" }}>
-              <div style={{ padding: "24px", borderRadius: "20px", background: "var(--white)", border: "1px solid var(--gray-200)" }}>
-                <p style={{ margin: 0, fontSize: "0.95rem", fontWeight: 700, color: "var(--ink-0)" }}>
-                  Action impact summary
+                <p
+                  style={{
+                    margin: 0,
+                    fontSize: 12,
+                    letterSpacing: "0.12em",
+                    textTransform: "uppercase",
+                    color: "rgba(255,255,255,0.72)"
+                  }}
+                >
+                  {item.time}
                 </p>
-                <p style={{ margin: "14px 0 0", color: "var(--ink-3)", lineHeight: 1.7 }}>
-                  This is how the recommended move changes your financial readiness and resilience in the next cycle.
-                </p>
+                <span style={{ fontSize: 12, color: "var(--accent-cyan)", fontWeight: 700 }}>
+                  {item.tone}
+                </span>
               </div>
-
-              <div style={{ display: "grid", gap: "12px" }}>
-                {actionImpact.map((item, index) => (
-                  <div
-                    key={index}
-                    style={{
-                      padding: "18px 20px",
-                      borderRadius: "18px",
-                      background: "var(--gray-50)",
-                      border: "1px solid var(--gray-200)",
-                      display: "flex",
-                      justifyContent: "space-between",
-                      alignItems: "center"
-                    }}
-                  >
-                    <div>
-                      <p style={{ margin: 0, fontSize: "0.85rem", color: "var(--ink-3)", textTransform: "uppercase", letterSpacing: "0.08em" }}>
-                        {item.label}
-                      </p>
-                      <p style={{ margin: "8px 0 0", color: "var(--ink-0)", fontWeight: 700, fontSize: "1rem" }}>
-                        {item.description}
-                      </p>
-                    </div>
-                    <strong style={{ fontSize: "1.6rem", color: "var(--green-700)" }}>
-                      {item.value}
-                    </strong>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
+              <h3 style={{ margin: 0, fontSize: "1.15rem", lineHeight: 1.4, color: "white" }}>
+                {item.title}
+              </h3>
+              <p style={{ margin: "14px 0 0", color: "rgba(255,255,255,0.77)", lineHeight: 1.7 }}>
+                {item.copy}
+              </p>
+            </article>
+          ))}
         </div>
-      </section>
-
-      <div style={{ textAlign: "center", marginTop: "16px" }}>
-        <a
-          href="#assessment"
-          style={{
-            display: "inline-flex",
-            alignItems: "center",
-            gap: "10px",
-            padding: "14px 22px",
-            borderRadius: "14px",
-            background: "var(--blue-600)",
-            color: "white",
-            fontWeight: 700,
-            textDecoration: "none"
-          }}
-        >
-          Start the Assessment and activate the plan <ArrowRight size={16} />
-        </a>
       </div>
-    </section>
+
+      <div className="home-block mission-block">
+        <div className="section-header">
+          <span className="section-eyebrow">Mission system</span>
+          <h2 className="section-title">Your weekly mission and next best move</h2>
+          <p className="section-copy">
+            A single focus area plus the step-by-step move that matters most this week.
+          </p>
+        </div>
+
+        <div className="mission-grid">
+          <WeeklyMissionCard result={result} assessment={assessment} />
+          <SingleRecommendedAction result={result} assessment={assessment} />
+        </div>
+      </div>
+
+      <div id="journey" className="home-block">
+        <div className="section-header">
+          <span className="section-eyebrow">Journey map</span>
+          <h2 className="section-title">Your long-term trajectory</h2>
+          <p className="section-copy">
+            See the current path, the recommended path, and how one decision changes the whole
+            story.
+          </p>
+        </div>
+
+        <TrajectoryHeroVisual result={result} data={timelineData} />
+      </div>
+
+      <motion.div
+        className="floating-coach"
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.66, ease: [0.22, 1, 0.36, 1] }}
+      >
+        <div style={{ position: "relative" }}>
+          <div className="coach-quick-actions">
+            <button type="button" onClick={() => onCoachOpen?.("why")}>
+              💬 Ask me why your score fell
+            </button>
+            <button type="button" onClick={() => onCoachOpen?.("how-to-90")}>
+              💬 Ask me how to reach 90
+            </button>
+            <button type="button" onClick={() => onCoachOpen?.("buying-advice")}>
+              💬 Ask if buying a car is safe
+            </button>
+          </div>
+          <button
+            type="button"
+            className="coach-button"
+            onMouseEnter={() => setCoachMenuOpen(true)}
+            onMouseLeave={() => setCoachMenuOpen(false)}
+            onClick={() => onCoachOpen?.("start")}
+            title="Open AI Coach"
+          >
+            <MessageCircle size={20} />
+          </button>
+
+          <AnimatePresence>
+            {coachMenuOpen && (
+              <motion.div
+                className="coach-suggestions"
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 8 }}
+                transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
+              >
+                {coachQuickActions.map(item => (
+                  <button
+                    key={item.concern}
+                    type="button"
+                    className="coach-suggestion-button"
+                    onClick={() => onCoachOpen?.(item.concern)}
+                  >
+                    {item.label}
+                  </button>
+                ))}
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+      </motion.div>
+    </main>
   );
 }
+
+UnifiedJourneyHome.propTypes = {
+  result: PropTypes.shape({
+    healthScore: PropTypes.number,
+    futureRiskLabel: PropTypes.string,
+    survivalMonthsDisplay: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+    categoryBand: PropTypes.shape({
+      label: PropTypes.string
+    }),
+    projectedAge: PropTypes.number,
+    emergencyBufferDisplay: PropTypes.string,
+    projectedDebtDisplay: PropTypes.string,
+    projectedStressLabel: PropTypes.string,
+    awarenessGap: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+    cashflowDisplay: PropTypes.string,
+    componentRows: PropTypes.arrayOf(
+      PropTypes.shape({
+        key: PropTypes.string,
+        label: PropTypes.string,
+        percent: PropTypes.number,
+        band: PropTypes.shape({
+          label: PropTypes.string
+        })
+      })
+    )
+  }),
+  assessment: PropTypes.shape({
+    profile: PropTypes.object
+  }),
+  onCoachOpen: PropTypes.func
+};

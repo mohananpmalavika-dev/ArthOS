@@ -103,7 +103,7 @@ export default function FlowNavigation({ activeHash, onNavigate, devMode, onTogg
       {showDeveloperMenu && (
         <nav className="app-nav-developer-menu" aria-label="Developer Tools">
           <div className="dev-menu-header">
-            <p style={{ margin: 0, fontSize: "0.75rem", textTransform: "uppercase", letterSpacing: "0.08em", color: "var(--ink-3)" }}>
+            <p className="dev-menu-title">
               Intelligence & Administration
             </p>
           </div>

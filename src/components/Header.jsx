@@ -81,10 +81,13 @@ function Header({
           </button>
         )}
 
-        <a className="dev-intelligence-link" href="#intelligence" aria-label="Developer Intelligence">
-          <LineChart size={16} />
-          <span>Dev Intelligence</span>
-        </a>
+        {/** Only show developer tools link when devMode is enabled in UI state. */}
+        {typeof window !== "undefined" && window.localStorage?.getItem("arth-os-dev-mode") === "true" ? (
+          <a className="dev-intelligence-link" href="#intelligence" aria-label="Developer Intelligence">
+            <LineChart size={16} />
+            <span>Dev Intelligence</span>
+          </a>
+        ) : null}
 
         <a className="model-avatar-btn" href="#admin" aria-label="Admin dashboard">
           <span>A</span>

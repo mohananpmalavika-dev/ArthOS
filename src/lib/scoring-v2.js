@@ -53,6 +53,14 @@ export function formatMonths(months) {
   return Number.isInteger(months) ? String(months) : months.toFixed(1);
 }
 
+// Normalize internal 0-1000 score to display 0-100
+export function normalizeScore(score) {
+  const s = toNumber(score);
+  // clamp to 0..1000 first
+  const clamped = clamp(s, 0, 1000);
+  return Math.round(clamped / 10);
+}
+
 function clamp(value, min, max) {
   return Math.max(min, Math.min(max, value));
 }
@@ -1105,6 +1113,64 @@ export function calculatePersonalityReportV2(personalityType) {
   return getPersonalityReport(personalityType);
 }
 
+// Estimate recommendation confidence (0-100) based on data completeness,
+// debt schedule confidence and runway stability. Used to convey how sure
+// the system is about the primary recommended action.
+function estimateRecommendationConfidence(assessment, stability, debtSchedule) {
+  const profile = assessment?.profile || {};
+  const behaviour = assessment?.behaviour || {};
+
+  const profileFields = [
+    "monthlyIncome",
+    "monthlyExpenses",
+    "totalDebt",
+    "emergencySavingsFixed",
+    "emergencySavingsDiscretionary"
+  ];
+  const answeredProfile = profileFields.reduce((c, f) => (toNumber(profile[f]) ? c + 1 : c), 0);
+
+  const behaviourKeys = Object.keys(behaviourScoreMaps);
+  const answeredBehaviour = behaviourKeys.reduce((c, k) => (behaviour?.[k] ? c + 1 : c), 0);
+
+  const completeness = clamp(
+    (answeredProfile + answeredBehaviour) / (profileFields.length + behaviourKeys.length),
+    0,
+    1
+  );
+
+  const payoffConfidence = (debtSchedule && debtSchedule.payoffConfidence) || "Medium";
+  const debtConfidenceMap = { High: 0.9, Medium: 0.7, Low: 0.5 };
+  const debtConfidence = debtConfidenceMap[payoffConfidence] ?? 0.6;
+
+  const survivalMonths = stability?.survivalMonthsRaw || 0;
+  const stabilityFactor = Math.min(1, survivalMonths / 12);
+  const stabilityConfidence = clamp(0.35 + 0.65 * stabilityFactor, 0, 1);
+
+  const confidence = clamp(completeness * 0.5 + debtConfidence * 0.3 + stabilityConfidence * 0.2, 0, 1);
+  return Math.round(confidence * 100);
+}
+
+// Financial Resilience Index (FRI) — composite 0..100 metric expressing
+// runway + income stability + debt burden + savings + behaviour.
+function calculateFRIScore(profile = {}, behaviour = {}, stability = {}) {
+  const monthlyIncome = toNumber(profile.monthlyIncome);
+  const monthlyExpenses = toNumber(profile.monthlyExpenses);
+  const totalDebt = toNumber(profile.totalDebt);
+
+  const emergencyMonths = monthlyExpenses > 0 ? clamp(stability.survivalMonthsRaw / 60, 0, 1) : 0; // 0..1
+  const incomeStability = clamp((incomeStabilityScores[profile.incomeStability] ?? 0) / 6, 0, 1); // 0..1
+  const debtBurden = monthlyIncome > 0 ? clamp(totalDebt / (monthlyIncome * 12), 0, 1) : 1; // 0..1
+  const debtScore = 1 - debtBurden; // higher = better
+  const savingsRate = clamp(stability.savingsRate ?? 0, 0, 1); // 0..1
+  const behaviourNormalized = clamp((toNumber(behaviour && behaviour.score) ? toNumber(behaviour.score) : 0) / componentMaximumsV2.behaviour, 0, 1);
+
+  // Weights: emergency 30%, incomeStability 25%, debt 20%, savings 15%, behaviour 10%
+  const fri =
+    emergencyMonths * 0.3 + incomeStability * 0.25 + debtScore * 0.2 + savingsRate * 0.15 + behaviourNormalized * 0.1;
+
+  return clamp(fri * 100, 0, 100);
+}
+
 export function calculateFinancialHealthV2(assessment) {
   const safe = assessment || v2DefaultAssessment;
 
@@ -1183,6 +1249,10 @@ export function calculateFinancialHealthV2(assessment) {
   const survivalBand = getSurvivalBand(stability.survivalMonthsRaw);
   const diagnosis = getDiagnosis(safe, lowest, futureRisk.label, awarenessMetrics);
 
+  // Recommendation confidence and FRI will be calculated and exposed below
+  const recommendedActionConfidence = estimateRecommendationConfidence(safe, stability, debtSchedule);
+  const friScore = Math.round(calculateFRIScore(safe.profile, safe.behaviour, stability));
+
   return {
     mode: "v2",
     behaviourScore,
@@ -1216,6 +1286,8 @@ export function calculateFinancialHealthV2(assessment) {
     strongestComponent: highest,
 
     recommendedActionText,
+    recommendedActionConfidence,
+    friScore,
 
     debtSchedule,
     habits,
@@ -1348,10 +1420,12 @@ export function buildAnonymousTelemetryPayload(assessmentResult, coreAssessment)
     },
     scores: {
       financial_health_score: assessmentResult.healthScore,
+      fri_score: assessmentResult.friScore ?? null,
       behaviour_score: Math.round(assessmentResult.behaviourScore * 10) / 10,
       awareness_score: Math.round(assessmentResult.awarenessScore * 10) / 10,
       stability_score: Math.round(assessmentResult.stabilityScore * 10) / 10,
-      habits_score: assessmentResult.habits?.habitScore ?? 0
+      habits_score: assessmentResult.habits?.habitScore ?? 0,
+      recommended_action_confidence: assessmentResult.recommendedActionConfidence ?? null
     },
     predictive_analytics: {
       personality_type: assessmentResult.personalityType,

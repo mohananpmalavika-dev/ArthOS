@@ -1,29 +1,31 @@
 import React from "react";
 import { Sparkles, Brain, TrendingUp } from "lucide-react";
 import { calculateBehavioralCorrelationV2 } from "../engines/behaviorCorrelation.js";
+import { normalizeScore } from "../lib/scoring-v2.js";
 
 export default function InsightNarrative({ result, assessment }) {
   const correlations = calculateBehavioralCorrelationV2(assessment);
-  const healthScore = result?.healthScore ?? 50;
+  const rawHealthScore = result?.healthScore ?? 50;
+  const normalizedHealthScore = normalizeScore(rawHealthScore);
   const tone =
-    healthScore >= 80 ? "positive" : healthScore >= 60 ? "cautious" : "critical";
+    normalizedHealthScore >= 80 ? "positive" : normalizedHealthScore >= 60 ? "cautious" : "critical";
 
   // Map health score to band color
   const bandColor =
-    healthScore >= 800
+    normalizedHealthScore >= 80
       ? "var(--bas-sovereign)"
-      : healthScore >= 600
+      : normalizedHealthScore >= 60
         ? "var(--bas-resilient)"
-        : healthScore >= 400
+        : normalizedHealthScore >= 40
           ? "var(--bas-developing)"
-          : healthScore >= 200
+          : normalizedHealthScore >= 20
             ? "var(--bas-warning)"
             : "var(--bas-critical)";
 
   const narrative =
-    healthScore >= 80
+    normalizedHealthScore >= 80
       ? `Good strength today. You are ${result.categoryBand.label}. Your awareness gap of ${result.awarenessGapDisplay} months means you may still be assuming more runway than you actually have.`
-      : healthScore >= 60
+      : normalizedHealthScore >= 60
         ? `Your financial health is ${result.categoryBand.label.toLowerCase()}. ${result.blindSpotSummary} ${result.recommendedActionText}`
         : `Your profile is under pressure. ${result.blindSpotSummary} The most urgent priority is strengthening your runway and reducing high-risk spending.`;
 
@@ -61,21 +63,21 @@ export default function InsightNarrative({ result, assessment }) {
           className="narrative-box"
           style={{
             padding: "var(--space-3)",
-            backgroundColor: "var(--blue-50)",
+            backgroundColor: "var(--surface-3)",
             borderRadius: "var(--radius-2)",
             borderLeft: "2px solid var(--cyan)",
           }}
         >
           <strong style={{ color: "var(--ink-0)" }}>Score</strong>
           <p style={{ color: "var(--ink-2)", marginTop: "var(--space-1)" }}>
-            {result.healthScore}/100 - {result.categoryBand.label}
+            {normalizedHealthScore}/100 - {result.categoryBand.label}
           </p>
         </div>
         <div
           className="narrative-box"
           style={{
             padding: "var(--space-3)",
-            backgroundColor: "var(--green-50)",
+            backgroundColor: "var(--surface-3)",
             borderRadius: "var(--radius-2)",
             borderLeft: "2px solid var(--green-700)",
           }}
@@ -89,7 +91,7 @@ export default function InsightNarrative({ result, assessment }) {
           className="narrative-box"
           style={{
             padding: "var(--space-3)",
-            backgroundColor: "var(--red-50)",
+            backgroundColor: "var(--surface-3)",
             borderRadius: "var(--radius-2)",
             borderLeft: "2px solid var(--red-600)",
           }}
@@ -106,7 +108,7 @@ export default function InsightNarrative({ result, assessment }) {
         style={{
           marginTop: "var(--space-4)",
           paddingTop: "var(--space-4)",
-          borderTop: "1px solid var(--blue-50)",
+          borderTop: "1px solid rgba(98, 228, 209, 0.12)",
         }}
       >
         <div style={{ display: "flex", alignItems: "center", gap: "var(--space-2)", marginBottom: "var(--space-3)" }}>
@@ -128,7 +130,7 @@ export default function InsightNarrative({ result, assessment }) {
               key={item.title}
               style={{
                 padding: "var(--space-2)",
-                backgroundColor: "var(--blue-50)",
+                backgroundColor: "var(--surface-3)",
                 borderRadius: "var(--radius-1)",
                 borderLeft: "2px solid var(--teal-700)",
               }}
