@@ -7149,6 +7149,42 @@ main {
   font-weight: 700;
 }
 
+.forecast-simulator-result {
+  padding: 18px;
+  border: 1px solid rgba(98, 228, 209, 0.16);
+  border-radius: calc(var(--radius-xs) * 1.25);
+  background: rgba(98, 228, 209, 0.04);
+}
+
+.forecast-simulator-title {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.forecast-simulator-title strong {
+  font-size: 18px;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+}
+
+.forecast-simulator-title small {
+  color: var(--ink-3);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.forecast-detail-card-highlight {
+  border-color: rgba(115, 240, 191, 0.35);
+  background: rgba(115, 240, 191, 0.08);
+}
+
+.future-score-card strong {
+  color: var(--green);
+  font-size: 24px;
+}
+
 .forecast-two-up-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
