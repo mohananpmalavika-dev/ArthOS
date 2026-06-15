@@ -551,6 +551,11 @@ export default function App({ demoMode = false }) {
         return;
       }
 
+      if (hash === "#future-you") {
+        navigate("/future-you");
+        return;
+      }
+
       if (hash.startsWith("/")) {
         navigate(hash);
       } else {
@@ -1528,6 +1533,30 @@ export default function App({ demoMode = false }) {
               <div className="dashboard-page-header">
                 <h1>Dashboard</h1>
                 <p>Your ARTH.OS home base for insights, plans, accounts, and score history.</p>
+              </div>
+              <div className="dashboard-teaser-panel">
+                <div className="teaser-card">
+                  <span className="teaser-label">Weather Index</span>
+                  <strong>{result.weatherIndex ?? "—"}/100</strong>
+                  <p>Resilience and macro stability outlook for your current financial profile.</p>
+                </div>
+                <div className="teaser-card">
+                  <span className="teaser-label">Future Confidence</span>
+                  <strong>{result.futureConfidenceScore ?? "—"}%</strong>
+                  <p>How certain the platform is about your upcoming path and runway forecast.</p>
+                </div>
+                <div className="teaser-card">
+                  <span className="teaser-label">Volatility</span>
+                  <strong>{result.incomeVolatilityIndex ?? "—"}%</strong>
+                  <p>Income stability risk driven by cashflow variability and runway pressure.</p>
+                </div>
+                <div className="teaser-card teaser-actions-card">
+                  <span className="teaser-label">Explore more</span>
+                  <div className="teaser-actions">
+                    <button type="button" onClick={() => navigate("/future-you")}>Future You</button>
+                    <button type="button" onClick={() => navigate("/advanced")}>Advanced Analytics</button>
+                  </div>
+                </div>
               </div>
               <div className="dashboard-grid">
                 <div className="dashboard-grid-item">

@@ -170,12 +170,13 @@ interface CommonActions {
 export const NAV_ITEMS: NavItem[] = [
   { label: "Dashboard", href: "/dashboard" },
   { label: "Insights", href: "/dashboard/insights" },
+  { label: "Future You", href: "/future-you" },
   { label: "Plan", href: "/dashboard/plan" },
   { label: "Accounts", href: "/dashboard/accounts" },
   { label: "History", href: "/dashboard/history" },
   { label: "Notifications", href: "/dashboard/notifications" },
   { label: "Settings", href: "/dashboard/settings" },
-  { label: "Advanced", href: "/advanced" }
+  { label: "Advanced Analytics", href: "/advanced" }
 ];
 
 // ── Human-Friendly Feature Labels ──
