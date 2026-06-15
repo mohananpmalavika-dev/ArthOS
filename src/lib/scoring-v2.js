@@ -1,12 +1,7 @@
-import { v2DefaultAssessment } from "../data/questionnaire-v2.js";
-import { calculateDecisionQualityIndex } from "../engines/decisionQualityEngine.js";
-
-// L02: BAST™ Processing Engine - Blueprint-compliant 40/30/30 weighting
-export const componentMaximumsV2 = {
-  behaviour: 40, // 40% composite weight
-  awareness: 30, // 30% composite weight
-  stability: 30 // 30% composite weight
-};
+import {
+  v2DefaultAssessment,
+  componentMaximumsV2
+} from "../data/questionnaire-v2.js";
 
 // Composite weights for normalization to /1000 scale
 export const compositeWeightsV2 = {

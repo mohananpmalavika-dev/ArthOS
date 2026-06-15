@@ -19,6 +19,12 @@
 // 'high'     – shown if user has time
 // 'normal'   – skipped in express mode (still shown in full mode)
 
+export const componentMaximumsV2 = {
+  behaviour: 40, // 40% composite weight
+  awareness: 30, // 30% composite weight
+  stability: 30 // 30% composite weight
+};
+
 export const v2BehaviourQuestions = [
   // ── GATE QUESTIONS (must come first) ──
   {
