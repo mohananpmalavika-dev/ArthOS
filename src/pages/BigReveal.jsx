@@ -1,4 +1,5 @@
 import React from "react";
+import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { useAssessmentState } from "../hooks/useAssessmentState.js";
 import { calculateFinancialHealthV2 } from "../lib/scoring-v2.js";
@@ -41,6 +42,7 @@ export default function BigReveal() {
   const { digitalTwin } = useHistoricalDataContext();
   const result = calculateFinancialHealthV2(assessment);
   const [showFull, setShowFull] = React.useState(false);
+  const navigate = useNavigate();
 
   const currentScore = clampScore(normalizeScore(result?.healthScore ?? 0));
   const percentile = Math.round(50 + (currentScore - 50) * 1.46); // simplified: 0-50 → 0-73%, 50-100 → 73-100%
@@ -54,6 +56,10 @@ export default function BigReveal() {
 
   return (
     <div style={{ padding: 24, maxWidth: 1200, margin: "0 auto" }}>
+      <div style={{ display: "flex", gap: 12, marginBottom: 16 }}>
+        <button className="nav-btn" onClick={() => navigate(-1)} title="Go back">Back</button>
+        <button className="nav-btn" onClick={() => navigate("/home")} title="Go home">Home</button>
+      </div>
       {/* ════════════════════════════════════════════════
           BIG REVEAL HERO
           ════════════════════════════════════════════════ */}

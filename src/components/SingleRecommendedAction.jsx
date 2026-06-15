@@ -26,7 +26,7 @@ function SingleRecommendedAction({ result, assessment }) {
         Planner: "Use YNAB or Kakeibo to auto-track impulse categories. Weekly review ritual.",
         Dreamer: "Create a visual 'wish list' board—move items there instead of buying on impulse.",
         Optimizer: "A/B test your current wait period vs. 48-hour rule for one month.",
-        "Risk Taker": "Gamify it: save the ₹ you *didn&apos;t* spend this week as a 'win fund'."
+          "Risk Taker": "Gamify it: save the ₹ you *didn't* spend this week as a 'win fund'."
       },
       trackingLabel: "Wait Rule Engagement"
     },
@@ -49,6 +49,7 @@ function SingleRecommendedAction({ result, assessment }) {
     stability: {
       headline: `Build Your Emergency Buffer`,
       reason: `Your survival runway is ${result?.survivalMonthsDisplay || "0"} months. It&apos;s not enough cushion for life's surprises.`,
+        reason: `Your survival runway is ${result?.survivalMonthsDisplay || "0"} months. It's not enough cushion for life's surprises.`,
       impact: "Every ₹10,000 saved = 1 month more runway = reduced financial anxiety",
       microGoal: "This month: save just ₹2,000–₹3,000. That's 15–20 minutes of your hourly income.",
       archetype: {
@@ -126,7 +127,7 @@ function SingleRecommendedAction({ result, assessment }) {
             className={`engagement-btn ${engaged ? "engaged" : ""}`}
             onClick={() => setEngaged(!engaged)}
           >
-            {engaged ? "✓ I&apos;m committed" : "I&apos;ll try this"}
+              {engaged ? "✓ I'm committed" : "I'll try this"}
           </button>
 
           {engaged && (
@@ -152,7 +153,7 @@ function SingleRecommendedAction({ result, assessment }) {
         {completed && (
           <div className="completion-badge">
             <CheckCircle2 size={20} />
-            <span>Great work! You&apos;re building financial resilience one action at a time.</span>
+              <span>Great work! You're building financial resilience one action at a time.</span>
           </div>
         )}
       </div>
