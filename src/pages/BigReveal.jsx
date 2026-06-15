@@ -103,16 +103,16 @@ export default function BigReveal() {
 
             <div className="big-reveal-hero-metrics">
               <div className="hero-metric">
-                <span>Awareness</span>
-                <strong>{result?.awarenessGap ? `${result.awarenessGap} mo` : "Unknown"}</strong>
+                <span>Decision Quality</span>
+                <strong>{result?.decisionQuality ? `${result.decisionQuality.index} / 100` : "—"}</strong>
               </div>
               <div className="hero-metric">
-                <span>Stability</span>
-                <strong>{result?.categoryBand?.label || "Balanced"}</strong>
+                <span>Awareness Integrity</span>
+                <strong>{result?.awarenessIntegrityScore ?? "—"}</strong>
               </div>
               <div className="hero-metric">
-                <span>Behavior</span>
-                <strong>{result?.futureRiskLabel || "Moderate"}</strong>
+                <span>Volatility</span>
+                <strong>{result?.incomeVolatilityIndex ?? "—"}%</strong>
               </div>
             </div>
           </motion.div>
@@ -157,7 +157,14 @@ export default function BigReveal() {
                 >
                   <AnimatedCounter to={worstCaseScore} duration={0.8} />
                 </motion.div>
-                <p className="scenario-copy">Your score in 12 months</p>
+                <p className="scenario-copy">
+                  Likely future score if you stay on the current path.
+                </p>
+                <div className="scenario-insight">
+                  {result?.incomeVolatilityIndex !== undefined && (
+                    <span>Volatility: {result.incomeVolatilityIndex}%</span>
+                  )}
+                </div>
               </motion.div>
 
               {/* Best Case */}
@@ -178,7 +185,14 @@ export default function BigReveal() {
                 >
                   <AnimatedCounter to={bestCaseScore} duration={0.8} />
                 </motion.div>
-                <p className="scenario-copy">Your score in 12 months</p>
+                <p className="scenario-copy">
+                  Best-case outcome if you act on the highest-impact recommendation.
+                </p>
+                <div className="scenario-insight">
+                  {result?.futureConfidenceScore !== undefined && (
+                    <span>Future Confidence: {result.futureConfidenceScore}%</span>
+                  )}
+                </div>
               </motion.div>
             </div>
           </motion.section>

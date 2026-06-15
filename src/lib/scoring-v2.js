@@ -1,4 +1,5 @@
 import { v2DefaultAssessment } from "../data/questionnaire-v2.js";
+import { calculateDecisionQualityIndex } from "../engines/decisionQualityEngine.js";
 
 // L02: BAST™ Processing Engine - Blueprint-compliant 40/30/30 weighting
 export const componentMaximumsV2 = {
@@ -13,6 +14,172 @@ export const compositeWeightsV2 = {
   awareness: 0.3,
   stability: 0.3
 };
+
+function normalizeWeights(weights = {}) {
+  const sanitized = {
+    behaviour: clamp(weights.behaviour ?? 0, 0, 1),
+    awareness: clamp(weights.awareness ?? 0, 0, 1),
+    stability: clamp(weights.stability ?? 0, 0, 1)
+  };
+  const total = sanitized.behaviour + sanitized.awareness + sanitized.stability || 1;
+  return {
+    behaviour: sanitized.behaviour / total,
+    awareness: sanitized.awareness / total,
+    stability: sanitized.stability / total
+  };
+}
+
+export function calculateAdaptiveBASTWeights(
+  profile = {},
+  behaviourScore = 0,
+  awarenessScore = 0,
+  stability = {},
+  awarenessMetrics = {}
+) {
+  const defaultWeights = { behaviour: 0.4, awareness: 0.3, stability: 0.3 };
+  const survivalMonths = stability.survivalMonthsRaw || 0;
+  const gap = awarenessMetrics.awarenessGap || 0;
+  const futureRiskScore = calculateFutureRiskV2(profile).score || 50;
+
+  const weights = { ...defaultWeights };
+
+  if (survivalMonths < 3) {
+    weights.stability += 0.1;
+    weights.awareness -= 0.04;
+    weights.behaviour -= 0.06;
+  } else if (survivalMonths < 6) {
+    weights.stability += 0.06;
+    weights.awareness += 0.02;
+    weights.behaviour -= 0.04;
+  }
+
+  if (gap >= 3) {
+    weights.awareness += 0.08;
+    weights.behaviour -= 0.03;
+    weights.stability -= 0.05;
+  }
+
+  if (behaviourScore < 18) {
+    weights.behaviour += 0.08;
+    weights.awareness -= 0.03;
+    weights.stability -= 0.05;
+  }
+
+  if (profile.incomeStability === "highly_variable") {
+    weights.stability += 0.05;
+    weights.awareness += 0.03;
+    weights.behaviour -= 0.08;
+  } else if (profile.incomeStability === "very_consistent") {
+    weights.behaviour += 0.02;
+    weights.awareness += 0.02;
+    weights.stability -= 0.04;
+  }
+
+  if (futureRiskScore <= 35) {
+    weights.awareness += 0.04;
+    weights.stability += 0.04;
+    weights.behaviour -= 0.08;
+  }
+
+  return normalizeWeights(weights);
+}
+
+function getScoreLabel(score, { high, medium, low }) {
+  if (score >= 75) return high;
+  if (score >= 50) return medium;
+  return low;
+}
+
+function calculateIncomeVolatilityIndex(profile = {}, stability = {}) {
+  const baseVolatility = {
+    very_consistent: 12,
+    mostly_consistent: 28,
+    somewhat_variable: 50,
+    highly_variable: 72
+  }[profile.incomeStability] ?? 35;
+
+  const savingsRate = profile.monthlyIncome > 0 ? clamp((toNumber(profile.monthlyIncome) - toNumber(profile.monthlyExpenses)) / toNumber(profile.monthlyIncome), 0, 1) : 0;
+  const runwayPressure = stability.survivalMonthsRaw > 0 ? clamp(6 / stability.survivalMonthsRaw, 0, 1) : 1;
+  const cashflowVariability = 1 - savingsRate;
+
+  return Math.round(clamp(baseVolatility + runwayPressure * 10 + cashflowVariability * 10, 0, 100));
+}
+
+function calculateRiskAdjustedSurvivalMonths(stability = {}, incomeVolatilityIndex = 0, awarenessScore = 0) {
+  const volatilityDrag = clamp(incomeVolatilityIndex / 160, 0, 0.45);
+  const awarenessDrag = clamp(1 - awarenessScore / componentMaximumsV2.awareness, 0, 1) * 0.15;
+  const adjusted = stability.survivalMonthsRaw * Math.max(0.55, 1 - volatilityDrag - awarenessDrag);
+  return Number(clamp(adjusted, 0, stability.survivalMonthsRaw).toFixed(1));
+}
+
+function calculateAwarenessIntegrityScore(awarenessScore = 0, awarenessMetrics = {}) {
+  const gapPenalty = clamp((awarenessMetrics.awarenessGap || 0) * 8, 0, 60);
+  return Math.round(clamp(awarenessScore * 0.55 + (100 - gapPenalty) * 0.45, 0, 100));
+}
+
+function calculateBehaviourConsistencyFactor(behaviour = {}) {
+  const planningWeights = {
+    always: 1,
+    often: 0.8,
+    sometimes: 0.6,
+    rarely: 0.4,
+    never: 0.2
+  };
+
+  const planScore = planningWeights[behaviour.plannedPurchasesOnly] ?? 0.4;
+  const impulseScore = planningWeights[behaviour.impulseWaitRule] ?? 0.4;
+  const subscriptionScore = planningWeights[behaviour.subscriptionControl] ?? 0.4;
+
+  return (planScore + impulseScore + subscriptionScore) / 3;
+}
+
+function calculateStrategyConsistencyScore(habits = {}, behaviour = {}, stability = {}) {
+  const habitScore = habits.habitScore ?? 0;
+  const behaviourConsistency = calculateBehaviourConsistencyFactor(behaviour) * 100;
+  const stabilityFactor = clamp((stability.score || 0) / componentMaximumsV2.stability, 0, 1) * 100;
+
+  return Math.round(clamp(habitScore * 0.35 + behaviourConsistency * 0.35 + stabilityFactor * 0.3, 0, 100));
+}
+
+function calculateComponentDivergence(componentRows = []) {
+  if (!componentRows.length) {
+    return 0;
+  }
+  const values = componentRows.map(row => row.percent);
+  return Math.round(Math.max(...values) - Math.min(...values));
+}
+
+function calculateFutureConfidenceScore(futureRiskScore = 0, awarenessIntegrityScore = 0, consistencyScore = 0) {
+  return Math.round(clamp(futureRiskScore * 0.45 + awarenessIntegrityScore * 0.3 + consistencyScore * 0.25, 0, 100));
+}
+
+function derivePeerCohortComparison(profile = {}, result = {}) {
+  const base = clamp((result.survivalMonthsRaw || 0) * 6 + (result.futureRiskScore || 50) * 0.25, 0, 100);
+  const percentile = Math.round(clamp(base, 10, 95));
+  const label =
+    percentile >= 75
+      ? "Stronger than typical peers"
+      : percentile >= 50
+        ? "In line with typical peers"
+        : "Behind most peer cohorts";
+
+  return {
+    label,
+    percentile,
+    insight: `Your profile sits in roughly the ${percentile}th percentile among peers with similar stability and awareness.`
+  };
+}
+
+function calculateWeatherIndex(healthScore = 0, incomeVolatilityIndex = 0, awarenessIntegrityScore = 0, consistencyScore = 0) {
+  const healthNormalized = normalizeScore(healthScore);
+  return Math.round(
+    clamp(
+      healthNormalized * 0.35 + (100 - incomeVolatilityIndex) * 0.2 + awarenessIntegrityScore * 0.25 + consistencyScore * 0.2,
+      0,
+      100
+    )
+  );
+}
 
 // Health score bands for /1000 scale
 export const healthScoreBandsV2 = {
@@ -1187,13 +1354,30 @@ export function calculateFinancialHealthV2(assessment) {
   const blindSpot = calculateBlindSpotV2(awarenessMetrics);
 
   // L02: Calculate composite health score using 40/30/30 weighting, normalized to /1000
+  const adaptiveWeights = calculateAdaptiveBASTWeights(
+    safe.profile,
+    behaviourScore,
+    awarenessScore,
+    stability,
+    awarenessMetrics
+  );
+
   const normalisedBehaviour =
-    (behaviourScore / componentMaximumsV2.behaviour) * 1000 * compositeWeightsV2.behaviour;
+    (behaviourScore / componentMaximumsV2.behaviour) * 1000 * adaptiveWeights.behaviour;
   const normalisedAwareness =
-    (awarenessScore / componentMaximumsV2.awareness) * 1000 * compositeWeightsV2.awareness;
+    (awarenessScore / componentMaximumsV2.awareness) * 1000 * adaptiveWeights.awareness;
   const normalisedStability =
-    (stability.score / componentMaximumsV2.stability) * 1000 * compositeWeightsV2.stability;
+    (stability.score / componentMaximumsV2.stability) * 1000 * adaptiveWeights.stability;
   const healthScore = Math.round(normalisedBehaviour + normalisedAwareness + normalisedStability);
+
+  const baselineBehaviour =
+    (behaviourScore / componentMaximumsV2.behaviour) * 1000 * compositeWeightsV2.behaviour;
+  const baselineAwareness =
+    (awarenessScore / componentMaximumsV2.awareness) * 1000 * compositeWeightsV2.awareness;
+  const baselineStability =
+    (stability.score / componentMaximumsV2.stability) * 1000 * compositeWeightsV2.stability;
+  const baselineHealthScore = Math.round(baselineBehaviour + baselineAwareness + baselineStability);
+
   const categoryBand = getHealthBandV2(healthScore);
 
   // L02: Component scoring with 0-100 internal scale for diagnostic clarity
@@ -1234,6 +1418,35 @@ export function calculateFinancialHealthV2(assessment) {
 
   const debtSchedule = calculateDebtScheduleEstimateV2(safe.profile);
   const habits = calculateHabitsMetricsV2(safe.habits);
+  const incomeVolatilityIndex = calculateIncomeVolatilityIndex(safe.profile, stability);
+  const riskAdjustedSurvivalMonthsRaw = calculateRiskAdjustedSurvivalMonths(
+    stability,
+    incomeVolatilityIndex,
+    awarenessScore
+  );
+  const awarenessIntegrityScore = calculateAwarenessIntegrityScore(awarenessScore, awarenessMetrics);
+  const strategyConsistencyScore = calculateStrategyConsistencyScore(habits, safe.behaviour, stability);
+  const componentDivergence = calculateComponentDivergence(componentRows);
+  const futureConfidenceScore = calculateFutureConfidenceScore(
+    futureRisk.score,
+    awarenessIntegrityScore,
+    strategyConsistencyScore
+  );
+  const peerCohortComparison = derivePeerCohortComparison(safe.profile, {
+    survivalMonthsRaw: stability.survivalMonthsRaw,
+    futureRiskScore: futureRisk.score
+  });
+  const weatherIndex = calculateWeatherIndex(
+    normalizeScore(healthScore),
+    incomeVolatilityIndex,
+    awarenessIntegrityScore,
+    strategyConsistencyScore
+  );
+  const decisionQuality = calculateDecisionQualityIndex({
+    awarenessScore,
+    behaviourScore,
+    stabilityScore: stability.score
+  });
 
   const componentsForAction = [
     { key: "behaviour", score: behaviourScore },
@@ -1308,8 +1521,18 @@ export function calculateFinancialHealthV2(assessment) {
     blindSpotPerceived: blindSpot.perceivedSurvivalMonthsDisplay,
     blindSpotActual: blindSpot.actualSurvivalMonthsDisplay,
     blindSpotGap: blindSpot.gapDisplay,
-    blindSpotDirection: blindSpot.direction,
-
+    decisionQuality,
+    adaptiveWeights,
+    baselineHealthScore,
+    incomeVolatilityIndex,
+    riskAdjustedSurvivalMonthsRaw,
+    riskAdjustedSurvivalMonthsDisplay: formatMonths(riskAdjustedSurvivalMonthsRaw),
+    awarenessIntegrityScore,
+    strategyConsistencyScore,
+    componentDivergence,
+    futureConfidenceScore,
+    peerCohortComparison,
+    weatherIndex,
     summary: `${categoryBand.label} financial health with ${survivalBand.label.toLowerCase()}.`
   };
 }
