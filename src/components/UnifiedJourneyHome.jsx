@@ -1,4 +1,8 @@
 import React, { useMemo, useState, useRef, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+const AiCoachInterface = React.lazy(() => import("./AiCoachInterface.jsx"));
+const RealityScreen = React.lazy(() => import("./RealityScreen.jsx"));
+const FutureScreen = React.lazy(() => import("./FutureScreen.jsx"));
 import PropTypes from "prop-types";
 import { AnimatePresence, motion } from "framer-motion";
 import { MessageCircle } from "lucide-react";
@@ -17,6 +21,7 @@ function clampScore(value) {
 }
 
 export default function UnifiedJourneyHome({ result, assessment, onCoachOpen }) {
+  const navigate = useNavigate();
   const [coachMenuOpen, setCoachMenuOpen] = useState(false);
 
   const currentScore = useMemo(
@@ -107,6 +112,18 @@ export default function UnifiedJourneyHome({ result, assessment, onCoachOpen }) 
     el.addEventListener("mousemove", onMove);
     return () => el.removeEventListener("mousemove", onMove);
   }, []);
+
+  // Landing redirect: if there's no meaningful score yet, guide users into onboarding.
+  useEffect(() => {
+    try {
+      // If no numeric health score yet, it's likely a first-time user — send to onboarding
+      if (typeof result?.healthScore !== "number" || Number.isNaN(result.healthScore)) {
+        navigate("/onboarding", { replace: true });
+      }
+    } catch (err) {
+      // ignore navigation errors
+    }
+  }, [result, navigate]);
 
   const [particles] = useState(() =>
     Array.from({ length: 22 }).map(() => ({
@@ -327,6 +344,28 @@ export default function UnifiedJourneyHome({ result, assessment, onCoachOpen }) 
         <div className="digital-twin-grid">
           <FutureYou data={futureYouData} />
           <FinancialWeatherCard healthScore={result?.healthScore ?? 0} />
+        </div>
+      </div>
+
+      <div className="home-block preview-block">
+        <div className="section-header">
+          <span className="section-eyebrow">Quick previews</span>
+          <h2 className="section-title">Reality, Future & Coach</h2>
+          <p className="section-copy">Small previews so you can jump straight to the cinematic experiences.</p>
+        </div>
+
+        <div className="preview-grid">
+          <React.Suspense fallback={<div>Loading preview...</div>}>
+            <RealityScreen result={result} assessment={assessment} />
+          </React.Suspense>
+
+          <React.Suspense fallback={<div>Loading preview...</div>}>
+            <FutureScreen result={result} assessment={assessment} />
+          </React.Suspense>
+
+          <React.Suspense fallback={<div>Loading coach...</div>}>
+            <AiCoachInterface result={result} assessment={assessment} compact />
+          </React.Suspense>
         </div>
       </div>
 

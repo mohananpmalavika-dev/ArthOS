@@ -1389,6 +1389,13 @@ export default function App({ demoMode = false }) {
                   result={result}
                   onChange={updateGroup}
                   onSaveAssessment={saveAssessment}
+                  onComplete={() => {
+                    try {
+                      if (!demoMode) navigate("/big-reveal", { replace: true });
+                    } catch (e) {
+                      // ignore
+                    }
+                  }}
                   ui={ui}
                   resetTrigger={resetTrigger}
                 />

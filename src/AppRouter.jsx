@@ -62,6 +62,9 @@ function AppRouter() {
           {/* Advanced area (not on the primary nav) */}
           <Route path="/advanced" element={isAuthenticated ? <AdvancedArea /> : <Navigate to="/login" replace />} />
 
+          {/* Root: send authenticated users into the cinematic onboarding flow first. */}
+          <Route path="/" element={isAuthenticated ? <Navigate to="/onboarding" replace /> : <Navigate to="/login" replace />} />
+
           {/* Main app demo route - the same app but with investor demo framing. */}
           {(() => {
             const isLocalDev = typeof window !== "undefined" &&

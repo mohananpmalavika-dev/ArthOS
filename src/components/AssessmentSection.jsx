@@ -496,6 +496,7 @@ export default function AssessmentSection({
   result,
   onChange,
   onSaveAssessment,
+  onComplete,
   ui,
   resetTrigger
 }) {
@@ -887,6 +888,16 @@ export default function AssessmentSection({
         onSaveAssessment();
       }
       setShowFeedback(true);
+      // Trigger any post-completion flow (navigation to Big Reveal)
+      try {
+        if (typeof onComplete === "function") {
+          onComplete();
+        }
+      } catch (err) {
+        // swallow navigation errors
+        // eslint-disable-next-line no-console
+        console.warn("onComplete handler failed:", err && err.message);
+      }
     } catch (error) {
       console.error("Error submitting assessment:", error);
       setValidationErrors(["❌ Error submitting assessment. Please try again."]);

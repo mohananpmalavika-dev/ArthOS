@@ -10004,6 +10004,25 @@ main {
   padding: 40px 24px;
   max-width: 1200px;
   margin: 0 auto;
+  opacity: 0.85;
+  transition: opacity 0.3s ease;
+  scroll-margin-top: 120px;
+}
+
+.home-block:hover {
+  opacity: 1;
+}
+
+.home-block:nth-child(3) {
+  margin-top: 60px;
+}
+
+.home-block:nth-child(n+5) {
+  opacity: 0.7;
+}
+
+.home-block:nth-child(n+5):hover {
+  opacity: 0.95;
 }
 
 .section-header {
@@ -10021,10 +10040,15 @@ main {
 
 .section-title {
   margin: 0;
-  font-size: clamp(2rem, 3vw, 3rem);
-  font-weight: 900;
+  font-size: clamp(1.5rem, 2.5vw, 2.5rem);
+  font-weight: 800;
   color: white;
-  line-height: 1.03;
+  line-height: 1.1;
+}
+
+.cinematic-hero .section-title {
+  font-size: clamp(2.5rem, 5vw, 4rem);
+  font-weight: 900;
 }
 
 .section-copy {
@@ -10110,9 +10134,13 @@ main {
 /* Cinematic Hero */
 .cinematic-hero {
   position: relative;
-  padding: 60px 24px;
-  margin-bottom: 32px;
+  padding: 80px 24px;
+  margin-bottom: 0;
   overflow: visible;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 .cinematic-mesh {
   position: absolute;

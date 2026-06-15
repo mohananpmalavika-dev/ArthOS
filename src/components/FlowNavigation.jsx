@@ -21,9 +21,12 @@ export default function FlowNavigation({ activeHash, onNavigate, devMode, onTogg
   const coreNarrative = useMemo(
     () => [
       { id: "assess", hash: "#assessment", label: "Assessment", icon: ClipboardList, description: "Financial Health Quiz" },
-      { id: "reality", hash: "#", label: "Reality", icon: Home, description: "Where am I?" },
+      { id: "big-reveal", hash: "/big-reveal", label: "Big Reveal", icon: Sparkles, description: "Cinematic score reveal" },
+      { id: "home", hash: "#", label: "Home", icon: Home, description: "Story home" },
+      { id: "reality", hash: "#reality", label: "Reality", icon: Home, description: "Where am I?" },
       { id: "mind", hash: "#mind", label: "Why", icon: Brain, description: "Why am I here?" },
       { id: "future", hash: "#future", label: "Future", icon: Target, description: "What happens next?" },
+      { id: "future-you", hash: "/future-you", label: "Future You", icon: Target, description: "Future You preview" },
       { id: "action", hash: "#action", label: "Actions", icon: GitBranch, description: "What should I do?" },
       { id: "coach", hash: "#coach", label: "Coach", icon: MessageCircle, description: "Help me execute" }
     ],
@@ -37,9 +40,9 @@ export default function FlowNavigation({ activeHash, onNavigate, devMode, onTogg
         id: "developer-intelligence",
         hash: "#intelligence",
         aliases: ["#predictions"],
-        label: "Developer Intelligence",
+        label: "Advanced Intelligence",
         icon: LineChart,
-        description: "Internal intelligence layers"
+        description: "Understand your financial engines"
       },
       { id: "admin", hash: "#admin", label: "Admin", icon: ShieldCheck, description: "Operations Console" }
     ],
@@ -48,12 +51,23 @@ export default function FlowNavigation({ activeHash, onNavigate, devMode, onTogg
 
   const isActive = hash => {
     const currentHash = activeHash || "#";
+    const currentPath = typeof window !== "undefined" ? window.location.pathname : "";
     const allItems = [...coreNarrative, ...developerMenu];
     const item = allItems.find(navItem => navItem.hash === hash);
+    // If hash is a path (starts with /), consider pathname for active
+    if (hash && hash.startsWith("/")) {
+      return currentPath === hash;
+    }
     return currentHash === hash || (item?.aliases && item.aliases.includes(currentHash));
   };
 
   const handleNavClick = hash => {
+    if (hash && hash.startsWith("/")) {
+      // absolute path — navigate the full app router
+      window.location.href = hash;
+      return;
+    }
+
     if (onNavigate) {
       onNavigate(hash);
     } else {

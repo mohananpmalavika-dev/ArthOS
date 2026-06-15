@@ -169,13 +169,75 @@ interface CommonActions {
 
 export const NAV_ITEMS: NavItem[] = [
   { label: "Assess", href: "#assessment" },
+  { label: "Big Reveal", href: "/big-reveal" },
+  { label: "Home", href: "#" },
   { label: "Reality", href: "#reality" },
+  { label: "Why", href: "#mind" },
   { label: "Future", href: "#future" },
+  { label: "Future You", href: "/future-you" },
   { label: "Action", href: "#action" },
   { label: "Coach", href: "#coach" },
   { label: "Partners", href: "#b2b" },
-  { label: "Advanced Insights", href: "#advanced" },
+  { label: "Advanced Insights", href: "#advanced" }
 ];
+
+// ── Human-Friendly Feature Labels ──
+// Maps technical component names to user-facing terminology
+
+export const FEATURE_LABELS = {
+  // Core components
+  digitalTwin: "Future You",
+  predictionEngine: "What Happens Next",
+  cognitionGraph: "How Your Mind Influences Money",
+  decisionSimulator: "Try Different Futures",
+  financialDNA: "Your Financial Personality",
+  longitudinalLearning: "Your Learning Journey",
+  behavioralAnalysis: "Pattern Recognition",
+  riskAndOpportunityEngine: "What Could Change",
+  
+  // Advanced Intelligence sections
+  understand: "Understand",
+  predict: "Predict",
+  simulate: "Simulate",
+  learn: "Learn",
+  analyze: "Analyze",
+  
+  // Advanced menu items
+  advancedIntelligence: "Advanced Intelligence",
+  developerIntelligence: "Developer Intelligence",
+  digitalTwinAnalytics: "Financial Projections",
+  predictionEngineAccess: "Future Scenarios",
+  cognitionGraphExplorer: "Behavioral Patterns",
+  decisionSimulatorAccess: "Outcome Simulator",
+  longitudinalLearningTimeline: "Decision History",
+  
+  // Engines grouped by value
+  understandSection: [
+    { id: "cognition-graph", label: "How Your Mind Influences Money", icon: "Brain" },
+    { id: "financial-dna", label: "Your Financial Personality", icon: "Dna" },
+    { id: "behavioral-analysis", label: "Pattern Recognition", icon: "Activity" }
+  ],
+  predictSection: [
+    { id: "prediction-engine", label: "What Happens Next", icon: "TrendingUp" },
+    { id: "forecast", label: "Your 12-Month Outlook", icon: "Calendar" },
+    { id: "what-happens-next", label: "Impact Analysis", icon: "AlertCircle" }
+  ],
+  simulateSection: [
+    { id: "decision-simulator", label: "Try Different Futures", icon: "GitBranch" },
+    { id: "scenario-forecast", label: "Scenario Comparison", icon: "Layers" },
+    { id: "outcome-simulator", label: "Outcome Simulator", icon: "Zap" }
+  ],
+  learnSection: [
+    { id: "longitudinal-learning", label: "Your Learning Journey", icon: "Book" },
+    { id: "memory-timeline", label: "Past Decisions", icon: "History" },
+    { id: "insights-timeline", label: "Your Progress", icon: "Award" }
+  ],
+  analyzeSection: [
+    { id: "digital-twin", label: "Financial Projections", icon: "Users" },
+    { id: "analytics-dashboard", label: "Analytics Dashboard", icon: "BarChart3" },
+    { id: "developer-intelligence", label: "System Debug", icon: "Wrench" }
+  ]
+};
 
 // ── Hero Section ──
 
