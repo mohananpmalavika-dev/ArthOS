@@ -26,8 +26,7 @@ import { useAuth } from "./context/AuthContext.jsx";
  */
 function AppRouter() {
   const { isAuthenticated, loading } = useAuth();
-  const demoMode = typeof window !== "undefined" &&
-    window.location.pathname.startsWith("/demo");
+  const demoMode = typeof window !== "undefined" && window.location.pathname.startsWith("/demo");
 
   // Show nothing while checking authentication status
   if (loading) {
@@ -138,19 +137,63 @@ function AppRouter() {
           />
 
           {/* Advanced area (not on the primary nav) */}
-          <Route path="/advanced" element={isAuthenticated ? <AdvancedArea /> : <Navigate to="/login" replace />} />
+          <Route
+            path="/advanced"
+            element={isAuthenticated ? <AdvancedArea /> : <Navigate to="/login" replace />}
+          />
 
-          {/* Root: send authenticated users into the cinematic onboarding flow first. */}
-          <Route path="/" element={isAuthenticated ? <Navigate to="/onboarding" replace /> : <Navigate to="/login" replace />} />
+          {/* Root: send authenticated users to the OS dashboard by default.
+              First-time users are still redirected to onboarding from inside App.jsx. */}
+          <Route
+            path="/"
+            element={
+              isAuthenticated ? (
+                <Navigate to="/dashboard" replace />
+              ) : (
+                <Navigate to="/login" replace />
+              )
+            }
+          />
+          <Route path="/home" element={<Navigate to="/dashboard" replace />} />
+          <Route
+            path="/dashboard/*"
+            element={
+              isAuthenticated || demoMode ? (
+                <App demoMode={false} />
+              ) : (
+                <Navigate to="/login" replace />
+              )
+            }
+          />
 
           {/* Main app demo route - the same app but with investor demo framing. */}
           {(() => {
-            const isLocalDev = typeof window !== "undefined" &&
-              (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1");
+            const isLocalDev =
+              typeof window !== "undefined" &&
+              (window.location.hostname === "localhost" ||
+                window.location.hostname === "127.0.0.1");
             return (
               <>
-                <Route path="/demo/*" element={isAuthenticated || isLocalDev ? <App demoMode={true} /> : <Navigate to="/login" replace />} />
-                <Route path="/*" element={isAuthenticated || isLocalDev ? <App demoMode={false} /> : <Navigate to="/login" replace />} />
+                <Route
+                  path="/demo/*"
+                  element={
+                    isAuthenticated || isLocalDev ? (
+                      <App demoMode={true} />
+                    ) : (
+                      <Navigate to="/login" replace />
+                    )
+                  }
+                />
+                <Route
+                  path="/*"
+                  element={
+                    isAuthenticated || isLocalDev ? (
+                      <App demoMode={false} />
+                    ) : (
+                      <Navigate to="/login" replace />
+                    )
+                  }
+                />
               </>
             );
           })()}

@@ -170,7 +170,7 @@ interface CommonActions {
 export const NAV_ITEMS: NavItem[] = [
   { label: "Assess", href: "#assessment" },
   { label: "Big Reveal", href: "/big-reveal" },
-  { label: "Home", href: "/onboarding" },
+  { label: "Home", href: "/dashboard" },
   { label: "Reality", href: "/reality" },
   { label: "Why", href: "/why" },
   { label: "Future", href: "/future" },

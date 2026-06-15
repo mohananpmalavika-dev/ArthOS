@@ -1,16 +1,23 @@
 import React from "react";
 import PropTypes from "prop-types";
-import { Search, Bell, Download, LogIn, LogOut, CircleUserRound, ChevronDown, LineChart } from "lucide-react";
+import { useLocation } from "react-router-dom";
+import {
+  Search,
+  Bell,
+  Download,
+  LogIn,
+  LogOut,
+  CircleUserRound,
+  ChevronDown,
+  LineChart
+} from "lucide-react";
 import { NAV_ITEMS } from "../lib/copy.ts";
 
 function Header({
   activeHash = "#",
-  saveState = "saving",
   saveStatusLabel = "Saved",
   saveStatusClass = "saved",
   onExport = () => {},
-  onReset = () => {},
-  onSave = () => {},
   isAuthenticated = false,
   user = null,
   onOpenAuth = () => {},
@@ -18,9 +25,12 @@ function Header({
   notificationBadgeCount = 0,
   onToggleNotification = () => {}
 }) {
+  const location = useLocation();
+  const currentPath = location.pathname || "";
+
   return (
     <header className="topbar">
-      <a className="brand" href="#" aria-label="ARTH.OS home">
+      <a className="brand" href="/dashboard" aria-label="ARTH.OS home">
         <span className="logo-word">
           ARTH.<span>OS</span>
         </span>
@@ -32,8 +42,10 @@ function Header({
           <a
             href={item.href}
             key={item.label}
-            className={activeHash === item.href ? "active" : ""}
-            aria-current={activeHash === item.href ? "page" : undefined}
+            className={item.href === currentPath || activeHash === item.href ? "active" : ""}
+            aria-current={
+              item.href === currentPath || activeHash === item.href ? "page" : undefined
+            }
           >
             {item.label}
           </a>
@@ -82,8 +94,13 @@ function Header({
         )}
 
         {/** Only show developer tools link when devMode is enabled in UI state. */}
-        {typeof window !== "undefined" && window.localStorage?.getItem("arth-os-dev-mode") === "true" ? (
-          <a className="dev-intelligence-link" href="#intelligence" aria-label="Developer Intelligence">
+        {typeof window !== "undefined" &&
+        window.localStorage?.getItem("arth-os-dev-mode") === "true" ? (
+          <a
+            className="dev-intelligence-link"
+            href="#intelligence"
+            aria-label="Developer Intelligence"
+          >
             <LineChart size={16} />
             <span>Dev Intelligence</span>
           </a>
