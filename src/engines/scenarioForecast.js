@@ -264,6 +264,7 @@ export function simulateDecisionImpact(profile, decision) {
       runway: Math.round(newRunway * 10) / 10,
       health: Math.round(whatIf?.projectedDay30?.p50 ?? currentScore),
       futureScore: Math.round(whatIf?.projectedDay90?.p50 ?? currentFutureScore),
+      futureConfidence: whatIf?.confidence ?? null,
       mcProjection: whatIf
         ? {
             day90: whatIf.projectedDay90?.p50,

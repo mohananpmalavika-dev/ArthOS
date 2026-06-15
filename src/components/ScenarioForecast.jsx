@@ -287,9 +287,11 @@ export function ScenarioForecast({ profile, assessmentResult }) {
                   {decisionImpact.projectedState.futureScore}
                 </strong>
                 <small>
-                  {decisionImpact.projectedState.mcProjection
-                    ? `Confidence ${decisionImpact.projectedState.mcProjection.confidence}%`
-                    : "Projected 90-day score"}
+                  {decisionImpact.projectedState.futureConfidence !== null
+                    ? `Confidence ${decisionImpact.projectedState.futureConfidence}%`
+                    : decisionImpact.projectedState.mcProjection
+                      ? `Confidence ${decisionImpact.projectedState.mcProjection.confidence}%`
+                      : "Projected 90-day score"}
                 </small>
               </div>
             </div>
