@@ -63,16 +63,16 @@ export default function Onboarding() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2, duration: 0.8 }}
             >
+              <span className="onboarding-eyebrow">Cinematic discovery</span>
               <h1 className="onboarding-title">
                 Welcome to <span>ARTH.OS</span>
               </h1>
               <p className="onboarding-subtitle">
-                Let's discover how your money thinks.
+                Launch your AI discovery journey and reveal the hidden structure of your finances.
               </p>
               <p className="onboarding-description">
-                In the next 5 minutes, you'll uncover your financial personality—
-                the patterns that shape your money decisions and the opportunities
-                waiting ahead.
+                In just a few minutes, ARTH.OS scans your Financial DNA, surfaces your runway,
+                and maps the exact levers that turn risk into resilience.
               </p>
             </motion.div>
 
@@ -121,7 +121,7 @@ export default function Onboarding() {
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
             >
-              Start Assessment
+              Launch discovery
               <ArrowRight size={18} />
             </motion.button>
           </div>

@@ -12825,11 +12825,12 @@ body,
   }
 
   .nav-links {
-    display: none;
+    display: flex;
+    width: 100%;
   }
 
   .app-nav-tabs {
-    display: flex;
+    display: none;
   }
 
   .model-header-actions {
@@ -12884,6 +12885,12 @@ body,
     display: inline;
     max-width: 120px;
     text-align: right;
+  }
+
+  .nav-links {
+    display: flex;
+    overflow-x: auto;
+    padding: 4px 0;
   }
 
   .model-header-actions {

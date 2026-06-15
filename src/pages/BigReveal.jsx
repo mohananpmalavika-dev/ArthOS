@@ -65,44 +65,64 @@ export default function BigReveal() {
       >
         <div className="big-reveal-content">
           <motion.div
-            className="big-reveal-score-ring"
-            initial={{ scale: 0.8, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ delay: 0.4, duration: 1 }}
-            style={{ "--score": currentScore }}
+            className="big-reveal-hero-copy"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3, duration: 0.8 }}
           >
-            <div className="big-reveal-score-inner">
-              <motion.div
-                className="big-reveal-score-number"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.8 }}
-              >
-                <AnimatedCounter to={currentScore} duration={1.2} />
-              </motion.div>
-              <div className="big-reveal-score-label">Financial Health</div>
-            </div>
+            <span className="big-reveal-eyebrow">AI X-RAY</span>
+            <h1 className="big-reveal-title">Financial DNA Reveal</h1>
+            <p className="big-reveal-subtitle">
+              Your current state decoded by intelligence across awareness, stability, and behavior.
+            </p>
+            <p className="big-reveal-copy">
+              ARTH.OS turns your assessment into a cinematic operating view of your financial self.
+              This is how your score is built, where it is headed, and what one move can change.
+            </p>
           </motion.div>
 
           <motion.div
-            className="big-reveal-narrative"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 2 }}
+            className="big-reveal-hero-shell"
+            initial={{ opacity: 0, scale: 0.96 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.4, duration: 1 }}
           >
-            <h1 className="big-reveal-title">
-              {currentScore >= 80
-                ? "Commanding Financial Momentum"
-                : currentScore >= 60
-                  ? "Strong Stability & Recovery"
-                  : currentScore >= 40
-                    ? "Foundation with Opportunity"
-                    : "Opportunity to Build"}
-            </h1>
-            <p className="big-reveal-subtitle">
-              You are ahead of <strong>{percentile}%</strong> of similar users
-            </p>
+            <div className="big-reveal-score-ring" style={{ "--score": currentScore }}>
+              <div className="big-reveal-score-inner">
+                <motion.div
+                  className="big-reveal-score-number"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.8 }}
+                >
+                  <AnimatedCounter to={currentScore} duration={1.2} />
+                </motion.div>
+                <div className="big-reveal-score-label">Financial Health</div>
+              </div>
+            </div>
+
+            <div className="big-reveal-hero-metrics">
+              <div className="hero-metric">
+                <span>Awareness</span>
+                <strong>{result?.awarenessGap ? `${result.awarenessGap} mo` : "Unknown"}</strong>
+              </div>
+              <div className="hero-metric">
+                <span>Stability</span>
+                <strong>{result?.categoryBand?.label || "Balanced"}</strong>
+              </div>
+              <div className="hero-metric">
+                <span>Behavior</span>
+                <strong>{result?.futureRiskLabel || "Moderate"}</strong>
+              </div>
+            </div>
           </motion.div>
+        </div>
+
+        <div className="big-reveal-hero-orbits" aria-hidden="true">
+          <span className="orbit-node orbit-node-a" />
+          <span className="orbit-node orbit-node-b" />
+          <span className="orbit-node orbit-node-c" />
+          <span className="orbit-node orbit-node-d" />
         </div>
       </motion.section>
 
