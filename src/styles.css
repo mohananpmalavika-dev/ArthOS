@@ -3848,6 +3848,33 @@ main {
   opacity: 0.54;
 }
 
+.auth-google-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 46px;
+  padding: 0 18px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: var(--radius-xs);
+  color: var(--ink-0);
+  background: rgba(255, 255, 255, 0.06);
+  font-weight: 850;
+  letter-spacing: 0.01em;
+  transition: transform 170ms ease, background 170ms ease, box-shadow 170ms ease;
+}
+
+.auth-google-btn:hover {
+  background: rgba(255, 255, 255, 0.12);
+  transform: translateY(-1px);
+}
+
+.auth-google-btn:focus {
+  outline: 2px solid rgba(98, 228, 209, 0.32);
+  outline-offset: 2px;
+}
+
 .auth-error {
   display: flex;
   align-items: flex-start;

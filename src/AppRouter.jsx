@@ -4,6 +4,14 @@ import App from "./App.jsx";
 import { RoastViewPage } from "./pages/RoastViewPage.jsx";
 import LoginPage from "./pages/LoginPage.jsx";
 import RegisterPage from "./pages/RegisterPage.jsx";
+import Onboarding from "./pages/Onboarding.jsx";
+import BigReveal from "./pages/BigReveal.jsx";
+import Reality from "./pages/Reality.jsx";
+import Why from "./pages/Why.jsx";
+import Future from "./pages/Future.jsx";
+import FutureYou from "./pages/FutureYou.jsx";
+import OneAction from "./pages/OneAction.jsx";
+import AdvancedArea from "./pages/AdvancedArea.jsx";
 import ErrorBoundary from "./components/ErrorBoundary.jsx";
 import { useAuth } from "./context/AuthContext.jsx";
 
@@ -41,6 +49,18 @@ function AppRouter() {
           {/* Auth pages */}
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
+
+          {/* Guided story and cinematic flow */}
+          <Route path="/onboarding" element={isAuthenticated ? <Onboarding /> : <Navigate to="/login" replace />} />
+          <Route path="/big-reveal" element={isAuthenticated ? <BigReveal /> : <Navigate to="/login" replace />} />
+          <Route path="/reality" element={isAuthenticated ? <Reality /> : <Navigate to="/login" replace />} />
+          <Route path="/why" element={isAuthenticated ? <Why /> : <Navigate to="/login" replace />} />
+          <Route path="/future" element={isAuthenticated ? <Future /> : <Navigate to="/login" replace />} />
+          <Route path="/future-you" element={isAuthenticated ? <FutureYou /> : <Navigate to="/login" replace />} />
+          <Route path="/action" element={isAuthenticated ? <OneAction /> : <Navigate to="/login" replace />} />
+
+          {/* Advanced area (not on the primary nav) */}
+          <Route path="/advanced" element={isAuthenticated ? <AdvancedArea /> : <Navigate to="/login" replace />} />
 
           {/* Main app demo route - the same app but with investor demo framing. */}
           {(() => {

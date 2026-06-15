@@ -9,6 +9,7 @@ import memoryHandler from '../api_src/memory.js';
 import authLoginHandler from '../api_src/auth/login.js';
 import authRegisterHandler from '../api_src/auth/register.js';
 import authMeHandler from '../api_src/auth/me.js';
+import authGoogleHandler from '../api_src/auth/google.js';
 import emailVerifyHandler from '../api_src/auth/email-verify.js';
 import passwordResetHandler from '../api_src/auth/password-reset.js';
 import b2bAdminHandler from '../api_src/b2b/admin.js';
@@ -44,6 +45,7 @@ const routeDefinitions = [
   { match: (pathname) => pathname === '/api/telemetry', handler: telemetryHandler },
   { match: (pathname) => pathname === '/api/error-log', handler: errorLogHandler },
   { match: (pathname) => pathname === '/api/memory' || pathname.startsWith('/api/memory/'), handler: memoryHandler },
+  { match: (pathname) => pathname === '/api/auth/google' || pathname === '/api/auth/google/callback', handler: authGoogleHandler },
   { match: (pathname) => pathname === '/api/auth/login', handler: authLoginHandler },
   { match: (pathname) => pathname === '/api/auth/register', handler: authRegisterHandler },
   { match: (pathname) => pathname === '/api/auth/me', handler: authMeHandler },

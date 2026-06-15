@@ -8,6 +8,7 @@ import React, {
   useCallback,
   startTransition
 } from "react";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "./context/AuthContext.jsx";
 import LoginPage from "./pages/LoginPage.jsx";
 import RegisterPage from "./pages/RegisterPage.jsx";
@@ -107,7 +108,7 @@ import { PanelMinimizeButton } from "./components/PanelMinimizer.jsx";
 import { useSubscription } from "./hooks/useSubscription.js";
 import { useAssessmentState } from "./hooks/useAssessmentState.js";
 import { useNotificationState } from "./hooks/useNotificationState.js";
-import { useHistoricalData } from "./hooks/useHistoricalData.js";
+import { useHistoricalDataContext } from "./context/HistoricalDataContext.jsx";
 import { useUIState } from "./hooks/useUIState.js";
 import {
   recordAssessment,
@@ -361,11 +362,12 @@ const dependentsOptions = DEPENDENTS_OPTIONS;
 
 export default function App({ demoMode = false }) {
   const { user, token, isAuthenticated, loading: authLoading, logout } = useAuth();
+  const navigate = useNavigate();
 
   // Initialize custom hooks for organized state management
   const assessmentState = useAssessmentState();
   const notificationState = useNotificationState();
-  const historicalData = useHistoricalData();
+  const historicalData = useHistoricalDataContext();
   const uiState = useUIState();
 
   // Destructure for convenient access
@@ -1033,7 +1035,33 @@ export default function App({ demoMode = false }) {
       history: memoryEngine.getHistory()
     });
     setDigitalTwin(completeTwin);
+    // After assessment completion, navigate to the cinematic Big Reveal route
+    try {
+      if (!demoMode) {
+        navigate("/big-reveal", { replace: true });
+      }
+    } catch (err) {
+      // navigation may fail if not mounted inside router — ignore in that case
+      // eslint-disable-next-line no-console
+      console.warn("Navigation to /big-reveal skipped:", err && err.message);
+    }
   }, [result.healthScore, assessment.profile, result, memoryEngine]);
+
+  // First-time landing logic: if an authenticated user has no score history,
+  // send them to onboarding the first time they open the app (unless demoMode).
+  useEffect(() => {
+    if (demoMode) return;
+    if (authLoading) return;
+    if (!isAuthenticated) return;
+    try {
+      // `scoreHistory` is provided by historicalData hook; if it's empty, treat as first-time
+      if (Array.isArray(scoreHistory) && scoreHistory.length === 0) {
+        navigate("/onboarding", { replace: true });
+      }
+    } catch (err) {
+      // ignore navigation errors
+    }
+  }, [authLoading, isAuthenticated, demoMode, scoreHistory, navigate]);
 
   const ui = {
     behaviourQuestions: v2BehaviourQuestions,

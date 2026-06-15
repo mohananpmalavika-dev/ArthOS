@@ -154,6 +154,52 @@ export function AuthProvider({ children }) {
     [persistSession, syncLocalDataToServer]
   );
 
+  const loginWithToken = useCallback(
+    async (tokenStr) => {
+      if (!tokenStr) {
+        return false;
+      }
+
+      setError(null);
+      setLoading(true);
+
+      try {
+        const res = await fetch(`${API_BASE}/auth/me`, {
+          headers: { Authorization: `Bearer ${tokenStr}` }
+        });
+
+        if (!res.ok) {
+          const contentType = res.headers.get("content-type");
+          let errorMsg = "Google sign-in failed";
+          if (contentType && contentType.includes("application/json")) {
+            try {
+              const data = await res.json();
+              errorMsg = data.error || errorMsg;
+            } catch {
+              // ignore
+            }
+          }
+          setError(errorMsg);
+          return false;
+        }
+
+        const data = await res.json();
+        migrateAnonymousData(data.user.id);
+        migrateAnonymousDataToUser(data.user.id);
+        persistSession(data.user, tokenStr);
+        syncLocalDataToServer(data.user.id, tokenStr);
+
+        return true;
+      } catch (err) {
+        setError("Google sign-in failed. Please try again.");
+        return false;
+      } finally {
+        setLoading(false);
+      }
+    },
+    [persistSession, syncLocalDataToServer]
+  );
+
   const register = useCallback(
     async (name, email, password) => {
       setError(null);
@@ -232,6 +278,7 @@ export function AuthProvider({ children }) {
     error,
     isAuthenticated: !!token && !!user,
     login,
+    loginWithToken,
     register,
     logout,
     clearError,
