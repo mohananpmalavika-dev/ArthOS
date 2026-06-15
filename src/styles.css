@@ -343,6 +343,11 @@ main {
   box-shadow: 0 14px 38px rgba(0, 0, 0, 0.24);
 }
 
+/* Ensure page content isn't overlapped by the sticky header */
+.page-shell-main {
+  padding-top: calc(68px + 16px); /* header height + spacing */
+}
+
 .brand {
   display: inline-flex;
   flex-direction: column;
@@ -6362,15 +6367,17 @@ main {
 
 @media (max-width: 1500px) {
   .topbar {
-    grid-template-columns: minmax(180px, 0.4fr) minmax(420px, 1fr);
+    grid-template-columns: 1fr;
+    row-gap: 12px;
   }
 
   .nav-links {
-    display: none;
+    display: flex;
+    width: 100%;
   }
 
   .app-nav-tabs {
-    display: flex;
+    display: none;
   }
 }
 

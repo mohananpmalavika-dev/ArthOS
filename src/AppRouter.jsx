@@ -11,6 +11,7 @@ import Why from "./pages/Why.jsx";
 import Future from "./pages/Future.jsx";
 import FutureYou from "./pages/FutureYou.jsx";
 import OneAction from "./pages/OneAction.jsx";
+import PageShell from "./components/PageShell.jsx";
 import AdvancedArea from "./pages/AdvancedArea.jsx";
 import ErrorBoundary from "./components/ErrorBoundary.jsx";
 import { useAuth } from "./context/AuthContext.jsx";
@@ -51,13 +52,90 @@ function AppRouter() {
           <Route path="/register" element={<RegisterPage />} />
 
           {/* Guided story and cinematic flow */}
-          <Route path="/onboarding" element={isAuthenticated ? <Onboarding /> : <Navigate to="/login" replace />} />
-          <Route path="/big-reveal" element={isAuthenticated ? <BigReveal /> : <Navigate to="/login" replace />} />
-          <Route path="/reality" element={isAuthenticated ? <Reality /> : <Navigate to="/login" replace />} />
-          <Route path="/why" element={isAuthenticated ? <Why /> : <Navigate to="/login" replace />} />
-          <Route path="/future" element={isAuthenticated ? <Future /> : <Navigate to="/login" replace />} />
-          <Route path="/future-you" element={isAuthenticated ? <FutureYou /> : <Navigate to="/login" replace />} />
-          <Route path="/action" element={isAuthenticated ? <OneAction /> : <Navigate to="/login" replace />} />
+          <Route
+            path="/onboarding"
+            element={
+              isAuthenticated ? (
+                <PageShell>
+                  <Onboarding />
+                </PageShell>
+              ) : (
+                <Navigate to="/login" replace />
+              )
+            }
+          />
+          <Route
+            path="/big-reveal"
+            element={
+              isAuthenticated ? (
+                <PageShell>
+                  <BigReveal />
+                </PageShell>
+              ) : (
+                <Navigate to="/login" replace />
+              )
+            }
+          />
+          <Route
+            path="/reality"
+            element={
+              isAuthenticated ? (
+                <PageShell>
+                  <Reality />
+                </PageShell>
+              ) : (
+                <Navigate to="/login" replace />
+              )
+            }
+          />
+          <Route
+            path="/why"
+            element={
+              isAuthenticated ? (
+                <PageShell>
+                  <Why />
+                </PageShell>
+              ) : (
+                <Navigate to="/login" replace />
+              )
+            }
+          />
+          <Route
+            path="/future"
+            element={
+              isAuthenticated ? (
+                <PageShell>
+                  <Future />
+                </PageShell>
+              ) : (
+                <Navigate to="/login" replace />
+              )
+            }
+          />
+          <Route
+            path="/future-you"
+            element={
+              isAuthenticated ? (
+                <PageShell>
+                  <FutureYou />
+                </PageShell>
+              ) : (
+                <Navigate to="/login" replace />
+              )
+            }
+          />
+          <Route
+            path="/action"
+            element={
+              isAuthenticated ? (
+                <PageShell>
+                  <OneAction />
+                </PageShell>
+              ) : (
+                <Navigate to="/login" replace />
+              )
+            }
+          />
 
           {/* Advanced area (not on the primary nav) */}
           <Route path="/advanced" element={isAuthenticated ? <AdvancedArea /> : <Navigate to="/login" replace />} />
