@@ -1,34 +1,71 @@
 import React, { useMemo, useState } from "react";
+import PropTypes from "prop-types";
+import { useLocation, useNavigate } from "react-router-dom";
 import {
   Home,
   ClipboardList,
-  BarChart3,
   Brain,
   Target,
   Users,
   GitBranch,
-  History,
   LineChart,
   ShieldCheck,
   MessageCircle,
-  TrendingUp,
   Sparkles
 } from "lucide-react";
 
 export default function FlowNavigation({ activeHash, onNavigate, devMode, onToggleDev }) {
+  const navigate = useNavigate();
+  const location = useLocation();
   const [showDeveloperMenu, setShowDeveloperMenu] = useState(false);
 
   const coreNarrative = useMemo(
     () => [
-      { id: "assess", hash: "#assessment", label: "Assessment", icon: ClipboardList, description: "Financial Health Quiz" },
-      { id: "big-reveal", hash: "/big-reveal", label: "Big Reveal", icon: Sparkles, description: "Cinematic score reveal" },
+      {
+        id: "assess",
+        hash: "#assessment",
+        label: "Assessment",
+        icon: ClipboardList,
+        description: "Financial Health Quiz"
+      },
+      {
+        id: "big-reveal",
+        hash: "/big-reveal",
+        label: "Big Reveal",
+        icon: Sparkles,
+        description: "Cinematic score reveal"
+      },
       { id: "home", hash: "#", label: "Home", icon: Home, description: "Story home" },
       { id: "reality", hash: "#reality", label: "Reality", icon: Home, description: "Where am I?" },
       { id: "mind", hash: "#mind", label: "Why", icon: Brain, description: "Why am I here?" },
-      { id: "future", hash: "#future", label: "Future", icon: Target, description: "What happens next?" },
-      { id: "future-you", hash: "/future-you", label: "Future You", icon: Target, description: "Future You preview" },
-      { id: "action", hash: "#action", label: "Actions", icon: GitBranch, description: "What should I do?" },
-      { id: "coach", hash: "#coach", label: "Coach", icon: MessageCircle, description: "Help me execute" }
+      {
+        id: "future",
+        hash: "#future",
+        label: "Future",
+        icon: Target,
+        description: "What happens next?"
+      },
+      {
+        id: "future-you",
+        hash: "/future-you",
+        label: "Future You",
+        icon: Target,
+        description: "Future You preview"
+      },
+      {
+        id: "action",
+        hash: "#action",
+        label: "Actions",
+        icon: GitBranch,
+        description: "What should I do?"
+      },
+      {
+        id: "coach",
+        hash: "#coach",
+        label: "Coach",
+        icon: MessageCircle,
+        description: "Help me execute"
+      }
     ],
     []
   );
@@ -44,17 +81,22 @@ export default function FlowNavigation({ activeHash, onNavigate, devMode, onTogg
         icon: LineChart,
         description: "Understand your financial engines"
       },
-      { id: "admin", hash: "#admin", label: "Admin", icon: ShieldCheck, description: "Operations Console" }
+      {
+        id: "admin",
+        hash: "#admin",
+        label: "Admin",
+        icon: ShieldCheck,
+        description: "Operations Console"
+      }
     ],
     []
   );
 
+  const currentHash = activeHash || "#";
+  const currentPath = location?.pathname || "";
+  const allItems = [...coreNarrative, ...developerMenu];
   const isActive = hash => {
-    const currentHash = activeHash || "#";
-    const currentPath = typeof window !== "undefined" ? window.location.pathname : "";
-    const allItems = [...coreNarrative, ...developerMenu];
     const item = allItems.find(navItem => navItem.hash === hash);
-    // If hash is a path (starts with /), consider pathname for active
     if (hash && hash.startsWith("/")) {
       return currentPath === hash;
     }
@@ -62,16 +104,22 @@ export default function FlowNavigation({ activeHash, onNavigate, devMode, onTogg
   };
 
   const handleNavClick = hash => {
-    if (hash && hash.startsWith("/")) {
-      // absolute path — navigate the full app router
-      window.location.href = hash;
+    if (onNavigate) {
+      onNavigate(hash);
       return;
     }
 
-    if (onNavigate) {
-      onNavigate(hash);
-    } else {
-      window.location.hash = hash;
+    if (!hash) {
+      return;
+    }
+
+    if (hash.startsWith("/")) {
+      navigate(hash);
+      return;
+    }
+
+    if (hash.startsWith("#")) {
+      navigate(`${currentPath}${hash}`);
     }
   };
 
@@ -96,13 +144,15 @@ export default function FlowNavigation({ activeHash, onNavigate, devMode, onTogg
             </button>
           );
         })}
-        
+
         {/* Developer Menu Toggle */}
         <button
-          className={`app-nav-tab app-nav-dev-toggle ${devMode ? 'dev-active' : ''}`}
+          className={`app-nav-tab app-nav-dev-toggle ${devMode ? "dev-active" : ""}`}
           onClick={() => {
             setShowDeveloperMenu(!showDeveloperMenu);
-            if (onToggleDev) onToggleDev();
+            if (onToggleDev) {
+              onToggleDev();
+            }
           }}
           title="Developer & Admin Tools"
           aria-expanded={showDeveloperMenu}
@@ -117,9 +167,7 @@ export default function FlowNavigation({ activeHash, onNavigate, devMode, onTogg
       {showDeveloperMenu && (
         <nav className="app-nav-developer-menu" aria-label="Developer Tools">
           <div className="dev-menu-header">
-            <p className="dev-menu-title">
-              Intelligence & Administration
-            </p>
+            <p className="dev-menu-title">Intelligence & Administration</p>
           </div>
           <div className="dev-menu-items">
             {developerMenu.map(item => {
@@ -148,3 +196,10 @@ export default function FlowNavigation({ activeHash, onNavigate, devMode, onTogg
     </>
   );
 }
+
+FlowNavigation.propTypes = {
+  activeHash: PropTypes.string,
+  onNavigate: PropTypes.func,
+  devMode: PropTypes.bool,
+  onToggleDev: PropTypes.func
+};

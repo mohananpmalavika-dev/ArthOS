@@ -151,7 +151,9 @@ const TraitMatrixVisualizer = lazy(() => import("./components/TraitMatrixVisuali
 const DigitalTwinDashboard = lazy(() => import("./components/DigitalTwinDashboard.jsx"));
 const PredictionEngineDashboard = lazy(() => import("./components/PredictionEngineDashboard.jsx"));
 const AiCoachInterface = lazy(() => import("./components/AiCoachInterface.jsx"));
-const LongitudinalLearningDashboard = lazy(() => import("./components/LongitudinalLearningDashboard.jsx"));
+const LongitudinalLearningDashboard = lazy(
+  () => import("./components/LongitudinalLearningDashboard.jsx")
+);
 // Always-needed components (in main bundle)
 import OnboardingOverlay from "./components/OnboardingOverlay.jsx";
 import AssessmentSection from "./components/AssessmentSection.jsx";
@@ -229,12 +231,22 @@ function normalizeScore(result) {
 
 function DemoBanner() {
   return (
-    <section className="demo-banner" style={{ padding: "18px 20px", background: "rgba(70, 102, 228, 0.08)", border: "1px solid rgba(70, 102, 228, 0.18)", margin: "0 16px 18px", borderRadius: "18px" }}>
+    <section
+      className="demo-banner"
+      style={{
+        padding: "18px 20px",
+        background: "rgba(70, 102, 228, 0.08)",
+        border: "1px solid rgba(70, 102, 228, 0.18)",
+        margin: "0 16px 18px",
+        borderRadius: "18px"
+      }}
+    >
       <strong style={{ display: "block", marginBottom: "6px", color: "#1647dc" }}>
         Investor demo route active
       </strong>
       <p style={{ margin: 0, color: "#1f2a56" }}>
-        This experience is optimized for storytelling — one unified financial narrative built for investor review.
+        This experience is optimized for storytelling — one unified financial narrative built for
+        investor review.
       </p>
     </section>
   );
@@ -316,7 +328,9 @@ function ReportsFlowHeader({ result, decisionHistoryCount, memoryTimeline }) {
           <span>Intelligence report</span>
           <span>Professional flow</span>
         </div>
-        <h1 id="report-flow-title">Financial behavior, risk, and next action in one readable flow.</h1>
+        <h1 id="report-flow-title">
+          Financial behavior, risk, and next action in one readable flow.
+        </h1>
         <p>
           Start with the strongest signal, then move through forecast, cognition, simulation,
           decision history, and memory without losing context.
@@ -518,8 +532,8 @@ export default function App({ demoMode = false }) {
 
     startTransition(() => {
       setActiveHash(hash);
-      if (isBrowser()) {
-        window.location.hash = hash;
+      if (isBrowser() && hash) {
+        navigate(`${window.location.pathname}${hash}`);
       }
     });
   }
@@ -1086,9 +1100,7 @@ export default function App({ demoMode = false }) {
   const isWorkflowRoute = activeHash === "#assessment" || activeHash === "#simulator";
   const isReportsRoute = reportRoutes.includes(activeHash);
   const showHeroSection =
-    activeHash === "#" ||
-    activeHash === "#intelligence" ||
-    (!isWorkflowRoute && !isReportsRoute);
+    activeHash === "#" || activeHash === "#intelligence" || (!isWorkflowRoute && !isReportsRoute);
   const showAssessmentSection = activeHash === "#assessment";
   const showReportsSection = isReportsRoute;
 
@@ -1188,7 +1200,9 @@ export default function App({ demoMode = false }) {
     setAdminLoggedIn(false);
     setAdminCredentials({ username: "", password: "" });
     setAdminLoginError("");
-    window.location.hash = "#";
+    if (isBrowser()) {
+      navigate(`${window.location.pathname}#`);
+    }
   }
 
   function generateAdminReport() {
@@ -1276,7 +1290,11 @@ export default function App({ demoMode = false }) {
           onNavigate={hash => {
             startTransition(() => {
               setActiveHash(hash);
-              window.location.hash = hash;
+              if (hash && hash.startsWith("/")) {
+                navigate(hash);
+              } else if (hash && hash.startsWith("#")) {
+                navigate(`${window.location.pathname}${hash}`);
+              }
             });
           }}
           devMode={devMode}
@@ -1318,7 +1336,11 @@ export default function App({ demoMode = false }) {
         {(activeHash === "#predictions" || activeHash === "#intelligence") && devMode ? (
           <Suspense fallback={<LazyComponentFallback />}>
             <ErrorBoundary>
-              <DeveloperIntelligenceSection userId={effectiveUserId} result={result} assessment={assessment} />
+              <DeveloperIntelligenceSection
+                userId={effectiveUserId}
+                result={result}
+                assessment={assessment}
+              />
             </ErrorBoundary>
           </Suspense>
         ) : activeHash === "#b2b" ? (
@@ -1349,7 +1371,7 @@ export default function App({ demoMode = false }) {
           <ActionScreen
             result={result}
             assessment={assessment}
-            onAssessmentUpdate={(updates) => updateGroup('behaviour', null, updates)}
+            onAssessmentUpdate={updates => updateGroup("behaviour", null, updates)}
           />
         ) : activeHash === "#coach" ? (
           <CoachScreen
@@ -1373,7 +1395,13 @@ export default function App({ demoMode = false }) {
           />
         ) : (
           <>
-            {showHeroSection && <UnifiedJourneyHome assessment={assessment} result={result} onCoachOpen={(topic) => handleOpenPanel("#coach", topic)} />}
+            {showHeroSection && (
+              <UnifiedJourneyHome
+                assessment={assessment}
+                result={result}
+                onCoachOpen={topic => handleOpenPanel("#coach", topic)}
+              />
+            )}
             {showAssessmentSection && (
               <ErrorBoundary>
                 {tier === "free" && remainingAssessments === 0 && (
@@ -1444,581 +1472,606 @@ export default function App({ demoMode = false }) {
                 />
                 <section className="assessment-summary-grid flow-report-grid" id="reports">
                   <div className="summary-main-column">
-                  {/* MOST IMPORTANT INSIGHT — Center of the MVP Experience */}
-                  <Suspense fallback={<LazyComponentFallback />}>
-                    <ErrorBoundary>
-                      <SingleMostImportantInsight
-                        assessmentResult={result}
-                        assessment={assessment}
-                      />
-                    </ErrorBoundary>
-                  </Suspense>
-
-                  {/* PDF EXPORT — Save Results */}
-                  <section className="summary-card">
-                    <ExportPDF result={result} assessmentData={assessment} />
-                  </section>
-
-                  {/* ACTION FOLLOW-UP PANEL — Day 7 & Day 30 Check-Ins */}
-                  <Suspense fallback={<LazyComponentFallback />}>
-                    <ErrorBoundary>
-                      <ActionFollowUpPanel userId={currentUserId} followUps={pendingFollowUps} />
-                    </ErrorBoundary>
-                  </Suspense>
-
-                  {result ? (
+                    {/* MOST IMPORTANT INSIGHT — Center of the MVP Experience */}
                     <Suspense fallback={<LazyComponentFallback />}>
                       <ErrorBoundary>
-                        <AnalyticsDashboard result={result} />
+                        <SingleMostImportantInsight
+                          assessmentResult={result}
+                          assessment={assessment}
+                        />
                       </ErrorBoundary>
                     </Suspense>
-                  ) : (
-                    <div className="summary-card">
-                      <p>Analytics unavailable — complete an assessment to populate insights.</p>
-                    </div>
-                  )}
 
-                  {/* Retention & Cohort Analytics Dashboard */}
-                  {result ? (
-                    <Suspense fallback={<LazyComponentFallback />}>
-                      <ErrorBoundary>
-                        <RetentionDashboard result={result} />
-                      </ErrorBoundary>
-                    </Suspense>
-                  ) : (
-                    <div className="summary-card">
-                      <p>Retention analytics unavailable — complete an assessment to enable.</p>
-                    </div>
-                  )}
-
-                  {/* Assessment Completion Rate Dashboard */}
-                  {result ? (
-                    <Suspense fallback={<LazyComponentFallback />}>
-                      <ErrorBoundary>
-                        <CompletionDashboard result={result} />
-                      </ErrorBoundary>
-                    </Suspense>
-                  ) : (
-                    <div className="summary-card">
-                      <p>Completion metrics unavailable — complete an assessment to populate.</p>
-                    </div>
-                  )}
-
-                  {currentUserId && (
+                    {/* PDF EXPORT — Save Results */}
                     <section className="summary-card">
-                      <SubscriptionManagement userId={currentUserId} />
+                      <ExportPDF result={result} assessmentData={assessment} />
                     </section>
-                  )}
 
-                  {/* Digital Twin Dashboard - Flight Simulator for Financial Life */}
-                  {digitalTwin ? (
+                    {/* ACTION FOLLOW-UP PANEL — Day 7 & Day 30 Check-Ins */}
                     <Suspense fallback={<LazyComponentFallback />}>
                       <ErrorBoundary>
-                        <DigitalTwinDashboard twin={digitalTwin} assessment={result} />
+                        <ActionFollowUpPanel userId={currentUserId} followUps={pendingFollowUps} />
                       </ErrorBoundary>
                     </Suspense>
-                  ) : (
-                    <div className="summary-card">
-                      <p>Digital Twin unavailable — run an assessment to build your twin.</p>
-                    </div>
-                  )}
 
-                  <CollapsiblePanel
-                    className="summary-card"
-                    headerClassName="premium-report-section-header"
-                    titleClassName="premium-report-section-title"
-                    title="Financial Roast"
-                    icon={<Zap size={20} />}
-                  >
-                    <div className="premium-report-section-header">
-                      <h2 className="premium-report-section-title">🔥 Financial Roast</h2>
-                    </div>
-                    <SalaryRoastGenerator assessmentResult={result} profile={assessment.profile} />
-                  </CollapsiblePanel>
-                  <CollapsiblePanel
-                    id="forecast"
-                    className="summary-card"
-                    headerClassName="premium-report-section-header"
-                    titleClassName="premium-report-section-title"
-                    subtitleClassName="premium-report-block-subtitle"
-                    title="Financial Forecast"
-                    subtitle="GBM Monte Carlo projections with stress test scenarios."
-                    icon={<BarChart3 size={20} />}
-                  >
-                    <div className="premium-report-section-header">
-                      <h2 className="premium-report-section-title">📊 Financial Forecast</h2>
-                      <p className="premium-report-block-subtitle">
-                        GBM Monte Carlo projections with stress test scenarios.
-                      </p>
-                    </div>
-                    <ScenarioForecast
-                      profile={assessment.profile}
-                      assessmentResult={result}
-                      predictionEngineForecast={predictionEngineForecast}
-                    />
-                  </CollapsiblePanel>
-                  <CollapsiblePanel
-                    className="summary-card"
-                    headerClassName="premium-report-section-header"
-                    titleClassName="premium-report-section-title"
-                    subtitleClassName="premium-report-block-subtitle"
-                    title="Multi-Model Ensemble Forecast"
-                    subtitle="Auto-selected best model from ARIMA, Holt-Winters, Bayesian Structural, and Ensemble."
-                    icon={<Brain size={20} />}
-                  >
-                    <div className="premium-report-section-header">
-                      <h2 className="premium-report-section-title">
-                        🤖 Multi-Model Ensemble Forecast
-                      </h2>
-                      <p className="premium-report-block-subtitle">
-                        Auto-selected best model from ARIMA · Holt-Winters · Bayesian Structural ·
-                        Ensemble
-                      </p>
-                    </div>
-                    {predictionEngineForecast && predictionEngineForecast.horizons && predictionEngineForecast.horizons.day30 ? (
+                    {result ? (
                       <Suspense fallback={<LazyComponentFallback />}>
                         <ErrorBoundary>
-                          <ForecastModelCard forecast={predictionEngineForecast} />
+                          <AnalyticsDashboard result={result} />
                         </ErrorBoundary>
                       </Suspense>
                     ) : (
-                      <div className="forecast-empty-state">
-                        <p>Forecast unavailable — complete an assessment to generate model forecasts.</p>
+                      <div className="summary-card">
+                        <p>Analytics unavailable — complete an assessment to populate insights.</p>
                       </div>
                     )}
-                  </CollapsiblePanel>
-                  <section className="summary-card premium-report-block" id="cognition">
-                    <div className="premium-report-block-header">
-                      <h2 className="premium-report-block-title">🧠 Cognition & Future Risk</h2>
-                      <p className="premium-report-block-subtitle">
-                        See your cognitive calibration, runway risk, and forecasted health
-                        trajectory.
-                      </p>
-                    </div>
-                    <div className="premium-report-grid">
-                      <div className="premium-report-grid-2">
-                        <div className="premium-metric-tile">
-                          <div className="premium-metric-kicker">Calibration gap</div>
-                          <div className="premium-metric-value">
-                            {riskCalibration.calibrationGap}%
-                          </div>
-                          <div className="premium-metric-desc">
-                            Perceived vs. actual risk alignment.
-                          </div>
-                        </div>
-                        <div className="premium-metric-tile">
-                          <div className="premium-metric-kicker">Near-term runway</div>
-                          <div className="premium-metric-value">{futureRisk.runway} months</div>
-                          <div className="premium-metric-desc">{futureRisk.message}</div>
-                        </div>
+
+                    {/* Retention & Cohort Analytics Dashboard */}
+                    {result ? (
+                      <Suspense fallback={<LazyComponentFallback />}>
+                        <ErrorBoundary>
+                          <RetentionDashboard result={result} />
+                        </ErrorBoundary>
+                      </Suspense>
+                    ) : (
+                      <div className="summary-card">
+                        <p>Retention analytics unavailable — complete an assessment to enable.</p>
                       </div>
-                      <div className="premium-report-grid-3">
-                        <div className="premium-metric-tile">
-                          <div className="premium-metric-kicker">30 day health (p50)</div>
-                          <div className="premium-metric-value">
-                            {forecastHealthValues.day30?.p50 ?? "—"}
-                          </div>
-                          <div className="premium-metric-desc">
-                            Range: {forecastHealthValues.day30?.p25 ?? "—"}–
-                            {forecastHealthValues.day30?.p75 ?? "—"}
-                          </div>
-                        </div>
-                        <div className="premium-metric-tile">
-                          <div className="premium-metric-kicker">90 day health (p50)</div>
-                          <div className="premium-metric-value">
-                            {forecastHealthValues.day90?.p50 ?? "—"}
-                          </div>
-                          <div className="premium-metric-desc">
-                            Range: {forecastHealthValues.day90?.p25 ?? "—"}–
-                            {forecastHealthValues.day90?.p75 ?? "—"}
-                          </div>
-                        </div>
-                        <div className="premium-metric-tile">
-                          <div className="premium-metric-kicker">180 day health (p50)</div>
-                          <div className="premium-metric-value">
-                            {forecastHealthValues.day180?.p50 ?? "—"}
-                          </div>
-                          <div className="premium-metric-desc">
-                            Range: {forecastHealthValues.day180?.p25 ?? "—"}–
-                            {forecastHealthValues.day180?.p75 ?? "—"}
-                          </div>
-                        </div>
+                    )}
+
+                    {/* Assessment Completion Rate Dashboard */}
+                    {result ? (
+                      <Suspense fallback={<LazyComponentFallback />}>
+                        <ErrorBoundary>
+                          <CompletionDashboard result={result} />
+                        </ErrorBoundary>
+                      </Suspense>
+                    ) : (
+                      <div className="summary-card">
+                        <p>Completion metrics unavailable — complete an assessment to populate.</p>
                       </div>
-                      <div className="premium-report-grid-2">
-                        <div className="premium-metric-tile">
-                          <div className="premium-metric-kicker">Forecast confidence</div>
-                          <div className="premium-metric-value">
-                            {forecastHealthValues.confidence}%
-                          </div>
-                          <div className="premium-metric-desc">
-                            Based on {scoreHistory.length} historical datapoints and{" "}
-                            {decisionHistoryCount} decisions tracked.
-                          </div>
-                        </div>
-                        <div className="premium-metric-tile">
-                          <div className="premium-metric-kicker">Cognitive bias load</div>
-                          <div className="premium-metric-value">
-                            {Math.round(
-                              (biasProfile.presentBias +
-                                biasProfile.lossAversion +
-                                biasProfile.optimismBias +
-                                biasProfile.anchoringBias +
-                                biasProfile.sunkCostBias) /
-                                5
-                            )}
-                            %
-                          </div>
-                          <div className="premium-metric-desc">
-                            Average exposure across your core bias dimensions.
-                          </div>
-                        </div>
-                        <div className="premium-metric-tile">
-                          <div className="premium-metric-kicker">Opportunity forecast</div>
-                          <div className="premium-metric-value premium-metric-value-compact">
-                            {opportunity.action}
-                          </div>
-                          <div className="premium-metric-desc">{opportunity.benefit}</div>
-                        </div>
+                    )}
+
+                    {currentUserId && (
+                      <section className="summary-card">
+                        <SubscriptionManagement userId={currentUserId} />
+                      </section>
+                    )}
+
+                    {/* Digital Twin Dashboard - Flight Simulator for Financial Life */}
+                    {digitalTwin ? (
+                      <Suspense fallback={<LazyComponentFallback />}>
+                        <ErrorBoundary>
+                          <DigitalTwinDashboard twin={digitalTwin} assessment={result} />
+                        </ErrorBoundary>
+                      </Suspense>
+                    ) : (
+                      <div className="summary-card">
+                        <p>Digital Twin unavailable — run an assessment to build your twin.</p>
                       </div>
-                      <div className="premium-report-grid-2">
-                        <div className="premium-metric-tile">
-                          <div className="premium-metric-kicker">Cognition graph</div>
-                          <div className="premium-metric-value">
-                            {financialCognitionGraph.beliefs.length +
-                              financialCognitionGraph.biases.length +
-                              financialCognitionGraph.emotions.length +
-                              financialCognitionGraph.decisions.length +
-                              financialCognitionGraph.outcomes.length}{" "}
-                            elements
+                    )}
+
+                    <CollapsiblePanel
+                      className="summary-card"
+                      headerClassName="premium-report-section-header"
+                      titleClassName="premium-report-section-title"
+                      title="Financial Roast"
+                      icon={<Zap size={20} />}
+                    >
+                      <div className="premium-report-section-header">
+                        <h2 className="premium-report-section-title">🔥 Financial Roast</h2>
+                      </div>
+                      <SalaryRoastGenerator
+                        assessmentResult={result}
+                        profile={assessment.profile}
+                      />
+                    </CollapsiblePanel>
+                    <CollapsiblePanel
+                      id="forecast"
+                      className="summary-card"
+                      headerClassName="premium-report-section-header"
+                      titleClassName="premium-report-section-title"
+                      subtitleClassName="premium-report-block-subtitle"
+                      title="Financial Forecast"
+                      subtitle="GBM Monte Carlo projections with stress test scenarios."
+                      icon={<BarChart3 size={20} />}
+                    >
+                      <div className="premium-report-section-header">
+                        <h2 className="premium-report-section-title">📊 Financial Forecast</h2>
+                        <p className="premium-report-block-subtitle">
+                          GBM Monte Carlo projections with stress test scenarios.
+                        </p>
+                      </div>
+                      <ScenarioForecast
+                        profile={assessment.profile}
+                        assessmentResult={result}
+                        predictionEngineForecast={predictionEngineForecast}
+                      />
+                    </CollapsiblePanel>
+                    <CollapsiblePanel
+                      className="summary-card"
+                      headerClassName="premium-report-section-header"
+                      titleClassName="premium-report-section-title"
+                      subtitleClassName="premium-report-block-subtitle"
+                      title="Multi-Model Ensemble Forecast"
+                      subtitle="Auto-selected best model from ARIMA, Holt-Winters, Bayesian Structural, and Ensemble."
+                      icon={<Brain size={20} />}
+                    >
+                      <div className="premium-report-section-header">
+                        <h2 className="premium-report-section-title">
+                          🤖 Multi-Model Ensemble Forecast
+                        </h2>
+                        <p className="premium-report-block-subtitle">
+                          Auto-selected best model from ARIMA · Holt-Winters · Bayesian Structural ·
+                          Ensemble
+                        </p>
+                      </div>
+                      {predictionEngineForecast &&
+                      predictionEngineForecast.horizons &&
+                      predictionEngineForecast.horizons.day30 ? (
+                        <Suspense fallback={<LazyComponentFallback />}>
+                          <ErrorBoundary>
+                            <ForecastModelCard forecast={predictionEngineForecast} />
+                          </ErrorBoundary>
+                        </Suspense>
+                      ) : (
+                        <div className="forecast-empty-state">
+                          <p>
+                            Forecast unavailable — complete an assessment to generate model
+                            forecasts.
+                          </p>
+                        </div>
+                      )}
+                    </CollapsiblePanel>
+                    <section className="summary-card premium-report-block" id="cognition">
+                      <div className="premium-report-block-header">
+                        <h2 className="premium-report-block-title">🧠 Cognition & Future Risk</h2>
+                        <p className="premium-report-block-subtitle">
+                          See your cognitive calibration, runway risk, and forecasted health
+                          trajectory.
+                        </p>
+                      </div>
+                      <div className="premium-report-grid">
+                        <div className="premium-report-grid-2">
+                          <div className="premium-metric-tile">
+                            <div className="premium-metric-kicker">Calibration gap</div>
+                            <div className="premium-metric-value">
+                              {riskCalibration.calibrationGap}%
+                            </div>
+                            <div className="premium-metric-desc">
+                              Perceived vs. actual risk alignment.
+                            </div>
                           </div>
-                          <div className="premium-metric-desc">
-                            {financialCognitionGraph.connections.length} connections modeling belief
-                            → bias → outcome.
+                          <div className="premium-metric-tile">
+                            <div className="premium-metric-kicker">Near-term runway</div>
+                            <div className="premium-metric-value">{futureRisk.runway} months</div>
+                            <div className="premium-metric-desc">{futureRisk.message}</div>
                           </div>
                         </div>
-                        <div className="premium-metric-tile">
-                          <div className="premium-metric-kicker">Risk calibration</div>
-                          <div className="premium-metric-value">
-                            {riskCalibration.calibrated ? "Aligned" : "Misaligned"}
+                        <div className="premium-report-grid-3">
+                          <div className="premium-metric-tile">
+                            <div className="premium-metric-kicker">30 day health (p50)</div>
+                            <div className="premium-metric-value">
+                              {forecastHealthValues.day30?.p50 ?? "—"}
+                            </div>
+                            <div className="premium-metric-desc">
+                              Range: {forecastHealthValues.day30?.p25 ?? "—"}–
+                              {forecastHealthValues.day30?.p75 ?? "—"}
+                            </div>
                           </div>
-                          <div className="premium-metric-desc">
-                            Perception gap is {riskCalibration.calibrationGap}%.
+                          <div className="premium-metric-tile">
+                            <div className="premium-metric-kicker">90 day health (p50)</div>
+                            <div className="premium-metric-value">
+                              {forecastHealthValues.day90?.p50 ?? "—"}
+                            </div>
+                            <div className="premium-metric-desc">
+                              Range: {forecastHealthValues.day90?.p25 ?? "—"}–
+                              {forecastHealthValues.day90?.p75 ?? "—"}
+                            </div>
+                          </div>
+                          <div className="premium-metric-tile">
+                            <div className="premium-metric-kicker">180 day health (p50)</div>
+                            <div className="premium-metric-value">
+                              {forecastHealthValues.day180?.p50 ?? "—"}
+                            </div>
+                            <div className="premium-metric-desc">
+                              Range: {forecastHealthValues.day180?.p25 ?? "—"}–
+                              {forecastHealthValues.day180?.p75 ?? "—"}
+                            </div>
                           </div>
                         </div>
-                      </div>
-                      <div className="premium-metric-tile premium-metric-tile-wide">
-                        <strong className="premium-metric-heading">
-                          Risk & opportunity alerts
-                        </strong>
-                        <ul className="risk-alert-list">
-                          {displayedRiskAlerts.map((alert, index) => (
-                            <li
-                              key={`${alert.type}-${index}`}
-                              className={`risk-alert risk-alert-${alert.type}`}
-                            >
-                              <strong>{alert.title}</strong>
-                              <span>{alert.message}</span>
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                      {(backendMarketplaceRecommendations.length > 0 ||
-                        marketplaceRecommendations.length > 0) && (
+                        <div className="premium-report-grid-2">
+                          <div className="premium-metric-tile">
+                            <div className="premium-metric-kicker">Forecast confidence</div>
+                            <div className="premium-metric-value">
+                              {forecastHealthValues.confidence}%
+                            </div>
+                            <div className="premium-metric-desc">
+                              Based on {scoreHistory.length} historical datapoints and{" "}
+                              {decisionHistoryCount} decisions tracked.
+                            </div>
+                          </div>
+                          <div className="premium-metric-tile">
+                            <div className="premium-metric-kicker">Cognitive bias load</div>
+                            <div className="premium-metric-value">
+                              {Math.round(
+                                (biasProfile.presentBias +
+                                  biasProfile.lossAversion +
+                                  biasProfile.optimismBias +
+                                  biasProfile.anchoringBias +
+                                  biasProfile.sunkCostBias) /
+                                  5
+                              )}
+                              %
+                            </div>
+                            <div className="premium-metric-desc">
+                              Average exposure across your core bias dimensions.
+                            </div>
+                          </div>
+                          <div className="premium-metric-tile">
+                            <div className="premium-metric-kicker">Opportunity forecast</div>
+                            <div className="premium-metric-value premium-metric-value-compact">
+                              {opportunity.action}
+                            </div>
+                            <div className="premium-metric-desc">{opportunity.benefit}</div>
+                          </div>
+                        </div>
+                        <div className="premium-report-grid-2">
+                          <div className="premium-metric-tile">
+                            <div className="premium-metric-kicker">Cognition graph</div>
+                            <div className="premium-metric-value">
+                              {financialCognitionGraph.beliefs.length +
+                                financialCognitionGraph.biases.length +
+                                financialCognitionGraph.emotions.length +
+                                financialCognitionGraph.decisions.length +
+                                financialCognitionGraph.outcomes.length}{" "}
+                              elements
+                            </div>
+                            <div className="premium-metric-desc">
+                              {financialCognitionGraph.connections.length} connections modeling
+                              belief → bias → outcome.
+                            </div>
+                          </div>
+                          <div className="premium-metric-tile">
+                            <div className="premium-metric-kicker">Risk calibration</div>
+                            <div className="premium-metric-value">
+                              {riskCalibration.calibrated ? "Aligned" : "Misaligned"}
+                            </div>
+                            <div className="premium-metric-desc">
+                              Perception gap is {riskCalibration.calibrationGap}%.
+                            </div>
+                          </div>
+                        </div>
                         <div className="premium-metric-tile premium-metric-tile-wide">
                           <strong className="premium-metric-heading">
-                            Marketplace recommendations
+                            Risk & opportunity alerts
                           </strong>
-                          <p className="premium-metric-longtext">
-                            {backendMarketplaceRecommendations.length > 0
-                              ? backendMarketplaceRecommendations
-                                  .map(provider => provider.name)
-                                  .join(", ")
-                              : marketplaceRecommendations
-                                  .map(provider => provider.name)
-                                  .join(", ")}
-                          </p>
-                        </div>
-                      )}
-                      {memoryInsight && (
-                        <div className="premium-metric-tile premium-metric-tile-wide">
-                          <strong className="premium-metric-heading">Memory Insight</strong>
-                          <p className="premium-metric-longtext">{memoryInsight.insight}</p>
-                        </div>
-                      )}
-                      <div className="premium-metric-tile premium-metric-tile-wide">
-                        <strong className="premium-metric-heading">Score trajectory</strong>
-                        <p className="premium-metric-longtext">{trajectoryNarrative}</p>
-                      </div>
-                      <div className="premium-metric-tile premium-metric-tile-wide">
-                        <strong className="premium-metric-heading">Cognition graph explorer</strong>
-                        <Suspense fallback={<LazyComponentFallback />}>
-                          <CognitionGraphView
-                            nodes={cognitionGraphData.nodes}
-                            edges={cognitionGraphData.edges}
-                          />
-                        </Suspense>
-                      </div>
-                      <div className="premium-metric-tile premium-metric-tile-wide">
-                        <strong className="premium-metric-heading">Unified memory</strong>
-                        <p className="premium-metric-longtext">
-                          {memoryTimeline.length} memory events stored across your financial
-                          history.
-                        </p>
-                        {displayedMemoryEvents.length > 0 ? (
-                          <>
-                            <ul className="memory-timeline-list">
-                              {displayedMemoryEvents.map((event, index) => (
-                                <li key={`${event.type}-${event.timestamp}-${index}`}>
-                                  <strong>{event.type.replaceAll("_", " ")}</strong>:{" "}
-                                  {event.score !== undefined
-                                    ? `score ${event.score}`
-                                    : event.name || event.description || "event recorded"}
-                                  <span> · {new Date(event.timestamp).toLocaleDateString()}</span>
-                                </li>
-                              ))}
-                            </ul>
-                            {memoryTimeline.length > 3 && (
-                              <button
-                                type="button"
-                                className="memory-toggle-button"
-                                onClick={() => setShowFullMemoryTimeline(current => !current)}
+                          <ul className="risk-alert-list">
+                            {displayedRiskAlerts.map((alert, index) => (
+                              <li
+                                key={`${alert.type}-${index}`}
+                                className={`risk-alert risk-alert-${alert.type}`}
                               >
-                                {showFullMemoryTimeline
-                                  ? "Show recent events"
-                                  : "View full memory timeline"}
-                              </button>
-                            )}
-                          </>
-                        ) : (
-                          <p className="premium-metric-longtext">
-                            Complete an assessment to start building your financial memory timeline.
-                          </p>
-                        )}
-                      </div>
-                      {marketplaceRecommendations.length > 0 && (
-                        <div className="premium-metric-tile premium-metric-tile-wide">
-                          <strong className="premium-metric-heading">OS marketplace</strong>
-                          <p className="premium-metric-longtext">
-                            Recommended providers:{" "}
-                            {marketplaceRecommendations.map(provider => provider.name).join(", ")}.
-                          </p>
+                                <strong>{alert.title}</strong>
+                                <span>{alert.message}</span>
+                              </li>
+                            ))}
+                          </ul>
                         </div>
-                      )}
-                      {(goalEvolution.previousGoal || goalEvolution.currentGoal) && (
-                        <div className="premium-metric-tile premium-metric-tile-wide">
-                          <span className="premium-metric-kicker">Goal evolution</span>
-                          <div className="premium-metric-value premium-metric-value-compact">
-                            {goalEvolution.changed ? "Goal path shifted" : "Goal path stable"}
+                        {(backendMarketplaceRecommendations.length > 0 ||
+                          marketplaceRecommendations.length > 0) && (
+                          <div className="premium-metric-tile premium-metric-tile-wide">
+                            <strong className="premium-metric-heading">
+                              Marketplace recommendations
+                            </strong>
+                            <p className="premium-metric-longtext">
+                              {backendMarketplaceRecommendations.length > 0
+                                ? backendMarketplaceRecommendations
+                                    .map(provider => provider.name)
+                                    .join(", ")
+                                : marketplaceRecommendations
+                                    .map(provider => provider.name)
+                                    .join(", ")}
+                            </p>
                           </div>
-                          <div className="premium-metric-desc">
-                            {goalEvolution.changed
-                              ? `Moved from ${goalEvolution.previousGoal || "previous"} to ${goalEvolution.currentGoal || "current"}.`
-                              : "Your current goal remains consistent."}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  </section>
-
-                  <section className="summary-card premium-report-block">
-                    <MoneyBeliefsCard moneyBeliefs={moneyBeliefs} />
-                    <EmotionalTriggersCard
-                      triggers={emotionalTriggers}
-                      patterns={triggerPatterns}
-                    />
-                    <FinancialMindProfileCard profile={financialMindProfile} />
-                  </section>
-
-                  <ErrorBoundary>
-                    <DecisionSimulator
-                      id="simulator"
-                      profile={assessment.profile}
-                      behaviour={assessment.behaviour}
-                    />
-                  </ErrorBoundary>
-                </div>
-
-                <div className="assessment-summary-sidebar">
-                  <Suspense fallback={<LazyComponentFallback />}>
-                    <ErrorBoundary>
-                      <FinancialTwin
-                        personalityType={result.personalityType}
-                        behaviourScore={result.behaviourScore}
-                        awarenessScore={result.awarenessScore}
-                        scenarios={twinScenarios}
-                      />
-                    </ErrorBoundary>
-                  </Suspense>
-                  <PeerComparisonCard userScore={normalizeScore(result)} />
-                  <FinancialDNA result={result} />
-                  {isAuthenticated ? (
-                    <div className="summary-card padded" style={{ marginTop: "18px" }}>
-                      <div className="auth-status-card">
-                        <CircleUserRound size={20} />
-                        <span>
-                          Signed in as <strong>{user?.name || user?.email}</strong>
-                        </span>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="summary-card padded" style={{ marginTop: "18px" }}>
-                      <div className="auth-status-card">
-                        <LogIn size={20} />
-                        <span>
-                          <button
-                            type="button"
-                            className="auth-link-btn"
-                            onClick={() => {
-                              setAuthMode("login");
-                              setShowAuthModal(true);
-                            }}
-                          >
-                            Sign in
-                          </button>{" "}
-                          or{" "}
-                          <button
-                            type="button"
-                            className="auth-link-btn"
-                            onClick={() => {
-                              setAuthMode("register");
-                              setShowAuthModal(true);
-                            }}
-                          >
-                            create an account
-                          </button>{" "}
-                          to persist data across devices
-                        </span>
-                      </div>
-                    </div>
-                  )}
-                  <UpgradeJourney result={result} currentScore={normalizeScore(result)} />
-                  {!showSmsForm && !smsEnrichment && (
-                    <section className="enrichment-banner">
-                      <p className="enrichment-banner-title">{ASSESSMENT_BANNER.title}</p>
-                      <button
-                        type="button"
-                        className="enrichment-button"
-                        onClick={() => setShowSmsForm(true)}
-                      >
-                        {ASSESSMENT_BANNER.cta}
-                      </button>
-                      <p className="enrichment-copy">{ASSESSMENT_BANNER.description}</p>
-                    </section>
-                  )}
-
-                  <section className="summary-card padded" style={{ marginTop: "18px" }}>
-                    <PartnerSdkDemo userId={effectiveUserId} assessment={assessment} />
-                  </section>
-                </div>
-
-                <section id="memory" className="summary-span">
-                  <div className={`summary-card ${minimizeMemoryTimeline ? 'is-minimized' : ''}`}>
-                    <div className="premium-report-section-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px' }}>
-                      <div>
-                        <h2 className="premium-report-section-title">🧠 Memory Timeline</h2>
-                        {!minimizeMemoryTimeline && (
-                          <p className="premium-report-block-subtitle">
-                            A dedicated memory view for your recorded financial events, reflections and
-                            decision milestones.
-                          </p>
                         )}
-                      </div>
-                      <PanelMinimizeButton
-                        isMinimized={minimizeMemoryTimeline}
-                        onToggle={() => setMinimizeMemoryTimeline(!minimizeMemoryTimeline)}
-                        title="Memory Timeline"
-                      />
-                    </div>
-                    {!minimizeMemoryTimeline && (
-                      <>
-                        {memoryTimeline.length > 0 ? (
-                          <>
-                            <div className="premium-report-grid-2">
-                              <div className="premium-metric-tile">
-                                <div className="premium-metric-kicker">Memory events</div>
-                                <div className="premium-metric-value">{memoryTimeline.length}</div>
-                                <div className="premium-metric-desc">
-                                  Events captured from assessments, forecasts, and decisions.
-                                </div>
-                              </div>
-                              <div className="premium-metric-tile">
-                                <div className="premium-metric-kicker">Latest entry</div>
-                                <div className="premium-metric-value">
-                                  {new Date(
-                                    fullMemoryEvents[0]?.timestamp || Date.now()
-                                  ).toLocaleDateString()}
-                                </div>
-                                <div className="premium-metric-desc">
-                                  Most recent financial memory update.
-                                </div>
-                              </div>
-                            </div>
-                            <ul className="memory-timeline-list memory-timeline-page-list">
-                              {fullMemoryEvents.map((event, index) => (
-                                <li key={`${event.type}-${event.timestamp}-${index}`}>
-                                  <strong>{event.type.replaceAll("_", " ")}</strong>
-                                  <span>
+                        {memoryInsight && (
+                          <div className="premium-metric-tile premium-metric-tile-wide">
+                            <strong className="premium-metric-heading">Memory Insight</strong>
+                            <p className="premium-metric-longtext">{memoryInsight.insight}</p>
+                          </div>
+                        )}
+                        <div className="premium-metric-tile premium-metric-tile-wide">
+                          <strong className="premium-metric-heading">Score trajectory</strong>
+                          <p className="premium-metric-longtext">{trajectoryNarrative}</p>
+                        </div>
+                        <div className="premium-metric-tile premium-metric-tile-wide">
+                          <strong className="premium-metric-heading">
+                            Cognition graph explorer
+                          </strong>
+                          <Suspense fallback={<LazyComponentFallback />}>
+                            <CognitionGraphView
+                              nodes={cognitionGraphData.nodes}
+                              edges={cognitionGraphData.edges}
+                            />
+                          </Suspense>
+                        </div>
+                        <div className="premium-metric-tile premium-metric-tile-wide">
+                          <strong className="premium-metric-heading">Unified memory</strong>
+                          <p className="premium-metric-longtext">
+                            {memoryTimeline.length} memory events stored across your financial
+                            history.
+                          </p>
+                          {displayedMemoryEvents.length > 0 ? (
+                            <>
+                              <ul className="memory-timeline-list">
+                                {displayedMemoryEvents.map((event, index) => (
+                                  <li key={`${event.type}-${event.timestamp}-${index}`}>
+                                    <strong>{event.type.replaceAll("_", " ")}</strong>:{" "}
                                     {event.score !== undefined
-                                      ? `Score ${event.score}`
-                                      : event.name || event.description || "Event recorded"}
-                                  </span>
-                                  <span>
-                                    {new Date(event.timestamp).toLocaleDateString()} ·{" "}
-                                    {new Date(event.timestamp).toLocaleTimeString([], {
-                                      hour: "2-digit",
-                                      minute: "2-digit"
-                                    })}
-                                  </span>
-                                </li>
-                              ))}
-                            </ul>
-                          </>
-                        ) : (
-                          <p className="premium-metric-longtext">
-                            No financial memory events yet. Keep using the app to build a richer
-                            timeline of your financial journey.
-                          </p>
+                                      ? `score ${event.score}`
+                                      : event.name || event.description || "event recorded"}
+                                    <span> · {new Date(event.timestamp).toLocaleDateString()}</span>
+                                  </li>
+                                ))}
+                              </ul>
+                              {memoryTimeline.length > 3 && (
+                                <button
+                                  type="button"
+                                  className="memory-toggle-button"
+                                  onClick={() => setShowFullMemoryTimeline(current => !current)}
+                                >
+                                  {showFullMemoryTimeline
+                                    ? "Show recent events"
+                                    : "View full memory timeline"}
+                                </button>
+                              )}
+                            </>
+                          ) : (
+                            <p className="premium-metric-longtext">
+                              Complete an assessment to start building your financial memory
+                              timeline.
+                            </p>
+                          )}
+                        </div>
+                        {marketplaceRecommendations.length > 0 && (
+                          <div className="premium-metric-tile premium-metric-tile-wide">
+                            <strong className="premium-metric-heading">OS marketplace</strong>
+                            <p className="premium-metric-longtext">
+                              Recommended providers:{" "}
+                              {marketplaceRecommendations.map(provider => provider.name).join(", ")}
+                              .
+                            </p>
+                          </div>
                         )}
-                      </>
-                    )}
-                  </div>
-                </section>
+                        {(goalEvolution.previousGoal || goalEvolution.currentGoal) && (
+                          <div className="premium-metric-tile premium-metric-tile-wide">
+                            <span className="premium-metric-kicker">Goal evolution</span>
+                            <div className="premium-metric-value premium-metric-value-compact">
+                              {goalEvolution.changed ? "Goal path shifted" : "Goal path stable"}
+                            </div>
+                            <div className="premium-metric-desc">
+                              {goalEvolution.changed
+                                ? `Moved from ${goalEvolution.previousGoal || "previous"} to ${goalEvolution.currentGoal || "current"}.`
+                                : "Your current goal remains consistent."}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </section>
 
-                <section id="history" className="summary-span">
-                  <Suspense fallback={<LazyComponentFallback />}>
+                    <section className="summary-card premium-report-block">
+                      <MoneyBeliefsCard moneyBeliefs={moneyBeliefs} />
+                      <EmotionalTriggersCard
+                        triggers={emotionalTriggers}
+                        patterns={triggerPatterns}
+                      />
+                      <FinancialMindProfileCard profile={financialMindProfile} />
+                    </section>
+
                     <ErrorBoundary>
-                      <UserHistory
-                        className="summary-span"
-                        currentScore={result.healthScore}
-                        personalityType={result.personalityType}
+                      <DecisionSimulator
+                        id="simulator"
+                        profile={assessment.profile}
+                        behaviour={assessment.behaviour}
                       />
                     </ErrorBoundary>
-                  </Suspense>
-                </section>
+                  </div>
 
-                <section className="summary-span">
-                  <CollapsiblePanel
-                    className="summary-card premium-report-block"
-                    headerClassName="premium-report-block-header"
-                    titleClassName="premium-report-block-title"
-                    subtitleClassName="premium-report-block-subtitle"
-                    title={INSIGHT_TITLES.narrativeTitle}
-                    subtitle={INSIGHT_TITLES.narrativeSubtitle}
-                    icon={<Sparkles size={20} />}
-                  >
-                    <div className="premium-report-block-header">
-                      <h2 className="premium-report-block-title">
-                        {INSIGHT_TITLES.narrativeTitle}
-                      </h2>
-                      <p className="premium-report-block-subtitle">
-                        {INSIGHT_TITLES.narrativeSubtitle}
-                      </p>
+                  <div className="assessment-summary-sidebar">
+                    <Suspense fallback={<LazyComponentFallback />}>
+                      <ErrorBoundary>
+                        <FinancialTwin
+                          personalityType={result.personalityType}
+                          behaviourScore={result.behaviourScore}
+                          awarenessScore={result.awarenessScore}
+                          scenarios={twinScenarios}
+                        />
+                      </ErrorBoundary>
+                    </Suspense>
+                    <PeerComparisonCard userScore={normalizeScore(result)} />
+                    <FinancialDNA result={result} />
+                    {isAuthenticated ? (
+                      <div className="summary-card padded" style={{ marginTop: "18px" }}>
+                        <div className="auth-status-card">
+                          <CircleUserRound size={20} />
+                          <span>
+                            Signed in as <strong>{user?.name || user?.email}</strong>
+                          </span>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="summary-card padded" style={{ marginTop: "18px" }}>
+                        <div className="auth-status-card">
+                          <LogIn size={20} />
+                          <span>
+                            <button
+                              type="button"
+                              className="auth-link-btn"
+                              onClick={() => {
+                                setAuthMode("login");
+                                setShowAuthModal(true);
+                              }}
+                            >
+                              Sign in
+                            </button>{" "}
+                            or{" "}
+                            <button
+                              type="button"
+                              className="auth-link-btn"
+                              onClick={() => {
+                                setAuthMode("register");
+                                setShowAuthModal(true);
+                              }}
+                            >
+                              create an account
+                            </button>{" "}
+                            to persist data across devices
+                          </span>
+                        </div>
+                      </div>
+                    )}
+                    <UpgradeJourney result={result} currentScore={normalizeScore(result)} />
+                    {!showSmsForm && !smsEnrichment && (
+                      <section className="enrichment-banner">
+                        <p className="enrichment-banner-title">{ASSESSMENT_BANNER.title}</p>
+                        <button
+                          type="button"
+                          className="enrichment-button"
+                          onClick={() => setShowSmsForm(true)}
+                        >
+                          {ASSESSMENT_BANNER.cta}
+                        </button>
+                        <p className="enrichment-copy">{ASSESSMENT_BANNER.description}</p>
+                      </section>
+                    )}
+
+                    <section className="summary-card padded" style={{ marginTop: "18px" }}>
+                      <PartnerSdkDemo userId={effectiveUserId} assessment={assessment} />
+                    </section>
+                  </div>
+
+                  <section id="memory" className="summary-span">
+                    <div className={`summary-card ${minimizeMemoryTimeline ? "is-minimized" : ""}`}>
+                      <div
+                        className="premium-report-section-header"
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "space-between",
+                          gap: "12px"
+                        }}
+                      >
+                        <div>
+                          <h2 className="premium-report-section-title">🧠 Memory Timeline</h2>
+                          {!minimizeMemoryTimeline && (
+                            <p className="premium-report-block-subtitle">
+                              A dedicated memory view for your recorded financial events,
+                              reflections and decision milestones.
+                            </p>
+                          )}
+                        </div>
+                        <PanelMinimizeButton
+                          isMinimized={minimizeMemoryTimeline}
+                          onToggle={() => setMinimizeMemoryTimeline(!minimizeMemoryTimeline)}
+                          title="Memory Timeline"
+                        />
+                      </div>
+                      {!minimizeMemoryTimeline && (
+                        <>
+                          {memoryTimeline.length > 0 ? (
+                            <>
+                              <div className="premium-report-grid-2">
+                                <div className="premium-metric-tile">
+                                  <div className="premium-metric-kicker">Memory events</div>
+                                  <div className="premium-metric-value">
+                                    {memoryTimeline.length}
+                                  </div>
+                                  <div className="premium-metric-desc">
+                                    Events captured from assessments, forecasts, and decisions.
+                                  </div>
+                                </div>
+                                <div className="premium-metric-tile">
+                                  <div className="premium-metric-kicker">Latest entry</div>
+                                  <div className="premium-metric-value">
+                                    {new Date(
+                                      fullMemoryEvents[0]?.timestamp || Date.now()
+                                    ).toLocaleDateString()}
+                                  </div>
+                                  <div className="premium-metric-desc">
+                                    Most recent financial memory update.
+                                  </div>
+                                </div>
+                              </div>
+                              <ul className="memory-timeline-list memory-timeline-page-list">
+                                {fullMemoryEvents.map((event, index) => (
+                                  <li key={`${event.type}-${event.timestamp}-${index}`}>
+                                    <strong>{event.type.replaceAll("_", " ")}</strong>
+                                    <span>
+                                      {event.score !== undefined
+                                        ? `Score ${event.score}`
+                                        : event.name || event.description || "Event recorded"}
+                                    </span>
+                                    <span>
+                                      {new Date(event.timestamp).toLocaleDateString()} ·{" "}
+                                      {new Date(event.timestamp).toLocaleTimeString([], {
+                                        hour: "2-digit",
+                                        minute: "2-digit"
+                                      })}
+                                    </span>
+                                  </li>
+                                ))}
+                              </ul>
+                            </>
+                          ) : (
+                            <p className="premium-metric-longtext">
+                              No financial memory events yet. Keep using the app to build a richer
+                              timeline of your financial journey.
+                            </p>
+                          )}
+                        </>
+                      )}
                     </div>
-                    <ErrorBoundary>
-                      <EnhancedInsightNarrative assessmentResult={result} assessment={assessment} />
-                    </ErrorBoundary>
-                  </CollapsiblePanel>
-                </section>
+                  </section>
+
+                  <section id="history" className="summary-span">
+                    <Suspense fallback={<LazyComponentFallback />}>
+                      <ErrorBoundary>
+                        <UserHistory
+                          className="summary-span"
+                          currentScore={result.healthScore}
+                          personalityType={result.personalityType}
+                        />
+                      </ErrorBoundary>
+                    </Suspense>
+                  </section>
+
+                  <section className="summary-span">
+                    <CollapsiblePanel
+                      className="summary-card premium-report-block"
+                      headerClassName="premium-report-block-header"
+                      titleClassName="premium-report-block-title"
+                      subtitleClassName="premium-report-block-subtitle"
+                      title={INSIGHT_TITLES.narrativeTitle}
+                      subtitle={INSIGHT_TITLES.narrativeSubtitle}
+                      icon={<Sparkles size={20} />}
+                    >
+                      <div className="premium-report-block-header">
+                        <h2 className="premium-report-block-title">
+                          {INSIGHT_TITLES.narrativeTitle}
+                        </h2>
+                        <p className="premium-report-block-subtitle">
+                          {INSIGHT_TITLES.narrativeSubtitle}
+                        </p>
+                      </div>
+                      <ErrorBoundary>
+                        <EnhancedInsightNarrative
+                          assessmentResult={result}
+                          assessment={assessment}
+                        />
+                      </ErrorBoundary>
+                    </CollapsiblePanel>
+                  </section>
                 </section>
               </>
             )}
@@ -2211,8 +2264,6 @@ function UpgradeJourney({ result, currentScore }) {
     </CollapsiblePanel>
   );
 }
-
-
 
 const sIcons = { behaviour: Brain, awareness: BarChart3, stability: ShieldCheck };
 
