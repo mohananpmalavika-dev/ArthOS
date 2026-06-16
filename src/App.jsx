@@ -138,6 +138,10 @@ import {
   enqueueAssessmentSave,
   flushQueuedAssessmentSaves
 } from "./lib/appAssessmentQueue.js";
+// Background services (Phase 1 integration)
+import { initializeBackgroundServices } from "./lib/backgroundServicesInitializer";
+import { getPushNotificationService } from "./lib/pushNotificationService";
+import { getReminderDeliveryEngine } from "./lib/reminderDeliveryEngine";
 import {
   buildLiveInsightCards,
   SECTION_ICONS,
@@ -806,6 +810,67 @@ export default function App({ demoMode = false }) {
       window.removeEventListener("offline", handleOffline);
     };
   }, []);
+
+  // Phase 1: Register service worker, initialize background services,
+  // wire push notification handlers, and start the reminder engine.
+  useEffect(() => {
+    if (!isBrowser()) return;
+
+    let unsubscribeClick = null;
+    let unsubscribeClose = null;
+
+    const startServices = async () => {
+      try {
+        await initializeBackgroundServices({
+          telemetryBatchWindowMs: 30_000,
+          enableCheckInScheduler: true,
+          enableFollowUpWorkflow: true,
+          enableIdempotencyCleanup: true
+        });
+      } catch (e) {
+        console.error('initializeBackgroundServices failed', e);
+      }
+
+      try {
+        const push = getPushNotificationService();
+        unsubscribeClick = push.onNotificationClick((data) => {
+          try {
+            if (data?.url) {
+              navigate(data.url);
+            } else {
+              window.dispatchEvent(new CustomEvent('arth:notification-action', { detail: data }));
+            }
+          } catch (err) {
+            console.error('Notification click handler error', err);
+          }
+        });
+
+        unsubscribeClose = push.onNotificationClose((data) => {
+          window.dispatchEvent(new CustomEvent('arth:notification-closed', { detail: data }));
+        });
+      } catch (e) {
+        console.error('PushNotificationService setup failed', e);
+      }
+
+      try {
+        const reminderEngine = getReminderDeliveryEngine();
+        reminderEngine.start();
+      } catch (e) {
+        console.error('ReminderDeliveryEngine start failed', e);
+      }
+    };
+
+    void startServices();
+
+    return () => {
+      try {
+        if (unsubscribeClick) unsubscribeClick();
+        if (unsubscribeClose) unsubscribeClose();
+      } catch (e) {
+        console.error('Failed to unsubscribe push handlers', e);
+      }
+    };
+  }, [navigate]);
 
   // Onboarding completion is handled by useUIState hook
   // completeOnboarding is available from uiState and manages both state and localStorage
