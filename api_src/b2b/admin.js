@@ -1,28 +1,17 @@
 /**
- * B2B Admin & Analytics API
- * GET /api/b2b/admin — Get all partner analytics (requires admin key)
+ * B2B Admin & Analytics API (JWT + Role-Based Auth)
+ * GET /api/b2b/admin — Get all partner analytics (requires admin role)
  * GET /api/b2b/admin?partnerId=xxx — Get specific partner analytics
  * POST /api/b2b/admin/change-tier — Change a partner's tier
  * POST /api/b2b/admin/suspend — Suspend a partner
  * POST /api/b2b/admin/reactivate — Reactivate a partner
  *
  * Blueprint §19: Full partner management dashboard backend.
+ * ⚠️  ALL endpoints now require valid JWT with admin role.
  */
 
 import { b2bPartnerEngine, PARTNER_TIERS } from '../../src/lib/b2bPartnerEngine.js';
-
-const ADMIN_API_KEY = process.env.ARTHOS_ADMIN_KEY || 'arth_admin_key_change_in_prod';
-
-function requireAdmin(req, res) {
-  const authHeader = req.headers.authorization || '';
-  const suppliedKey = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : authHeader;
-
-  if (suppliedKey !== ADMIN_API_KEY) {
-    res.status(401).json({ error: 'Unauthorized. Valid admin API key required.' });
-    return false;
-  }
-  return true;
-}
+import { requireAdminRole } from '../auth/jwt.js';
 
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -33,7 +22,9 @@ export default async function handler(req, res) {
     return res.status(200).end();
   }
 
-  if (!requireAdmin(req, res)) return;
+  // ─── Enforce admin role for ALL endpoints ───
+  const admin = await requireAdminRole(req, res);
+  if (!admin) return; // requireAdminRole already sent error response
 
   try {
     // ─── POST sub-routes ───

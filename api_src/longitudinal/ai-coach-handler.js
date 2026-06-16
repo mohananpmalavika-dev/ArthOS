@@ -8,6 +8,7 @@
 import 'dotenv/config';
 import { createClient } from '@supabase/supabase-js';
 import AICoachEngine from './ai-coach-engine.js';
+import { requireAuth } from '../auth/jwt.js';
 
 const SUPABASE_URL = process.env.SUPABASE_URL;
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -29,12 +30,13 @@ function normalizeCoachPath(pathname) {
   }
 }
 
-function getUserId(req) {
-  const userId = req.query?.userId || req.body?.userId;
-  if (!userId) {
-    throw new Error('userId required');
+async function getUserId(req, res) {
+  const user = await requireAuth(req, res);
+  if (!user) {
+    // requireAuth already sent the error response
+    return null;
   }
-  return userId;
+  return user.id;
 }
 
 function isPlaceholderValue(value) {
@@ -61,7 +63,7 @@ export default async function aiCoachHandler(req, res) {
   try {
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
 
     if (req.method === 'OPTIONS') {
       return res.status(200).end();
@@ -75,7 +77,11 @@ export default async function aiCoachHandler(req, res) {
       return handleHealth(res);
     }
 
-    const userId = getUserId(req);
+    const userId = await getUserId(req, res);
+    if (!userId) {
+      // getUserId already sent the error response
+      return;
+    }
 
     // Route to appropriate handler
     if (method === 'POST' && pathname === '/api/coach/sessions') {

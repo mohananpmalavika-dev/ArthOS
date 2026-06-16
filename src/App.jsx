@@ -198,7 +198,6 @@ import { StrategicMetricsCard } from "./components/StrategicMetricsCard.jsx";
 import DailyCheckinForm from "./components/DailyCheckinForm.jsx";
 import UnifiedJourneyHome from "./components/UnifiedJourneyHome.jsx";
 import Header from "./components/Header.jsx";
-import AdminSection from "./components/AdminSection.jsx";
 import ReminderPreferences from "./components/ReminderPreferences.jsx";
 import DecisionHistory from "./components/DecisionHistory.jsx";
 import RecordDecision from "./components/RecordDecision.jsx";
@@ -494,9 +493,6 @@ export default function App({ demoMode = false }) {
   } = uiState;
 
   // Admin-related states (not yet in hooks - kept for now)
-  const [adminLoggedIn, setAdminLoggedIn] = useState(false);
-  const [adminCredentials, setAdminCredentials] = useState({ username: "", password: "" });
-  const [adminLoginError, setAdminLoginError] = useState("");
   const [adminReport, setAdminReport] = useState(null);
   const [coachPrimaryConcern, setCoachPrimaryConcern] = useState(null);
 
@@ -818,7 +814,7 @@ export default function App({ demoMode = false }) {
       return;
     }
     const userId = currentUserId || assessment.participant?.email || "demo";
-    void fetch(`/api/decision?userId=${encodeURIComponent(userId)}`)
+    void fetch(`/api/decision`)
       .then(response => {
         if (!response.ok) {
           throw new Error(`API returned status ${response.status}`);
@@ -843,9 +839,7 @@ export default function App({ demoMode = false }) {
     if (!isBrowser() || !currentUserId) {
       return;
     }
-    void fetch(`/api/follow-up/pending?userId=${encodeURIComponent(currentUserId)}`, {
-      headers: { "x-user-id": currentUserId }
-    })
+    void fetch(`/api/follow-up/pending`)
       .then(response => {
         // Check if response is ok and is JSON
         if (!response.ok) {
@@ -1403,26 +1397,6 @@ export default function App({ demoMode = false }) {
           console.warn("Remote save error, queued for retry:", err);
         });
     }
-  }
-
-  function handleAdminLogin(event) {
-    event.preventDefault();
-    if (adminCredentials.username === "ankit" && adminCredentials.password === "admin") {
-      setAdminLoggedIn(true);
-      setAdminLoginError("");
-      startTransition(() => setActiveHash("#admin"));
-      return;
-    }
-
-    setAdminLoginError("Invalid username or password. Please try again.");
-  }
-
-  function handleAdminLogout() {
-    setAdminLoggedIn(false);
-    setAdminCredentials({ username: "", password: "" });
-    setAdminLoginError("");
-    navigate(location.pathname, { replace: true });
-    startTransition(() => setActiveHash("#"));
   }
 
   function generateAdminReport() {

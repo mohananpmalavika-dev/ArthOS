@@ -75,7 +75,7 @@ const AiCoachInterface = ({ userId, result, assessment, coachPrimaryConcern }) =
   // Load coaching memory and preferences
   const loadCoachingMemory = async () => {
     try {
-      const res = await fetch(`/api/coach/memory?userId=${userId}`);
+      const res = await fetch(`/api/coach/memory`);
       const data = await res.json();
 
       if (data.success) {
@@ -95,7 +95,7 @@ const AiCoachInterface = ({ userId, result, assessment, coachPrimaryConcern }) =
   // Load analytics
   const loadAnalytics = async () => {
     try {
-      const res = await fetch(`/api/coach/analytics?userId=${userId}`);
+      const res = await fetch(`/api/coach/analytics`);
       const data = await res.json();
 
       if (data.success) {

@@ -29,7 +29,7 @@ export default function ActionFollowUpPanel({ userId, followUps = [] }) {
 
   const fetchMetrics = async () => {
     try {
-      const res = await fetch(`/api/follow-up/metrics?userId=${userId}`);
+      const res = await fetch(`/api/follow-up/metrics`);
       const data = await res.json();
       setMetrics(data.metrics);
     } catch (e) {
@@ -48,7 +48,7 @@ export default function ActionFollowUpPanel({ userId, followUps = [] }) {
     try {
       const res = await fetch("/api/follow-up/day-7/respond", {
         method: "POST",
-        headers: { "Content-Type": "application/json", "x-user-id": userId },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ followUpId, response })
       });
       const data = await res.json();
@@ -82,7 +82,7 @@ export default function ActionFollowUpPanel({ userId, followUps = [] }) {
     try {
       const res = await fetch("/api/follow-up/day-30/respond", {
         method: "POST",
-        headers: { "Content-Type": "application/json", "x-user-id": userId },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           followUpId,
           response,

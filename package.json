@@ -18,7 +18,8 @@
     "format": "prettier --write \"src/**/*.{js,jsx,ts,tsx,css}\"",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build",
-    "prepare": "husky install 2>/dev/null || true"
+    "prepare": "husky install 2>/dev/null || true",
+    "test:background-health": "node scripts/test-background-health.js"
   },
   "dependencies": {
     "@playwright/test": "^1.60.0",

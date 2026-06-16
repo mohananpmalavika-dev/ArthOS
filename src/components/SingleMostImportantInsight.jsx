@@ -74,8 +74,7 @@ export default function SingleMostImportantInsight({ assessmentResult, assessmen
           const res = await fetch("/api/follow-up/schedule", {
             method: "POST",
             headers: {
-              "Content-Type": "application/json",
-              "x-user-id": userId
+              "Content-Type": "application/json"
             },
             body: JSON.stringify({
               insight: primaryInsight,

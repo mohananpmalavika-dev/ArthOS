@@ -22,6 +22,7 @@ export default async function handler(req, res) {
         id: decoded.userId,
         email: decoded.email,
         name: decoded.name,
+        role: decoded.role || 'user',
       },
     });
   } catch (err) {

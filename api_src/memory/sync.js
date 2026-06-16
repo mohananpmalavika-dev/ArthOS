@@ -7,9 +7,11 @@
  * - Financial memory events
  * - Goal history
  * - Twin snapshots
+ * ⚠️  ALL endpoints require valid JWT token in Authorization header
  */
 
 import { hasDatabaseConfig, insertIntoTable } from "../dbClient.js";
+import { requireAuth } from "../auth/jwt.js";
 
 const MEMORY_TABLES = {
   scores: "user_scores_history",
@@ -34,13 +36,14 @@ export default async function syncHandler(req, res) {
     return res.status(405).json({ error: "Method Not Allowed" });
   }
 
+  // ─── Enforce JWT authentication ───
+  const user = await requireAuth(req, res);
+  if (!user) return; // requireAuth already sent error response
+  const userId = user.id;
+
   try {
     const body = typeof req.body === "string" ? JSON.parse(req.body) : req.body || {};
-    const { userId, data } = body;
-
-    if (!userId) {
-      return res.status(400).json({ error: "Missing userId" });
-    }
+    const { data } = body;
 
     if (!Array.isArray(data)) {
       return res.status(400).json({ error: "Missing data array" });

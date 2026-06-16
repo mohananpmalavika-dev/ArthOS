@@ -30,14 +30,14 @@ export default async function handler(req, res) {
     if (!DATABASE_URL) {
       console.log("[login.js] Using demo mode, creating token for:", cleanedEmail);
       const token = jwt.sign(
-        { userId: cleanedEmail, email: cleanedEmail, name: cleanedEmail.split("@")[0] },
+        { userId: cleanedEmail, email: cleanedEmail, name: cleanedEmail.split("@")[0], role: 'user' },
         JWT_CONFIG.secret,
         { expiresIn: JWT_CONFIG.expiresIn },
       );
 
       console.log("[login.js] Token created successfully");
       return res.status(200).json({
-        user: { id: cleanedEmail, email: cleanedEmail, name: cleanedEmail.split("@")[0] },
+        user: { id: cleanedEmail, email: cleanedEmail, name: cleanedEmail.split("@")[0], role: 'user' },
         token,
         demo: true,
       });
@@ -50,7 +50,7 @@ export default async function handler(req, res) {
     });
 
     const { rows } = await pool.query(
-      `SELECT id, email, name, password_hash, email_verified FROM users WHERE email = $1`,
+      `SELECT id, email, name, password_hash, email_verified, user_role FROM users WHERE email = $1`,
       [cleanedEmail],
     );
 
@@ -71,13 +71,13 @@ export default async function handler(req, res) {
     await pool.end();
 
     const token = jwt.sign(
-      { userId: user.id, email: user.email, name: user.name },
+      { userId: user.id, email: user.email, name: user.name, role: user.user_role || 'user' },
       JWT_CONFIG.secret,
       { expiresIn: JWT_CONFIG.expiresIn },
     );
 
     return res.status(200).json({
-      user: { id: user.id, email: user.email, name: user.name },
+      user: { id: user.id, email: user.email, name: user.name, role: user.user_role || 'user' },
       token,
       emailVerified: !!user.email_verified,
     });

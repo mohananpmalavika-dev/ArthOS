@@ -28,6 +28,7 @@ import predictionEngineHandler from '../api_src/longitudinal/prediction-engine-h
 import followUpHandler from '../api_src/follow-up/follow-up-handler.js';
 import shareHandler from '../api_src/share.js';
 import subscriptionsHandler from '../api_src/subscriptions-handler.js';
+import backgroundHealthHandler from '../api_src/backgroundHealth.js';
 // ─── Missing user endpoints ────────────────────────────────────
 import saveDecisionHandler from '../api_src/user/saveDecision.js';
 import loadDraftHandler from '../api_src/user/loadDraft.js';
@@ -103,6 +104,7 @@ const routeDefinitions = [
     handler: shareHandler,
     getParams: (match) => ({ type: match[1], id: match[2] }),
   },
+  { match: (pathname) => pathname === '/api/background/health', handler: backgroundHealthHandler },
   { match: (pathname) => pathname.startsWith('/api/subscriptions'), handler: subscriptionsHandler },
 ];
 
