@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
+import { useNavigate } from "react-router-dom";
 import { ArrowRight } from "lucide-react";
 import { useAssessmentState } from "../hooks/useAssessmentState.js";
 import {
@@ -34,9 +35,11 @@ export default function Onboarding() {
     }
   };
 
-  // Auto-advance from building to complete after animation
+  const navigate = useNavigate();
+
   const handleBuildingComplete = () => {
     setStage("complete");
+    navigate("/big-reveal", { replace: true });
   };
 
   // If assessment has been completed, move to building screen
@@ -44,7 +47,7 @@ export default function Onboarding() {
     if (stage === "assessment" && result && result.healthScore) {
       setStage("building");
     }
-  }, [result?.healthScore, stage]);
+  }, [result?.healthScore, stage, navigate]);
 
   // Welcome screen
   if (stage === "welcome") {
@@ -162,9 +165,7 @@ export default function Onboarding() {
           <AssessmentSection
             assessment={assessment}
             ui={ui}
-            onComplete={() => {
-              // Assessment completed — next stage is building
-            }}
+            onComplete={() => setStage("building")}
           />
         </motion.div>
       </div>
@@ -173,7 +174,7 @@ export default function Onboarding() {
 
   // Building screen
   if (stage === "building") {
-    return <AssessmentBuildingScreen onComplete={handleBuildingComplete} />;
+    return <AssessmentBuildingScreen result={result} onComplete={handleBuildingComplete} />;
   }
 
   // Complete — show Big Reveal

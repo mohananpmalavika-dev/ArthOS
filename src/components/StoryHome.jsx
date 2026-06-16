@@ -23,7 +23,7 @@ import {
   CartesianGrid
 } from "recharts";
 import TrajectoryHeroVisual from "./TrajectoryHeroVisual.jsx";
-import { normalizeScore } from "../lib/scoring-v2";
+import { normalizeScore, componentMaximumsV2 } from "../lib/scoring-v2";
 import FutureYou from "./FutureYou.jsx";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -56,6 +56,19 @@ export default function StoryHome({ result, assessment, onCoachOpen }) {
     const change = Math.round(currentScore - prev);
     return { value: change, direction: change >= 0 ? "up" : "down" };
   }, [result, currentScore]);
+
+  const coreScore = useMemo(() => Math.round(result?.healthScore ?? 0), [result]);
+  const financialDNAMetrics = useMemo(() => {
+    const behaviourPct = result?.behaviourScore ? Math.min(100, Math.round((result.behaviourScore / componentMaximumsV2.behaviour) * 100)) : 0;
+    const awarenessPct = result?.awarenessScore ? Math.min(100, Math.round((result.awarenessScore / componentMaximumsV2.awareness) * 100)) : 0;
+    const stabilityPct = result?.stabilityScore ? Math.min(100, Math.round((result.stabilityScore / componentMaximumsV2.stability) * 100)) : 0;
+
+    return [
+      { label: "Stability", value: stabilityPct },
+      { label: "Awareness", value: awarenessPct },
+      { label: "Behaviour", value: behaviourPct }
+    ];
+  }, [result]);
 
   const emotionalNarrative = useMemo(() => {
     if (currentScore >= 80) return "You're in strong shape.";
@@ -182,49 +195,33 @@ export default function StoryHome({ result, assessment, onCoachOpen }) {
             style={{ textAlign: "center" }}
             variants={itemMotion}
           >
-            <div className="hero-title">YOUR FINANCIAL OPERATING SYSTEM</div>
-            <h2 className="hero-subtitle">Score: <span style={{ opacity: 0.98 }}>{currentScore}</span></h2>
-            <div className="score-meta">↗ {scoreChange.direction === 'up' ? Math.abs(scoreChange.value) : `-${Math.abs(scoreChange.value)}`} this month • You're outperforming 73% of people like you</div>
-          </motion.div>
-
-          <motion.div
-            style={{ display: "flex", gap: 24, alignItems: "center", justifyContent: "center", flexWrap: "wrap" }}
-            variants={itemMotion}
-          >
-            <motion.div className="score-ring" style={{ ["--score"]: currentScore }}
-              initial={{ scale: 0.98, rotate: 0 }}
-              animate={{ scale: [1, 1.03, 1], rotate: [0, 2, 0] }}
-              transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+            <div className="financial-core-label">Financial Core</div>
+            <motion.div
+              className="core-orb-shell"
+              initial={{ scale: 0.92, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ duration: 0.9, ease: "easeOut" }}
             >
-              <div className="score-inner">
-                <motion.div className="score-number-hero" animate={{ scale: [1, 1.08, 1] }} transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut" }}>
-                  {currentScore}
+              <div className="core-orb">
+                <motion.div
+                  className="core-score"
+                  animate={{ scale: [1, 1.08, 1] }}
+                  transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut" }}
+                >
+                  {coreScore}
                 </motion.div>
-                <div style={{ fontSize: 12, color: "rgba(255,255,255,0.75)" }}>Financial Health</div>
+                <div className="core-orb-label">FINANCIAL DNA</div>
               </div>
             </motion.div>
 
-            <motion.div style={{ display: "grid", gap: 12 }} variants={itemMotion}>
-              <motion.div className="mini-glass-row" variants={itemMotion} style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
-                <div className="mini-glass">
-                  <div style={{ fontSize: 12, opacity: 0.8 }}>Cashflow</div>
-                  <div style={{ fontWeight: 800, fontSize: 18 }}>{result?.cashflowDisplay || '₹0'}</div>
+            <div className="core-metrics">
+              {financialDNAMetrics.map(metric => (
+                <div key={metric.label} className="core-metric">
+                  <span>{metric.label}</span>
+                  <strong>{metric.value}%</strong>
                 </div>
-                <div className="mini-glass">
-                  <div style={{ fontSize: 12, opacity: 0.8 }}>Runway</div>
-                  <div style={{ fontWeight: 800, fontSize: 18 }}>{result?.survivalMonthsDisplay || '0'} mo</div>
-                </div>
-                <div className="mini-glass">
-                  <div style={{ fontSize: 12, opacity: 0.8 }}>Risk</div>
-                  <div style={{ fontWeight: 800, fontSize: 18 }}>{realityCard.risk}</div>
-                </div>
-              </motion.div>
-
-              <div style={{ display: 'flex', gap: 12, justifyContent: 'center' }}>
-                <button className="hero-cta" onClick={() => document.getElementById('future')?.scrollIntoView({ behavior: 'smooth' })}>View Future</button>
-                <button className="hero-cta" onClick={() => onCoachOpen && onCoachOpen()}>Open Coach</button>
-              </div>
-            </motion.div>
+              ))}
+            </div>
           </motion.div>
         </motion.div>
       </motion.section>

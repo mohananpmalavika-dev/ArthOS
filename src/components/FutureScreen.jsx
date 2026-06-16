@@ -1,4 +1,5 @@
 import React from "react";
+import { useHistoricalDataContext } from "../context/HistoricalDataContext.jsx";
 import { ConsequenceForecastCard } from "./ConsequenceForecastCard.jsx";
 import { ScenarioForecast } from "./ScenarioForecast.jsx";
 import TrajectoryHeroVisual from "./TrajectoryHeroVisual.jsx";
@@ -7,7 +8,16 @@ import ScoreCard from "./ScoreCard.jsx";
 import { normalizeScore } from "../lib/scoring-v2";
 
 export default function FutureScreen({ result, assessment }) {
-  const currentScore = result?.healthScore ? normalizeScore(result.healthScore) : 0;
+  const currentScoreRaw = result?.healthScore ?? 0;
+  const currentScore = normalizeScore(currentScoreRaw);
+  const { digitalTwin } = useHistoricalDataContext();
+  const futureScoreRaw =
+    digitalTwin?.futureStatistics?.percentiles?.finalHealth?.p50 !== undefined
+      ? Math.round(Math.max(0, Math.min(100, digitalTwin.futureStatistics.percentiles.finalHealth.p50)))
+      : typeof result?.futureRiskScore === "number"
+      ? Math.round(Math.max(0, Math.min(100, result.futureRiskScore)))
+      : null;
+  const futureGap = futureScoreRaw !== null ? futureScoreRaw - currentScore : null;
   const riskLabel = result?.futureRiskLabel || "Emerging risk";
   const runway = result?.survivalMonthsDisplay || "0";
   const heroMessage =
@@ -31,36 +41,52 @@ export default function FutureScreen({ result, assessment }) {
         </p>
       </div>
 
-      <section className="result-card future-hero-card" style={{ padding: "32px", borderRadius: "24px", background: "var(--slate-950)", color: "var(--white)", marginBottom: "24px" }}>
-        <div style={{ display: "grid", gap: "24px", gridTemplateColumns: "minmax(0, 1.3fr) minmax(250px, 1fr)", alignItems: "center" }}>
+      <section className="result-card future-you-hero">
+        <div className="future-you-hero-grid">
           <div>
-            <p style={{ margin: 0, color: "rgba(255,255,255,0.7)", textTransform: "uppercase", letterSpacing: "0.14em", fontSize: "0.78rem" }}>
-              Future Self
-            </p>
-            <h2 style={{ margin: "14px 0 0", fontSize: "2.2rem", fontWeight: 800, lineHeight: 1.05 }}>
-              What your money life can feel like next
-            </h2>
-            <p style={{ margin: "20px 0 0", color: "rgba(255,255,255,0.78)", maxWidth: "680px", lineHeight: 1.75 }}>
-              {heroMessage}
-            </p>
+            <p className="future-you-hero-subtitle">Future Self</p>
+            <h2 className="future-you-hero-title">What your money life can feel like next</h2>
+            <p className="future-you-hero-copy">{heroMessage}</p>
           </div>
 
-          <div style={{ display: "grid", gap: "16px" }}>
-            <ScoreCard score={currentScore} size={140} />
-            <div style={{ padding: "20px", borderRadius: "20px", background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.1)" }}>
-              <p style={{ margin: 0, color: "rgba(255,255,255,0.7)", textTransform: "uppercase", letterSpacing: "0.08em", fontSize: "0.75rem" }}>
-                Today’s anchor
-              </p>
-              <p style={{ margin: "12px 0 0", fontSize: "1rem", color: "rgba(255,255,255,0.8)", lineHeight: 1.6 }}>
-                Current score: <strong>{currentScore}/100</strong>
-              </p>
-              <p style={{ margin: "10px 0 0", fontSize: "1rem", color: "rgba(255,255,255,0.8)", lineHeight: 1.6 }}>
-                Current runway: <strong>{runway} months</strong>
-              </p>
-              <p style={{ margin: "10px 0 0", fontSize: "1rem", color: "rgba(255,255,255,0.8)", lineHeight: 1.6 }}>
-                Risk outlook: <strong>{riskLabel}</strong>
-              </p>
+          <div className="future-you-hero-visual">
+            <div className="future-you-orb-shell">
+              <div className="future-you-orb">
+                <div className="future-you-orb-value">{futureScoreRaw !== null ? futureScoreRaw : currentScore}</div>
+                <div className="future-you-orb-label">Financial Core</div>
+              </div>
             </div>
+            <div className="future-you-orb-note">Projected future health based on your current trajectory.</div>
+          </div>
+        </div>
+
+        <div className="future-you-gap-grid">
+          <div className="future-you-gap-card">
+            <p>Current You</p>
+            <strong>{currentScore}/100</strong>
+          </div>
+          <div className="future-you-gap-card">
+            <p>Future You</p>
+            <strong>{futureScoreRaw !== null ? `${futureScoreRaw}/100` : "—"}</strong>
+          </div>
+          <div className={`future-you-gap-card ${futureGap >= 0 ? "positive" : "negative"}`}>
+            <p>Gap</p>
+            <strong>{futureGap !== null ? `${futureGap >= 0 ? "+" : ""}${futureGap}` : "—"}</strong>
+          </div>
+        </div>
+
+        <div className="future-you-summary">
+          <div className="future-you-summary-item">
+            <span>Current score</span>
+            <strong>{currentScore}/100</strong>
+          </div>
+          <div className="future-you-summary-item">
+            <span>Runway</span>
+            <strong>{runway} months</strong>
+          </div>
+          <div className="future-you-summary-item">
+            <span>Risk outlook</span>
+            <strong>{riskLabel}</strong>
           </div>
         </div>
       </section>
