@@ -103,8 +103,10 @@ import ErrorBoundary from "./components/ErrorBoundary.jsx";
 import RetentionDashboard from "./components/RetentionDashboard.jsx";
 import CompletionDashboard from "./components/CompletionDashboard.jsx";
 import SubscriptionManagement from "./components/SubscriptionManagement.jsx";
+import PrivacySettings from "./components/PrivacySettings.jsx";
 import FeaturePaywall from "./components/FeaturePaywall.jsx";
 import AssessmentLimitNotice from "./components/AssessmentLimitNotice.jsx";
+import { FeatureFlagProvider } from "./lib/featureFlagEngine.js";
 import { PanelMinimizeButton } from "./components/PanelMinimizer.jsx";
 import { useSubscription } from "./hooks/useSubscription.js";
 import { useAssessmentState } from "./hooks/useAssessmentState.js";
@@ -1326,8 +1328,9 @@ export default function App({ demoMode = false }) {
   }
 
   return (
-    <div className="app-shell">
-      <Header
+    <FeatureFlagProvider userId={effectiveUserId}>
+      <div className="app-shell">
+        <Header
         activeHash={activeHash}
         saveState={saveState}
         saveStatusLabel={saveStatusLabel}
@@ -1667,11 +1670,14 @@ export default function App({ demoMode = false }) {
             <section className="dashboard-page">
               <div className="dashboard-page-header">
                 <h1>Settings & Billing</h1>
-                <p>Manage your subscription, partner integrations, and account preferences.</p>
+                <p>Manage your subscription, partner integrations, account preferences, and data privacy.</p>
               </div>
               <div className="dashboard-grid">
                 <div className="dashboard-grid-item">
                   <SubscriptionManagement userId={currentUserId} />
+                </div>
+                <div className="dashboard-grid-item">
+                  <PrivacySettings />
                 </div>
                 <div className="dashboard-grid-item">
                   <Suspense fallback={<LazyComponentFallback />}>
@@ -2548,9 +2554,7 @@ export default function App({ demoMode = false }) {
         )}
       </main>
     </div>
-  );
-}
-
+  </FeatureFlagProvider>
 // Note: deriveDrivers imported from app-utils.js
 
 function ScoreRing({ score }) {
