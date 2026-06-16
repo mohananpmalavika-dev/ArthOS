@@ -1,26 +1,27 @@
 import React, { useState, useEffect } from "react";
 import { X } from "lucide-react";
-
-const CONSENT_KEY = "arth-os-data-consent";
+import { useSettings } from "../context/SettingsContext.jsx";
 
 export default function ConsentBanner() {
+  const { settings, saveSetting } = useSettings();
   const [showBanner, setShowBanner] = useState(false);
 
   useEffect(() => {
-    // Only show if user hasn't given consent
-    const hasConsent = window.localStorage.getItem(CONSENT_KEY) === "true";
-    if (!hasConsent) {
-      setShowBanner(true);
+    const consentValue = settings?.consent;
+    if (consentValue === true || consentValue === false) {
+      setShowBanner(false);
+      return;
     }
-  }, []);
+    setShowBanner(true);
+  }, [settings]);
 
-  const handleAccept = () => {
-    window.localStorage.setItem(CONSENT_KEY, "true");
+  const handleAccept = async () => {
+    await saveSetting("consent", true);
     setShowBanner(false);
   };
 
-  const handleReject = () => {
-    window.localStorage.setItem(CONSENT_KEY, "false");
+  const handleReject = async () => {
+    await saveSetting("consent", false);
     setShowBanner(false);
   };
 

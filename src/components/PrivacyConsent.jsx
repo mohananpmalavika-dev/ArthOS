@@ -1,48 +1,36 @@
 import React, { useState, useEffect } from "react";
-import { useUserPreferences, useTelemetry } from "../hooks/useUserInputData.js";
+import { useSettings } from "../context/SettingsContext.jsx";
+import { useTelemetry } from "../hooks/useUserInputData.js";
 import "./privacy-consent.css";
 
 export default function PrivacyConsent({ onAccept, onManage }) {
-  const { savePreference } = useUserPreferences();
+  const { settings, saveSetting } = useSettings();
   const { logEvent, sessionId } = useTelemetry();
 
   const [open, setOpen] = useState(false);
-  const [settings, setSettings] = useState({
+  const [localSettings, setLocalSettings] = useState({
     telemetry: true,
     personalized: true,
     sharedAnonymized: false
   });
 
   useEffect(() => {
-    try {
-      const raw = window.localStorage.getItem("arthos:privacy");
-      if (raw) {
-        setSettings(JSON.parse(raw));
-      }
-    } catch (e) {
-      // ignore
+    if (settings?.privacy) {
+      setLocalSettings(settings.privacy);
     }
-  }, []);
+  }, [settings]);
 
   const toggle = (key) => {
-    const next = { ...settings, [key]: !settings[key] };
-    setSettings(next);
+    const next = { ...localSettings, [key]: !localSettings[key] };
+    setLocalSettings(next);
     if (onManage) onManage(next);
   };
 
   const persistSettings = async (nextSettings) => {
     try {
-      window.localStorage.setItem("arthos:privacy", JSON.stringify(nextSettings));
-    } catch (e) {}
-
-    // Save each preference server-side if authenticated
-    try {
-      await Promise.all(
-        Object.keys(nextSettings).map((k) => savePreference(`privacy.${k}`, nextSettings[k]))
-      );
+      await saveSetting("privacy", nextSettings);
     } catch (e) {
-      // ignore server persistence errors silently
-      console.warn("[PrivacyConsent] savePreference failed", e);
+      console.warn("[PrivacyConsent] saveSetting failed", e);
     }
   };
 
@@ -58,9 +46,9 @@ export default function PrivacyConsent({ onAccept, onManage }) {
             className="btn btn-primary"
             aria-describedby="privacy-summary"
             onClick={async () => {
-              await persistSettings(settings);
-              if (logEvent) logEvent("consent.accepted", { settings, session_id: sessionId });
-              if (onAccept) onAccept(settings);
+              await persistSettings(localSettings);
+              if (logEvent) logEvent("consent.accepted", { settings: localSettings, session_id: sessionId });
+              if (onAccept) onAccept(localSettings);
             }}
           >
             Accept & Continue
@@ -77,7 +65,7 @@ export default function PrivacyConsent({ onAccept, onManage }) {
             <input
               id="privacy-telemetry"
               type="checkbox"
-              checked={!!settings.telemetry}
+              checked={!!localSettings.telemetry}
               onChange={() => toggle("telemetry")}
             />
             <label htmlFor="privacy-telemetry">Allow anonymous telemetry (usage & performance)</label>
@@ -87,7 +75,7 @@ export default function PrivacyConsent({ onAccept, onManage }) {
             <input
               id="privacy-personalized"
               type="checkbox"
-              checked={!!settings.personalized}
+              checked={!!localSettings.personalized}
               onChange={() => toggle("personalized")}
             />
             <label htmlFor="privacy-personalized">Enable personalized coaching (use AI personalization)</label>
@@ -97,7 +85,7 @@ export default function PrivacyConsent({ onAccept, onManage }) {
             <input
               id="privacy-shared-anon"
               type="checkbox"
-              checked={!!settings.sharedAnonymized}
+              checked={!!localSettings.sharedAnonymized}
               onChange={() => toggle("sharedAnonymized")}
             />
             <label htmlFor="privacy-shared-anon">Share anonymized data for research (opt-in)</label>
@@ -108,9 +96,9 @@ export default function PrivacyConsent({ onAccept, onManage }) {
               className="btn btn-primary"
               aria-label="Save privacy settings"
               onClick={async () => {
-                await persistSettings(settings);
-                if (logEvent) logEvent("consent.updated", { settings, session_id: sessionId });
-                if (onManage) onManage(settings);
+                await persistSettings(localSettings);
+                if (logEvent) logEvent("consent.updated", { settings: localSettings, session_id: sessionId });
+                if (onManage) onManage(localSettings);
                 setOpen(false);
               }}
             >

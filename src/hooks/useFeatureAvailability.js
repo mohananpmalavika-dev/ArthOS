@@ -7,9 +7,14 @@
  * This is the main hook applications should use for feature gating.
  */
 
-import { useAuth } from './AuthContext';
-import { useSubscription } from './SubscriptionContext'; // Assuming this exists
-import { useCapability, useCapabilityDetails } from './CapabilitiesContext';
+import { useAuth } from '../context/AuthContext.jsx';
+import { useSubscription } from './useSubscription';
+import { useCapability, useCapabilityDetails } from '../context/CapabilitiesContext.jsx';
+
+// NOTE: This file contains JSX (<FallbackComponent /> etc.), so it must be .jsx/.tsx.
+// If it is imported as .js, Vite/Babel may treat it as plain JS and fail with
+// `Unexpected token '<'`.
+
 
 /**
  * Comprehensive feature availability check

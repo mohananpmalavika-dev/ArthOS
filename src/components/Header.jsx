@@ -29,7 +29,8 @@ function Header({
   pushEnabled = false,
   onEnableNotifications = () => {},
   showShareActions = false,
-  showPushActions = false
+  showPushActions = false,
+  devMode = false
 }) {
   const location = useLocation();
   const currentPath = location.pathname || "";
@@ -132,8 +133,7 @@ function Header({
         )}
 
         {/** Only show developer tools link when devMode is enabled in UI state. */}
-        {typeof window !== "undefined" &&
-        window.localStorage?.getItem("arth-os-dev-mode") === "true" ? (
+        {devMode ? (
           <a
             className="dev-intelligence-link"
             href="#intelligence"
@@ -144,8 +144,7 @@ function Header({
           </a>
         ) : null}
 
-        {typeof window !== "undefined" &&
-        window.localStorage?.getItem("arth-os-dev-mode") === "true" ? (
+        {devMode ? (
           <button
             type="button"
             className="model-icon-btn dev-qa-btn"
@@ -200,7 +199,8 @@ Header.propTypes = {
   onEnableNotifications: PropTypes.func,
   pushEnabled: PropTypes.bool,
   showShareActions: PropTypes.bool,
-  showPushActions: PropTypes.bool
+  showPushActions: PropTypes.bool,
+  devMode: PropTypes.bool
 };
 
 export default Header;

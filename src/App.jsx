@@ -110,6 +110,8 @@ import { FeatureFlagProvider } from "./lib/featureFlagEngine.js";
 import { BootProvider, useBoot } from "./context/BootContext.jsx";
 import { PanelMinimizeButton } from "./components/PanelMinimizer.jsx";
 import { useSubscription } from "./hooks/useSubscription.js";
+import { useCapability, useCapabilityDetails } from "./context/CapabilitiesContext.jsx";
+import useFeatureAvailability from "./hooks/useFeatureAvailability.js";
 import { useAssessmentState } from "./hooks/useAssessmentState.js";
 import { useNotificationState } from "./hooks/useNotificationState.js";
 import { useHistoricalDataContext } from "./context/HistoricalDataContext.jsx";
@@ -519,6 +521,12 @@ export default function App({ demoMode = false }) {
   } = useSubscription(currentUserId);
   const [showPaywall, setShowPaywall] = useState(false);
   const [remainingAssessments, setRemainingAssessments] = useState(getRemainingAssessments("free"));
+
+  const bankingEnabled = useCapability("banking:integration");
+  const predictionEngineAvailability = useFeatureAvailability("ml:prediction-engine", {
+    requireSubscription: true,
+    minimumTier: "pro"
+  });
   const [nextAvailableAssessmentDate, setNextAvailableAssessmentDate] =
     useState(getLastAssessmentDate());
 
@@ -1697,11 +1705,26 @@ export default function App({ demoMode = false }) {
                   </Suspense>
                 </div>
                 <div className="dashboard-grid-item">
-                  <Suspense fallback={<LazyComponentFallback />}>
-                    <ErrorBoundary>
-                      <PredictionEngineDashboard userId={effectiveUserId} />
-                    </ErrorBoundary>
-                  </Suspense>
+                  {predictionEngineAvailability.available ? (
+                    <Suspense fallback={<LazyComponentFallback />}>
+                      <ErrorBoundary>
+                        <PredictionEngineDashboard userId={effectiveUserId} />
+                      </ErrorBoundary>
+                    </Suspense>
+                  ) : (
+                    <div className="summary-card p-6 bg-white rounded-xl border border-slate-200">
+                      <h2 className="text-xl font-semibold mb-3">Prediction Engine Unavailable</h2>
+                      <p className="text-slate-600 mb-4">{predictionEngineAvailability.reason}</p>
+                      {predictionEngineAvailability.requiresUpgrade && (
+                        <button
+                          onClick={() => setShowPaywall(true)}
+                          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                        >
+                          Upgrade to {predictionEngineAvailability.upgradeTo}
+                        </button>
+                      )}
+                    </div>
+                  )}
                 </div>
                 <div className="dashboard-grid-item">
                   <Suspense fallback={<LazyComponentFallback />}>
@@ -1738,11 +1761,26 @@ export default function App({ demoMode = false }) {
                   </Suspense>
                 </div>
                 <div className="dashboard-grid-item">
-                  <Suspense fallback={<LazyComponentFallback />}>
-                    <ErrorBoundary>
-                      <PredictionEngineDashboard userId={effectiveUserId} />
-                    </ErrorBoundary>
-                  </Suspense>
+                  {predictionEngineAvailability.available ? (
+                    <Suspense fallback={<LazyComponentFallback />}>
+                      <ErrorBoundary>
+                        <PredictionEngineDashboard userId={effectiveUserId} />
+                      </ErrorBoundary>
+                    </Suspense>
+                  ) : (
+                    <div className="summary-card p-6 bg-white rounded-xl border border-slate-200">
+                      <h2 className="text-xl font-semibold mb-3">Forecasting Unavailable</h2>
+                      <p className="text-slate-600 mb-4">{predictionEngineAvailability.reason}</p>
+                      {predictionEngineAvailability.requiresUpgrade && (
+                        <button
+                          onClick={() => setShowPaywall(true)}
+                          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                        >
+                          Upgrade to {predictionEngineAvailability.upgradeTo}
+                        </button>
+                      )}
+                    </div>
+                  )}
                 </div>
               </div>
             </section>
@@ -1890,11 +1928,21 @@ export default function App({ demoMode = false }) {
                 <h1>Accounts & Data</h1>
                 <p>Connect banking feeds, inspect account health, and keep your money profile up to date.</p>
               </div>
-              <Suspense fallback={<LazyComponentFallback />}>
-                <ErrorBoundary>
-                  <BankingIntegrationDashboard userId={effectiveUserId} />
-                </ErrorBoundary>
-              </Suspense>
+              {bankingEnabled ? (
+                <Suspense fallback={<LazyComponentFallback />}>
+                  <ErrorBoundary>
+                    <BankingIntegrationDashboard userId={effectiveUserId} />
+                  </ErrorBoundary>
+                </Suspense>
+              ) : (
+                <div className="max-w-7xl mx-auto p-6 bg-white rounded-xl border border-slate-200">
+                  <h2 className="text-2xl font-semibold mb-3">Banking Integration Disabled</h2>
+                  <p className="text-slate-600">
+                    Banking integration is not available in this environment. If you think this is an error,
+                    please contact support or check your account configuration.
+                  </p>
+                </div>
+              )}
             </section>
           ) : showSettingsPage ? (
             <section className="dashboard-page">

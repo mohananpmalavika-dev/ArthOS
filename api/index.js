@@ -17,6 +17,7 @@ import b2bIntelligenceHandler from '../api_src/b2b/intelligence.js';
 import b2bRegisterHandler from '../api_src/b2b/register.js';
 import b2bValidateKeyHandler from '../api_src/b2b/validate-key.js';
 import b2bWebhooksHandler from '../api_src/b2b/webhooks.js';
+import capabilitiesHandler from '../api_src/config/capabilities-endpoint.js';
 import userAssessmentsHandler from '../api_src/user/assessments.js';
 import userAssessmentDetailHandler from '../api_src/user/assessment-detail.js';
 import userScoresHandler from '../api_src/user/scores.js';
@@ -57,6 +58,7 @@ const routeDefinitions = [
   { match: (pathname) => pathname === '/api/b2b/intelligence', handler: b2bIntelligenceHandler },
   { match: (pathname) => pathname === '/api/b2b/register', handler: b2bRegisterHandler },
   { match: (pathname) => pathname === '/api/b2b/validate-key', handler: b2bValidateKeyHandler },
+  { match: (pathname) => pathname === '/api/config/capabilities', handler: capabilitiesHandler },
   { match: (pathname) => pathname === '/api/b2b/webhooks', handler: b2bWebhooksHandler },
   { match: (pathname) => pathname === '/api/b2b/admin' || pathname.startsWith('/api/b2b/admin/'), handler: b2bAdminHandler },
   {

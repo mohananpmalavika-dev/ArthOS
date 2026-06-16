@@ -10,6 +10,7 @@ import {
 } from "../lib/scoring-v2.js";
 import AssessmentSection from "../components/AssessmentSection.jsx";
 import PrivacyConsent from "../components/PrivacyConsent.jsx";
+import { useSettings } from "../context/SettingsContext.jsx";
 import AssessmentBuildingScreen from "../components/AssessmentBuildingScreen.jsx";
 import {
   v2BehaviourQuestions,
@@ -37,6 +38,8 @@ export default function Onboarding() {
   };
 
   const navigate = useNavigate();
+
+  const { saveSetting } = useSettings();
 
   const handleBuildingComplete = () => {
     setStage("complete");
@@ -117,23 +120,16 @@ export default function Onboarding() {
             </motion.div>
 
             <PrivacyConsent
-              onAccept={() => {
-                try {
-                  window.localStorage.setItem(
-                    "arthos:privacy",
-                    JSON.stringify({ telemetry: true, personalized: true, sharedAnonymized: false })
-                  );
-                } catch (e) {
-                  /* ignore */
-                }
+              onAccept={async () => {
+                await saveSetting("privacy", {
+                  telemetry: true,
+                  personalized: true,
+                  sharedAnonymized: false
+                });
                 setStage("assessment");
               }}
-              onManage={(settings) => {
-                try {
-                  window.localStorage.setItem("arthos:privacy", JSON.stringify(settings));
-                } catch (e) {
-                  /* ignore */
-                }
+              onManage={async (privacySettings) => {
+                await saveSetting("privacy", privacySettings);
               }}
             />
           </div>
