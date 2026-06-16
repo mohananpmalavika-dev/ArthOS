@@ -129,7 +129,7 @@ export function ConsequenceForecastCard({ result, assessment, forecast }) {
           <strong className="metric-value current">{trajectory.today}</strong>
         </div>
         <div className="forecast-metric">
-          <span className="metric-label">6-month forecast</span>
+          <span className="metric-label">6-month projection</span>
           <strong
             className={`metric-value ${trajectory.sixMonths < trajectory.today ? "decline" : "stable"}`}
             aria-label="In 6 Months"
@@ -138,7 +138,7 @@ export function ConsequenceForecastCard({ result, assessment, forecast }) {
           </strong>
         </div>
         <div className="forecast-metric">
-          <span className="metric-label">1-year forecast</span>
+          <span className="metric-label">1-year projection</span>
           <strong
             className={`metric-value ${trajectory.oneYear < trajectory.today ? "decline" : "stable"}`}
             aria-label="In 1 Year"
@@ -147,7 +147,7 @@ export function ConsequenceForecastCard({ result, assessment, forecast }) {
           </strong>
         </div>
         <div className="forecast-metric">
-          <span className="metric-label">2-year forecast</span>
+          <span className="metric-label">2-year projection</span>
           <strong
             className={`metric-value ${trajectory.twoYears < trajectory.today ? "decline" : "stable"}`}
             aria-label="In 2 Years"
@@ -163,8 +163,8 @@ export function ConsequenceForecastCard({ result, assessment, forecast }) {
           {forecastTimeline.map((item, idx) => {
             const monthNumber = item.month ?? item.months ?? item.monthNumber;
             const monthsText = typeof monthNumber === 'number'
-              ? `${monthNumber} months forecast`
-              : `${monthNumber || 'Unknown period'} forecast`;
+              ? `${monthNumber} months`
+              : `${monthNumber || 'Unknown period'}`;
             const confidenceValue = typeof item.confidence === 'number'
               ? item.confidence > 1
                 ? Math.round(item.confidence)
@@ -178,7 +178,7 @@ export function ConsequenceForecastCard({ result, assessment, forecast }) {
               <li key={idx}>
                 <strong>{monthsText}</strong>: {item.healthScore ?? item.projected_score} points
                 {item.health_band ? ` (${item.health_band})` : ''}
-                {confidenceText ? ` • ${confidenceText.replace('Confidence', 'CI').trim()}` : ''}
+                {confidenceText}
               </li>
             );
           })}
