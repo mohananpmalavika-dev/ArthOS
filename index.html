@@ -75,43 +75,16 @@
        * Handles PWA offline support, asset caching, and background sync
        */
       if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-          navigator.serviceWorker.register('/sw.js')
-            .then((registration) => {
-              console.log('[App] Service Worker registered:', registration.scope);
-              
-              // Listen for updates
-              registration.addEventListener('updatefound', () => {
-                const newWorker = registration.installing;
-                console.log('[App] Service Worker update available');
-                
-                newWorker.addEventListener('statechange', () => {
-                  if (newWorker.state === 'activated') {
-                    console.log('[App] New Service Worker activated');
-                    if (!import.meta.env.DEV) {
-                      if (window.confirm('A new version of ARTH.OS is available. Reload to update?')) {
-                        window.location.reload();
-                      }
-                    } else {
-                      console.info('[App] Dev mode: skipping service worker reload prompt');
-                    }
-                  }
-                });
-              });
-            })
-            .catch((err) => {
-              console.warn('[App] Service Worker registration failed:', err.message);
-            });
-
-          // Handle controller change (user skipped update)
-          navigator.serviceWorker.addEventListener('controllerchange', () => {
-            console.log('[App] Service Worker controller changed');
-          });
-        });
-
-        // Listen for messages from service worker
-        navigator.serviceWorker.addEventListener('message', (event) => {
-          console.log('[App] Message from Service Worker:', event.data);
+        window.addEventListener('load', async () => {
+          try {
+            const registrations = await navigator.serviceWorker.getRegistrations();
+            for (const registration of registrations) {
+              await registration.unregister();
+              console.log('[App] Service Worker unregistered:', registration.scope);
+            }
+          } catch (err) {
+            console.warn('[App] Failed to unregister service workers:', err.message);
+          }
         });
       } else {
         console.log('[App] Service Workers not supported in this browser');
