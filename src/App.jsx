@@ -1168,7 +1168,19 @@ export default function App({ demoMode = false }) {
       return;
     }
 
-    const payload = { assessment, result: calculateFinancialHealthV2(assessment) };
+    // Calculate result and tag both with schema versions
+    const result = calculateFinancialHealthV2(assessment);
+    const payload = {
+      assessment: {
+        ...assessment,
+        schema_version: "2.0.0"
+      },
+      result: {
+        ...result,
+        schema_version: "2.0.0"
+      }
+    };
+
     if (isBrowser()) {
       if (!isOnline) {
         enqueueAssessmentSaveAndRefresh(payload);

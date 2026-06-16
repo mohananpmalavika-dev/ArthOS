@@ -1,9 +1,14 @@
 // api/saveAssessment.js
 // Serverless handler to persist assessment submissions to Supabase or local PostgreSQL
 // Now associates assessments with authenticated users via JWT token
+// Includes runtime validation of assessment and result payloads with versioning
 
 import { insertIntoTable } from "./dbClient.js";
 import { extractUserFromRequest } from "./auth/jwt.js";
+import {
+  validateAssessmentSubmission,
+  logValidationFailure
+} from "./payloadValidator.js";
 
 const TABLE_NAME = process.env.SUPABASE_ASSESSMENTS_TABLE || "assessments";
 
@@ -16,6 +21,17 @@ export default async function handler(req, res) {
     const payload = req.body;
     if (!payload || !payload.assessment || !payload.result) {
       return res.status(400).json({ error: "Incomplete payload" });
+    }
+
+    // Validate assessment and result payloads
+    const validation = validateAssessmentSubmission(payload.assessment, payload.result);
+    if (!validation.valid) {
+      logValidationFailure('saveAssessment', payload, validation);
+      return res.status(400).json({
+        error: "Invalid assessment payload",
+        details: validation.errors,
+        schemas: validation.schemas
+      });
     }
 
     // Extract authenticated user from JWT token
@@ -42,6 +58,8 @@ export default async function handler(req, res) {
     const assessmentRecord = {
       assessment: payload.assessment,
       result: payload.result,
+      schema_version: validation.schemas.assessment,
+      result_schema_version: validation.schemas.result,
       user_id: user?.id || null,  // Associate with authenticated user
       participant_name: payload.assessment.participant?.name || null,
       participant_age: payload.assessment.participant?.age || null,

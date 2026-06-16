@@ -526,7 +526,8 @@ export async function addFinancialMemoryEvent(event, userId = null) {
   const entry = {
     ...event,
     id: event.id || `mem_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
-    timestamp: event.timestamp || new Date().toISOString()
+    timestamp: event.timestamp || new Date().toISOString(),
+    schema_version: "1.0.0"
   };
 
   memory.push(entry);
@@ -648,7 +649,8 @@ export async function saveTwinSnapshot(snapshot, userId = null) {
   const entry = {
     ...snapshot,
     id: `twin_${Date.now()}`,
-    timestamp: new Date().toISOString()
+    timestamp: new Date().toISOString(),
+    schema_version: "1.0.0"
   };
 
   snapshots.push(entry);
