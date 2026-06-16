@@ -9,6 +9,7 @@
  * - Complete twin orchestration
  */
 
+import { test, expect } from 'vitest';
 import {
   FinancialState,
   DecisionConsequenceGraph,
@@ -201,7 +202,18 @@ if (twin) {
 // ============================================================
 // TEST SUMMARY
 // ============================================================
-
+test('Digital Twin Engine smoke test', () => {
+  expect(state).toBeDefined();
+  expect(graph).toBeDefined();
+  expect(generator).toBeDefined();
+  expect(behaviorEngine).toBeDefined();
+  expect(twin).toBeDefined();
+  expect(twin.methods.simulateDecision).toBeTypeOf('function');
+  expect(twin.methods.getFutureScenarios).toBeTypeOf('function');
+  expect(twin.methods.getBehaviorProjection).toBeTypeOf('function');
+  expect(simulationResult.projectedOutcome.runway).toBeGreaterThanOrEqual(0);
+  expect(scenarios.survivalRate).toBeGreaterThanOrEqual(0);
+});
 console.log('\n========================================');
 console.log('✅ ALL TESTS PASSED\n');
 console.log('Summary:');

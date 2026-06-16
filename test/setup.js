@@ -30,3 +30,12 @@ Object.defineProperty(window, "matchMedia", {
 
 // Mock scrollIntoView
 Element.prototype.scrollIntoView = vi.fn();
+
+// Mock ResizeObserver for recharts ResponsiveContainer in jsdom
+class MockResizeObserver {
+  observe() {}
+  unobserve() {}
+  disconnect() {}
+}
+
+global.ResizeObserver = global.ResizeObserver || MockResizeObserver;

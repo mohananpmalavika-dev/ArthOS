@@ -9,7 +9,10 @@
 
 import { useAuth } from '../context/AuthContext.jsx';
 import { useSubscription } from './useSubscription';
+import React from 'react';
 import { useCapability, useCapabilityDetails } from '../context/CapabilitiesContext.jsx';
+
+
 
 // NOTE: This file contains JSX (<FallbackComponent /> etc.), so it must be .jsx/.tsx.
 // If it is imported as .js, Vite/Babel may treat it as plain JS and fail with
@@ -137,13 +140,14 @@ export function withFeatureGate(
 
     if (!availability.available) {
       if (FallbackComponent) {
-        return <FallbackComponent availability={availability} {...props} />;
+        return React.createElement(FallbackComponent, { availability, ...props });
       }
       return null;
     }
 
-    return <Component {...props} />;
+    return React.createElement(Component, { ...props });
   };
 }
 
 export default useFeatureAvailability;
+

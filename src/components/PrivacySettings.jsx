@@ -6,7 +6,8 @@
 import { useState } from 'react';
 import './PrivacySettings.css';
 
-export function PrivacySettings() {
+export default function PrivacySettings() {
+
   const [activeTab, setActiveTab] = useState('retention');
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [exportLoading, setExportLoading] = useState(false);

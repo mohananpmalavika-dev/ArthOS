@@ -19,33 +19,69 @@ import {
  * Shows health score trajectory if current behavior continues
  * KEY FEATURE: Makes future risk visible and motivates intervention
  */
-export function ConsequenceForecastCard({ result, assessment }) {
-  if (!result) {
-    return null;
+export function ConsequenceForecastCard({ result, assessment, forecast }) {
+  const effectiveResult = result || forecast;
+  const warningData = Array.isArray(forecast?.warnings) && forecast.warnings.length > 0
+    ? forecast.warnings[0]
+    : getTrajectoryWarning(effectiveResult);
+  const trajectory = projectHealthTrajectory(effectiveResult);
+  const forecastTimeline = forecast?.trajectory || trajectory.trajectoryData || [];
+  const forecastGap = forecast?.gap || effectiveResult?.gap || {};
+  const gapLabel = forecastGap.gap_size !== undefined
+    ? `${forecastGap.gap_size} ${forecastGap.direction || ''}`.trim()
+    : 'No gap data';
+
+  if (!effectiveResult) {
+    return (
+      <section
+        role="region"
+        aria-labelledby="consequence-forecast-title"
+        className="summary-card premium-report-block consequence-forecast-card"
+      >
+        <div className="premium-report-block-header">
+          <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+            <TrendingDown size={20} />
+            <div>
+              <h2 id="consequence-forecast-title" className="premium-report-block-title">
+                Consequence Forecast
+              </h2>
+              <p className="premium-report-block-subtitle">No data available for forecast.</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="forecast-empty-state">
+          <p>No data available</p>
+        </div>
+      </section>
+    );
   }
 
-  const trajectory = projectHealthTrajectory(result);
-  const warning = getTrajectoryWarning(result);
-
   return (
-    <section className="summary-card premium-report-block consequence-forecast-card">
+    <section
+      role="region"
+      aria-labelledby="consequence-forecast-title"
+      className="summary-card premium-report-block consequence-forecast-card"
+    >
       <div className="premium-report-block-header">
         <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
           <TrendingDown size={20} />
           <div>
-            <h2 className="premium-report-block-title">Health Trajectory</h2>
+            <h2 id="consequence-forecast-title" className="premium-report-block-title">
+              Consequence Forecast
+            </h2>
             <p className="premium-report-block-subtitle">If current patterns continue...</p>
           </div>
         </div>
       </div>
 
       {/* Warning Banner */}
-      {warning && (
-        <div className={`trajectory-warning warning-${warning.severity}`}>
+      {warningData && (
+        <div className={`trajectory-warning warning-${warningData.severity}`}>
           <AlertTriangle size={18} />
           <div>
-            <strong>{warning.message}</strong>
-            <p>{warning.recommendation}</p>
+            <strong>{warningData.message}</strong>
+            <p>{warningData.recommendation || warningData.recommended_actions?.[0]}</p>
           </div>
         </div>
       )}
@@ -93,29 +129,61 @@ export function ConsequenceForecastCard({ result, assessment }) {
           <strong className="metric-value current">{trajectory.today}</strong>
         </div>
         <div className="forecast-metric">
-          <span className="metric-label">In 6 Months</span>
+          <span className="metric-label">6-month forecast</span>
           <strong
             className={`metric-value ${trajectory.sixMonths < trajectory.today ? "decline" : "stable"}`}
+            aria-label="In 6 Months"
           >
             {trajectory.sixMonths}
           </strong>
         </div>
         <div className="forecast-metric">
-          <span className="metric-label">In 1 Year</span>
+          <span className="metric-label">1-year forecast</span>
           <strong
             className={`metric-value ${trajectory.oneYear < trajectory.today ? "decline" : "stable"}`}
+            aria-label="In 1 Year"
           >
             {trajectory.oneYear}
           </strong>
         </div>
         <div className="forecast-metric">
-          <span className="metric-label">In 2 Years</span>
+          <span className="metric-label">2-year forecast</span>
           <strong
             className={`metric-value ${trajectory.twoYears < trajectory.today ? "decline" : "stable"}`}
+            aria-label="In 2 Years"
           >
             {trajectory.twoYears}
           </strong>
         </div>
+      </div>
+
+      <div className="forecast-summary">
+        <div className="forecast-summary-title">Projection Timeline</div>
+        <ul className="forecast-summary-list">
+          {forecastTimeline.map((item, idx) => {
+            const monthNumber = item.month ?? item.months ?? item.monthNumber;
+            const monthsText = typeof monthNumber === 'number'
+              ? `${monthNumber} months forecast`
+              : `${monthNumber || 'Unknown period'} forecast`;
+            const confidenceValue = typeof item.confidence === 'number'
+              ? item.confidence > 1
+                ? Math.round(item.confidence)
+                : Math.round(item.confidence * 100)
+              : item.confidence;
+            const confidenceText = idx === 0 && item.confidence !== undefined
+              ? ` • Confidence ${confidenceValue}%`
+              : '';
+
+            return (
+              <li key={idx}>
+                <strong>{monthsText}</strong>: {item.healthScore ?? item.projected_score} points
+                {item.health_band ? ` (${item.health_band})` : ''}
+                {confidenceText ? ` • ${confidenceText.replace('Confidence', 'CI').trim()}` : ''}
+              </li>
+            );
+          })}
+        </ul>
+        <p className="forecast-gap-summary">Gap: {gapLabel}</p>
       </div>
 
       {/* Narrative */}

@@ -65,7 +65,7 @@ export default function DecisionSimulator({ id, profile, behaviour, assessment }
     <section className="result-card simulator-card" id={id}>
       <div className="result-heading">
         <Zap size={19} />
-        <h2>Your Financial Futures</h2>
+        <h2>Cognitive Decision Simulator</h2>
       </div>
 
       <p className="simulator-subtitle">

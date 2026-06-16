@@ -9,6 +9,11 @@ export default defineConfig({
     globals: true,
     setupFiles: ["./test/setup.js"],
     css: true,
+    include: ["test/**/*.test.{js,jsx,ts,tsx}", "src/**/*.{test,spec}.{js,jsx,ts,tsx}"],
+    exclude: [
+      "node_modules/",
+      "test/arthos-flow-qa.spec.js",
+    ],
     coverage: {
       provider: "v8",
       reporter: ["text", "json", "html"],

@@ -42,10 +42,12 @@ export function startAssessmentSession() {
     return;
   }
 
+  const now = Date.now();
   const session = {
-    sessionId: `sess_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
-    startedAt: Date.now(),
-    lastActivityAt: Date.now(),
+    sessionId: `sess_${now}_${Math.random().toString(36).slice(2, 8)}`,
+    startedAt: now,
+    startTime: now,
+    lastActivityAt: now,
     currentStep: 0,
     totalSteps: 0,
     steps: [],
@@ -79,21 +81,26 @@ export function recordStepEntry(stepIndex, totalSteps) {
 
   const now = Date.now();
 
-  // Calculate time spent on previous step
   if (session.steps.length > 0) {
     const lastStep = session.steps[session.steps.length - 1];
+    lastStep.exitTime = now;
     lastStep.durationMs = now - lastStep.enteredAt;
+    lastStep.duration = Math.round((now - lastStep.enteredAt) / 1000);
   }
 
-  // Check if we already recorded this step (user navigated back)
   const existingStep = session.steps.find(s => s.stepIndex === stepIndex);
   if (!existingStep) {
     session.steps.push({
       stepIndex,
       stepLabel: getStepLabel(stepIndex),
       enteredAt: now,
+      entryTime: now,
+      exitTime: null,
       durationMs: 0,
-      isComplete: false
+      duration: 0,
+      isComplete: false,
+      completed: false,
+      completionTime: null
     });
   }
 
@@ -121,7 +128,16 @@ export function markStepCompleted(stepIndex) {
 
   const step = session.steps.find(s => s.stepIndex === stepIndex);
   if (step) {
+    const now = Date.now();
     step.isComplete = true;
+    step.completed = true;
+    step.completionTime = step.completionTime || now;
+    step.lastActivityAt = now;
+    if (!step.exitTime && step.enteredAt) {
+      step.exitTime = now;
+      step.durationMs = now - step.enteredAt;
+      step.duration = Math.round((now - step.enteredAt) / 1000);
+    }
   }
 
   session.lastActivityAt = Date.now();
@@ -143,17 +159,24 @@ export function markAssessmentCompleted() {
 
   const now = Date.now();
 
-  // Finalize last step duration
   if (session.steps.length > 0) {
     const lastStep = session.steps[session.steps.length - 1];
-    lastStep.durationMs = now - lastStep.enteredAt;
+    if (!lastStep.exitTime) {
+      lastStep.exitTime = now;
+      lastStep.durationMs = now - lastStep.enteredAt;
+      lastStep.duration = Math.round((now - lastStep.enteredAt) / 1000);
+    }
     lastStep.isComplete = true;
+    lastStep.completed = true;
+    lastStep.completionTime = lastStep.completionTime || now;
   }
 
   session.completed = true;
   session.completedAt = now;
+  session.completionTime = now;
   session.lastActivityAt = now;
   session.totalDurationMs = now - session.startedAt;
+  session.totalDuration = Math.round((now - session.startedAt) / 1000);
 
   persistSession(session);
 }
@@ -308,17 +331,39 @@ export function clearSession() {
 /**
  * Get aggregated completion rate metrics from historical telemetry.
  */
-export function getCompletionRateMetrics() {
+function getTelemetryHistory() {
   const history = loadTelemetryHistory();
+  const session = loadSession();
+
+  if (session && session.completed) {
+    const summary = buildSessionSummary(session);
+    if (
+      summary &&
+      !history.some(entry => entry.sessionId === summary.sessionId)
+    ) {
+      history.push(summary);
+    }
+  }
+
+  return history;
+}
+
+export function getCompletionRateMetrics() {
+  const history = getTelemetryHistory();
   if (history.length === 0) {
     return {
       totalSessions: 0,
       completedSessions: 0,
       droppedOffSessions: 0,
       completionRate: 0,
+      completionRatePct: 0,
+      dropoffRate: 0,
       dropOffRate: 0,
       averageDurationSec: 0,
       averageCompletedSteps: 0,
+      averageStepDuration: 0,
+      fastestStep: null,
+      slowestStep: null,
       mostCommonDropOff: null,
       dropOffByStep: {},
       deviceBreakdown: {}
@@ -328,8 +373,10 @@ export function getCompletionRateMetrics() {
   const totalSessions = history.length;
   const completedSessions = history.filter(s => s.completed).length;
   const droppedOffSessions = totalSessions - completedSessions;
-  const completionRate = Math.round((completedSessions / totalSessions) * 100);
+  const completionRatePct = Math.round((completedSessions / totalSessions) * 100);
+  const completionRate = Number((completedSessions / totalSessions).toFixed(2));
   const dropOffRate = Math.round((droppedOffSessions / totalSessions) * 100);
+  const dropoffRate = Number((droppedOffSessions / totalSessions).toFixed(2));
 
   const durations = history.filter(s => s.totalDurationMs > 0).map(s => s.totalDurationSec);
   const averageDurationSec =
@@ -341,7 +388,27 @@ export function getCompletionRateMetrics() {
       ? Math.round(completedStepsList.reduce((a, b) => a + b, 0) / completedStepsList.length)
       : 0;
 
-  // Drop-off analysis: which step do people abandon at?
+  const stepDurations = history
+    .flatMap(s => s.stepDetails || [])
+    .filter(step => typeof step.durationMs === 'number' && step.durationMs > 0)
+    .map(step => ({
+      stepIndex: step.step,
+      durationSeconds: Math.round(step.durationMs / 1000)
+    }));
+
+  const averageStepDuration =
+    stepDurations.length > 0
+      ? Math.round(stepDurations.reduce((a, b) => a + b.durationSeconds, 0) / stepDurations.length)
+      : 0;
+
+  const fastestStep = stepDurations.length > 0
+    ? stepDurations.reduce((prev, next) => (next.durationSeconds < prev.durationSeconds ? next : prev), stepDurations[0])
+    : null;
+
+  const slowestStep = stepDurations.length > 0
+    ? stepDurations.reduce((prev, next) => (next.durationSeconds > prev.durationSeconds ? next : prev), stepDurations[0])
+    : null;
+
   const dropOffByStep = {};
   history
     .filter(s => !s.completed && s.droppedOffAt !== null)
@@ -359,7 +426,6 @@ export function getCompletionRateMetrics() {
         }
       : null;
 
-  // Device breakdown
   const deviceBreakdown = {};
   history.forEach(s => {
     const dt = s.deviceType || "unknown";
@@ -371,9 +437,14 @@ export function getCompletionRateMetrics() {
     completedSessions,
     droppedOffSessions,
     completionRate,
+    completionRatePct,
+    dropoffRate,
     dropOffRate,
     averageDurationSec,
     averageCompletedSteps,
+    averageStepDuration,
+    fastestStep,
+    slowestStep,
     mostCommonDropOff,
     dropOffByStep,
     deviceBreakdown
@@ -390,7 +461,6 @@ export function buildStepTelemetryPayload() {
 
   return {
     step_telemetry: {
-      // Current session data
       current_session: session
         ? {
             current_step: session.currentStep,
@@ -400,11 +470,10 @@ export function buildStepTelemetryPayload() {
             device_type: session.deviceType
           }
         : null,
-      // Aggregated metrics
       aggregated: {
         total_sessions: metrics.totalSessions,
-        completion_rate_pct: metrics.completionRate,
-        drop_off_rate_pct: metrics.dropOffRate,
+        completion_rate_pct: metrics.completionRatePct ?? metrics.completionRate,
+        drop_off_rate_pct: metrics.dropOffRate ?? metrics.dropoffRate,
         average_duration_sec: metrics.averageDurationSec,
         most_common_drop_off_step: metrics.mostCommonDropOff
           ? metrics.mostCommonDropOff.step
