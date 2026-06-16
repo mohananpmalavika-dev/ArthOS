@@ -89,7 +89,7 @@ export default function FinancialWeatherCard({ weatherIndex, healthScore = 0 }) 
             fontSize: "1rem"
           }}
         >
-          {normalizedScore}
+          {Math.round(rawScore)}
         </div>
       </div>
       <p style={{ margin: 0, color: "var(--ink-3)", lineHeight: 1.6 }}>{tier.detail}</p>
