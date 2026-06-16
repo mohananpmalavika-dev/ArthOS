@@ -13,7 +13,7 @@ import { Bell, CheckCheck, Trash2, X } from "lucide-react";
  * NotificationPanel — slide-out panel showing all in-app notifications.
  * Triggered by clicking the Bell icon in the header.
  */
-function NotificationPanel({ isOpen, onClose }) {
+function NotificationPanel({ isOpen, onClose, pushStatus, onEnablePushNotifications }) {
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
 
@@ -77,6 +77,26 @@ function NotificationPanel({ isOpen, onClose }) {
             {unreadCount > 0 && <span className="notification-badge-count">{unreadCount}</span>}
           </div>
           <div className="notification-panel-actions">
+            {!pushStatus?.isSubscribed && (
+              <button
+                type="button"
+                className="notification-action-btn"
+                onClick={onEnablePushNotifications}
+                title="Enable push notifications"
+              >
+                <span>Enable push</span>
+              </button>
+            )}
+            {pushStatus?.isSubscribed && (
+              <button
+                type="button"
+                className="notification-action-btn"
+                title="Push notifications enabled"
+                disabled
+              >
+                <span>Push enabled</span>
+              </button>
+            )}
             {unreadCount > 0 && (
               <button
                 type="button"
@@ -144,7 +164,14 @@ function NotificationPanel({ isOpen, onClose }) {
 
 NotificationPanel.propTypes = {
   isOpen: PropTypes.bool.isRequired,
-  onClose: PropTypes.func.isRequired
+  onClose: PropTypes.func.isRequired,
+  pushStatus: PropTypes.shape({
+    isSupported: PropTypes.bool,
+    permissionStatus: PropTypes.oneOf(['granted', 'denied', 'default']),
+    isSubscribed: PropTypes.bool,
+    serviceWorkerReady: PropTypes.bool
+  }),
+  onEnablePushNotifications: PropTypes.func
 };
 
 export default NotificationPanel;

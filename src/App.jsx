@@ -141,6 +141,7 @@ import {
 // Background services (Phase 1 integration)
 import { initializeBackgroundServices } from "./lib/backgroundServicesInitializer";
 import { getPushNotificationService } from "./lib/pushNotificationService";
+import { getShareIntentHandler } from "./lib/shareIntentHandler.ts";
 import { getReminderDeliveryEngine } from "./lib/reminderDeliveryEngine";
 import {
   buildLiveInsightCards,
@@ -442,6 +443,16 @@ export default function App({ demoMode = false }) {
     setPendingFollowUps
   } = notificationState;
 
+  const [shareDialogData, setShareDialogData] = useState(null);
+  const [sharePending, setSharePending] = useState(false);
+  const [shareError, setShareError] = useState(null);
+  const [pushHealth, setPushHealth] = useState({
+    isSupported: false,
+    permissionStatus: 'default',
+    isSubscribed: false,
+    serviceWorkerReady: false
+  });
+
   const {
     scoreHistory,
     setScoreHistory,
@@ -521,6 +532,101 @@ export default function App({ demoMode = false }) {
   const refreshNotificationCount = useCallback(() => {
     setNotificationBadgeCount(getUnreadCount());
   }, []);
+
+  const refreshPushHealth = useCallback(() => {
+    if (!isBrowser()) {
+      return;
+    }
+    try {
+      const push = getPushNotificationService();
+      setPushHealth(push.getHealthStatus());
+    } catch (error) {
+      console.error('Failed to refresh push health', error);
+    }
+  }, []);
+
+  const handleEnablePushNotifications = useCallback(async () => {
+    try {
+      const push = getPushNotificationService();
+      const subscription = await push.enablePushNotifications();
+      refreshNotificationCount();
+      refreshPushHealth();
+      if (subscription) {
+        addNotification({
+          title: 'Notifications enabled',
+          body: 'Push notifications are now enabled for ARTH.OS.',
+          type: 'info',
+          icon: '🔔'
+        });
+      }
+    } catch (error) {
+      console.error('Enable push failed', error);
+      addNotification({
+        title: 'Notification setup failed',
+        body: 'Unable to enable push notifications. Please try again.',
+        type: 'error',
+        icon: '⚠️'
+      });
+    }
+  }, [refreshNotificationCount, refreshPushHealth]);
+
+  const handleShareAssessment = useCallback(async () => {
+    if (!assessment) {
+      return;
+    }
+
+    const contentId =
+      assessment.id ||
+      assessment.assessmentId ||
+      assessment.participant?.email ||
+      effectiveUserId ||
+      `assessment-${Date.now()}`;
+
+    setSharePending(true);
+    setShareError(null);
+
+    try {
+      await getShareIntentHandler().shareAssessment(contentId, {
+        message: 'See my ARTH.OS financial assessment.'
+      });
+    } catch (error) {
+      console.error('Share assessment failed', error);
+      setShareError('Unable to open share options. Please try again.');
+    } finally {
+      setSharePending(false);
+    }
+  }, [assessment, effectiveUserId]);
+
+  useEffect(() => {
+    if (!isBrowser()) {
+      return;
+    }
+
+    const handleShareDialog = event => {
+      const detail = event.detail || {};
+      setShareDialogData({
+        asset: detail.asset,
+        onCopyLink: detail.onCopyLink,
+        onEmail: detail.onEmail,
+        onQrCode: detail.onQrCode
+      });
+    };
+
+    window.addEventListener('arth:show-share-dialog', handleShareDialog);
+    return () => window.removeEventListener('arth:show-share-dialog', handleShareDialog);
+  }, []);
+
+  useEffect(() => {
+    if (!isBrowser()) {
+      return;
+    }
+
+    refreshPushHealth();
+    const interval = setInterval(refreshPushHealth, 10_000);
+    return () => clearInterval(interval);
+  }, [refreshPushHealth]);
+
+  const closeShareDialog = useCallback(() => setShareDialogData(null), []);
 
   // Calculate financial health scores — must be before useEffect hooks that depend on it
   const result = useMemo(() => calculateFinancialHealthV2(assessment), [assessment]);
@@ -1430,21 +1536,26 @@ export default function App({ demoMode = false }) {
       <BootProvider subscriptionLoading={subscriptionLoading} subscriptionError={subscriptionError}>
         <div className="app-shell">
           <Header
-        activeHash={activeHash}
-        saveState={saveState}
-        saveStatusLabel={saveStatusLabel}
-        saveStatusClass={saveStatusClass}
-        onExport={exportReport}
-        onReset={resetAssessment}
-        onSave={saveAssessment}
-        isAuthenticated={isAuthenticated}
-        user={user}
-        onOpenAuth={() => setShowAuthModal(true)}
-        onLogout={logout}
-        notificationBadgeCount={notificationBadgeCount}
-        onToggleNotification={() => setShowNotificationPanel(prev => !prev)}
-        devMode={devMode}
-      />
+            activeHash={activeHash}
+            saveState={saveState}
+            saveStatusLabel={saveStatusLabel}
+            saveStatusClass={saveStatusClass}
+            onExport={exportReport}
+            onReset={resetAssessment}
+            onSave={saveAssessment}
+            isAuthenticated={isAuthenticated}
+            user={user}
+            onOpenAuth={() => setShowAuthModal(true)}
+            onLogout={logout}
+            notificationBadgeCount={notificationBadgeCount}
+            onToggleNotification={() => setShowNotificationPanel(prev => !prev)}
+            onShareAssessment={handleShareAssessment}
+            showShareActions={true}
+            pushEnabled={pushHealth.isSubscribed}
+            onEnableNotifications={handleEnablePushNotifications}
+            showPushActions={pushHealth.isSupported}
+            devMode={devMode}
+          />
       <AnimatePresence>
         {showInterstitial && (
           <motion.div
@@ -1516,6 +1627,8 @@ export default function App({ demoMode = false }) {
       <NotificationPanel
         isOpen={showNotificationPanel && !showNotificationsPage}
         onClose={() => setShowNotificationPanel(false)}
+        pushStatus={pushHealth}
+        onEnablePushNotifications={handleEnablePushNotifications}
       />
 
       <BootDegradedBanner />
@@ -1523,6 +1636,48 @@ export default function App({ demoMode = false }) {
       <NotificationToast />
 
       {showOnboarding && <OnboardingOverlay onComplete={dismissOnboarding} />}
+      {shareDialogData && (
+        <div className="share-dialog-backdrop" onClick={closeShareDialog}>
+          <div className="share-dialog-modal" onClick={e => e.stopPropagation()}>
+            <div className="share-dialog-header">
+              <h3>Share Your Assessment</h3>
+              <button type="button" className="share-dialog-close" onClick={closeShareDialog}>
+                ✕
+              </button>
+            </div>
+            <p>Share this link with friends or open your device's native share sheet.</p>
+            <div className="share-dialog-url">
+              <input
+                type="text"
+                readOnly
+                value={shareDialogData.asset?.url || ''}
+                onFocus={e => e.target.select()}
+              />
+            </div>
+            <div className="share-dialog-actions">
+              <button type="button" onClick={async () => {
+                try {
+                  await shareDialogData.onCopyLink();
+                } catch (error) {
+                  console.error('Copy link failed', error);
+                }
+              }}>
+                Copy link
+              </button>
+              <button type="button" onClick={() => shareDialogData.onEmail?.('')}>Email link</button>
+              <button type="button" onClick={async () => {
+                try {
+                  await shareDialogData.onQrCode();
+                } catch (error) {
+                  console.error('Generate QR failed', error);
+                }
+              }}>
+                Open QR code
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Auth Modal */}
       {showAuthModal && (

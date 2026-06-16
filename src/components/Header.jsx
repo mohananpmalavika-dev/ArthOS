@@ -9,7 +9,8 @@ import {
   LogOut,
   CircleUserRound,
   ChevronDown,
-  LineChart
+  LineChart,
+  Share2
 } from "lucide-react";
 import { OS_SHELL_ROUTES } from "../lib/routeMap.js";
 
@@ -23,7 +24,12 @@ function Header({
   onOpenAuth = () => {},
   onLogout = () => {},
   notificationBadgeCount = 0,
-  onToggleNotification = () => {}
+  onToggleNotification = () => {},
+  onShareAssessment = () => {},
+  pushEnabled = false,
+  onEnableNotifications = () => {},
+  showShareActions = false,
+  showPushActions = false
 }) {
   const location = useLocation();
   const currentPath = location.pathname || "";
@@ -69,6 +75,16 @@ function Header({
         <button type="button" className="model-icon-btn" title="Search">
           <Search size={18} />
         </button>
+        {showShareActions && (
+          <button
+            type="button"
+            className="model-icon-btn"
+            title="Share assessment"
+            onClick={onShareAssessment}
+          >
+            <Share2 size={18} />
+          </button>
+        )}
         <button
           type="button"
           className="model-icon-btn notification-btn"
@@ -80,6 +96,16 @@ function Header({
             <span className="notification-badge-dot">{notificationBadgeCount}</span>
           )}
         </button>
+        {showPushActions && (
+          <button
+            type="button"
+            className="model-icon-btn"
+            title={pushEnabled ? "Push notifications enabled" : "Enable push notifications"}
+            onClick={onEnableNotifications}
+          >
+            <Bell size={18} />
+          </button>
+        )}
         <button
           type="button"
           className="model-icon-btn"
@@ -169,7 +195,12 @@ Header.propTypes = {
   onOpenAuth: PropTypes.func,
   onLogout: PropTypes.func,
   notificationBadgeCount: PropTypes.number,
-  onToggleNotification: PropTypes.func
+  onToggleNotification: PropTypes.func,
+  onShareAssessment: PropTypes.func,
+  onEnableNotifications: PropTypes.func,
+  pushEnabled: PropTypes.bool,
+  showShareActions: PropTypes.bool,
+  showPushActions: PropTypes.bool
 };
 
 export default Header;
