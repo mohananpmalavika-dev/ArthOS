@@ -72,6 +72,9 @@ export default function WeeklyMissionCard({ result, assessment, onAssessmentUpda
               <h3 style={{ fontSize: "var(--type-xs)", margin: 0, opacity: 0.9, textTransform: "uppercase", letterSpacing: "0.5px" }}>
                 This Week's Mission
               </h3>
+              <p style={{ margin: "6px 0 0", fontSize: "0.78rem", color: "rgba(255,255,255,0.72)" }}>
+                Focused on your weakest Financial DNA driver.
+              </p>
             </div>
           </div>
           {completed && (

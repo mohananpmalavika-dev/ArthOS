@@ -1,16 +1,15 @@
 import React from "react";
-import { useHistoricalDataContext } from "../context/HistoricalDataContext.jsx";
 import { ConsequenceForecastCard } from "./ConsequenceForecastCard.jsx";
 import { ScenarioForecast } from "./ScenarioForecast.jsx";
 import TrajectoryHeroVisual from "./TrajectoryHeroVisual.jsx";
+import FutureTrajectory from "./FutureTrajectory.jsx";
 import ContextualCoachPrompt from "./ContextualCoachPrompt.jsx";
 import ScoreCard from "./ScoreCard.jsx";
 import { normalizeScore } from "../lib/scoring-v2";
 
-export default function FutureScreen({ result, assessment }) {
+export default function FutureScreen({ result, assessment, digitalTwin }) {
   const currentScoreRaw = result?.healthScore ?? 0;
   const currentScore = normalizeScore(currentScoreRaw);
-  const { digitalTwin } = useHistoricalDataContext();
   const futureScoreRaw =
     digitalTwin?.futureStatistics?.percentiles?.finalHealth?.p50 !== undefined
       ? Math.round(Math.max(0, Math.min(100, digitalTwin.futureStatistics.percentiles.finalHealth.p50)))
@@ -93,6 +92,7 @@ export default function FutureScreen({ result, assessment }) {
 
       <div style={{ display: "grid", gap: "20px" }}>
         <TrajectoryHeroVisual result={result} assessment={assessment} />
+        <FutureTrajectory result={result} assessment={assessment} digitalTwin={digitalTwin} />
         <ConsequenceForecastCard result={result} assessment={assessment} />
 
         <section className="result-card forecast-card" style={{ padding: "24px" }}>

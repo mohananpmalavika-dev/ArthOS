@@ -289,6 +289,31 @@ select:focus-visible,
   overflow-x: hidden;
 }
 
+/* Assessment interstitial overlay */
+.assessment-interstitial {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: rgba(5, 10, 15, 0.6);
+  z-index: 1200;
+}
+.assessment-interstitial .interstitial-card {
+  background: linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0.02));
+  border-radius: 12px;
+  padding: 28px 36px;
+  color: #fff;
+  box-shadow: 0 10px 30px rgba(3,8,18,0.6);
+  backdrop-filter: blur(6px) saturate(120%);
+}
+.interstitial-hero {
+  font-size: 18px;
+  letter-spacing: 0.2px;
+}
+.interstitial-logo-wrap { display:flex; justify-content:center; margin-bottom:12px }
+.interstitial-progress { width: 320px; height: 8px; background: rgba(255,255,255,0.06); border-radius: 999px; margin-top:14px; overflow:hidden }
+.interstitial-progress-bar { height:100%; background: linear-gradient(90deg,#72ffe2,#7ad3ff); border-radius:999px }
+
 main {
   position: relative;
   isolation: isolate;

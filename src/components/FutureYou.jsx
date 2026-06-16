@@ -3,7 +3,15 @@ import { motion } from "framer-motion";
 import { Sparkles, ShieldCheck, HeartHandshake } from "lucide-react";
 
 export default function FutureYou({ data = {} }) {
-  const { age = 36, emergency = "₹18,500", debt = "₹9,200", stress = "Lower" } = data;
+  const {
+    age = 36,
+    emergency = "₹18,500",
+    debt = "₹9,200",
+    stress = "Lower",
+    score = 86,
+    name = "Future You",
+    archetype = "Balanced"
+  } = data;
 
   return (
     <motion.section
@@ -37,19 +45,20 @@ export default function FutureYou({ data = {} }) {
             <h3
               style={{ margin: "10px 0 0", fontSize: "1.45rem", lineHeight: 1.1, fontWeight: 800 }}
             >
-              A calmer, more confident version of you.
+              {name} at age {age}.
             </h3>
           </div>
 
           <div className="future-avatar-holo">
             <div className="holo-silhouette" />
             <div className="holo-details">
-              <div className="holo-name">Future Mohanan</div>
+              <div className="holo-name">{name}</div>
+              <div style={{ color: "rgba(255,255,255,0.72)", fontSize: "0.9rem", marginTop: 4 }}>{archetype} profile</div>
               <div className="holo-stats">
-                <div>Financial Health <strong>92</strong></div>
-                <div>Stress <strong>Low</strong></div>
-                <div>Debt <strong>Free</strong></div>
-                <div>Emergency <strong>₹12.4L</strong></div>
+                <div>Financial Health <strong>{score}</strong></div>
+                <div>Stress <strong>{stress}</strong></div>
+                <div>Debt <strong>{debt}</strong></div>
+                <div>Emergency <strong>{emergency}</strong></div>
               </div>
             </div>
           </div>

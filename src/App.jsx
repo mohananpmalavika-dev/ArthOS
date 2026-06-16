@@ -8,6 +8,7 @@ import React, {
   useCallback,
   startTransition
 } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "./context/AuthContext.jsx";
 import LoginPage from "./pages/LoginPage.jsx";
@@ -424,6 +425,8 @@ export default function App({ demoMode = false }) {
   } = assessmentState;
 
   const {
+    showNotificationPanel,
+    setShowNotificationPanel,
     notificationBadgeCount,
     setNotificationBadgeCount,
     newlyUnlockedMilestones,
@@ -1276,6 +1279,31 @@ export default function App({ demoMode = false }) {
     }
   }
 
+  // Interstitial UI state: show a short cinematic overlay before navigating to BigReveal
+  const [showInterstitial, setShowInterstitial] = useState(false);
+
+  // Navigate with interstitial: show overlay, wait, then navigate
+  function navigateWithInterstitial(path) {
+    setShowInterstitial(true);
+    setTimeout(() => {
+      setShowInterstitial(false);
+      try {
+        navigate(path, { replace: true });
+      } catch (e) {
+        // ignore
+      }
+    }, 1400); // 1400ms cinematic delay to match progress animation
+  }
+
+  // Dev helper: expose a global trigger to simulate assessment completion during local testing
+  try {
+    if (typeof window !== "undefined") {
+      window.__arth_triggerInterstitial = navigateWithInterstitial;
+    }
+  } catch (e) {
+    // ignore
+  }
+
   function handleDailyCheckin({ behaviourUpdates }) {
     if (!behaviourUpdates) {
       return;
@@ -1315,6 +1343,53 @@ export default function App({ demoMode = false }) {
         onToggleNotification={() => setShowNotificationPanel(prev => !prev)}
         devMode={devMode}
       />
+      <AnimatePresence>
+        {showInterstitial && (
+          <motion.div
+            className="assessment-interstitial"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.25 }}
+          >
+            <motion.div
+              className="interstitial-card"
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ duration: 0.6, ease: [0.2, 0.9, 0.2, 1] }}
+            >
+              <div className="interstitial-logo-wrap">
+                <motion.svg
+                  width="84"
+                  height="84"
+                  viewBox="0 0 84 84"
+                  initial={{ rotate: -8, scale: 0.9, opacity: 0 }}
+                  animate={{ rotate: 0, scale: 1, opacity: 1 }}
+                  transition={{ duration: 0.6, ease: [0.2, 0.9, 0.2, 1] }}
+                >
+                  <defs>
+                    <linearGradient id="g1" x1="0" x2="1">
+                      <stop offset="0" stopColor="#7ad3ff" />
+                      <stop offset="1" stopColor="#72ffe2" />
+                    </linearGradient>
+                  </defs>
+                  <circle cx="42" cy="42" r="40" fill="url(#g1)" />
+                  <text x="42" y="48" fontSize="22" fontWeight="700" textAnchor="middle" fill="#04233a">ARTH</text>
+                </motion.svg>
+              </div>
+              <div className="interstitial-hero">Refining your Financial DNA...</div>
+              <div className="interstitial-progress">
+                <motion.div
+                  className="interstitial-progress-bar"
+                  initial={{ width: 0 }}
+                  animate={{ width: "100%" }}
+                  transition={{ duration: 1.2, ease: [0.2, 0.9, 0.2, 1] }}
+                />
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {!showAuthModal && (
         <FlowNavigation
@@ -1760,7 +1835,7 @@ export default function App({ demoMode = false }) {
                   onSaveAssessment={saveAssessment}
                   onComplete={() => {
                     try {
-                      if (!demoMode) navigate("/big-reveal", { replace: true });
+                      navigateWithInterstitial("/big-reveal");
                     } catch (e) {
                       // ignore
                     }

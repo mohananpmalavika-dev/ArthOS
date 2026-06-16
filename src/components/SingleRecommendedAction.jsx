@@ -48,7 +48,6 @@ function SingleRecommendedAction({ result, assessment }) {
     },
     stability: {
       headline: `Build Your Emergency Buffer`,
-      reason: `Your survival runway is ${result?.survivalMonthsDisplay || "0"} months. It&apos;s not enough cushion for life's surprises.`,
         reason: `Your survival runway is ${result?.survivalMonthsDisplay || "0"} months. It's not enough cushion for life's surprises.`,
       impact: "Every ₹10,000 saved = 1 month more runway = reduced financial anxiety",
       microGoal: "This month: save just ₹2,000–₹3,000. That's 15–20 minutes of your hourly income.",

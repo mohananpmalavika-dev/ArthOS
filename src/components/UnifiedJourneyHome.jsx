@@ -1,5 +1,6 @@
 import React, { useMemo, useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { useHistoricalDataContext } from "../context/HistoricalDataContext.jsx";
 const AiCoachInterface = React.lazy(() => import("./AiCoachInterface.jsx"));
 const RealityScreen = React.lazy(() => import("./RealityScreen.jsx"));
 const FutureScreen = React.lazy(() => import("./FutureScreen.jsx"));
@@ -23,6 +24,8 @@ function clampScore(value) {
 export default function UnifiedJourneyHome({ result, assessment, onCoachOpen }) {
   const navigate = useNavigate();
   const [coachMenuOpen, setCoachMenuOpen] = useState(false);
+
+  const { digitalTwin } = useHistoricalDataContext();
 
   const currentScore = useMemo(
     () => clampScore(normalizeScore(result?.healthScore ?? 0)),
@@ -360,7 +363,7 @@ export default function UnifiedJourneyHome({ result, assessment, onCoachOpen }) 
           </React.Suspense>
 
           <React.Suspense fallback={<div>Loading preview...</div>}>
-            <FutureScreen result={result} assessment={assessment} />
+            <FutureScreen result={result} assessment={assessment} digitalTwin={digitalTwin} />
           </React.Suspense>
 
           <React.Suspense fallback={<div>Loading coach...</div>}>

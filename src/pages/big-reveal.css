@@ -159,6 +159,57 @@
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
 }
 
+.big-reveal-score-ring.muted {
+  width: 160px;
+  height: 160px;
+  opacity: 0.9;
+}
+
+.dna-stat-bars {
+  display: grid;
+  gap: 12px;
+}
+
+.stat-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.stat-label {
+  width: 160px;
+  font-size: 0.85rem;
+  color: rgba(255,255,255,0.78);
+}
+
+.stat-track {
+  flex: 1 1 auto;
+  height: 12px;
+  background: rgba(255,255,255,0.06);
+  border-radius: 999px;
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,0.04);
+}
+
+.stat-fill {
+  height: 100%;
+  width: 0%;
+}
+
+/* color accents tied to archetype classes */
+.stat-fill.builder { background: linear-gradient(90deg,#66bb6a,#4caf50); }
+.stat-fill.survivor { background: linear-gradient(90deg,#ffd54f,#ffca28); }
+.stat-fill.optimizer { background: linear-gradient(90deg,#4fc3f7,#03a9f4); }
+.stat-fill.dreamer { background: linear-gradient(90deg,#ba68c8,#9c27b0); }
+.stat-fill.risk_taker { background: linear-gradient(90deg,#ef5350,#f44336); }
+
+.stat-value {
+  width: 56px;
+  text-align: right;
+  font-weight: 800;
+  color: white;
+}
+
 .big-reveal-score-inner {
   width: 260px;
   height: 260px;
@@ -291,6 +342,192 @@
 
 .big-reveal-action {
   display: block;
+}
+
+.big-reveal-dna {
+  padding: 28px 30px;
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  margin-bottom: 40px;
+}
+
+.big-reveal-dna-copy {
+  max-width: 620px;
+  margin-bottom: 24px;
+}
+
+.archetype-variant-banner {
+  display: grid;
+  gap: 8px;
+  padding: 16px 18px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  margin-bottom: 20px;
+}
+
+.archetype-variant-banner span {
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  font-size: 0.72rem;
+  color: rgba(255, 255, 255, 0.66);
+}
+
+.archetype-variant-banner p {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.86);
+  font-size: 0.98rem;
+  line-height: 1.6;
+}
+
+.archetype-reveal-card {
+  padding: 22px;
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  display: grid;
+  gap: 18px;
+}
+
+.archetype-reveal-card.builder {
+  background: rgba(76, 175, 80, 0.08);
+  border-color: rgba(76, 175, 80, 0.22);
+}
+
+.archetype-reveal-card.survivor {
+  background: rgba(255, 193, 7, 0.08);
+  border-color: rgba(255, 193, 7, 0.22);
+}
+
+.archetype-reveal-card.optimizer {
+  background: rgba(3, 169, 244, 0.08);
+  border-color: rgba(3, 169, 244, 0.22);
+}
+
+.archetype-reveal-card.dreamer {
+  background: rgba(156, 39, 176, 0.08);
+  border-color: rgba(156, 39, 176, 0.22);
+}
+
+.archetype-reveal-card.risk_taker {
+  background: rgba(244, 67, 54, 0.08);
+  border-color: rgba(244, 67, 54, 0.22);
+}
+
+.archetype-reveal-header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  color: white;
+}
+
+.archetype-reveal-header span {
+  display: block;
+  font-size: 0.78rem;
+  color: rgba(255, 255, 255, 0.74);
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+}
+
+.archetype-reveal-header strong {
+  display: block;
+  font-size: 1.25rem;
+  font-weight: 800;
+}
+
+.archetype-reveal-description {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.8);
+  line-height: 1.65;
+}
+
+.archetype-stat-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.archetype-stat {
+  padding: 18px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.archetype-stat label {
+  display: block;
+  color: rgba(255, 255, 255, 0.68);
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  margin-bottom: 10px;
+}
+
+.archetype-stat p {
+  margin: 0;
+  color: white;
+  line-height: 1.6;
+  font-size: 0.92rem;
+}
+
+.dna-metric-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.dna-metric-pill {
+  padding: 18px 20px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: white;
+}
+
+.dna-metric-pill span {
+  display: block;
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.72);
+  margin-bottom: 10px;
+}
+
+.dna-metric-pill strong {
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+.big-reveal-hero-actions {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+  margin-top: 24px;
+}
+
+.big-reveal-hero-actions button {
+  padding: 14px 18px;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.08);
+  color: white;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 0.2s ease, background 0.2s ease;
+}
+
+.big-reveal-hero-actions button:hover {
+  transform: translateY(-1px);
+  background: rgba(255, 255, 255, 0.12);
+}
+
+@media (max-width: 900px) {
+  .dna-metric-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .big-reveal-hero-actions {
+    grid-template-columns: 1fr;
+  }
 }
 
 /* Responsive */
