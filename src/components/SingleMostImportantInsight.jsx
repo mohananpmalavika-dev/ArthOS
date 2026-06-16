@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from "react";
 import PropTypes from "prop-types";
+import { useAuth } from "../context/AuthContext.jsx";
 import {
   Target,
   Lightbulb,
@@ -18,6 +19,7 @@ import {
 } from "../engines/singleInsightEngine";
 
 export default function SingleMostImportantInsight({ assessmentResult, assessment }) {
+  const { token, isAuthenticated } = useAuth();
   const [showAll, setShowAll] = useState(false);
   const [acknowledged, setAcknowledged] = useState(false);
   const [actionCommitted, setActionCommitted] = useState(false);
@@ -69,12 +71,13 @@ export default function SingleMostImportantInsight({ assessmentResult, assessmen
 
       // Schedule follow-up for Day 7 and Day 30
       const userId = window.localStorage.getItem("arth-os-user-id");
-      if (userId) {
+      if (userId && token) {
         try {
           const res = await fetch("/api/follow-up/schedule", {
             method: "POST",
             headers: {
-              "Content-Type": "application/json"
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`
             },
             body: JSON.stringify({
               insight: primaryInsight,

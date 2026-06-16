@@ -4,6 +4,7 @@
  */
 
 import React, { useState, useEffect } from "react";
+import { useAuth } from "../context/AuthContext.jsx";
 import {
   Calendar,
   CheckCircle2,
@@ -21,15 +22,23 @@ export default function ActionFollowUpPanel({ userId, followUps = [] }) {
   const [expandedFollowUp, setExpandedFollowUp] = useState(null);
   const [metrics, setMetrics] = useState(null);
 
+  const { token, isAuthenticated } = useAuth();
+
   useEffect(() => {
-    if (userId) {
+    if (isAuthenticated && token) {
       fetchMetrics();
     }
-  }, [userId]);
+  }, [userId, isAuthenticated, token]);
 
   const fetchMetrics = async () => {
+    if (!isAuthenticated || !token) {
+      return;
+    }
+
     try {
-      const res = await fetch(`/api/follow-up/metrics`);
+      const res = await fetch(`/api/follow-up/metrics`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
       const data = await res.json();
       setMetrics(data.metrics);
     } catch (e) {
@@ -38,6 +47,11 @@ export default function ActionFollowUpPanel({ userId, followUps = [] }) {
   };
 
   const handleDay7Response = async followUpId => {
+    if (!isAuthenticated || !token) {
+      alert("Please sign in to record follow-up responses.");
+      return;
+    }
+
     const response = responses[followUpId] || {};
     if (!response.actionCompleted && !response.progressScore) {
       alert("Please provide a progress score");
@@ -48,7 +62,10 @@ export default function ActionFollowUpPanel({ userId, followUps = [] }) {
     try {
       const res = await fetch("/api/follow-up/day-7/respond", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`
+        },
         body: JSON.stringify({ followUpId, response })
       });
       const data = await res.json();
@@ -72,6 +89,11 @@ export default function ActionFollowUpPanel({ userId, followUps = [] }) {
   };
 
   const handleDay30Response = async followUpId => {
+    if (!isAuthenticated || !token) {
+      alert("Please sign in to record follow-up responses.");
+      return;
+    }
+
     const response = responses[followUpId] || {};
     if (response.progressScore === undefined) {
       alert("Please provide a progress score");
@@ -82,7 +104,10 @@ export default function ActionFollowUpPanel({ userId, followUps = [] }) {
     try {
       const res = await fetch("/api/follow-up/day-30/respond", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`
+        },
         body: JSON.stringify({
           followUpId,
           response,

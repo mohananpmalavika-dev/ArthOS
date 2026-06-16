@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useAuth } from "../context/AuthContext.jsx";
 
 function validateDecision({ category, notes }) {
   const errors = {};
@@ -12,6 +13,7 @@ function validateDecision({ category, notes }) {
 }
 
 export default function RecordDecision({ userId = "demo", onSaved = () => {} }) {
+  const { token, isAuthenticated } = useAuth();
   const [category, setCategory] = useState("general");
   const [notes, setNotes] = useState("");
   const [saving, setSaving] = useState(false);
@@ -23,6 +25,11 @@ export default function RecordDecision({ userId = "demo", onSaved = () => {} }) 
     const errs = validateDecision(candidate);
     setErrors(errs);
     if (Object.keys(errs).length) {
+      return;
+    }
+
+    if (!isAuthenticated || !token) {
+      alert("Please sign in to save your decision.");
       return;
     }
 
@@ -39,7 +46,10 @@ export default function RecordDecision({ userId = "demo", onSaved = () => {} }) 
     try {
       const res = await fetch("/api/decision", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`
+        },
         body: JSON.stringify({ userId, decision })
       });
       if (!res.ok) {

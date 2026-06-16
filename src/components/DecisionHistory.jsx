@@ -1,18 +1,28 @@
 import React, { useEffect, useState } from "react";
+import { useAuth } from "../context/AuthContext.jsx";
 
 export default function DecisionHistory({ userId = "demo", refreshSignal = 0 }) {
+  const { token, isAuthenticated } = useAuth();
   const [decisions, setDecisions] = useState([]);
   const [trend, setTrend] = useState(null);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
+    if (!isAuthenticated || !token) {
+      setDecisions([]);
+      setTrend(null);
+      return;
+    }
+
     let mounted = true;
     async function load() {
       if (mounted) {
         setLoading(true);
       }
       try {
-        const res = await fetch(`/api/decision`);
+        const res = await fetch(`/api/decision`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
         if (!res.ok) {
           throw new Error("Failed to load");
         }
@@ -40,7 +50,7 @@ export default function DecisionHistory({ userId = "demo", refreshSignal = 0 }) 
     return () => {
       mounted = false;
     };
-  }, [userId, refreshSignal]);
+  }, [userId, refreshSignal, isAuthenticated, token]);
 
   function formatRelativeTime(ts) {
     try {

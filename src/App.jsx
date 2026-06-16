@@ -825,11 +825,14 @@ export default function App({ demoMode = false }) {
   }, [currentUserId, assessment.participant?.email]);
 
   useEffect(() => {
-    if (!isBrowser()) {
+    if (!isBrowser() || !token) {
+      setDecisionHistoryCount(0);
       return;
     }
-    const userId = currentUserId || assessment.participant?.email || "demo";
-    void fetch(`/api/decision`)
+
+    void fetch(`/api/decision`, {
+      headers: { Authorization: `Bearer ${token}` }
+    })
       .then(response => {
         if (!response.ok) {
           throw new Error(`API returned status ${response.status}`);
@@ -847,16 +850,18 @@ export default function App({ demoMode = false }) {
         console.error("Error fetching decision history:", err);
         setDecisionHistoryCount(0);
       });
-  }, [currentUserId, assessment.participant?.email, decisionsRefresh]);
+  }, [currentUserId, assessment.participant?.email, decisionsRefresh, token]);
 
   // Fetch pending follow-ups when user is authenticated
   useEffect(() => {
-    if (!isBrowser() || !currentUserId) {
+    if (!isBrowser() || !token || !currentUserId) {
+      setPendingFollowUps([]);
       return;
     }
-    void fetch(`/api/follow-up/pending`)
+    void fetch(`/api/follow-up/pending`, {
+      headers: { Authorization: `Bearer ${token}` }
+    })
       .then(response => {
-        // Check if response is ok and is JSON
         if (!response.ok) {
           throw new Error(`API returned status ${response.status}`);
         }
@@ -875,7 +880,7 @@ export default function App({ demoMode = false }) {
         console.error("Error fetching follow-ups:", e);
         setPendingFollowUps([]);
       });
-  }, [currentUserId]);
+  }, [currentUserId, token]);
 
   useEffect(() => {
     const market = createDefaultProviderMarketplace();

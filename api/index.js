@@ -18,6 +18,7 @@ import b2bRegisterHandler from '../api_src/b2b/register.js';
 import b2bValidateKeyHandler from '../api_src/b2b/validate-key.js';
 import b2bWebhooksHandler from '../api_src/b2b/webhooks.js';
 import capabilitiesHandler from '../api_src/config/capabilities-endpoint.js';
+import featureFlagsHandler from '../api_src/feature-flags.js';
 import userAssessmentsHandler from '../api_src/user/assessments.js';
 import userAssessmentDetailHandler from '../api_src/user/assessment-detail.js';
 import userScoresHandler from '../api_src/user/scores.js';
@@ -46,6 +47,14 @@ const routeDefinitions = [
   { match: (pathname) => pathname === '/api/feedback', handler: feedbackHandler },
   { match: (pathname) => pathname === '/api/saveAssessment', handler: saveAssessmentHandler },
   { match: (pathname) => pathname === '/api/telemetry', handler: telemetryHandler },
+  {
+    match: (pathname) => {
+      const match = /^\/api\/features(?:\/(.+))?$/.exec(pathname);
+      return match || null;
+    },
+    handler: featureFlagsHandler,
+    getParams: (match) => ({ featureName: match[1] || null })
+  },
   { match: (pathname) => pathname === '/api/error-log', handler: errorLogHandler },
   { match: (pathname) => pathname === '/api/memory' || pathname.startsWith('/api/memory/'), handler: memoryHandler },
   { match: (pathname) => pathname === '/api/auth/google' || pathname === '/api/auth/google/callback', handler: authGoogleHandler },
