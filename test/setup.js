@@ -1,6 +1,12 @@
 import "@testing-library/jest-dom";
 import { expect, afterEach, vi } from "vitest";
 import { cleanup } from "@testing-library/react";
+import { axe, toHaveNoViolations } from "jest-axe";
+
+expect.extend(toHaveNoViolations);
+
+// Make axe available globally for accessibility tests
+global.axe = axe;
 
 // Cleanup after each test
 afterEach(() => {
@@ -24,3 +30,12 @@ Object.defineProperty(window, "matchMedia", {
 
 // Mock scrollIntoView
 Element.prototype.scrollIntoView = vi.fn();
+
+// Mock ResizeObserver for recharts ResponsiveContainer in jsdom
+class MockResizeObserver {
+  observe() {}
+  unobserve() {}
+  disconnect() {}
+}
+
+global.ResizeObserver = global.ResizeObserver || MockResizeObserver;

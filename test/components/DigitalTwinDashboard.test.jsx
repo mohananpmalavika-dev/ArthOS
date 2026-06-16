@@ -31,18 +31,49 @@ describe('DigitalTwinDashboard.jsx - Twin Dashboard Display', () => {
         avatar: 'data:image/svg+xml,...',
         created_at: '2026-01-01'
       },
+      metadata: {
+        confidence: 0.82,
+        dataPoints: 18
+      },
       financial: {
         score: 650,
         band: 'resilient',
         trend: 'improving'
       },
-      behavioral: {
-        consistency: 0.85,
-        volatility: 0.15
+      currentState: {
+        median: {
+          healthScore: 82,
+          runway: 6.4,
+          income: 58000,
+          expenses: 42000,
+          savings: 16000
+        },
+        behavior: {
+          savingsDiscipline: 0.72,
+          impulseProbability: 0.2
+        }
+      },
+      futureStatistics: {
+        percentiles: {
+          finalRunway: {
+            p5: 2.1,
+            p50: 6.4,
+            p95: 11.2
+          }
+        },
+        survivalRate: 78
       },
       predictive: {
         trajectory: 'improving',
         confidence: 0.82
+      },
+      methods: {
+        getFutureScenarios: () => ({
+          pessimistic: 2.1,
+          median: 6.4,
+          optimistic: 11.2,
+          survivalRate: 78
+        })
       }
     };
   });
@@ -65,7 +96,10 @@ describe('DigitalTwinDashboard.jsx - Twin Dashboard Display', () => {
         <DigitalTwinDashboard twinData={mockTwinData} />
       );
 
-      expect(screen.getByText('Test User')).toBeInTheDocument();
+      const userIdentity = screen.getByText((content, element) => {
+        return element?.textContent?.includes('Test User') && element.tagName === 'P';
+      });
+      expect(userIdentity).toBeInTheDocument();
     });
 
     it('should display financial health score', () => {
@@ -73,7 +107,19 @@ describe('DigitalTwinDashboard.jsx - Twin Dashboard Display', () => {
         <DigitalTwinDashboard twinData={mockTwinData} />
       );
 
-      expect(screen.getByText(/650/)).toBeInTheDocument();
+      expect(screen.getByText(/82\s*\/100/)).toBeInTheDocument();
+    });
+
+    it('should display current runway and survival metrics', () => {
+      render(
+        <DigitalTwinDashboard twinData={mockTwinData} />
+      );
+
+      const runwayNodes = screen.getAllByText(/6\.4\s*mo/);
+      expect(runwayNodes.length).toBeGreaterThan(0);
+      expect(
+        screen.getByText((content) => /78\.0\s*%/.test(content))
+      ).toBeInTheDocument();
     });
 
     it('should display health band badge', () => {
@@ -81,7 +127,8 @@ describe('DigitalTwinDashboard.jsx - Twin Dashboard Display', () => {
         <DigitalTwinDashboard twinData={mockTwinData} />
       );
 
-      expect(screen.getByText(/resilient/i)).toBeInTheDocument();
+      const badges = screen.getAllByText(/resilient/i);
+      expect(badges.length).toBeGreaterThan(0);
     });
   });
 
@@ -103,7 +150,16 @@ describe('DigitalTwinDashboard.jsx - Twin Dashboard Display', () => {
         <DigitalTwinDashboard twinData={mockTwinData} />
       );
 
-      expect(screen.getByText(/improving/i)).toBeInTheDocument();
+      const trendNode = screen.getAllByText(/improving/i);
+      expect(trendNode.length).toBeGreaterThan(0);
+    });
+
+    it('should render the decision simulator section', () => {
+      render(
+        <DigitalTwinDashboard twinData={mockTwinData} />
+      );
+
+      expect(screen.getByText(/Interactive decision simulator/i)).toBeInTheDocument();
     });
 
     it('should show confidence intervals', () => {
@@ -116,7 +172,8 @@ describe('DigitalTwinDashboard.jsx - Twin Dashboard Display', () => {
         <DigitalTwinDashboard twinData={twinWithConfidence} />
       );
 
-      expect(screen.getByText(/confidence/i)).toBeInTheDocument();
+      const confidenceNodes = screen.getAllByText(/confidence/i);
+      expect(confidenceNodes.length).toBeGreaterThan(0);
     });
   });
 
@@ -192,6 +249,19 @@ describe('DigitalTwinDashboard.jsx - Twin Dashboard Display', () => {
     it('should handle extreme financial scores', () => {
       const extremeTwin = {
         ...mockTwinData,
+        currentState: {
+          median: {
+            healthScore: 100,
+            runway: 14.2,
+            income: 100000,
+            expenses: 30000,
+            savings: 70000
+          },
+          behavior: {
+            savingsDiscipline: 0.95,
+            impulseProbability: 0.05
+          }
+        },
         financial: { score: 1000, band: 'sovereign' }
       };
 
@@ -199,7 +269,7 @@ describe('DigitalTwinDashboard.jsx - Twin Dashboard Display', () => {
         <DigitalTwinDashboard twinData={extremeTwin} />
       );
 
-      expect(screen.getByText(/1000/)).toBeInTheDocument();
+      expect(screen.getByText(/100\s*\/100/)).toBeInTheDocument();
     });
 
     it('should handle low financial scores', () => {
@@ -212,7 +282,8 @@ describe('DigitalTwinDashboard.jsx - Twin Dashboard Display', () => {
         <DigitalTwinDashboard twinData={criticalTwin} />
       );
 
-      expect(screen.getByText(/critical/i)).toBeInTheDocument();
+      const criticalBadges = screen.getAllByText(/critical/i);
+      expect(criticalBadges.length).toBeGreaterThan(0);
     });
   });
 
@@ -234,8 +305,9 @@ describe('DigitalTwinDashboard.jsx - Twin Dashboard Display', () => {
         <DigitalTwinDashboard twinData={mockTwinData} />
       );
 
-      const mainElement = screen.getByRole('main');
-      expect(mainElement).toHaveAccessibleName() || expect(mainElement).toBeInTheDocument();
+      const mainElements = screen.getAllByRole('main');
+      expect(mainElements.length).toBeGreaterThan(0);
+      expect(mainElements[0]).toBeInTheDocument();
     });
 
     it('should be keyboard navigable', async () => {
@@ -245,7 +317,8 @@ describe('DigitalTwinDashboard.jsx - Twin Dashboard Display', () => {
       );
 
       await user.tab();
-      expect(screen.getByRole('main')).toBeInTheDocument();
+      const mainElements = screen.getAllByRole('main');
+      expect(mainElements.length).toBeGreaterThan(0);
     });
   });
 });

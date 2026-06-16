@@ -2,7 +2,7 @@
 // Hooks for accessing and persisting user input data to database
 
 import { useState, useCallback, useContext } from "react";
-import { AuthContext } from "../context/AuthContext";
+import AuthContext from "../context/AuthContext.jsx";
 
 /**
  * Hook to save and load assessment drafts from database

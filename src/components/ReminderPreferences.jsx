@@ -6,8 +6,7 @@
  */
 import React, { useState, useEffect, useCallback } from "react";
 import { Bell, Clock, Mail, MessageSquare, Save, Loader } from "lucide-react";
-
-import { loadPrefs, savePrefs } from "../lib/reminderPrefs.js";
+import { useSettings } from "../context/SettingsContext.jsx";
 
 /**
  * Schedule a reminder via the API (fire-and-forget).
@@ -64,11 +63,10 @@ async function scheduleReminderOnServer(userId, prefs) {
 /**
  * Schedule a streak nudge reminder when user hits a streak milestone.
  */
-export async function scheduleStreakReminder(userId, streakDays) {
-  if (!userId) {
+export async function scheduleStreakReminder(userId, streakDays, prefs) {
+  if (!userId || !prefs) {
     return;
   }
-  const prefs = loadPrefs();
   if (!prefs.enabled || !prefs.streakNudges) {
     return;
   }
@@ -96,10 +94,28 @@ export async function scheduleStreakReminder(userId, streakDays) {
   }
 }
 
+const DEFAULT_REMINDER_PREFS = {
+  enabled: true,
+  channel: "email",
+  time: "09:00",
+  frequency: "daily",
+  checkinReminders: true,
+  streakNudges: true,
+  scoreAlerts: true,
+  milestoneAlerts: true
+};
+
 export default function ReminderPreferences({ userId, onSaved }) {
-  const [prefs, setPrefs] = useState(() => loadPrefs());
+  const { settings, saveSetting } = useSettings();
+  const [prefs, setPrefs] = useState(() => settings?.reminders || DEFAULT_REMINDER_PREFS);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+
+  useEffect(() => {
+    if (settings?.reminders) {
+      setPrefs(settings.reminders);
+    }
+  }, [settings]);
 
   useEffect(() => {
     if (saved) {
@@ -115,14 +131,14 @@ export default function ReminderPreferences({ userId, onSaved }) {
 
   const handleSave = useCallback(async () => {
     setSaving(true);
-    savePrefs(prefs);
+    await saveSetting("reminders", prefs);
     if (userId) {
       await scheduleReminderOnServer(userId, prefs);
     }
     setSaving(false);
     setSaved(true);
     onSaved?.(prefs);
-  }, [prefs, userId, onSaved]);
+  }, [prefs, userId, onSaved, saveSetting]);
 
   return (
     <div className="reminder-preferences-card">
@@ -270,7 +286,7 @@ export function useCheckinReminderScheduler(userId, prefs) {
 
       // Schedule streak nudge if applicable
       if (prefs.streakNudges && [3, 7, 14, 30].includes(streakDays)) {
-        await scheduleStreakReminder(userId, streakDays);
+        await scheduleStreakReminder(userId, streakDays, prefs);
       }
     },
     [userId, prefs]

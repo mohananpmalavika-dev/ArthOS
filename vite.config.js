@@ -19,6 +19,8 @@ const PREFIX_MATCH_FILES = new Set([
   "subscriptions-handler.js",
   "follow-up-handler.js",
   "reminders.js",
+  "ai-coach-handler.js",
+  "coach-handler.js",
 ]);
 
 function normalizeSegment(segment) {
@@ -207,7 +209,21 @@ function createApiPlugin() {
       const handlers = await apiHandlersPromise;
 
       // Add CSP middleware to allow data URIs, external fonts, and unsafe-inline styles
+      // NOTE: Avoid breaking Vite internals (/@vite/*, /@react-refresh/*) during dev.
       server.middlewares.use((req, res, next) => {
+        const url = req.url || "";
+        const pathname = url.split("?")[0];
+
+        if (
+          pathname.startsWith("/@vite/") ||
+          pathname.startsWith("/@react-refresh") ||
+          pathname.startsWith("/src/") ||
+          pathname.endsWith("/src/lib/featureFlagEngine.js")
+        ) {
+          return next();
+        }
+
+
         res.setHeader(
           "Content-Security-Policy",
           "default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; script-src 'self' 'unsafe-inline' 'unsafe-eval'; connect-src 'self' https://fonts.googleapis.com https://fonts.gstatic.com"

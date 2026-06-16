@@ -47,7 +47,7 @@ export async function verifyRequestToken(req) {
 
 /**
  * Extract a user object from a verified JWT.
- * Returns { id, email } or null.
+ * Returns { id, email, role } or null.
  */
 export async function extractUserFromRequest(req) {
   const decoded = await verifyRequestToken(req);
@@ -55,5 +55,38 @@ export async function extractUserFromRequest(req) {
   return {
     id:    decoded.userId || decoded.id || decoded.email || null,
     email: decoded.email || null,
+    role:  decoded.role || 'user',
   };
+}
+
+/**
+ * Middleware helper: require valid JWT token.
+ * Verifies token and returns decoded user, or sends 401 response.
+ * Usage: const user = await requireAuth(req, res);
+ */
+export async function requireAuth(req, res) {
+  const user = await extractUserFromRequest(req);
+  if (!user || !user.id) {
+    res.status(401).json({ error: 'Unauthorized. Valid JWT token required.' });
+    return null;
+  }
+  return user;
+}
+
+/**
+ * Middleware helper: require valid JWT with admin role.
+ * Verifies token, checks role='admin', and sends 403 if not admin.
+ * Usage: const user = await requireAdminRole(req, res);
+ */
+export async function requireAdminRole(req, res) {
+  const user = await extractUserFromRequest(req);
+  if (!user || !user.id) {
+    res.status(401).json({ error: 'Unauthorized. Valid JWT token required.' });
+    return null;
+  }
+  if (user.role !== 'admin') {
+    res.status(403).json({ error: 'Forbidden. Admin role required.' });
+    return null;
+  }
+  return user;
 }

@@ -1,10 +1,12 @@
 /**
  * Action Follow-Up API Handler
  * REST endpoints for scheduling and managing action follow-ups
+ * ⚠️  ALL endpoints require valid JWT token in Authorization header
  */
 
 import { createClient } from '@supabase/supabase-js';
 import actionFollowUpEngine from '../../src/engines/actionFollowUpEngine.js';
+import { requireAuth } from '../auth/jwt.js';
 
 const supabase = createClient(
   process.env.SUPABASE_URL,
@@ -35,12 +37,10 @@ export default async function followUpHandler(req, res) {
     return;
   }
 
-  const userId = req.headers['x-user-id'] || searchParams.get('userId');
-
-  if (!userId) {
-    res.status(400).json({ error: 'userId required' });
-    return;
-  }
+  // ─── Enforce JWT authentication for all other endpoints ───
+  const user = await requireAuth(req, res);
+  if (!user) return; // requireAuth already sent error response
+  const userId = user.id;
 
   try {
     // POST /api/follow-up/schedule — Schedule new follow-up

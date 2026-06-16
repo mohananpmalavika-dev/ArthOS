@@ -1,43 +1,74 @@
 import React from "react";
 import PropTypes from "prop-types";
-import { Search, Bell, Download, LogIn, LogOut, CircleUserRound, ChevronDown } from "lucide-react";
-import { NAV_ITEMS } from "../lib/copy.ts";
+import { Link, NavLink, useLocation } from "react-router-dom";
+import {
+  Search,
+  Bell,
+  Download,
+  LogIn,
+  LogOut,
+  CircleUserRound,
+  ChevronDown,
+  LineChart,
+  Share2
+} from "lucide-react";
+import { OS_SHELL_ROUTES } from "../lib/routeMap.js";
 
 function Header({
-  activeHash = "#home",
-  saveState = "saving",
+  activeHash = "#",
   saveStatusLabel = "Saved",
   saveStatusClass = "saved",
   onExport = () => {},
-  onReset = () => {},
-  onSave = () => {},
   isAuthenticated = false,
   user = null,
   onOpenAuth = () => {},
   onLogout = () => {},
   notificationBadgeCount = 0,
-  onToggleNotification = () => {}
+  onToggleNotification = () => {},
+  onShareAssessment = () => {},
+  pushEnabled = false,
+  onEnableNotifications = () => {},
+  showShareActions = false,
+  showPushActions = false,
+  devMode = false
 }) {
+  const location = useLocation();
+  const currentPath = location.pathname || "";
+
   return (
     <header className="topbar">
-      <a className="brand" href="#home" aria-label="ARTH.OS home">
+      <Link className="brand" to="/dashboard" aria-label="ARTH.OS home">
         <span className="logo-word">
           ARTH.<span>OS</span>
         </span>
         <small>POWERED BY SANKHYA</small>
-      </a>
+      </Link>
 
       <nav className="nav-links" aria-label="Primary navigation">
-        {NAV_ITEMS.map(item => (
-          <a
-            href={item.href}
-            key={item.label}
-            className={activeHash === item.href ? "active" : ""}
-            aria-current={activeHash === item.href ? "page" : undefined}
-          >
-            {item.label}
-          </a>
-        ))}
+        {OS_SHELL_ROUTES.map(item => {
+          const isHashLink = item.path?.startsWith("#");
+          const active = isHashLink ? activeHash === item.path : currentPath === item.path;
+
+          return isHashLink ? (
+            <a
+              href={item.path}
+              key={item.id}
+              className={active ? "active" : ""}
+              aria-current={active ? "page" : undefined}
+            >
+              {item.label}
+            </a>
+          ) : (
+            <NavLink
+              key={item.id}
+              to={item.path}
+              end={item.path === "/dashboard"}
+              className={({ isActive }) => (isActive ? "active" : "")}
+            >
+              {item.label}
+            </NavLink>
+          );
+        })}
       </nav>
 
       <div className="model-header-actions" aria-label="Product actions">
@@ -45,6 +76,16 @@ function Header({
         <button type="button" className="model-icon-btn" title="Search">
           <Search size={18} />
         </button>
+        {showShareActions && (
+          <button
+            type="button"
+            className="model-icon-btn"
+            title="Share assessment"
+            onClick={onShareAssessment}
+          >
+            <Share2 size={18} />
+          </button>
+        )}
         <button
           type="button"
           className="model-icon-btn notification-btn"
@@ -56,6 +97,16 @@ function Header({
             <span className="notification-badge-dot">{notificationBadgeCount}</span>
           )}
         </button>
+        {showPushActions && (
+          <button
+            type="button"
+            className="model-icon-btn"
+            title={pushEnabled ? "Push notifications enabled" : "Enable push notifications"}
+            onClick={onEnableNotifications}
+          >
+            <Bell size={18} />
+          </button>
+        )}
         <button
           type="button"
           className="model-icon-btn"
@@ -81,11 +132,45 @@ function Header({
           </button>
         )}
 
-        <a className="model-avatar-btn" href="#admin" aria-label="Admin dashboard">
+        {/** Only show developer tools link when devMode is enabled in UI state. */}
+        {devMode ? (
+          <a
+            className="dev-intelligence-link"
+            href="#intelligence"
+            aria-label="Developer Intelligence"
+          >
+            <LineChart size={16} />
+            <span>Dev Intelligence</span>
+          </a>
+        ) : null}
+
+        {devMode ? (
+          <button
+            type="button"
+            className="model-icon-btn dev-qa-btn"
+            title="QA: trigger interstitial to /future-you"
+            onClick={() => {
+              try {
+                if (window.__arth_triggerInterstitial) {
+                  window.__arth_triggerInterstitial('/future-you');
+                } else {
+                  // fallback: navigate directly
+                  window.location.href = '/future-you';
+                }
+              } catch (e) {
+                // noop
+              }
+            }}
+          >
+            QA
+          </button>
+        ) : null}
+
+        <a className="model-avatar-btn" href="/dashboard#admin" aria-label="Admin dashboard">
           <span>A</span>
           <ChevronDown size={15} />
         </a>
-        <a className="model-start-btn" href="#assessment">
+        <a className="model-start-btn" href="/dashboard#assessment">
           Start Assessment
         </a>
       </div>
@@ -109,7 +194,13 @@ Header.propTypes = {
   onOpenAuth: PropTypes.func,
   onLogout: PropTypes.func,
   notificationBadgeCount: PropTypes.number,
-  onToggleNotification: PropTypes.func
+  onToggleNotification: PropTypes.func,
+  onShareAssessment: PropTypes.func,
+  onEnableNotifications: PropTypes.func,
+  pushEnabled: PropTypes.bool,
+  showShareActions: PropTypes.bool,
+  showPushActions: PropTypes.bool,
+  devMode: PropTypes.bool
 };
 
 export default Header;

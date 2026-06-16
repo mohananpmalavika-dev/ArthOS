@@ -6,10 +6,12 @@
  * - Creating and running scenario simulations
  * - Accessing risk & opportunity forecasts
  * - Viewing forecast accuracy and confidence
+ * ⚠️  ALL endpoints require valid JWT token in Authorization header
  */
 
 import PredictionEngine from './prediction-engine.js';
 import { createClient } from '@supabase/supabase-js';
+import { requireAuth } from '../auth/jwt.js';
 
 const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY);
 
@@ -24,16 +26,12 @@ export default async function handler(req, res) {
     return;
   }
 
-  const { pathname, query } = new URL(`http://${req.headers.host}${req.url}`);
-  const userId = query.userId || req.body?.userId;
+  // ─── Enforce JWT authentication ───
+  const user = await requireAuth(req, res);
+  if (!user) return; // requireAuth already sent error response
+  const userId = user.id;
 
-  // Input validation
-  if (!userId) {
-    return res.status(400).json({
-      success: false,
-      error: 'userId is required'
-    });
-  }
+  const { pathname, query } = new URL(`http://${req.headers.host}${req.url}`);
 
   try {
     // ============= FORECAST ENDPOINTS =============

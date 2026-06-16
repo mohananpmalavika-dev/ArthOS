@@ -1,9 +1,8 @@
 import React, { useMemo, useState } from "react";
+import PropTypes from "prop-types";
 import {
   Target,
-  AlertCircle,
   Lightbulb,
-  TrendingUp,
   ChevronDown,
   ChevronUp,
   ArrowRight,
@@ -58,46 +57,41 @@ export default function SingleMostImportantInsight({ assessmentResult, assessmen
   };
 
   const handleCommit = async () => {
-    setActionCommitted(true);
-    if (primaryInsight) {
-      try {
-        const key = `arth-os-insight-action-${primaryInsight.id}`;
-        window.localStorage.setItem(
-          key,
-          JSON.stringify({
-            action: primaryInsight.actionable,
-            committedAt: new Date().toISOString()
-          })
-        );
+    try {
+      const key = `arth-os-insight-action-${primaryInsight.id}`;
+      window.localStorage.setItem(
+        key,
+        JSON.stringify({
+          action: primaryInsight.actionable,
+          committedAt: new Date().toISOString()
+        })
+      );
 
-        // Schedule follow-up for Day 7 and Day 30
-        const userId = window.localStorage.getItem("arth-os-user-id");
-        if (userId) {
-          try {
-            const res = await fetch("/api/follow-up/schedule", {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-                "x-user-id": userId
-              },
-              body: JSON.stringify({
-                insight: primaryInsight,
-                action: primaryInsight.actionable,
-                assessment: assessment
-              })
-            });
+      // Schedule follow-up for Day 7 and Day 30
+      const userId = window.localStorage.getItem("arth-os-user-id");
+      if (userId) {
+        try {
+          const res = await fetch("/api/follow-up/schedule", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+              insight: primaryInsight,
+              assessment: assessment
+            })
+          });
 
-            if (res.ok) {
-              const data = await res.json();
-              console.log("Follow-up scheduled:", data);
-            }
-          } catch (e) {
-            console.error("Error scheduling follow-up:", e);
+          if (res.ok) {
+            const data = await res.json();
+            console.log("Follow-up scheduled:", data);
           }
+        } catch (e) {
+          console.error("Error scheduling follow-up:", e);
         }
-      } catch {
-        // ignore storage errors
       }
+    } catch {
+      // ignore storage errors
     }
   };
 
@@ -241,10 +235,16 @@ export default function SingleMostImportantInsight({ assessmentResult, assessmen
         <div className="single-insight-footer-note">
           <Lightbulb size={14} />
           <span>
-            You've acknowledged this insight. Come back to commit to an action when you're ready.
+            You&apos;ve acknowledged this insight. Come back to commit to an action when you&apos;re
+            ready.
           </span>
         </div>
       )}
     </section>
   );
 }
+
+SingleMostImportantInsight.propTypes = {
+  assessmentResult: PropTypes.object,
+  assessment: PropTypes.object
+};

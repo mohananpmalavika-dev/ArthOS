@@ -12,7 +12,7 @@ export default function DecisionHistory({ userId = "demo", refreshSignal = 0 }) 
         setLoading(true);
       }
       try {
-        const res = await fetch(`/api/decision?userId=${encodeURIComponent(userId)}`);
+        const res = await fetch(`/api/decision`);
         if (!res.ok) {
           throw new Error("Failed to load");
         }

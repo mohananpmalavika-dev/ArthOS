@@ -9,6 +9,7 @@
  */
 
 import crypto from 'crypto';
+import { createClient } from '@supabase/supabase-js';
 import {
   createSubscription,
   getActiveSubscription,
@@ -16,6 +17,13 @@ import {
   cancelSubscription,
   handleStripeWebhook,
 } from './subscriptions.js';
+
+function getSupabaseClient() {
+  const supabaseUrl = process.env.SUPABASE_URL;
+  const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!supabaseUrl || !supabaseKey) return null;
+  return createClient(supabaseUrl, supabaseKey, { auth: { persistSession: false } });
+}
 
 /**
  * Verify Stripe webhook signature
@@ -88,6 +96,40 @@ async function handler(req, res) {
   const method = req.method?.toUpperCase();
 
   try {
+    // POST /api/subscriptions
+    if (method === 'POST' && pathname === '/api/subscriptions') {
+      const { endpoint, auth, p256dh, userAgent, userId } = req.body || {};
+      if (!endpoint) {
+        return res.status(400).json({ error: 'Missing push subscription endpoint' });
+      }
+
+      const supabase = getSupabaseClient();
+      if (!supabase) {
+        return res.status(500).json({ error: 'Database client not configured' });
+      }
+
+      const record = {
+        endpoint,
+        auth: auth || null,
+        p256dh: p256dh || null,
+        user_agent: userAgent || req.headers['user-agent'] || null,
+        user_id: userId || null,
+        created_at: new Date().toISOString(),
+        last_used_at: new Date().toISOString(),
+      };
+
+      const { data, error } = await supabase
+        .from('subscription_endpoints')
+        .upsert(record, { returning: 'representation' });
+
+      if (error) {
+        console.error('Supabase upsert error', error);
+        return res.status(500).json({ error: 'Failed to upsert subscription', detail: error.message });
+      }
+
+      return res.status(200).json({ success: true, subscription: data?.[0] || null });
+    }
+
     // POST /api/subscriptions/create
     if (method === 'POST' && pathname === '/api/subscriptions/create') {
       const { userId, email, name, planId } = req.body || {};

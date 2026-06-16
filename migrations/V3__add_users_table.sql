@@ -6,13 +6,15 @@ CREATE TABLE IF NOT EXISTS users (
   email VARCHAR(255) UNIQUE NOT NULL,
   name VARCHAR(255) NOT NULL DEFAULT '',
   password_hash VARCHAR(255) NOT NULL,
+  user_role VARCHAR(50) NOT NULL DEFAULT 'user',
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   last_login_at TIMESTAMPTZ,
   avatar_url VARCHAR(500)
 );
 
--- Index for fast email lookups on login
+-- Indexes for fast lookups
 CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
+CREATE INDEX IF NOT EXISTS idx_users_role ON users(user_role);
 
 -- Add user_id foreign key to existing tables for multi-user support
 ALTER TABLE assessments ADD COLUMN IF NOT EXISTS user_id BIGINT REFERENCES users(id);

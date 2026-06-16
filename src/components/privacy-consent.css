@@ -1,0 +1,11 @@
+.privacy-consent{border:1px solid rgba(0,0,0,0.06);padding:18px;border-radius:8px;background:#fff}
+.privacy-summary p{margin:0 0 12px;color:#333}
+.privacy-actions{display:flex;gap:8px}
+.privacy-settings{margin-top:12px;padding-top:12px;border-top:1px solid #eee}
+.privacy-field{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.privacy-settings label{display:block;margin-bottom:8px}
+.btn{padding:8px 12px;border-radius:6px;border:1px solid #ddd;background:#f7f7f7}
+.btn-primary{background:#0b66ff;color:#fff;border:none}
+
+/* Focus styles for accessibility */
+input:focus, button:focus { outline: 3px solid rgba(11,102,255,0.25); outline-offset: 2px }

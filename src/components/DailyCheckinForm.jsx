@@ -7,8 +7,8 @@ import {
   countRecentCheckins
 } from "../engines/financialMemoryEngine.js";
 import { scheduleStreakReminder } from "./ReminderPreferences.jsx";
-import { loadPrefs } from "../lib/reminderPrefs.js";
 import { useAuth } from "../context/AuthContext.jsx";
+import { useSettings } from "../context/SettingsContext.jsx";
 
 /**
  * Daily Cognition Loop Component
@@ -19,6 +19,7 @@ import { useAuth } from "../context/AuthContext.jsx";
  */
 export default function DailyCheckinForm({ onCheckin }) {
   const { user } = useAuth();
+  const { settings } = useSettings();
   const [responses, setResponses] = useState({});
   const [checkinComplete, setCheckinComplete] = useState(false);
   const [todayCheckinExists, setTodayCheckinExists] = useState(false);
@@ -134,11 +135,11 @@ export default function DailyCheckinForm({ onCheckin }) {
 
       // Fire streak reminder if user hit a milestone streak
       const newStreak = calculateConsecutiveStreak(updated);
-      const prefs = loadPrefs();
-      if (prefs.enabled && prefs.streakNudges && [3, 7, 14, 30].includes(newStreak)) {
+      const prefs = settings?.reminders;
+      if (prefs?.enabled && prefs.streakNudges && [3, 7, 14, 30].includes(newStreak)) {
         const userId = user?.id;
         if (userId) {
-          scheduleStreakReminder(userId, newStreak);
+          scheduleStreakReminder(userId, newStreak, prefs);
         }
       }
     } catch (error) {

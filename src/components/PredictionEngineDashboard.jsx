@@ -25,6 +25,8 @@ import {
   ResponsiveContainer
 } from "recharts";
 import { AlertTriangle, TrendingUp, Target, Zap, CheckCircle } from "lucide-react";
+import { PageSkeleton } from "./Skeleton.jsx";
+import "./skeleton.css";
 
 const PredictionEngineDashboard = ({ userId }) => {
   const [forecasts, setForecasts] = useState([]);
@@ -146,11 +148,8 @@ const PredictionEngineDashboard = ({ userId }) => {
 
   if (loading) {
     return (
-      <div className="prediction-engine-loading flex items-center justify-center h-96">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading predictions...</p>
-        </div>
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 p-8">
+        <PageSkeleton showHeader={false} blockCount={4} />
       </div>
     );
   }
@@ -382,7 +381,7 @@ const PredictionEngineDashboard = ({ userId }) => {
                     onChange={e =>
                       setScenarioForm({ ...scenarioForm, scenarioName: e.target.value })
                     }
-                    className="w-full px-4 py-2 border border-slate-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-4 py-2 border border-slate-300 rounded focus:ring-2 focus:ring-blue-500"
                     required
                   />
 
@@ -391,7 +390,7 @@ const PredictionEngineDashboard = ({ userId }) => {
                     onChange={e =>
                       setScenarioForm({ ...scenarioForm, modifiedParameter: e.target.value })
                     }
-                    className="w-full px-4 py-2 border border-slate-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-4 py-2 border border-slate-300 rounded focus:ring-2 focus:ring-blue-500"
                   >
                     <option value="monthly_spending">Reduce monthly spending</option>
                     <option value="monthly_savings">Increase monthly savings</option>
@@ -409,7 +408,7 @@ const PredictionEngineDashboard = ({ userId }) => {
                           parameterChangeValue: parseFloat(e.target.value)
                         })
                       }
-                      className="flex-1 px-4 py-2 border border-slate-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="flex-1 px-4 py-2 border border-slate-300 rounded focus:ring-2 focus:ring-blue-500"
                       required
                     />
                     <select
@@ -417,7 +416,7 @@ const PredictionEngineDashboard = ({ userId }) => {
                       onChange={e =>
                         setScenarioForm({ ...scenarioForm, parameterChangeType: e.target.value })
                       }
-                      className="px-4 py-2 border border-slate-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="px-4 py-2 border border-slate-300 rounded focus:ring-2 focus:ring-blue-500"
                     >
                       <option value="absolute">₹</option>
                       <option value="percentage">%</option>
@@ -432,7 +431,7 @@ const PredictionEngineDashboard = ({ userId }) => {
                         comparisonPeriodDays: parseInt(e.target.value)
                       })
                     }
-                    className="w-full px-4 py-2 border border-slate-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-4 py-2 border border-slate-300 rounded focus:ring-2 focus:ring-blue-500"
                   >
                     <option value="30">30 days</option>
                     <option value="90">90 days</option>

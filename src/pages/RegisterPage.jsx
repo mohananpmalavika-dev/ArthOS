@@ -53,6 +53,16 @@ export default function RegisterPage({ onSwitchToLogin, onClose }) {
           <p>Join ARTH.OS to start building your financial twin across all your devices.</p>
         </div>
 
+        <button
+          type="button"
+          className="auth-google-btn"
+          onClick={() => {
+            window.location.href = '/api/auth/google';
+          }}
+        >
+          Continue with Google
+        </button>
+
         <form className="auth-form" onSubmit={handleSubmit}>
           <div className="auth-field">
             <label htmlFor="reg-name">

@@ -30,6 +30,9 @@ import {
   Filter,
   RefreshCw
 } from "lucide-react";
+import ErrorState from "./ErrorState.jsx";
+import { PageSkeleton } from "./Skeleton.jsx";
+import "./skeleton.css";
 
 const CognitionGraphDashboard = ({ userId }) => {
   const [activeTab, setActiveTab] = useState("beliefs");
@@ -41,6 +44,7 @@ const CognitionGraphDashboard = ({ userId }) => {
   const [selectedBelief, setSelectedBelief] = useState(null);
   const [patterns, setPatterns] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const canvasRef = useRef(null);
 
   useEffect(() => {
@@ -49,6 +53,7 @@ const CognitionGraphDashboard = ({ userId }) => {
 
   const loadCognitionData = async () => {
     setLoading(true);
+    setError(null);
     try {
       const [beliefsRes, biasesRes, triggersRes, decisionsRes, graphRes, patternsRes] =
         await Promise.all([
@@ -80,6 +85,7 @@ const CognitionGraphDashboard = ({ userId }) => {
       }
     } catch (error) {
       console.error("Failed to load cognition data:", error);
+      setError(error?.message || 'Failed to load cognition data');
     } finally {
       setLoading(false);
     }
@@ -87,11 +93,16 @@ const CognitionGraphDashboard = ({ userId }) => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-screen bg-gray-50">
-        <div className="text-center">
-          <Brain className="w-12 h-12 animate-spin text-purple-600 mx-auto mb-4" />
-          <p className="text-gray-600">Analyzing your financial cognition...</p>
-        </div>
+      <div className="min-h-screen bg-gradient-to-br from-purple-50 to-indigo-100 p-6">
+        <PageSkeleton blockCount={5} />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="max-w-7xl mx-auto p-6">
+        <ErrorState title="Unable to load cognition" message={error} onRetry={loadCognitionData} />
       </div>
     );
   }

@@ -7,3 +7,4 @@ export { useAssessmentState } from "./useAssessmentState.js";
 export { useNotificationState } from "./useNotificationState.js";
 export { useHistoricalData } from "./useHistoricalData.js";
 export { useUIState } from "./useUIState.js";
+export { useSettings } from "../context/SettingsContext.jsx";

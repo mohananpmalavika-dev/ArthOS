@@ -169,7 +169,7 @@ function OverviewTab() {
                 fontSize: 16,
                 fontWeight: 700,
                 margin: "0 0 4px",
-                color: "var(--text)"
+                color: "var(--ink-0)"
               }}
             >
               {tier.name}
@@ -178,7 +178,7 @@ function OverviewTab() {
               style={{
                 fontSize: 24,
                 fontWeight: 800,
-                color: "var(--text)",
+                color: "var(--ink-0)",
                 marginBottom: 12
               }}
             >
@@ -186,7 +186,7 @@ function OverviewTab() {
               <span style={{ fontSize: 12, fontWeight: 400, color: "var(--ink-3)" }}>/mo</span>
             </div>
             {tier.annualPrice > 0 && (
-              <div style={{ fontSize: 11, color: "var(--green)", marginBottom: 8 }}>
+              <div style={{ fontSize: 11, color: "var(--green-700)", marginBottom: 8 }}>
                 ${tier.annualPrice}/yr{" "}
                 <strong>
                   (save ${(tier.monthlyPrice * 12 - tier.annualPrice).toLocaleString()})
@@ -208,7 +208,7 @@ function OverviewTab() {
               <strong>{tier.apiKeys}</strong> API keys
             </div>
             {tier.revenueSharePct > 0 && (
-              <div style={{ fontSize: 12, color: "var(--coral)", marginBottom: 8 }}>
+              <div style={{ fontSize: 12, color: "var(--orange-700)", marginBottom: 8 }}>
                 Revenue share: <strong>{tier.revenueSharePct}%</strong>
               </div>
             )}
@@ -229,7 +229,7 @@ function OverviewTab() {
                   key={f}
                   style={{
                     fontSize: 12,
-                    color: "var(--green)",
+                    color: "var(--green-700)",
                     padding: "2px 0",
                     display: "flex",
                     alignItems: "center",
@@ -1038,7 +1038,7 @@ function WebhooksTab({ defaultApiKey, registeredPartnerId }) {
                 onClick={registerWebhook}
                 style={{
                   padding: "8px 16px",
-                  backgroundColor: webhookUrl ? "var(--blue-700)" : "var(--gray-300)",
+                  backgroundColor: webhookUrl ? "var(--cyan)" : "var(--gray-300)",
                   color: "var(--white)",
                   borderRadius: 6,
                   border: "none",
@@ -1063,7 +1063,7 @@ function WebhooksTab({ defaultApiKey, registeredPartnerId }) {
                     fontSize: 14,
                     fontWeight: 700,
                     margin: "0 0 12px",
-                    color: "var(--text-strong)"
+                    color: "var(--ink-0)"
                   }}
                 >
                   Registered Webhooks ({webhooks.length})
@@ -1097,7 +1097,7 @@ function WebhooksTab({ defaultApiKey, registeredPartnerId }) {
                             padding: "2px 6px",
                             borderRadius: 4,
                             backgroundColor: wh.active ? "var(--green-50)" : "var(--red-50)",
-                            color: wh.active ? "var(--green-700)" : "var(--red-700)",
+                            color: wh.active ? "var(--green-800)" : "var(--red-600)",
                             fontWeight: 600
                           }}
                         >
@@ -1109,7 +1109,7 @@ function WebhooksTab({ defaultApiKey, registeredPartnerId }) {
                           style={{
                             padding: "2px 8px",
                             backgroundColor: "var(--red-50)",
-                            color: "var(--red-700)",
+                            color: "var(--red-600)",
                             borderRadius: 4,
                             border: "1px solid var(--red-100)",
                             cursor: "pointer",
@@ -1311,7 +1311,7 @@ function AdminTab({ sdk, adminKey, onSetAdminKey }) {
                     fontSize: 14,
                     fontWeight: 700,
                     margin: "0 0 12px",
-                    color: "var(--text-strong)"
+                    color: "var(--ink-0)"
                   }}
                 >
                   All Partners ({analytics.partners.length})

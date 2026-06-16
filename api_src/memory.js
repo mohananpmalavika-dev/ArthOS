@@ -12,9 +12,18 @@
  *
  * Deployed as a single catch-all route: /api/memory
  * or as individual routes: /api/memory/score, /api/memory/events, etc.
+ *
+ * All payloads are validated at runtime against versioned schemas.
  */
 
 import { hasDatabaseConfig, insertIntoTable } from "./dbClient.js";
+import {
+  validateScoreEntry,
+  validateMemoryEventPayload,
+  validateTwinSnapshotPayload,
+  logValidationFailure,
+  logValidationSuccess
+} from "./payloadValidator.js";
 
 // ============================================================
 // Route parsing
@@ -44,10 +53,22 @@ async function handlePost(subroute, body, res) {
       if (typeof data.score !== "number") {
         return res.status(400).json({ error: "Missing score" });
       }
+
+      // Validate score payload
+      const scoreValidation = validateScoreEntry(data);
+      if (!scoreValidation.valid) {
+        logValidationFailure('memory/score', data, scoreValidation);
+        return res.status(400).json({
+          error: "Invalid score payload",
+          details: scoreValidation.errors
+        });
+      }
+
       const scoreRow = {
         user_id: userId,
         score: Math.round(data.score),
         recorded_at: data.date || new Date().toISOString(),
+        schema_version: "1.0.0"
       };
 
       if (hasDatabaseConfig()) {
@@ -57,6 +78,7 @@ async function handlePost(subroute, body, res) {
           return res.status(500).json({ error: "db_insert_failed" });
         }
       }
+      logValidationSuccess('memory/score', '1.0.0');
       return res.status(200).json({ status: "saved", type: "score" });
     }
 
@@ -101,10 +123,22 @@ async function handlePost(subroute, body, res) {
       if (!data.event) {
         return res.status(400).json({ error: "Missing event data" });
       }
+
+      // Validate memory event payload
+      const eventValidation = validateMemoryEventPayload(data.event);
+      if (!eventValidation.valid) {
+        logValidationFailure('memory/event', data.event, eventValidation);
+        return res.status(400).json({
+          error: "Invalid event payload",
+          details: eventValidation.errors
+        });
+      }
+
       const eventRow = {
         user_id: userId,
         memory: data.event,
         recorded_at: data.event.timestamp || new Date().toISOString(),
+        schema_version: eventValidation.schema_version
       };
 
       if (hasDatabaseConfig()) {
@@ -114,6 +148,7 @@ async function handlePost(subroute, body, res) {
           return res.status(500).json({ error: "db_insert_failed" });
         }
       }
+      logValidationSuccess('memory/event', eventValidation.schema_version);
       return res.status(200).json({ status: "saved", type: "event" });
     }
 
@@ -141,10 +176,22 @@ async function handlePost(subroute, body, res) {
       if (!data.snapshot) {
         return res.status(400).json({ error: "Missing snapshot data" });
       }
+
+      // Validate twin snapshot payload
+      const twinValidation = validateTwinSnapshotPayload(data.snapshot);
+      if (!twinValidation.valid) {
+        logValidationFailure('memory/twin', data.snapshot, twinValidation);
+        return res.status(400).json({
+          error: "Invalid twin snapshot payload",
+          details: twinValidation.errors
+        });
+      }
+
       const twinRow = {
         user_id: userId,
         snapshot: data.snapshot,
-        simulated_at: data.snapshot.timestamp || new Date().toISOString(),
+        recorded_at: data.snapshot.timestamp || new Date().toISOString(),
+        schema_version: twinValidation.schema_version
       };
 
       if (hasDatabaseConfig()) {
@@ -154,6 +201,7 @@ async function handlePost(subroute, body, res) {
           return res.status(500).json({ error: "db_insert_failed" });
         }
       }
+      logValidationSuccess('memory/twin', twinValidation.schema_version);
       return res.status(200).json({ status: "saved", type: "twin" });
     }
 
@@ -278,12 +326,13 @@ async function handleGet(subroute, query, res) {
       }
 
       try {
-        const { fetchDecisionsForUser } = await import("./dbClient.js");
-        // We use fetchDecisionsForUser pattern but for memory events
-        // For now, return empty array; in production this queries the financial_memory table
-        return res.status(200).json({ events: [], source: "database" });
+        const { fetchMemoryEventsForUser } = await import("./dbClient.js");
+        const rows = await fetchMemoryEventsForUser(query.userId);
+        const events = (rows || []).map((r) => ({ event: r.memory || null, timestamp: r.recorded_at || null }));
+        return res.status(200).json({ events, source: "database" });
       } catch (err) {
-        return res.status(200).json({ events: [], source: "error", error: err.message });
+        console.error("[Memory] fetch events error", err);
+        return res.status(500).json({ events: [], source: "error", error: err.message });
       }
     }
 

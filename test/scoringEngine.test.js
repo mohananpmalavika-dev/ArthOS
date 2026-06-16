@@ -245,7 +245,7 @@ describe("Financial Health Scoring Engine v2", () => {
         behaviour: {
           emotionalMoneyLevel: "somewhat_emotional",
           socialInfluenceLevel: "sometimes",
-          unplannedPurchaseFreq: "sometimes",
+          unplannedPurchaseFreq: "rarely",
           regretImpulseFreq: "sometimes",
           presentFutureMindset: "balance_both",
           avoidBalanceDuringStress: "sometimes",

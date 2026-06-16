@@ -16,12 +16,6 @@ import {
   detectFutureRisk,
   simulateWhatIf
 } from "./forecastEngine.js";
-import {
-  generatePrediction,
-  simulateScenario,
-  compareScenarios,
-  predictionEngineForecastHealth
-} from "./predictionEngine.js";
 
 function calculateRunway(savings, monthlyExpenses) {
   return monthlyExpenses > 0 ? savings / monthlyExpenses : 0;
@@ -224,6 +218,8 @@ export function simulateDecisionImpact(profile, decision) {
   const monthlyIncome = Number(profile.monthlyIncome) || 0;
   const monthlyExpenses = Number(profile.monthlyExpenses) || Number(profile.monthlyExpense) || 0;
   const oldRunway = calculateRunway(currentSavings, Math.max(1, monthlyExpenses));
+  const currentScore = Number(profile.currentScore || 50);
+  const currentFutureScore = Number(profile.currentFutureScore || currentScore);
 
   let newSavings = currentSavings;
   let newIncome = monthlyIncome;
@@ -246,7 +242,7 @@ export function simulateDecisionImpact(profile, decision) {
     ...profile,
     monthlyIncome: newIncome,
     monthlyExpense: newExpenses,
-    currentScore: 50
+    currentScore
   };
   const whatIf = simulateWhatIf(
     whatIfProfile,
@@ -259,11 +255,16 @@ export function simulateDecisionImpact(profile, decision) {
   return {
     currentState: {
       savings: currentSavings,
-      runway: Math.round(oldRunway * 10) / 10
+      runway: Math.round(oldRunway * 10) / 10,
+      health: Math.round(currentScore),
+      futureScore: Math.round(currentFutureScore)
     },
     projectedState: {
       savings: Math.round(newSavings),
       runway: Math.round(newRunway * 10) / 10,
+      health: Math.round(whatIf?.projectedDay30?.p50 ?? currentScore),
+      futureScore: Math.round(whatIf?.projectedDay90?.p50 ?? currentFutureScore),
+      futureConfidence: whatIf?.confidence ?? null,
       mcProjection: whatIf
         ? {
             day90: whatIf.projectedDay90?.p50,

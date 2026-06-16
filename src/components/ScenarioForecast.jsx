@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import PropTypes from "prop-types";
 import { TrendingUp, TrendingDown, AlertTriangle, CheckCircle, Calendar } from "lucide-react";
 import {
   forecastScenarios,
@@ -22,7 +23,14 @@ export function ScenarioForecast({ profile, assessmentResult }) {
   const forecast = forecastScenarios(profile);
   const cashflow = estimateCashflowBreakdown(profile);
   const decisionImpact = selectedDecision
-    ? simulateDecisionImpact(profile, selectedDecision)
+    ? simulateDecisionImpact(
+        {
+          ...profile,
+          currentScore: assessmentResult?.healthScore,
+          currentFutureScore: assessmentResult?.futureRiskScore
+        },
+        selectedDecision
+      )
     : null;
 
   if (!forecast) {
@@ -249,19 +257,43 @@ export function ScenarioForecast({ profile, assessmentResult }) {
         </div>
 
         {decisionImpact && (
-          <div className="forecast-simulator-result premium-report-grid premium-report-grid-2">
-            <div className="forecast-detail-card">
-              <span>Current Runway</span>
-              <strong>{Math.round(decisionImpact.currentState.runway * 10) / 10} months</strong>
-              <small>based on current cashflow</small>
+          <div className="forecast-simulator-result">
+            <div className="forecast-simulator-title">
+              <strong>Impact if you choose this decision</strong>
             </div>
-            <div className="forecast-detail-card forecast-detail-card-highlight">
-              <span>Projected Runway</span>
-              <strong>{Math.round(decisionImpact.projectedState.runway * 10) / 10} months</strong>
-              <small>
-                {decisionImpact.impact.runwayDelta > 0 ? "+" : ""}
-                {Math.round(decisionImpact.impact.runwayDelta * 10) / 10} months change
-              </small>
+            <div className="premium-report-grid premium-report-grid-3">
+              <div className="forecast-detail-card">
+                <span>Runway</span>
+                <strong>
+                  {decisionImpact.currentState.runway} → {decisionImpact.projectedState.runway}{" "}
+                  months
+                </strong>
+                <small>
+                  {decisionImpact.impact.runwayDelta > 0 ? "+" : ""}
+                  {decisionImpact.impact.runwayDelta} months change
+                </small>
+              </div>
+              <div className="forecast-detail-card">
+                <span>Health</span>
+                <strong>
+                  {decisionImpact.currentState.health} → {decisionImpact.projectedState.health}
+                </strong>
+                <small>Immediate health score impact</small>
+              </div>
+              <div className="forecast-detail-card forecast-detail-card-highlight">
+                <span>Future Score</span>
+                <strong>
+                  {decisionImpact.currentState.futureScore} →{" "}
+                  {decisionImpact.projectedState.futureScore}
+                </strong>
+                <small>
+                  {decisionImpact.projectedState.futureConfidence !== null
+                    ? `Confidence ${decisionImpact.projectedState.futureConfidence}%`
+                    : decisionImpact.projectedState.mcProjection
+                      ? `Confidence ${decisionImpact.projectedState.mcProjection.confidence}%`
+                      : "Projected 90-day score"}
+                </small>
+              </div>
             </div>
           </div>
         )}
@@ -275,3 +307,11 @@ export function ScenarioForecast({ profile, assessmentResult }) {
     </div>
   );
 }
+
+ScenarioForecast.propTypes = {
+  profile: PropTypes.object.isRequired,
+  assessmentResult: PropTypes.shape({
+    healthScore: PropTypes.number,
+    futureRiskScore: PropTypes.number
+  }).isRequired
+};

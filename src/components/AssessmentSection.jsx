@@ -18,11 +18,13 @@ import ValidationFeedbackForm from "./ValidationFeedbackForm.jsx";
 import DecisionSimulator from "./DecisionSimulator.jsx";
 import InsightNarrative from "./InsightNarrative.jsx";
 import SurvivalHero from "./SurvivalHero.jsx";
+import WeeklyMissionCard from "./WeeklyMissionCard.jsx";
 import {
   buildAnonymousTelemetryPayload,
   dispatchAnonymousTelemetry,
   dispatchAnonymousFeedbackEvent
 } from "../lib/scoring-v2.js";
+import { normalizeScore } from "../lib/scoring-v2";
 import {
   startAssessmentSession,
   recordStepEntry,
@@ -397,7 +399,7 @@ function LiveResultSnapshot({ result }) {
     return null;
   }
 
-  const score = Math.max(0, Math.min(100, Math.round((result.healthScore ?? 0) / 10)));
+  const score = Math.max(0, Math.min(100, normalizeScore(result.healthScore ?? 0)));
   const scoreLabel = result.categoryBand?.label;
   const componentRows = result.componentRows ?? [];
 
@@ -494,6 +496,7 @@ export default function AssessmentSection({
   result,
   onChange,
   onSaveAssessment,
+  onComplete,
   ui,
   resetTrigger
 }) {
@@ -885,6 +888,16 @@ export default function AssessmentSection({
         onSaveAssessment();
       }
       setShowFeedback(true);
+      // Trigger any post-completion flow (navigation to Big Reveal)
+      try {
+        if (typeof onComplete === "function") {
+          onComplete();
+        }
+      } catch (err) {
+        // swallow navigation errors
+        // eslint-disable-next-line no-console
+        console.warn("onComplete handler failed:", err && err.message);
+      }
     } catch (error) {
       console.error("Error submitting assessment:", error);
       setValidationErrors(["❌ Error submitting assessment. Please try again."]);
@@ -1049,7 +1062,7 @@ export default function AssessmentSection({
               <QuestionSection
                 icon={Brain}
                 title="Psychology"
-                score={`${result.behaviourScore}/${ui.componentMaximums.behaviour}`}
+                score={`${result?.behaviourScore ?? 0}/${ui?.componentMaximums?.behaviour ?? 40}`}
                 questions={adaptation.behaviour.visible}
                 values={assessment.behaviour}
                 onChange={(key, value) => handleFieldChange("behaviour", key, value)}
@@ -1077,7 +1090,7 @@ export default function AssessmentSection({
               <QuestionSection
                 icon={BarChart3}
                 title="Clarity"
-                score={`${result.awarenessScore}/${ui.componentMaximums.awareness}`}
+                score={`${result?.awarenessScore ?? 0}/${ui?.componentMaximums?.awareness ?? 30}`}
                 questions={adaptation.awareness.visible}
                 values={assessment.awareness}
                 onChange={(key, value) => handleFieldChange("awareness", key, value)}
@@ -1099,7 +1112,7 @@ export default function AssessmentSection({
           {!showFeedback && currentStep === 2 && !celebration?.visible && (
             <ProfileSection
               values={assessment.profile}
-              score={`${result.stabilityScore}/${ui.componentMaximums.stability}`}
+              score={`${result?.stabilityScore ?? 0}/${ui?.componentMaximums?.stability ?? 30}`}
               onChange={(key, value) => handleFieldChange("profile", key, value)}
             />
           )}
@@ -1184,17 +1197,28 @@ export default function AssessmentSection({
         >
           {result && result.healthScore !== undefined && (
             <div className="result-stack-inner">
-              <LiveResultSnapshot result={result} />
+              {/* REALITY: Lead with Financial Health Score gauge + Survival window hero */}
+              <SurvivalHero survivalMonths={result.survivalMonthsRaw} score={result.basScore} />
 
-              {/* Blueprint key moment: Survival Engine right after assessment completion */}
-              <SurvivalHero survivalMonths={result.survivalMonthsRaw} />
-
+              {/* MIND: Consolidated narrative insights */}
               <InsightNarrative result={result} assessment={assessment} />
+
+              {/* FUTURE: Multi-path decision simulator */}
               <DecisionSimulator
                 id="simulator"
                 profile={assessment.profile}
                 behaviour={assessment.behaviour}
               />
+
+              {/* ACTION: One weekly mission */}
+              <WeeklyMissionCard
+                result={result}
+                assessment={assessment}
+                onAssessmentUpdate={onChange}
+              />
+
+              {/* DETAILED ANALYSIS: Health metrics breakdown */}
+              <LiveResultSnapshot result={result} />
             </div>
           )}
         </aside>

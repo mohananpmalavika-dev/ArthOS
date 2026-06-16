@@ -4,7 +4,105 @@
  * This is the core defensibility feature: what happens if nothing changes?
  */
 
-import { formatMonths as formatMonthsV2 } from "../lib/scoring-v2.js";
+import { formatMonths as formatMonthsV2, componentMaximumsV2, normalizeScore } from "../lib/scoring-v2.js";
+
+function toNumber(v) {
+  const n = Number.parseFloat(v);
+  return Number.isFinite(n) ? n : 0;
+}
+
+function clamp(v, a, b) {
+  return Math.max(a, Math.min(b, v));
+}
+
+/**
+ * Calculate trajectory decay based on behavioral patterns
+ * Lower awareness + lower behavior = faster degradation
+ * This models real financial deterioration
+ */
+
+function getConsequenceNarrative(currentScore, projectedOneYearScore) {
+  const delta = projectedOneYearScore - currentScore;
+
+  if (delta >= 0) {
+    return 'Current patterns suggest your financial health may remain stable or improve with conscious effort.';
+  }
+
+  if (delta >= -5) {
+    return 'Small gaps compound slowly. Without intervention, you may lose a few points over the next year.';
+  }
+
+  if (delta >= -15) {
+    return 'Your current behavior patterns carry moderate drift risk. Within a year, your health could drop significantly.';
+  }
+
+  if (delta >= -25) {
+    return 'Current patterns are unsustainable. Without changes, financial stress could intensify within months.';
+  }
+
+  return 'Critical trajectory: Your behavioral patterns create cascading financial deterioration. Intervention needed immediately.';
+}
+
+function getHealthBand(score) {
+  if (score <= 250) {
+    return 'critical';
+  }
+  if (score <= 400) {
+    return 'fragile';
+  }
+  if (score <= 600) {
+    return 'developing';
+  }
+  if (score <= 800) {
+    return 'resilient';
+  }
+  return 'sovereign';
+}
+
+/**
+ * Translate projected health score into a user-facing risk label.
+ * (Fixes runtime crash: getRiskLevel was referenced but not defined.)
+ */
+function getRiskLevel(score) {
+  const s = toNumber(score);
+
+  if (s <= 250) return 'critical';
+  if (s <= 400) return 'high';
+  if (s <= 600) return 'moderate';
+  if (s <= 800) return 'low';
+  return 'minimal';
+}
+
+
+function getTrendRate(trend) {
+  const normalizedTrend = String(trend || '').toLowerCase();
+  if (normalizedTrend.includes('improving') || normalizedTrend.includes('positive')) {
+    return 0.03;
+  }
+  if (normalizedTrend.includes('rapidly')) {
+    return -0.08;
+  }
+  if (normalizedTrend.includes('declining') || normalizedTrend.includes('negative')) {
+    return -0.04;
+  }
+  return 0.0;
+}
+
+function buildProjection(currentScore, rate, months) {
+  const projected = Math.max(0, currentScore * Math.pow(1 + rate, months));
+  const lower = Math.round(projected * 0.88);
+  const upper = Math.round(projected * 1.12);
+  const confidence = Math.max(0.25, Math.min(0.95, 1 - Math.abs(rate) * (months / 12) * 0.35));
+
+  return {
+    months,
+    projected_score: Math.round(projected),
+    health_band: getHealthBand(projected),
+    confidence,
+    confidence_lower: lower,
+    confidence_upper: upper
+  };
+}
 
 /**
  * Calculate trajectory decay based on behavioral patterns
@@ -41,83 +139,40 @@ export function projectHealthTrajectory(result) {
       sixMonths: 0,
       oneYear: 0,
       twoYears: 0,
-      trajectoryData: []
+      trajectoryData: [],
+      projections: []
     };
   }
 
-  const healthScore = result.healthScore || 0;
-  const behaviourScore = result.behaviourScore || 0;
-  const awarenessScore = result.awarenessScore || 0;
-  const stabilityScore = result.stabilityScore || 0;
+  const currentScore = toNumber(result.current_score ?? result.healthScore ?? 0);
+  const trend = result.score_trend ?? result.trend;
+  const monthlyRate = getTrendRate(trend);
 
-  const decayRate = calculateDecayRate(behaviourScore, awarenessScore, stabilityScore);
+  const projections = [3, 6, 12].map((months) => buildProjection(currentScore, monthlyRate, months));
+  const twoYearProjection = buildProjection(currentScore, monthlyRate, 24);
 
-  // Calculate projections at different time points
-  const today = healthScore;
-  const threeMonths = Math.max(20, today * Math.pow(1 - decayRate, 3));
-  const sixMonths = Math.max(20, today * Math.pow(1 - decayRate, 6));
-  const oneYear = Math.max(20, today * Math.pow(1 - decayRate, 12));
-  const twoYears = Math.max(20, today * Math.pow(1 - decayRate, 24));
-
-  // Build trajectory data for charting
-  const trajectoryData = [];
-  for (let month = 0; month <= 24; month += 3) {
-    trajectoryData.push({
-      month: month === 0 ? "Today" : `${month}mo`,
-      healthScore: Math.max(20, Math.round(today * Math.pow(1 - decayRate, month) * 10) / 10),
-      monthNumber: month
-    });
-  }
+  const trajectoryData = projections.map((projection) => ({
+    month: `${projection.months} months`,
+    monthNumber: projection.months,
+    healthScore: projection.projected_score,
+    lower: projection.confidence_lower,
+    upper: projection.confidence_upper,
+    confidence: Math.round(projection.confidence * 100)
+  }));
 
   return {
-    today: Math.round(today * 10) / 10,
-    threeMonths: Math.round(threeMonths * 10) / 10,
-    sixMonths: Math.round(sixMonths * 10) / 10,
-    oneYear: Math.round(oneYear * 10) / 10,
-    twoYears: Math.round(twoYears * 10) / 10,
+    today: Math.round(currentScore),
+    threeMonths: projections[0].projected_score,
+    sixMonths: projections[1].projected_score,
+    oneYear: projections[2].projected_score,
+    twoYears: twoYearProjection.projected_score,
     trajectoryData,
-    decayRate: Math.round(decayRate * 1000) / 10, // As percentage
-    riskLevel: getRiskLevel(oneYear),
-    consequence: getConsequenceNarrative(today, oneYear)
+    projections,
+    decayRate: Math.round(monthlyRate * 1000) / 10,
+    // Risk level is derived from projected health score (lower score => higher risk)
+    riskLevel: getHealthBand(projections[2].projected_score),
+    consequence: getConsequenceNarrative(currentScore, projections[2].projected_score)
   };
-}
-
-function getRiskLevel(projectedOneYearScore) {
-  if (projectedOneYearScore <= 30) {
-    return "Critical";
-  }
-  if (projectedOneYearScore <= 45) {
-    return "High";
-  }
-  if (projectedOneYearScore <= 60) {
-    return "Moderate";
-  }
-  if (projectedOneYearScore <= 75) {
-    return "Manageable";
-  }
-  return "Healthy";
-}
-
-function getConsequenceNarrative(currentScore, projectedOneYearScore) {
-  const delta = currentScore - projectedOneYearScore;
-
-  if (delta <= 0) {
-    return "Current patterns suggest your financial health may remain stable or improve with conscious effort.";
-  }
-
-  if (delta <= 5) {
-    return "Small gaps compound slowly. Without intervention, you may lose 5-8 points over the next year.";
-  }
-
-  if (delta <= 15) {
-    return "Your current behavior patterns carry moderate drift risk. Within a year, your health could drop significantly.";
-  }
-
-  if (delta <= 25) {
-    return "Current patterns are unsustainable. Without changes, financial stress could intensify within months.";
-  }
-
-  return "Critical trajectory: Your behavioral patterns create cascading financial deterioration. Intervention needed immediately.";
 }
 
 /**
@@ -126,7 +181,15 @@ function getConsequenceNarrative(currentScore, projectedOneYearScore) {
  */
 export function calculateConsequenceGap(result) {
   const trajectory = projectHealthTrajectory(result);
+  const gapSize = Math.round(trajectory.oneYear - trajectory.today);
+  const currentBand = getHealthBand(trajectory.today);
+  const futureBand = getHealthBand(trajectory.oneYear);
+
   return {
+    gap_size: gapSize,
+    direction: gapSize >= 0 ? 'positive' : 'negative',
+    band_transitions: currentBand === futureBand ? [] : [{ from: currentBand, to: futureBand }],
+    timeframe_months: 12,
     gapSixMonths: trajectory.today - trajectory.sixMonths,
     gapOneYear: trajectory.today - trajectory.oneYear,
     gapTwoYears: trajectory.today - trajectory.twoYears,
@@ -139,32 +202,44 @@ export function calculateConsequenceGap(result) {
  */
 export function getTrajectoryWarning(result) {
   const trajectory = projectHealthTrajectory(result);
+  const warnings = [];
+  let severity = 'none';
+  let message = 'No immediate trajectory warning.';
+  const recommended_actions = [];
+  // If projection drops precipitously relative to today, escalate to critical
+  const today = Math.max(1, trajectory.today || 0);
+  const dropRatio = trajectory.oneYear / today;
+  if (dropRatio <= 0.5 || trajectory.oneYear <= 30) {
+    severity = 'critical';
+    message = 'Your trajectory suggests critical financial stress within 12 months without intervention.';
+    recommended_actions.push('Start interventions immediately.');
+  } else if (trajectory.oneYear <= 45) {
+    severity = 'high';
+    message = 'Without behavioral changes, financial stability could become challenging within a year.';
+    recommended_actions.push('Prioritize the recommended interventions.');
+  } else if (result.was_band && result.health_band && result.was_band !== result.health_band) {
+    severity = 'moderate';
+    message = `Your health band has changed from ${result.was_band} to ${result.health_band}.`;
+    recommended_actions.push('Review your trajectory and act now.');
+  } else if (trajectory.oneYear < trajectory.today) {
+    severity = 'low';
+    message = 'Slight decline expected over the next year. Consider small improvements.';
+    recommended_actions.push('Monitor spending and savings habits.');
+  }
 
-  if (trajectory.oneYear <= 30) {
+  if (recommended_actions.length > 0) {
     return {
-      severity: "critical",
-      message:
-        "Your trajectory suggests critical financial stress within 12 months without intervention.",
-      recommendation: "Start interventions immediately."
+      severity,
+      message,
+      recommendation: recommended_actions[0],
+      recommended_actions
     };
   }
 
-  if (trajectory.oneYear <= 45) {
-    return {
-      severity: "high",
-      message:
-        "Without behavioral changes, financial stability could become challenging within a year.",
-      recommendation: "Prioritize the recommended interventions."
-    };
-  }
-
-  if (trajectory.sixMonths < result.healthScore - 10) {
-    return {
-      severity: "moderate",
-      message: "Current patterns suggest noticeable decline over 6 months.",
-      recommendation: "Consider small changes now to prevent larger problems."
-    };
-  }
-
-  return null;
+  return {
+    severity,
+    message,
+    recommendation: '',
+    recommended_actions
+  };
 }

@@ -134,7 +134,7 @@ export default function CompletionDashboard() {
             </div>
             <div className="kpi-content">
               <div className="kpi-label">Completion Rate</div>
-              <div className="kpi-value completion-value">{metrics.completionRate}%</div>
+              <div className="kpi-value completion-value">{metrics.completionRatePct}%</div>
               <div className="kpi-desc">
                 {metrics.completedSessions} of {metrics.totalSessions} completed
               </div>

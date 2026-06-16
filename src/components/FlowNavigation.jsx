@@ -1,146 +1,130 @@
-import React, { useMemo } from "react";
-import {
-  Home,
-  ClipboardList,
-  BarChart3,
-  Brain,
-  Target,
-  Users,
-  GitBranch,
-  History,
-  LineChart,
-  ShieldCheck,
-  MessageCircle,
-  TrendingUp
-} from "lucide-react";
+import React, { useMemo, useState } from "react";
+import PropTypes from "prop-types";
+import { useLocation, useNavigate } from "react-router-dom";
+import { Sparkles } from "lucide-react";
+import { OS_SHELL_ROUTES, STORY_NAV_ITEMS, DEV_NAV_ITEMS } from "../lib/routeMap.js";
 
-export default function FlowNavigation({ activeHash, onNavigate }) {
-  const navItems = useMemo(
-    () => [
-      {
-        id: "home",
-        hash: "#home",
-        label: "Home",
-        icon: Home,
-        description: "Dashboard & Overview",
-        aliases: ["#intelligence"]
-      },
-      {
-        id: "assessment",
-        hash: "#assessment",
-        label: "Assess",
-        icon: ClipboardList,
-        description: "Financial Health Quiz"
-      },
-      {
-        id: "reports",
-        hash: "#reports",
-        label: "Reports",
-        icon: BarChart3,
-        description: "Analytics & Insights"
-      },
-      {
-        id: "cognition",
-        hash: "#cognition",
-        label: "Cognition",
-        icon: Brain,
-        description: "Decision Patterns"
-      },
-      {
-        id: "simulator",
-        hash: "#simulator",
-        label: "Simulator",
-        icon: Target,
-        description: "What-If Scenarios"
-      },
-      {
-        id: "decisions",
-        hash: "#decisions",
-        label: "Decisions",
-        icon: GitBranch,
-        description: "Decision Ledger"
-      },
-      {
-        id: "memory",
-        hash: "#memory",
-        label: "Memory",
-        icon: History,
-        description: "Timeline & History",
-        aliases: ["#history"]
-      },
-      {
-        id: "b2b",
-        hash: "#b2b",
-        label: "Partners",
-        icon: Users,
-        description: "B2B Portal"
-      },
-      {
-        id: "ai-coach",
-        hash: "#ai-coach",
-        label: "AI Coach",
-        icon: MessageCircle,
-        description: "Personal Financial Coach"
-      },
-      {
-        id: "longitudinal",
-        hash: "#longitudinal",
-        label: "Longitudinal",
-        icon: TrendingUp,
-        description: "Learning Dashboard"
-      },
-      {
-        id: "predictions",
-        hash: "#predictions",
-        label: "Predictions",
-        icon: LineChart,
-        description: "Longitudinal Forecasting"
-      },
-      {
-        id: "admin",
-        hash: "#admin",
-        label: "Admin",
-        icon: ShieldCheck,
-        description: "Operations Console"
-      }
-    ],
-    []
+export default function FlowNavigation({ activeHash, onNavigate, devMode, onToggleDev }) {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const [showDeveloperMenu, setShowDeveloperMenu] = useState(false);
+
+  const currentHash = activeHash || "#";
+  const currentPath = location?.pathname || "";
+  const isOSContext = OS_SHELL_ROUTES.some(route => route.path === currentPath);
+  const coreNarrative = useMemo(
+    () => (isOSContext ? OS_SHELL_ROUTES : STORY_NAV_ITEMS),
+    [isOSContext]
   );
+  const developerMenu = useMemo(() => DEV_NAV_ITEMS, []);
 
-  const isActive = hash => {
-    const currentHash = activeHash || "#home";
-    const item = navItems.find(navItem => navItem.hash === hash);
-    return currentHash === hash || item?.aliases?.includes(currentHash);
+  const isActive = item => {
+    if (item.path) {
+      return currentPath === item.path;
+    }
+    if (item.hash) {
+      return currentHash === item.hash || (item.aliases && item.aliases.includes(currentHash));
+    }
+    return false;
   };
 
-  const handleNavClick = hash => {
+  const handleNavClick = item => {
+    const target = item.path || item.hash;
     if (onNavigate) {
-      onNavigate(hash);
-    } else {
-      window.location.hash = hash;
+      onNavigate(target);
+      return;
+    }
+
+    if (!target) {
+      return;
+    }
+
+    if (target.startsWith("/")) {
+      navigate(target);
+      return;
+    }
+
+    if (target.startsWith("#")) {
+      const basePath = currentPath.startsWith("/dashboard") ? "/dashboard" : currentPath;
+      navigate(`${basePath}${target}`);
     }
   };
 
   return (
-    <nav className="app-nav-tabs" aria-label="Product flow navigation">
-      {navItems.map(item => {
-        const Icon = item.icon;
-        const active = isActive(item.hash);
+    <>
+      <nav className="app-nav-tabs" aria-label="Financial Cognition Journey">
+        {coreNarrative.map(item => {
+          const Icon = item.icon;
+          const active = isActive(item);
 
-        return (
-          <button
-            key={item.id}
-            className={`app-nav-tab ${active ? "active" : ""}`}
-            onClick={() => handleNavClick(item.hash)}
-            title={item.description}
-            aria-current={active ? "page" : undefined}
-          >
-            <Icon size={16} aria-hidden="true" />
-            <span className="app-nav-tab-label">{item.label}</span>
-            <small>{item.description}</small>
-          </button>
-        );
-      })}
-    </nav>
+          return (
+            <button
+              key={item.id}
+              className={`app-nav-tab ${item.id === "assessment" ? "primary" : ""} ${active ? "active" : ""}`}
+              onClick={() => handleNavClick(item)}
+              title={item.description}
+              aria-current={active ? "page" : undefined}
+            >
+              {Icon && <Icon size={16} aria-hidden="true" />}
+              <span className="app-nav-tab-label">{item.label}</span>
+              <small>{item.description}</small>
+            </button>
+          );
+        })}
+
+        <button
+          className={`app-nav-tab app-nav-dev-toggle ${devMode ? "dev-active" : ""}`}
+          onClick={() => {
+            setShowDeveloperMenu(prev => !prev);
+            if (onToggleDev) {
+              onToggleDev();
+            }
+          }}
+          title="Developer & Admin Tools"
+          aria-expanded={showDeveloperMenu}
+        >
+          <Sparkles size={16} aria-hidden="true" />
+          <span className="app-nav-tab-label">Dev</span>
+          <small>Tools</small>
+        </button>
+      </nav>
+
+      {showDeveloperMenu && (
+        <nav className="app-nav-developer-menu" aria-label="Developer Tools">
+          <div className="dev-menu-header">
+            <p className="dev-menu-title">Intelligence & Administration</p>
+          </div>
+          <div className="dev-menu-items">
+            {developerMenu.map(item => {
+              const Icon = item.icon;
+              const active = isActive(item);
+
+              return (
+                <button
+                  key={item.id}
+                  className={`dev-menu-item ${active ? "active" : ""}`}
+                  onClick={() => {
+                    handleNavClick(item);
+                    setShowDeveloperMenu(false);
+                  }}
+                  title={item.description}
+                >
+                  {Icon && <Icon size={14} />}
+                  <span>{item.label}</span>
+                  <small>{item.description}</small>
+                </button>
+              );
+            })}
+          </div>
+        </nav>
+      )}
+    </>
   );
 }
+
+FlowNavigation.propTypes = {
+  activeHash: PropTypes.string,
+  onNavigate: PropTypes.func,
+  devMode: PropTypes.bool,
+  onToggleDev: PropTypes.func
+};

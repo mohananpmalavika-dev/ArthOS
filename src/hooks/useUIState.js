@@ -9,29 +9,38 @@
  */
 
 import { useState, useEffect, useCallback, startTransition } from "react";
+import { useSettings } from "../context/SettingsContext.jsx";
 import { isBrowser } from "../lib/app-utils.jsx";
 
 export function useUIState() {
+  const { settings, saveSetting } = useSettings();
   const [activeHash, setActiveHash] = useState(() =>
-    isBrowser() ? window.location.hash || "#home" : "#home"
+    isBrowser() ? window.location.hash || "#" : "#"
   );
-  const [showOnboarding, setShowOnboarding] = useState(() => {
-    if (!isBrowser()) {
-      return false;
-    }
-    return window.localStorage.getItem("arth-os-onboarding-complete") !== "true";
-  });
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [authMode, setAuthMode] = useState("login");
   const [paywallFeature, setPaywallFeature] = useState(null);
   const [smsEnrichment, setSmsEnrichment] = useState(null);
   const [showSmsForm, setShowSmsForm] = useState(false);
+  const [devMode, setDevMode] = useState(() => settings?.ui?.devMode ?? false);
+  const [showOnboarding, setShowOnboarding] = useState(() =>
+    settings?.onboarding?.complete === true ? false : true
+  );
+
+  useEffect(() => {
+    if (settings?.ui?.devMode !== undefined) {
+      setDevMode(settings.ui.devMode);
+    }
+    if (settings?.onboarding?.complete !== undefined) {
+      setShowOnboarding(settings.onboarding.complete === true ? false : true);
+    }
+  }, [settings]);
 
   // Listen to hash changes
   useEffect(() => {
     const handleHashChange = () => {
       startTransition(() => {
-        setActiveHash(window.location.hash || "#home");
+        setActiveHash(window.location.hash || "#");
       });
     };
 
@@ -39,7 +48,7 @@ export function useUIState() {
       window.addEventListener("hashchange", handleHashChange);
       return () => window.removeEventListener("hashchange", handleHashChange);
     }
-  }, []);
+  }, [settings]);
 
   const navigateTo = useCallback(hash => {
     if (isBrowser()) {
@@ -58,22 +67,26 @@ export function useUIState() {
   }, []);
 
   const completeOnboarding = useCallback(() => {
-    if (isBrowser()) {
-      window.localStorage.setItem("arth-os-onboarding-complete", "true");
-    }
+    saveSetting("onboarding.complete", true);
     setShowOnboarding(false);
-  }, []);
+  }, [saveSetting]);
 
   const resetOnboarding = useCallback(() => {
-    if (isBrowser()) {
-      window.localStorage.removeItem("arth-os-onboarding-complete");
-    }
+    saveSetting("onboarding.complete", false);
     setShowOnboarding(true);
-  }, []);
+  }, [saveSetting]);
 
   const toggleSmsForm = useCallback(() => {
     setShowSmsForm(prev => !prev);
   }, []);
+
+  const toggleDevMode = useCallback(() => {
+    setDevMode(prev => {
+      const next = !prev;
+      saveSetting("ui.devMode", next);
+      return next;
+    });
+  }, [saveSetting]);
 
   return {
     // State
@@ -97,6 +110,8 @@ export function useUIState() {
     closeAuthModal,
     completeOnboarding,
     resetOnboarding,
-    toggleSmsForm
+    toggleSmsForm,
+    devMode,
+    toggleDevMode
   };
 }

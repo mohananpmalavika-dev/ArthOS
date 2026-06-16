@@ -168,17 +168,79 @@ interface CommonActions {
 // ── Navigation ──
 
 export const NAV_ITEMS: NavItem[] = [
-  { label: "Home", href: "#home" },
-  { label: "Assess", href: "#assessment" },
-  { label: "Reports", href: "#reports" },
-  { label: "Cognition", href: "#cognition" },
-  { label: "Simulator", href: "#simulator" },
-  { label: "Decisions", href: "#decisions" },
-  { label: "Memory", href: "#memory" },
-  { label: "Predictions", href: "#predictions" },
-  { label: "Partners", href: "#b2b" },
-  { label: "Admin", href: "#admin" },
+  { label: "Dashboard", href: "/dashboard" },
+  { label: "Insights", href: "/dashboard/insights" },
+  { label: "Forecast", href: "/dashboard/forecast" },
+  { label: "Peer cohorts", href: "/dashboard/cohorts" },
+  { label: "Decision quality", href: "/dashboard/decisions" },
+  { label: "Learning", href: "/dashboard/learning" },
+  { label: "Digital Twin", href: "/dashboard/twin" },
+  { label: "Future You", href: "/future-you" },
+  { label: "Plan", href: "/dashboard/plan" },
+  { label: "Accounts", href: "/dashboard/accounts" },
+  { label: "History", href: "/dashboard/history" },
+  { label: "Notifications", href: "/dashboard/notifications" },
+  { label: "Settings", href: "/dashboard/settings" },
+  { label: "Advanced Analytics", href: "/advanced" }
 ];
+
+// ── Human-Friendly Feature Labels ──
+// Maps technical component names to user-facing terminology
+
+export const FEATURE_LABELS = {
+  // Core components
+  digitalTwin: "Future You",
+  predictionEngine: "What Happens Next",
+  cognitionGraph: "How Your Mind Influences Money",
+  decisionSimulator: "Try Different Futures",
+  financialDNA: "Your Financial Personality",
+  longitudinalLearning: "Your Learning Journey",
+  behavioralAnalysis: "Pattern Recognition",
+  riskAndOpportunityEngine: "What Could Change",
+  
+  // Advanced Intelligence sections
+  understand: "Understand",
+  predict: "Predict",
+  simulate: "Simulate",
+  learn: "Learn",
+  analyze: "Analyze",
+  
+  // Advanced menu items
+  advancedIntelligence: "Advanced Intelligence",
+  developerIntelligence: "Developer Intelligence",
+  digitalTwinAnalytics: "Financial Projections",
+  predictionEngineAccess: "Future Scenarios",
+  cognitionGraphExplorer: "Behavioral Patterns",
+  decisionSimulatorAccess: "Outcome Simulator",
+  longitudinalLearningTimeline: "Decision History",
+  
+  // Engines grouped by value
+  understandSection: [
+    { id: "cognition-graph", label: "How Your Mind Influences Money", icon: "Brain" },
+    { id: "financial-dna", label: "Your Financial Personality", icon: "Dna" },
+    { id: "behavioral-analysis", label: "Pattern Recognition", icon: "Activity" }
+  ],
+  predictSection: [
+    { id: "prediction-engine", label: "What Happens Next", icon: "TrendingUp" },
+    { id: "forecast", label: "Your 12-Month Outlook", icon: "Calendar" },
+    { id: "what-happens-next", label: "Impact Analysis", icon: "AlertCircle" }
+  ],
+  simulateSection: [
+    { id: "decision-simulator", label: "Try Different Futures", icon: "GitBranch" },
+    { id: "scenario-forecast", label: "Scenario Comparison", icon: "Layers" },
+    { id: "outcome-simulator", label: "Outcome Simulator", icon: "Zap" }
+  ],
+  learnSection: [
+    { id: "longitudinal-learning", label: "Your Learning Journey", icon: "Book" },
+    { id: "memory-timeline", label: "Past Decisions", icon: "History" },
+    { id: "insights-timeline", label: "Your Progress", icon: "Award" }
+  ],
+  analyzeSection: [
+    { id: "digital-twin", label: "Financial Projections", icon: "Users" },
+    { id: "analytics-dashboard", label: "Analytics Dashboard", icon: "BarChart3" },
+    { id: "developer-intelligence", label: "System Debug", icon: "Wrench" }
+  ]
+};
 
 // ── Hero Section ──
 

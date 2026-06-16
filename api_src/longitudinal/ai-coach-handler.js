@@ -5,18 +5,56 @@
  * Routes requests to appropriate handler based on method and path.
  */
 
+import 'dotenv/config';
 import { createClient } from '@supabase/supabase-js';
 import AICoachEngine from './ai-coach-engine.js';
+import { requireAuth } from '../auth/jwt.js';
 
-const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY);
+const SUPABASE_URL = process.env.SUPABASE_URL;
+const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 
-// Extract userId from request
-function getUserId(req) {
-  const userId = req.query?.userId || req.body?.userId;
-  if (!userId) {
-    throw new Error('userId required');
+if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
+  console.warn('AI Coach API running without Supabase config. Set SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY in .env or environment.');
+}
+
+const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+
+function normalizeCoachPath(pathname) {
+  if (!pathname) return '';
+  try {
+    const url = new URL(pathname, 'http://localhost');
+    return url.pathname.replace(/\/+/g, '/').replace(/\/+$/, '');
+  } catch {
+    return pathname.replace(/\\+/g, '/').replace(/\/+$/, '');
   }
-  return userId;
+}
+
+async function getUserId(req, res) {
+  const user = await requireAuth(req, res);
+  if (!user) {
+    // requireAuth already sent the error response
+    return null;
+  }
+  return user.id;
+}
+
+function isPlaceholderValue(value) {
+  if (!value) return true;
+  const lower = String(value).toLowerCase();
+  return lower.includes('your-project') || lower.includes('your-service-role-key') || lower.includes('your-openai-key') || lower.includes('xxx') || lower.includes('replace');
+}
+
+function ensureSupabaseConfigured() {
+  if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY || isPlaceholderValue(SUPABASE_URL) || isPlaceholderValue(SUPABASE_SERVICE_ROLE_KEY)) {
+    throw new Error('Missing or placeholder Supabase configuration. Set valid SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY in .env or .env.local.');
+  }
+}
+
+function ensureOpenAIConfigured() {
+  if (!OPENAI_API_KEY || isPlaceholderValue(OPENAI_API_KEY)) {
+    console.warn('OPENAI_API_KEY is not configured or still using a placeholder value. AI Coach chat features will be disabled or limited.');
+  }
 }
 
 // ============= MAIN HANDLER =============
@@ -25,15 +63,25 @@ export default async function aiCoachHandler(req, res) {
   try {
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
 
     if (req.method === 'OPTIONS') {
       return res.status(200).end();
     }
 
-    const userId = getUserId(req);
     const { method } = req;
-    const pathname = req.url?.split('?')[0] || '';
+    const pathname = normalizeCoachPath(req.url?.split('?')[0] || '');
+
+    // Health endpoint does not require userId
+    if (method === 'GET' && pathname === '/api/coach/health') {
+      return handleHealth(res);
+    }
+
+    const userId = await getUserId(req, res);
+    if (!userId) {
+      // getUserId already sent the error response
+      return;
+    }
 
     // Route to appropriate handler
     if (method === 'POST' && pathname === '/api/coach/sessions') {
@@ -93,6 +141,7 @@ export default async function aiCoachHandler(req, res) {
 
 async function handleStartSession(userId, body, res) {
   try {
+    ensureSupabaseConfigured();
     const { primaryConcern = null } = body;
     const result = await AICoachEngine.initiateCoachingSession(userId, primaryConcern);
 
@@ -115,6 +164,7 @@ async function handleStartSession(userId, body, res) {
 
 async function handleListSessions(userId, res) {
   try {
+    ensureSupabaseConfigured();
     const { data: sessions, error } = await supabase
       .from('coach_session_context')
       .select('*')
@@ -159,6 +209,8 @@ async function handleGetSession(userId, sessionId, res) {
 
 async function handleSendMessage(userId, sessionId, body, res) {
   try {
+    ensureSupabaseConfigured();
+    ensureOpenAIConfigured();
     const { message } = body;
 
     if (!message || message.trim().length === 0) {
@@ -215,6 +267,8 @@ async function handleGetHistory(userId, sessionId, res) {
 
 async function handleGenerateRecommendation(userId, sessionId, body, res) {
   try {
+    ensureSupabaseConfigured();
+    ensureOpenAIConfigured();
     const { focusArea = null } = body;
 
     const result = await AICoachEngine.generateRecommendation(userId, sessionId, focusArea);
@@ -319,6 +373,7 @@ async function handleEndSession(userId, sessionId, body, res) {
 
 async function handleGetMemory(userId, res) {
   try {
+    ensureSupabaseConfigured();
     const result = await AICoachEngine.getCoachingMemory(userId);
 
     if (!result.success) {
@@ -395,6 +450,7 @@ async function handleUpdateMemory(userId, body, res) {
 }
 
 async function handleGetAnalytics(userId, res) {
+  ensureSupabaseConfigured();
   try {
     const { data: sessions } = await supabase
       .from('coach_session_context')
@@ -447,11 +503,14 @@ async function handleGetAnalytics(userId, res) {
 }
 
 function handleHealth(res) {
+  const openaiConfigured = !!OPENAI_API_KEY && !isPlaceholderValue(OPENAI_API_KEY);
+  const supabaseConfigured = !!(SUPABASE_URL && SUPABASE_SERVICE_ROLE_KEY) && !isPlaceholderValue(SUPABASE_URL) && !isPlaceholderValue(SUPABASE_SERVICE_ROLE_KEY);
   return res.status(200).json({
     success: true,
     service: 'ai-coach-engine',
     status: 'operational',
-    openaiConfigured: !!process.env.OPENAI_API_KEY
+    openaiConfigured,
+    supabaseConfigured
   });
 }
 

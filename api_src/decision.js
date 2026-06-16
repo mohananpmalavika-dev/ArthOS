@@ -1,12 +1,27 @@
 import { decisionLedger } from '../src/lib/decisionLedger.js';
 import { hasDatabaseConfig, insertIntoTable, fetchDecisionsForUser } from './dbClient.js';
 import { scoreDecision, decisionTrend } from '../src/engines/decisionIntelligence.js';
+import { requireAuth } from './auth/jwt.js';
 
 export default async function handler(req, res) {
+  res.setHeader('Content-Type', 'application/json');
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
+
+  // ─── Enforce JWT authentication ───
+  const user = await requireAuth(req, res);
+  if (!user) return; // requireAuth already sent error response
+  const userId = user.id;
+
   const method = req.method || 'GET';
   if (method === 'POST') {
-    const { userId, decision } = req.body || {};
-    if (!userId || !decision) return res.status(400).json({ error: 'Missing userId or decision' });
+    const { decision } = req.body || {};
+    if (!decision) return res.status(400).json({ error: 'Missing decision' });
 
     const scoredDecision = scoreDecision(decision);
     decisionLedger.addDecision(userId, scoredDecision);
@@ -27,9 +42,6 @@ export default async function handler(req, res) {
   }
 
   if (method === 'GET') {
-    const userId = req.query.userId;
-    if (!userId) return res.status(400).json({ error: 'Missing userId' });
-
     let decisions = decisionLedger.getDecisions(userId);
     if (hasDatabaseConfig()) {
       try {

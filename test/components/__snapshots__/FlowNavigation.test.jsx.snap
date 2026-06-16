@@ -1,0 +1,625 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`FlowNavigation > matches snapshot with default navigation state 1`] = `
+<nav
+  aria-label="Financial Cognition Journey"
+  class="app-nav-tabs"
+>
+  <button
+    aria-current="page"
+    class="app-nav-tab  active"
+    title="Your OS home base"
+  >
+    <svg
+      aria-hidden="true"
+      class="lucide lucide-house"
+      fill="none"
+      height="16"
+      stroke="currentColor"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      stroke-width="2"
+      viewBox="0 0 24 24"
+      width="16"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <path
+        d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"
+      />
+      <path
+        d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"
+      />
+    </svg>
+    <span
+      class="app-nav-tab-label"
+    >
+      Dashboard
+    </span>
+    <small>
+      Your OS home base
+    </small>
+  </button>
+  <button
+    class="app-nav-tab  "
+    title="Analytics and behavior trends"
+  >
+    <svg
+      aria-hidden="true"
+      class="lucide lucide-chart-line"
+      fill="none"
+      height="16"
+      stroke="currentColor"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      stroke-width="2"
+      viewBox="0 0 24 24"
+      width="16"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <path
+        d="M3 3v16a2 2 0 0 0 2 2h16"
+      />
+      <path
+        d="m19 9-5 5-4-4-3 3"
+      />
+    </svg>
+    <span
+      class="app-nav-tab-label"
+    >
+      Insights
+    </span>
+    <small>
+      Analytics and behavior trends
+    </small>
+  </button>
+  <button
+    class="app-nav-tab  "
+    title="Weather and scenario forecasting"
+  >
+    <svg
+      aria-hidden="true"
+      class="lucide lucide-calendar-days"
+      fill="none"
+      height="16"
+      stroke="currentColor"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      stroke-width="2"
+      viewBox="0 0 24 24"
+      width="16"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <path
+        d="M8 2v4"
+      />
+      <path
+        d="M16 2v4"
+      />
+      <rect
+        height="18"
+        rx="2"
+        width="18"
+        x="3"
+        y="4"
+      />
+      <path
+        d="M3 10h18"
+      />
+      <path
+        d="M8 14h.01"
+      />
+      <path
+        d="M12 14h.01"
+      />
+      <path
+        d="M16 14h.01"
+      />
+      <path
+        d="M8 18h.01"
+      />
+      <path
+        d="M12 18h.01"
+      />
+      <path
+        d="M16 18h.01"
+      />
+    </svg>
+    <span
+      class="app-nav-tab-label"
+    >
+      Forecast
+    </span>
+    <small>
+      Weather and scenario forecasting
+    </small>
+  </button>
+  <button
+    class="app-nav-tab  "
+    title="Retention and peer comparison"
+  >
+    <svg
+      aria-hidden="true"
+      class="lucide lucide-users"
+      fill="none"
+      height="16"
+      stroke="currentColor"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      stroke-width="2"
+      viewBox="0 0 24 24"
+      width="16"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <path
+        d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"
+      />
+      <circle
+        cx="9"
+        cy="7"
+        r="4"
+      />
+      <path
+        d="M22 21v-2a4 4 0 0 0-3-3.87"
+      />
+      <path
+        d="M16 3.13a4 4 0 0 1 0 7.75"
+      />
+    </svg>
+    <span
+      class="app-nav-tab-label"
+    >
+      Peer cohorts
+    </span>
+    <small>
+      Retention and peer comparison
+    </small>
+  </button>
+  <button
+    class="app-nav-tab  "
+    title="Decision history and simulation"
+  >
+    <svg
+      aria-hidden="true"
+      class="lucide lucide-git-branch"
+      fill="none"
+      height="16"
+      stroke="currentColor"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      stroke-width="2"
+      viewBox="0 0 24 24"
+      width="16"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <line
+        x1="6"
+        x2="6"
+        y1="3"
+        y2="15"
+      />
+      <circle
+        cx="18"
+        cy="6"
+        r="3"
+      />
+      <circle
+        cx="6"
+        cy="18"
+        r="3"
+      />
+      <path
+        d="M18 9a9 9 0 0 1-9 9"
+      />
+    </svg>
+    <span
+      class="app-nav-tab-label"
+    >
+      Decision quality
+    </span>
+    <small>
+      Decision history and simulation
+    </small>
+  </button>
+  <button
+    class="app-nav-tab  "
+    title="Longitudinal learning journey"
+  >
+    <svg
+      aria-hidden="true"
+      class="lucide lucide-brain"
+      fill="none"
+      height="16"
+      stroke="currentColor"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      stroke-width="2"
+      viewBox="0 0 24 24"
+      width="16"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <path
+        d="M12 5a3 3 0 1 0-5.997.125 4 4 0 0 0-2.526 5.77 4 4 0 0 0 .556 6.588A4 4 0 1 0 12 18Z"
+      />
+      <path
+        d="M12 5a3 3 0 1 1 5.997.125 4 4 0 0 1 2.526 5.77 4 4 0 0 1-.556 6.588A4 4 0 1 1 12 18Z"
+      />
+      <path
+        d="M15 13a4.5 4.5 0 0 1-3-4 4.5 4.5 0 0 1-3 4"
+      />
+      <path
+        d="M17.599 6.5a3 3 0 0 0 .399-1.375"
+      />
+      <path
+        d="M6.003 5.125A3 3 0 0 0 6.401 6.5"
+      />
+      <path
+        d="M3.477 10.896a4 4 0 0 1 .585-.396"
+      />
+      <path
+        d="M19.938 10.5a4 4 0 0 1 .585.396"
+      />
+      <path
+        d="M6 18a4 4 0 0 1-1.967-.516"
+      />
+      <path
+        d="M19.967 17.484A4 4 0 0 1 18 18"
+      />
+    </svg>
+    <span
+      class="app-nav-tab-label"
+    >
+      Learning
+    </span>
+    <small>
+      Longitudinal learning journey
+    </small>
+  </button>
+  <button
+    class="app-nav-tab  "
+    title="Your future financial twin"
+  >
+    <svg
+      aria-hidden="true"
+      class="lucide lucide-shield-check"
+      fill="none"
+      height="16"
+      stroke="currentColor"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      stroke-width="2"
+      viewBox="0 0 24 24"
+      width="16"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <path
+        d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"
+      />
+      <path
+        d="m9 12 2 2 4-4"
+      />
+    </svg>
+    <span
+      class="app-nav-tab-label"
+    >
+      Digital Twin
+    </span>
+    <small>
+      Your future financial twin
+    </small>
+  </button>
+  <button
+    class="app-nav-tab  "
+    title="Future self preview"
+  >
+    <svg
+      aria-hidden="true"
+      class="lucide lucide-target"
+      fill="none"
+      height="16"
+      stroke="currentColor"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      stroke-width="2"
+      viewBox="0 0 24 24"
+      width="16"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <circle
+        cx="12"
+        cy="12"
+        r="10"
+      />
+      <circle
+        cx="12"
+        cy="12"
+        r="6"
+      />
+      <circle
+        cx="12"
+        cy="12"
+        r="2"
+      />
+    </svg>
+    <span
+      class="app-nav-tab-label"
+    >
+      Future You
+    </span>
+    <small>
+      Future self preview
+    </small>
+  </button>
+  <button
+    class="app-nav-tab  "
+    title="Action planning and coaching"
+  >
+    <svg
+      aria-hidden="true"
+      class="lucide lucide-clipboard-list"
+      fill="none"
+      height="16"
+      stroke="currentColor"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      stroke-width="2"
+      viewBox="0 0 24 24"
+      width="16"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <rect
+        height="4"
+        rx="1"
+        ry="1"
+        width="8"
+        x="8"
+        y="2"
+      />
+      <path
+        d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"
+      />
+      <path
+        d="M12 11h4"
+      />
+      <path
+        d="M12 16h4"
+      />
+      <path
+        d="M8 11h.01"
+      />
+      <path
+        d="M8 16h.01"
+      />
+    </svg>
+    <span
+      class="app-nav-tab-label"
+    >
+      Plan
+    </span>
+    <small>
+      Action planning and coaching
+    </small>
+  </button>
+  <button
+    class="app-nav-tab  "
+    title="Banking connections and feeds"
+  >
+    <svg
+      aria-hidden="true"
+      class="lucide lucide-wallet"
+      fill="none"
+      height="16"
+      stroke="currentColor"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      stroke-width="2"
+      viewBox="0 0 24 24"
+      width="16"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <path
+        d="M19 7V4a1 1 0 0 0-1-1H5a2 2 0 0 0 0 4h15a1 1 0 0 1 1 1v4h-3a2 2 0 0 0 0 4h3a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1"
+      />
+      <path
+        d="M3 5v14a2 2 0 0 0 2 2h15a1 1 0 0 0 1-1v-4"
+      />
+    </svg>
+    <span
+      class="app-nav-tab-label"
+    >
+      Accounts
+    </span>
+    <small>
+      Banking connections and feeds
+    </small>
+  </button>
+  <button
+    class="app-nav-tab  "
+    title="Score and timeline history"
+  >
+    <svg
+      aria-hidden="true"
+      class="lucide lucide-history"
+      fill="none"
+      height="16"
+      stroke="currentColor"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      stroke-width="2"
+      viewBox="0 0 24 24"
+      width="16"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <path
+        d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"
+      />
+      <path
+        d="M3 3v5h5"
+      />
+      <path
+        d="M12 7v5l4 2"
+      />
+    </svg>
+    <span
+      class="app-nav-tab-label"
+    >
+      History
+    </span>
+    <small>
+      Score and timeline history
+    </small>
+  </button>
+  <button
+    class="app-nav-tab  "
+    title="Alerts and milestone updates"
+  >
+    <svg
+      aria-hidden="true"
+      class="lucide lucide-bell"
+      fill="none"
+      height="16"
+      stroke="currentColor"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      stroke-width="2"
+      viewBox="0 0 24 24"
+      width="16"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <path
+        d="M10.268 21a2 2 0 0 0 3.464 0"
+      />
+      <path
+        d="M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.738 7.326"
+      />
+    </svg>
+    <span
+      class="app-nav-tab-label"
+    >
+      Notifications
+    </span>
+    <small>
+      Alerts and milestone updates
+    </small>
+  </button>
+  <button
+    class="app-nav-tab  "
+    title="Preferences and account settings"
+  >
+    <svg
+      aria-hidden="true"
+      class="lucide lucide-settings"
+      fill="none"
+      height="16"
+      stroke="currentColor"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      stroke-width="2"
+      viewBox="0 0 24 24"
+      width="16"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <path
+        d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"
+      />
+      <circle
+        cx="12"
+        cy="12"
+        r="3"
+      />
+    </svg>
+    <span
+      class="app-nav-tab-label"
+    >
+      Settings
+    </span>
+    <small>
+      Preferences and account settings
+    </small>
+  </button>
+  <button
+    class="app-nav-tab  "
+    title="Deep analytics hub"
+  >
+    <svg
+      aria-hidden="true"
+      class="lucide lucide-sparkles"
+      fill="none"
+      height="16"
+      stroke="currentColor"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      stroke-width="2"
+      viewBox="0 0 24 24"
+      width="16"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <path
+        d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"
+      />
+      <path
+        d="M20 3v4"
+      />
+      <path
+        d="M22 5h-4"
+      />
+      <path
+        d="M4 17v2"
+      />
+      <path
+        d="M5 18H3"
+      />
+    </svg>
+    <span
+      class="app-nav-tab-label"
+    >
+      Advanced Analytics
+    </span>
+    <small>
+      Deep analytics hub
+    </small>
+  </button>
+  <button
+    aria-expanded="false"
+    class="app-nav-tab app-nav-dev-toggle "
+    title="Developer & Admin Tools"
+  >
+    <svg
+      aria-hidden="true"
+      class="lucide lucide-sparkles"
+      fill="none"
+      height="16"
+      stroke="currentColor"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      stroke-width="2"
+      viewBox="0 0 24 24"
+      width="16"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <path
+        d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"
+      />
+      <path
+        d="M20 3v4"
+      />
+      <path
+        d="M22 5h-4"
+      />
+      <path
+        d="M4 17v2"
+      />
+      <path
+        d="M5 18H3"
+      />
+    </svg>
+    <span
+      class="app-nav-tab-label"
+    >
+      Dev
+    </span>
+    <small>
+      Tools
+    </small>
+  </button>
+</nav>
+`;

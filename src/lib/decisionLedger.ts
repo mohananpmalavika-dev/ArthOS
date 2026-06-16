@@ -160,8 +160,8 @@ class DecisionLedger {
     this.store[userId].push(entry);
     this._persist();
 
-    // Async sync to server (fire and forget)
-    void apiPost('/memory/event', { userId, event: { type: 'decision', ...entry } });
+    // Async sync to server (fire and forget) with schema versioning
+    void apiPost('/memory/event', { userId, event: { type: 'decision', ...entry, schema_version: "1.0.0" } });
 
     return true;
   }

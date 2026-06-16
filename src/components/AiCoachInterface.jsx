@@ -1,15 +1,14 @@
 /**
  * AI Coach Chat Interface
  *
- * Real-time conversation interface with ARTH.OS Financial Coach.
- * Features:
- * - Live conversation with GPT-powered coach
- * - Conversation memory and context
- * - Personalized recommendations
- * - Session management
+ * ARTH.OS V4 Context-First Coach Architecture
+ * - Context panel shows user's financial situation, health score, and weekly mission
+ * - Chat interface for personalized coaching below
+ * - Integrated with assessment results for personalized guidance
  */
 
 import React, { useState, useEffect, useRef } from "react";
+import { normalizeScore } from "../lib/scoring-v2";
 import {
   MessageCircle,
   Send,
@@ -23,10 +22,14 @@ import {
   Plus,
   Clock,
   Loader,
-  Star
+  Star,
+  Brain,
+  TrendingDown,
+  Target,
+  Zap
 } from "lucide-react";
 
-const AICoachrInterface = ({ userId }) => {
+const AiCoachInterface = ({ userId, result, assessment, coachPrimaryConcern }) => {
   // Session state
   const [sessionId, setSessionId] = useState(null);
   const [messages, setMessages] = useState([]);
@@ -62,10 +65,17 @@ const AICoachrInterface = ({ userId }) => {
     loadAnalytics();
   }, [userId]);
 
+  useEffect(() => {
+    if (coachPrimaryConcern && !sessionActive) {
+      startSession(coachPrimaryConcern);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [coachPrimaryConcern, sessionActive]);
+
   // Load coaching memory and preferences
   const loadCoachingMemory = async () => {
     try {
-      const res = await fetch(`/api/coach/memory?userId=${userId}`);
+      const res = await fetch(`/api/coach/memory`);
       const data = await res.json();
 
       if (data.success) {
@@ -85,7 +95,7 @@ const AICoachrInterface = ({ userId }) => {
   // Load analytics
   const loadAnalytics = async () => {
     try {
-      const res = await fetch(`/api/coach/analytics?userId=${userId}`);
+      const res = await fetch(`/api/coach/analytics`);
       const data = await res.json();
 
       if (data.success) {
@@ -278,89 +288,80 @@ const AICoachrInterface = ({ userId }) => {
   // Not in session
   if (!sessionActive) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-6">
-        <div className="max-w-4xl mx-auto">
-          {/* Header */}
-          <div className="mb-8">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="bg-blue-600 text-white p-3 rounded-lg">
-                <MessageCircle size={28} />
-              </div>
+      <div className="coach-shell coach-start-page">
+        <div className="coach-start-grid">
+          <header className="coach-start-header">
+            <div className="coach-icon-box">
+              <Brain size={28} />
+            </div>
+            <div>
+              <h1 className="coach-page-title">ARTH.OS Financial Coach</h1>
+              <p className="coach-page-subtitle">
+                Your AI-powered financial advisor for smarter spending, savings, and resilience.
+              </p>
+            </div>
+          </header>
+
+          <section className="coach-start-card">
+            <div className="coach-card-heading">
               <div>
-                <h1 className="text-4xl font-bold text-gray-900">ARTH.OS Financial Coach</h1>
-                <p className="text-gray-600 mt-1">
-                  Your AI-powered financial advisor powered by your cognition data
-                </p>
+                <p className="coach-card-eyebrow">Coach Session</p>
+                <h2 className="coach-card-title">Start a Coaching Conversation</h2>
               </div>
             </div>
-          </div>
 
-          {/* Start Session Options */}
-          <div className="bg-white rounded-lg shadow-lg p-8 mb-8">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">Start a Coaching Session</h2>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+            <div className="coach-topic-grid">
               {[
-                { concern: "Spending Control", emoji: "💰", desc: "Control your spending habits" },
-                { concern: "Savings Building", emoji: "🏦", desc: "Build sustainable savings" },
-                { concern: "Debt Reduction", emoji: "📉", desc: "Create a debt repayment plan" },
-                { concern: "Investment Strategy", emoji: "📈", desc: "Invest wisely for growth" },
-                { concern: "Belief Reframing", emoji: "🧠", desc: "Challenge limiting beliefs" },
-                { concern: "General Guidance", emoji: "🎯", desc: "General financial advice" }
+                { concern: "Spending Control", emoji: "💰", desc: "Build habit-level control over your spending." },
+                { concern: "Savings Building", emoji: "🏦", desc: "Create a realistic savings path." },
+                { concern: "Debt Reduction", emoji: "📉", desc: "Build a plan to reduce debt faster." },
+                { concern: "Investment Strategy", emoji: "📈", desc: "Get clear next steps for investing." },
+                { concern: "Belief Reframing", emoji: "🧠", desc: "Change how you think about money." },
+                { concern: "General Guidance", emoji: "🎯", desc: "Ask any finance question you have." }
               ].map(option => (
                 <button
                   key={option.concern}
+                  className="coach-topic-button"
                   onClick={() => startSession(option.concern)}
                   disabled={isLoading}
-                  className="text-left p-4 border border-gray-200 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition disabled:opacity-50"
                 >
-                  <p className="text-2xl mb-2">{option.emoji}</p>
-                  <p className="font-semibold text-gray-900">{option.concern}</p>
-                  <p className="text-sm text-gray-600">{option.desc}</p>
+                  <div className="coach-topic-emoji">{option.emoji}</div>
+                  <div className="coach-topic-copy">
+                    <p className="coach-topic-label">{option.concern}</p>
+                    <p className="coach-topic-desc">{option.desc}</p>
+                  </div>
                 </button>
               ))}
             </div>
 
-            <button
-              onClick={() => startSession()}
-              disabled={isLoading}
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg font-semibold transition disabled:opacity-50"
-            >
+            <button className="coach-main-button" onClick={() => startSession()} disabled={isLoading}>
               {isLoading ? "Starting..." : "Start Free-Form Session"}
             </button>
-          </div>
+          </section>
 
-          {/* Statistics */}
           {analytics && (
-            <div className="bg-white rounded-lg shadow-lg p-8">
-              <h2 className="text-xl font-bold text-gray-900 mb-6">Your Coaching Journey</h2>
+            <section className="coach-stat-card-group">
+              <h2 className="coach-stat-heading">Your Coaching Journey</h2>
 
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <div className="text-center p-4 bg-blue-50 rounded">
-                  <p className="text-3xl font-bold text-blue-600">{analytics.totalSessions}</p>
-                  <p className="text-sm text-gray-600 mt-1">Sessions</p>
-                </div>
-
-                <div className="text-center p-4 bg-green-50 rounded">
-                  <p className="text-3xl font-bold text-green-600">
-                    {analytics.totalRecommendations}
-                  </p>
-                  <p className="text-sm text-gray-600 mt-1">Recommendations</p>
-                </div>
-
-                <div className="text-center p-4 bg-purple-50 rounded">
-                  <p className="text-3xl font-bold text-purple-600">{analytics.acceptanceRate}%</p>
-                  <p className="text-sm text-gray-600 mt-1">Acceptance Rate</p>
-                </div>
-
-                <div className="text-center p-4 bg-orange-50 rounded">
-                  <p className="text-3xl font-bold text-orange-600">
-                    {analytics.averageUserSatisfaction || "N/A"}
-                  </p>
-                  <p className="text-sm text-gray-600 mt-1">Avg Satisfaction</p>
-                </div>
+              <div className="coach-stat-grid">
+                <article className="coach-stat-card">
+                  <div className="coach-stat-value">{analytics.totalSessions}</div>
+                  <p className="coach-stat-label">Sessions</p>
+                </article>
+                <article className="coach-stat-card">
+                  <div className="coach-stat-value">{analytics.totalRecommendations}</div>
+                  <p className="coach-stat-label">Recommendations</p>
+                </article>
+                <article className="coach-stat-card">
+                  <div className="coach-stat-value coach-stat-accent">{analytics.acceptanceRate}%</div>
+                  <p className="coach-stat-label">Acceptance Rate</p>
+                </article>
+                <article className="coach-stat-card">
+                  <div className="coach-stat-value coach-stat-accent">{analytics.averageUserSatisfaction || "N/A"}</div>
+                  <p className="coach-stat-label">Avg Satisfaction</p>
+                </article>
               </div>
-            </div>
+            </section>
           )}
         </div>
       </div>
@@ -368,220 +369,206 @@ const AICoachrInterface = ({ userId }) => {
   }
 
   // In active session
+  const getMessageClass = type =>
+    `coach-message ${type === "user" ? "coach-message-user" : type === "error" ? "coach-message-error" : "coach-message-coach"}`;
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex flex-col">
-      {/* Header */}
-      <div className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="bg-blue-600 text-white p-2 rounded">
-            <MessageCircle size={20} />
+    <div className="coach-shell coach-active-session">
+      <section className="coach-context-panel">
+        <div className="coach-context-top">
+          <div className="coach-context-icon">
+            <Brain size={22} />
           </div>
           <div>
-            <h1 className="font-bold text-gray-900">Financial Coach</h1>
-            <p className="text-xs text-gray-500">{messages.length} messages in this session</p>
+            <h1 className="coach-context-title">Your Financial Coach</h1>
+            <p className="coach-context-subtitle">{messages.length} messages in this session</p>
           </div>
         </div>
 
-        <div className="flex items-center gap-3">
-          <button
-            onClick={() => setShowSettings(!showSettings)}
-            className="p-2 hover:bg-gray-100 rounded transition"
-          >
-            <Settings size={20} className="text-gray-600" />
+        {(result || assessment) && (
+          <div className="coach-context-grid">
+            {result?.healthScore !== undefined && (
+              <article className="coach-context-card">
+                <span className="coach-context-label">Health Score</span>
+                <strong className="coach-context-value">{normalizeScore(result.healthScore)}/100</strong>
+                <span className="coach-context-note">{result.categoryBand?.label}</span>
+              </article>
+            )}
+            {result?.survivalMonthsRaw !== undefined && (
+              <article className="coach-context-card">
+                <span className="coach-context-label">Runway</span>
+                <strong className="coach-context-value">{Math.round(result.survivalMonthsRaw)} mo</strong>
+                <span className="coach-context-note">Financial cushion</span>
+              </article>
+            )}
+            {result?.awarenessGapDisplay && (
+              <article className="coach-context-card">
+                <span className="coach-context-label">Awareness Gap</span>
+                <strong className="coach-context-value">{result.awarenessGapDisplay}</strong>
+                <span className="coach-context-note">Hidden blind spot</span>
+              </article>
+            )}
+            {assessment?.profile?.monthlyExpenses && (
+              <article className="coach-context-card">
+                <span className="coach-context-label">Monthly Spend</span>
+                <strong className="coach-context-value">₹{(assessment.profile.monthlyExpenses / 1000).toFixed(0)}k</strong>
+                <span className="coach-context-note">Core expenses</span>
+              </article>
+            )}
+          </div>
+        )}
+
+        {result && (
+          <div className="coach-context-summary">
+            <strong>Coach Context:</strong> {
+              result.healthScore >= 80
+                ? `You're in good shape with ${result.categoryBand?.label}. Let's work on optimizing your growth.`
+                : result.healthScore >= 60
+                  ? `Your situation is ${result.categoryBand?.label?.toLowerCase()}. Focus on strengthening your runway and reducing blind spots.`
+                  : `You're under pressure. Let's create an action plan to improve your financial stability.`
+            }
+          </div>
+        )}
+      </section>
+
+      <section className="coach-session-bar">
+        <div className="coach-session-bar-left">
+          <MessageCircle size={20} />
+          <div>
+            <h2>Financial Coach Chat</h2>
+          </div>
+        </div>
+
+        <div className="coach-session-bar-actions">
+          <button className="coach-icon-button" onClick={() => setShowSettings(!showSettings)}>
+            <Settings size={18} />
           </button>
-          <button onClick={() => endSession()} className="p-2 hover:bg-red-100 rounded transition">
-            <X size={20} className="text-red-600" />
+          <button className="coach-icon-button coach-end-button" onClick={() => endSession()}>
+            <X size={18} />
           </button>
         </div>
-      </div>
+      </section>
 
-      {/* Settings Panel */}
       {showSettings && (
-        <div className="bg-gray-50 border-b p-4">
-          <div className="max-w-4xl mx-auto">
-            <h3 className="font-semibold text-gray-900 mb-4">Coaching Preferences</h3>
-
-            <div className="grid grid-cols-2 gap-4 mb-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Coaching Style
-                </label>
-                <select
-                  value={preferences.coachingStyle}
-                  onChange={e => setPreferences({ ...preferences, coachingStyle: e.target.value })}
-                  className="w-full border border-gray-300 rounded px-3 py-2"
-                >
-                  <option value="compassionate">Compassionate & Supportive</option>
-                  <option value="analytical">Analytical & Data-Driven</option>
-                  <option value="motivational">Motivational & Energizing</option>
-                  <option value="direct">Direct & Practical</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Response Length
-                </label>
-                <select
-                  value={preferences.responseLength}
-                  onChange={e => setPreferences({ ...preferences, responseLength: e.target.value })}
-                  className="w-full border border-gray-300 rounded px-3 py-2"
-                >
-                  <option value="concise">Concise</option>
-                  <option value="detailed">Detailed</option>
-                  <option value="conversational">Conversational</option>
-                </select>
-              </div>
+        <section className="coach-settings-panel">
+          <div className="coach-settings-grid">
+            <div>
+              <label>Coaching Style</label>
+              <select
+                value={preferences.coachingStyle}
+                onChange={e => setPreferences({ ...preferences, coachingStyle: e.target.value })}
+              >
+                <option value="compassionate">Compassionate & Supportive</option>
+                <option value="analytical">Analytical & Data-Driven</option>
+                <option value="motivational">Motivational & Energizing</option>
+                <option value="direct">Direct & Practical</option>
+              </select>
             </div>
-
-            <button
-              onClick={updatePreferences}
-              className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded transition"
-            >
-              Save Preferences
-            </button>
+            <div>
+              <label>Response Length</label>
+              <select
+                value={preferences.responseLength}
+                onChange={e => setPreferences({ ...preferences, responseLength: e.target.value })}
+              >
+                <option value="concise">Concise</option>
+                <option value="detailed">Detailed</option>
+                <option value="conversational">Conversational</option>
+              </select>
+            </div>
           </div>
-        </div>
+
+          <button className="coach-main-button coach-save-button" onClick={updatePreferences}>
+            Save Preferences
+          </button>
+        </section>
       )}
 
-      {/* Messages Area */}
-      <div className="flex-1 overflow-y-auto p-6">
-        <div className="max-w-4xl mx-auto space-y-4">
-          {messages.map(msg => (
-            <div
-              key={msg.id}
-              className={`flex ${msg.type === "user" ? "justify-end" : "justify-start"}`}
-            >
-              <div
-                className={`max-w-lg px-4 py-3 rounded-lg ${
-                  msg.type === "user"
-                    ? "bg-blue-600 text-white rounded-br-none"
-                    : msg.type === "error"
-                      ? "bg-red-100 text-red-800 rounded-bl-none"
-                      : "bg-gray-100 text-gray-900 rounded-bl-none"
-                }`}
-              >
-                <p className="text-sm">{msg.content}</p>
-                <p
-                  className={`text-xs mt-1 ${
-                    msg.type === "user" ? "text-blue-100" : "text-gray-500"
-                  }`}
-                >
-                  {new Date(msg.timestamp).toLocaleTimeString()}
-                </p>
-              </div>
-            </div>
-          ))}
-
-          {isLoading && (
-            <div className="flex justify-start">
-              <div className="bg-gray-100 text-gray-900 px-4 py-3 rounded-lg rounded-bl-none flex items-center gap-2">
-                <Loader size={16} className="animate-spin" />
-                <p className="text-sm">Coach is thinking...</p>
-              </div>
-            </div>
-          )}
-
-          <div ref={messagesEndRef} />
-        </div>
-      </div>
-
-      {/* Recommendations Sidebar */}
-      {showRecommendations && recommendations.length > 0 && (
-        <div className="bg-white border-l border-gray-200 w-80 p-4 max-h-96 overflow-y-auto">
-          <h3 className="font-bold text-gray-900 mb-4 flex items-center gap-2">
-            <Lightbulb size={18} className="text-yellow-600" />
-            Recommendations
-          </h3>
-
-          <div className="space-y-3">
-            {recommendations.slice(0, 5).map(rec => (
-              <div key={rec.id} className="border border-gray-200 rounded p-3">
-                <div className="flex items-start gap-2 mb-2">
-                  <div className="bg-yellow-100 text-yellow-700 p-1 rounded">
-                    <Lightbulb size={14} />
-                  </div>
-                  <p className="text-sm font-semibold text-gray-900 flex-1">
-                    {rec.recommendation_text.substring(0, 50)}...
-                  </p>
+      <div className="coach-chat-layout">
+        <main className="coach-chat-main">
+          <div className="coach-messages-wrapper">
+            {messages.map(msg => (
+              <div key={msg.id} className={`coach-message-row ${msg.type === "user" ? "coach-message-row-user" : "coach-message-row-coach"}`}>
+                <div className={getMessageClass(msg.type)}>
+                  <p>{msg.content}</p>
+                  <span>{new Date(msg.timestamp).toLocaleTimeString()}</span>
                 </div>
-
-                <div className="text-xs text-gray-600 space-y-1">
-                  <p>
-                    <strong>Priority:</strong> {rec.priority_level}
-                  </p>
-                  <p>
-                    <strong>Timeframe:</strong> {rec.time_frame}
-                  </p>
-                </div>
-
-                <select
-                  value={rec.recommendation_status}
-                  onChange={e => updateRecommendationStatus(rec.id, e.target.value)}
-                  className="w-full text-xs border border-gray-300 rounded mt-2 px-2 py-1"
-                >
-                  <option value="offered">Offered</option>
-                  <option value="accepted">Accepted</option>
-                  <option value="in_progress">In Progress</option>
-                  <option value="completed">Completed</option>
-                </select>
               </div>
             ))}
+
+            {isLoading && (
+              <div className="coach-message-row coach-message-row-coach">
+                <div className="coach-message coach-message-loading">
+                  <Loader size={16} className="coach-message-loader" />
+                  <span>Coach is thinking...</span>
+                </div>
+              </div>
+            )}
+
+            <div ref={messagesEndRef} />
           </div>
-        </div>
-      )}
 
-      {/* Input Area */}
-      <div className="bg-white border-t border-gray-200 px-6 py-4">
-        <div className="max-w-4xl mx-auto">
-          <form onSubmit={sendMessage} className="flex gap-3">
-            <input
-              ref={inputRef}
-              type="text"
-              value={inputMessage}
-              onChange={e => setInputMessage(e.target.value)}
-              placeholder="Ask your coach anything about your finances..."
-              disabled={isLoading}
-              className="flex-1 border border-gray-300 rounded-lg px-4 py-3 disabled:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
+          <footer className="coach-input-pane">
+            <form onSubmit={sendMessage} className="coach-input-form">
+              <input
+                ref={inputRef}
+                type="text"
+                value={inputMessage}
+                onChange={e => setInputMessage(e.target.value)}
+                placeholder="Ask your coach anything about your finances..."
+                disabled={isLoading}
+                className="coach-text-input"
+              />
+              <button type="submit" className="coach-submit-button" disabled={isLoading || !inputMessage.trim()}>
+                <Send size={18} />
+              </button>
+              <button type="button" className="coach-recommend-button" onClick={generateRecommendation} disabled={isLoading}>
+                <Lightbulb size={18} />
+              </button>
+            </form>
 
-            <button
-              type="submit"
-              disabled={isLoading || !inputMessage.trim()}
-              className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-semibold transition disabled:opacity-50 flex items-center gap-2"
-            >
-              <Send size={18} />
-            </button>
+            <div className="coach-input-actions">
+              <button type="button" className="coach-link-button" onClick={() => endSession(5)}>
+                End with 5-star feedback
+              </button>
+              <button type="button" className="coach-link-button" onClick={() => setShowRecommendations(!showRecommendations)}>
+                {showRecommendations ? "Hide" : "Show"} recommendations
+              </button>
+            </div>
+          </footer>
+        </main>
 
-            <button
-              type="button"
-              onClick={generateRecommendation}
-              disabled={isLoading}
-              className="bg-yellow-600 hover:bg-yellow-700 text-white px-6 py-3 rounded-lg font-semibold transition disabled:opacity-50 flex items-center gap-2"
-              title="Generate a recommendation"
-            >
+        {showRecommendations && recommendations.length > 0 && (
+          <aside className="coach-recommendations-panel">
+            <div className="coach-sidebar-heading">
               <Lightbulb size={18} />
-            </button>
-          </form>
-
-          <div className="mt-3 flex gap-2 text-xs text-gray-600">
-            <button
-              type="button"
-              onClick={() => endSession(5)}
-              className="text-blue-600 hover:underline"
-            >
-              End with 5-star feedback
-            </button>
-            <span>•</span>
-            <button
-              type="button"
-              onClick={() => setShowRecommendations(!showRecommendations)}
-              className="text-blue-600 hover:underline"
-            >
-              {showRecommendations ? "Hide" : "Show"} recommendations
-            </button>
-          </div>
-        </div>
+              <h3>Recommendations</h3>
+            </div>
+            <div className="coach-recommend-list">
+              {recommendations.slice(0, 5).map(rec => (
+                <article key={rec.id} className="coach-recommend-card">
+                  <div className="coach-recommend-card-top">
+                    <Lightbulb size={14} />
+                    <p>{rec.recommendation_text.substring(0, 50)}...</p>
+                  </div>
+                  <div className="coach-recommend-meta">
+                    <span><strong>Priority:</strong> {rec.priority_level}</span>
+                    <span><strong>Timeframe:</strong> {rec.time_frame}</span>
+                  </div>
+                  <select
+                    value={rec.recommendation_status}
+                    onChange={e => updateRecommendationStatus(rec.id, e.target.value)}
+                    className="coach-select"
+                  >
+                    <option value="offered">Offered</option>
+                    <option value="accepted">Accepted</option>
+                    <option value="in_progress">In Progress</option>
+                    <option value="completed">Completed</option>
+                  </select>
+                </article>
+              ))}
+            </div>
+          </aside>
+        )}
       </div>
     </div>
   );
@@ -600,4 +587,4 @@ async function updateRecommendationStatus(recommendationId, status) {
   }
 }
 
-export default AICoachrInterface;
+export default AiCoachInterface;

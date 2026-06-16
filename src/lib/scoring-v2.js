@@ -1,4 +1,5 @@
 import { v2DefaultAssessment } from "../data/questionnaire-v2.js";
+import { calculateDecisionQualityIndex } from "../engines/decisionQualityEngine.js";
 
 // L02: BAST™ Processing Engine - Blueprint-compliant 40/30/30 weighting
 export const componentMaximumsV2 = {
@@ -13,6 +14,183 @@ export const compositeWeightsV2 = {
   awareness: 0.3,
   stability: 0.3
 };
+
+function normalizeWeights(weights = {}) {
+  const sanitized = {
+    behaviour: clamp(weights.behaviour ?? 0, 0, 1),
+    awareness: clamp(weights.awareness ?? 0, 0, 1),
+    stability: clamp(weights.stability ?? 0, 0, 1)
+  };
+  const total = sanitized.behaviour + sanitized.awareness + sanitized.stability || 1;
+  return {
+    behaviour: sanitized.behaviour / total,
+    awareness: sanitized.awareness / total,
+    stability: sanitized.stability / total
+  };
+}
+
+export function calculateAdaptiveBASTWeights(
+  profile = {},
+  behaviourScore = 0,
+  awarenessScore = 0,
+  stability = {},
+  awarenessMetrics = {}
+) {
+  const defaultWeights = { behaviour: 0.4, awareness: 0.3, stability: 0.3 };
+  const userProfileType = getUserProfileType(stability, awarenessMetrics);
+
+  const weights = { ...defaultWeights };
+
+  switch (userProfileType) {
+    case "Crisis":
+      weights.stability = 0.525;
+      weights.behaviour = 0.2375; // Emphasize stability, but keep behaviour and awareness meaningful
+      weights.awareness = 0.2375;
+      break;
+    case "Stable":
+      weights.behaviour = 0.45;
+      weights.stability = 0.25; // Adjust other weights proportionally
+      weights.awareness = 0.3;
+      break;
+    case "Growth":
+      weights.awareness = 0.4;
+      weights.behaviour = 0.3; // Adjust other weights proportionally
+      weights.stability = 0.3;
+      break;
+    default:
+      // Keep default weights if profile is unknown
+      break;
+  }
+
+  return normalizeWeights(weights);
+}
+
+function getScoreLabel(score, { high, medium, low }) {
+  if (score >= 75) return high;
+  if (score >= 50) return medium;
+  return low;
+}
+
+function getUserProfileType(stability = {}, awarenessMetrics = {}) {
+  const survivalMonths = stability.survivalMonthsRaw || 0;
+  const awarenessGap = awarenessMetrics.awarenessGap || 0;
+
+  if (survivalMonths < 3) {
+    return "Crisis";
+  } else if (survivalMonths >= 3 && survivalMonths < 6) {
+    return "Stable";
+  } else {
+    return "Growth";
+  }
+}
+
+function calculateIncomeVolatilityIndex(profile = {}, stability = {}) {
+  const baseVolatility = {
+    very_consistent: 12,
+    mostly_consistent: 28,
+    somewhat_variable: 50,
+    highly_variable: 72
+  }[profile.incomeStability] ?? 35;
+
+  const savingsRate = profile.monthlyIncome > 0 ? clamp((toNumber(profile.monthlyIncome) - toNumber(profile.monthlyExpenses)) / toNumber(profile.monthlyIncome), 0, 1) : 0;
+  const runwayPressure = stability.survivalMonthsRaw > 0 ? clamp(6 / stability.survivalMonthsRaw, 0, 1) : 1;
+  const cashflowVariability = 1 - savingsRate;
+
+  return Math.round(clamp(baseVolatility + runwayPressure * 10 + cashflowVariability * 10, 0, 100));
+}
+
+function calculateRiskAdjustedSurvivalMonths(stability = {}, incomeVolatilityIndex = 0, awarenessScore = 0) {
+  const volatilityDrag = clamp(incomeVolatilityIndex / 160, 0, 0.45);
+  const awarenessDrag = clamp(1 - awarenessScore / componentMaximumsV2.awareness, 0, 1) * 0.15;
+  const adjusted = stability.survivalMonthsRaw * Math.max(0.55, 1 - volatilityDrag - awarenessDrag);
+  return Number(clamp(adjusted, 0, stability.survivalMonthsRaw).toFixed(1));
+}
+
+function calculateAwarenessIntegrityScore(awarenessScore = 0, awarenessMetrics = {}) {
+  const gapPenalty = clamp((awarenessMetrics.awarenessGap || 0) * 8, 0, 60);
+  return Math.round(clamp(awarenessScore * 0.55 + (100 - gapPenalty) * 0.45, 0, 100));
+}
+
+function calculateBehaviourConsistencyFactor(behaviour = {}) {
+  const planningWeights = {
+    always: 1,
+    often: 0.8,
+    sometimes: 0.6,
+    rarely: 0.4,
+    never: 0.2
+  };
+
+  const planScore = planningWeights[behaviour.plannedPurchasesOnly] ?? 0.4;
+  const impulseScore = planningWeights[behaviour.impulseWaitRule] ?? 0.4;
+  const subscriptionScore = planningWeights[behaviour.subscriptionControl] ?? 0.4;
+
+  return (planScore + impulseScore + subscriptionScore) / 3;
+}
+
+function calculateStrategyConsistencyScore(habits = {}, behaviour = {}, stability = {}) {
+  const habitScore = habits.habitScore ?? 0;
+  const behaviourConsistency = calculateBehaviourConsistencyFactor(behaviour) * 100;
+  const stabilityFactor = clamp((stability.score || 0) / componentMaximumsV2.stability, 0, 1) * 100;
+
+  return Math.round(clamp(habitScore * 0.35 + behaviourConsistency * 0.35 + stabilityFactor * 0.3, 0, 100));
+}
+
+function calculateComponentDivergence(componentRows = []) {
+  if (!componentRows.length) {
+    return 0;
+  }
+  const values = componentRows.map(row => row.percent);
+  return Math.round(Math.max(...values) - Math.min(...values));
+}
+
+function calculateFutureConfidenceScore(futureRiskScore = 0, awarenessIntegrityScore = 0, consistencyScore = 0) {
+  return Math.round(clamp(futureRiskScore * 0.45 + awarenessIntegrityScore * 0.3 + consistencyScore * 0.25, 0, 100));
+}
+
+function derivePeerCohortComparison(profile = {}, result = {}) {
+  const base = clamp((result.survivalMonthsRaw || 0) * 6 + (result.futureRiskScore || 50) * 0.25, 0, 100);
+  const percentile = Math.round(clamp(base, 10, 95));
+  const label =
+    percentile >= 75
+      ? "Stronger than typical peers"
+      : percentile >= 50
+        ? "In line with typical peers"
+        : "Behind most peer cohorts";
+
+  return {
+    label,
+    percentile,
+    insight: `Your profile sits in roughly the ${percentile}th percentile among peers with similar stability and awareness.`
+  };
+}
+
+function normalizeSurvivalMonths(months = 0) {
+  return Math.round(clamp((months / 24) * 100, 0, 100));
+}
+
+function calculateWeatherIndex(
+  stabilityScore = 0,
+  riskAdjustedSurvivalMonthsRaw = 0,
+  trendScore = 0,
+  incomeVolatilityIndex = 0,
+  futureRiskScore = 0
+) {
+  const stabilityNormalized = clamp((stabilityScore / componentMaximumsV2.stability) * 100, 0, 100);
+  const survivalNormalized = normalizeSurvivalMonths(riskAdjustedSurvivalMonthsRaw);
+  const volatilityNormalized = clamp(100 - incomeVolatilityIndex, 0, 100);
+
+  return Math.round(
+    clamp(
+      stabilityNormalized * 0.35 +
+        survivalNormalized * 0.25 +
+        clamp(trendScore, 0, 100) * 0.2 +
+        volatilityNormalized * 0.1 +
+        clamp(futureRiskScore, 0, 100) * 0.1,
+      0,
+      100
+    )
+  );
+}
 
 // Health score bands for /1000 scale
 export const healthScoreBandsV2 = {
@@ -51,6 +229,14 @@ export function formatMonths(months) {
     return "60+";
   }
   return Number.isInteger(months) ? String(months) : months.toFixed(1);
+}
+
+// Normalize internal 0-1000 score to display 0-100
+export function normalizeScore(score) {
+  const s = toNumber(score);
+  // clamp to 0..1000 first
+  const clamped = clamp(s, 0, 1000);
+  return Math.round(clamped / 10);
 }
 
 function clamp(value, min, max) {
@@ -321,7 +507,58 @@ function getDebtScheduleEstimate(profile) {
   };
 }
 
-function getBehaviourScore(behaviour) {
+/**
+ * Estimate monthly impulse spend from frequency data when explicit amount is missing.
+ * Uses unplanned purchase frequency as a proxy for what % of expenses is impulsive.
+ */
+function estimateMonthlyImpulseSpend(behaviour, monthlyIncome, monthlyExpenses) {
+  const freq = behaviour?.unplannedPurchaseFreq;
+  const freqFraction = {
+    very_frequently: 0.20,
+    sometimes: 0.08,
+    rarely: 0.03,
+    never: 0
+  }[freq] ?? 0.05;
+
+  // Estimate from expenses (more realistic than income for spend-based estimate)
+  const baseEstimate = Math.max(monthlyExpenses, monthlyIncome * 0.3) * freqFraction;
+  // Cap at a reasonable fraction of income
+  return Math.min(baseEstimate, monthlyIncome * 0.5);
+}
+
+/**
+ * Calculate income-proportional impulse penalty.
+ *
+ * Behaviour Impact = Frequency × Amount × Income %
+ * Penalty = min(10, ImpulseSpendPct × 100)
+ *
+ * Where ImpulseSpendPct = Monthly Impulse Spend / Monthly Income
+ *
+ * This makes penalty proportional to financial impact:
+ * - Rich user spending ₹500 impulsively → small penalty
+ * - Poor user spending ₹500 impulsively → larger penalty
+ */
+function calculateImpulsePenalty(behaviour, profile = {}) {
+  const monthlyIncome = toNumber(profile.monthlyIncome);
+  const monthlyExpenses = toNumber(profile.monthlyExpenses);
+  let monthlyImpulseSpend = toNumber(profile.monthlyImpulseSpend);
+
+  // If explicit monthlyImpulseSpend is not provided, estimate from frequency data
+  if (monthlyImpulseSpend <= 0) {
+    monthlyImpulseSpend = estimateMonthlyImpulseSpend(behaviour, monthlyIncome, monthlyExpenses);
+  }
+
+  if (monthlyIncome <= 0 || monthlyImpulseSpend <= 0) {
+    return 0;
+  }
+
+  const impulseSpendPct = Math.min(1, monthlyImpulseSpend / monthlyIncome);
+  // Penalty = min(10, ImpulseSpendPct × 100) — capped at 10 (max penalty on 0-10 scale)
+  const penalty = Math.min(10, impulseSpendPct * 100);
+  return penalty;
+}
+
+function getBehaviourScore(behaviour, profile = {}) {
   // Iterate explicit schema keys to avoid skew if an assessment object is
   // missing/extra properties (e.g., loading partially from storage).
   const keys = [
@@ -341,9 +578,14 @@ function getBehaviourScore(behaviour) {
   ];
 
   const values = keys.map(k => behaviourScoreMaps[k]?.[behaviour?.[k]] ?? 0);
-  const average = values.reduce((t, v) => t + v, 0) / Math.max(1, values.length);
+  const baseAverage = values.reduce((t, v) => t + v, 0) / Math.max(1, values.length);
+
+  // Apply income-proportional impulse penalty
+  const impulsePenalty = calculateImpulsePenalty(behaviour, profile);
+  const adjustedAverage = Math.max(0, baseAverage - impulsePenalty);
+
   return roundToOne(
-    clamp((average / 10) * componentMaximumsV2.behaviour, 0, componentMaximumsV2.behaviour)
+    clamp((adjustedAverage / 10) * componentMaximumsV2.behaviour, 0, componentMaximumsV2.behaviour)
   );
 }
 
@@ -410,6 +652,23 @@ export function calculateDynamicElasticity(behaviour = {}) {
   return Number(clamp(maxElasticityOffset - degradationDelta, 0.15, 0.5).toFixed(3));
 }
 
+/**
+ * Calculate savings rate score (0-5 raw) based on monthly cashflow health.
+ * Savings Rate = max(0, (Income - Expenses) / Income)
+ *
+ * Linear mapping: score = min(5, savingsRate * 12.5)
+ *   0%   → 0.0
+ *   10%  → 1.25
+ *   20%  → 2.5
+ *   30%  → 3.75
+ *   40%+ → 5.0
+ */
+function getSavingsRateScore(monthlyIncome, monthlyExpenses) {
+  if (monthlyIncome <= 0) return 0;
+  const savingsRate = Math.max(0, (monthlyIncome - monthlyExpenses) / monthlyIncome);
+  return Math.min(5, savingsRate * 12.5);
+}
+
 function getStabilityScore(profile, behaviour) {
   const monthlyExpenses = toNumber(profile.monthlyExpenses);
   const fixedSavings = toNumber(profile.emergencySavingsFixed);
@@ -438,15 +697,25 @@ function getStabilityScore(profile, behaviour) {
   const discretionaryBufferMonths =
     monthlyExpenses > 0 ? discretionarySavings / monthlyExpenses : 0;
 
-  const emergencyScore = Math.min(survivalMonthsRaw, 6) * 1.5;
+  // Savings rate (cashflow health) — 20% of stability component
+  const savingsRateScore = getSavingsRateScore(monthlyIncome, monthlyExpenses);
+  const savingsRate = monthlyIncome > 0
+    ? Math.max(0, (monthlyIncome - monthlyExpenses) / monthlyIncome)
+    : 0;
+
+  // Legacy sub-scores — 80% of stability component
+  // Logarithmic scaling rewards larger buffers without capping at 6 months
+  const emergencyScore = survivalMonthsRaw > 0 ? Math.log(survivalMonthsRaw + 1) : 0;
   const debtScore = getDebtScore(totalDebt, monthlyIncome);
   const incomeScore = incomeStabilityScores[profile.incomeStability] ?? 0;
   const dependentsScore = dependentsScores[profile.dependentsBucket] ?? 0;
   const liabilityScore = getLiabilityScore(monthlyLiabilities, monthlyIncome);
 
-  const raw = emergencyScore + debtScore + incomeScore + dependentsScore + liabilityScore;
+  // Raw max: legacy = 25 (9+4+6+3+3), savings rate = 5, total = 30
+  // Divisor was 20 before adding savings rate; now 25 so savings rate is 20% (5/25)
+  const raw = emergencyScore + debtScore + incomeScore + dependentsScore + liabilityScore + savingsRateScore;
   const normalized = clamp(
-    (raw / 20) * componentMaximumsV2.stability,
+    (raw / 25) * componentMaximumsV2.stability,
     0,
     componentMaximumsV2.stability
   );
@@ -462,7 +731,11 @@ function getStabilityScore(profile, behaviour) {
     discretionaryBufferMonths,
     fixedEmergencySavings: fixedSavings,
     discretionaryEmergencySavings: discretionarySavings,
-    totalEmergencySavings: totalSavings
+    totalEmergencySavings: totalSavings,
+    // Cashflow health metrics
+    savingsRate: roundToOne(savingsRate),
+    savingsRateScore: roundToOne(savingsRateScore),
+    monthlyCashflow: roundToOne(monthlyIncome - monthlyExpenses)
   };
 }
 
@@ -974,8 +1247,8 @@ function toNumber(value) {
   return Number.isFinite(numeric) ? numeric : 0;
 }
 
-export function calculateBehaviourScoreV2(behaviour) {
-  return getBehaviourScore(behaviour);
+export function calculateBehaviourScoreV2(behaviour, profile) {
+  return getBehaviourScore(behaviour, profile);
 }
 
 export function calculateAwarenessScoreV2(awareness) {
@@ -1018,10 +1291,68 @@ export function calculatePersonalityReportV2(personalityType) {
   return getPersonalityReport(personalityType);
 }
 
+// Estimate recommendation confidence (0-100) based on data completeness,
+// debt schedule confidence and runway stability. Used to convey how sure
+// the system is about the primary recommended action.
+function estimateRecommendationConfidence(assessment, stability, debtSchedule) {
+  const profile = assessment?.profile || {};
+  const behaviour = assessment?.behaviour || {};
+
+  const profileFields = [
+    "monthlyIncome",
+    "monthlyExpenses",
+    "totalDebt",
+    "emergencySavingsFixed",
+    "emergencySavingsDiscretionary"
+  ];
+  const answeredProfile = profileFields.reduce((c, f) => (toNumber(profile[f]) ? c + 1 : c), 0);
+
+  const behaviourKeys = Object.keys(behaviourScoreMaps);
+  const answeredBehaviour = behaviourKeys.reduce((c, k) => (behaviour?.[k] ? c + 1 : c), 0);
+
+  const completeness = clamp(
+    (answeredProfile + answeredBehaviour) / (profileFields.length + behaviourKeys.length),
+    0,
+    1
+  );
+
+  const payoffConfidence = (debtSchedule && debtSchedule.payoffConfidence) || "Medium";
+  const debtConfidenceMap = { High: 0.9, Medium: 0.7, Low: 0.5 };
+  const debtConfidence = debtConfidenceMap[payoffConfidence] ?? 0.6;
+
+  const survivalMonths = stability?.survivalMonthsRaw || 0;
+  const stabilityFactor = Math.min(1, survivalMonths / 12);
+  const stabilityConfidence = clamp(0.35 + 0.65 * stabilityFactor, 0, 1);
+
+  const confidence = clamp(completeness * 0.5 + debtConfidence * 0.3 + stabilityConfidence * 0.2, 0, 1);
+  return Math.round(confidence * 100);
+}
+
+// Financial Resilience Index (FRI) — composite 0..100 metric expressing
+// runway + income stability + debt burden + savings + behaviour.
+function calculateFRIScore(profile = {}, behaviour = {}, stability = {}) {
+  const monthlyIncome = toNumber(profile.monthlyIncome);
+  const monthlyExpenses = toNumber(profile.monthlyExpenses);
+  const totalDebt = toNumber(profile.totalDebt);
+
+  const emergencyMonths = monthlyExpenses > 0 ? clamp(stability.survivalMonthsRaw / 60, 0, 1) : 0; // 0..1
+  const incomeStability = clamp((incomeStabilityScores[profile.incomeStability] ?? 0) / 6, 0, 1); // 0..1
+  const debtBurden = monthlyIncome > 0 ? clamp(totalDebt / (monthlyIncome * 12), 0, 1) : 1; // 0..1
+  const debtScore = 1 - debtBurden; // higher = better
+  const savingsRate = clamp(stability.savingsRate ?? 0, 0, 1); // 0..1
+  const behaviourNormalized = clamp((toNumber(behaviour && behaviour.score) ? toNumber(behaviour.score) : 0) / componentMaximumsV2.behaviour, 0, 1);
+
+  // Weights: emergency 30%, incomeStability 25%, debt 20%, savings 15%, behaviour 10%
+  const fri =
+    emergencyMonths * 0.3 + incomeStability * 0.25 + debtScore * 0.2 + savingsRate * 0.15 + behaviourNormalized * 0.1;
+
+  return clamp(fri * 100, 0, 100);
+}
+
 export function calculateFinancialHealthV2(assessment) {
   const safe = assessment || v2DefaultAssessment;
 
-  const behaviourScore = calculateBehaviourScoreV2(safe.behaviour);
+  const behaviourScore = calculateBehaviourScoreV2(safe.behaviour, safe.profile);
   const awarenessScore = calculateAwarenessScoreV2(safe.awareness);
   const stability = calculateStabilityScoreV2(safe.profile, safe.behaviour);
   const futureRisk = calculateFutureRiskV2(safe.profile);
@@ -1034,13 +1365,30 @@ export function calculateFinancialHealthV2(assessment) {
   const blindSpot = calculateBlindSpotV2(awarenessMetrics);
 
   // L02: Calculate composite health score using 40/30/30 weighting, normalized to /1000
+  const adaptiveWeights = calculateAdaptiveBASTWeights(
+    safe.profile,
+    behaviourScore,
+    awarenessScore,
+    stability,
+    awarenessMetrics
+  );
+
   const normalisedBehaviour =
-    (behaviourScore / componentMaximumsV2.behaviour) * 1000 * compositeWeightsV2.behaviour;
+    (behaviourScore / componentMaximumsV2.behaviour) * 1000 * adaptiveWeights.behaviour;
   const normalisedAwareness =
-    (awarenessScore / componentMaximumsV2.awareness) * 1000 * compositeWeightsV2.awareness;
+    (awarenessScore / componentMaximumsV2.awareness) * 1000 * adaptiveWeights.awareness;
   const normalisedStability =
-    (stability.score / componentMaximumsV2.stability) * 1000 * compositeWeightsV2.stability;
+    (stability.score / componentMaximumsV2.stability) * 1000 * adaptiveWeights.stability;
   const healthScore = Math.round(normalisedBehaviour + normalisedAwareness + normalisedStability);
+
+  const baselineBehaviour =
+    (behaviourScore / componentMaximumsV2.behaviour) * 1000 * compositeWeightsV2.behaviour;
+  const baselineAwareness =
+    (awarenessScore / componentMaximumsV2.awareness) * 1000 * compositeWeightsV2.awareness;
+  const baselineStability =
+    (stability.score / componentMaximumsV2.stability) * 1000 * compositeWeightsV2.stability;
+  const baselineHealthScore = Math.round(baselineBehaviour + baselineAwareness + baselineStability);
+
   const categoryBand = getHealthBandV2(healthScore);
 
   // L02: Component scoring with 0-100 internal scale for diagnostic clarity
@@ -1081,6 +1429,36 @@ export function calculateFinancialHealthV2(assessment) {
 
   const debtSchedule = calculateDebtScheduleEstimateV2(safe.profile);
   const habits = calculateHabitsMetricsV2(safe.habits);
+  const incomeVolatilityIndex = calculateIncomeVolatilityIndex(safe.profile, stability);
+  const riskAdjustedSurvivalMonthsRaw = calculateRiskAdjustedSurvivalMonths(
+    stability,
+    incomeVolatilityIndex,
+    awarenessScore
+  );
+  const awarenessIntegrityScore = calculateAwarenessIntegrityScore(awarenessScore, awarenessMetrics);
+  const strategyConsistencyScore = calculateStrategyConsistencyScore(habits, safe.behaviour, stability);
+  const componentDivergence = calculateComponentDivergence(componentRows);
+  const futureConfidenceScore = calculateFutureConfidenceScore(
+    futureRisk.score,
+    awarenessIntegrityScore,
+    strategyConsistencyScore
+  );
+  const peerCohortComparison = derivePeerCohortComparison(safe.profile, {
+    survivalMonthsRaw: stability.survivalMonthsRaw,
+    futureRiskScore: futureRisk.score
+  });
+  const weatherIndex = calculateWeatherIndex(
+    stability.score,
+    riskAdjustedSurvivalMonthsRaw,
+    strategyConsistencyScore,
+    incomeVolatilityIndex,
+    futureRisk.score
+  );
+  const decisionQuality = calculateDecisionQualityIndex({
+    awarenessScore,
+    behaviourScore,
+    stabilityScore: stability.score
+  });
 
   const componentsForAction = [
     { key: "behaviour", score: behaviourScore },
@@ -1096,6 +1474,10 @@ export function calculateFinancialHealthV2(assessment) {
   const survivalBand = getSurvivalBand(stability.survivalMonthsRaw);
   const diagnosis = getDiagnosis(safe, lowest, futureRisk.label, awarenessMetrics);
 
+  // Recommendation confidence and FRI will be calculated and exposed below
+  const recommendedActionConfidence = estimateRecommendationConfidence(safe, stability, debtSchedule);
+  const friScore = Math.round(calculateFRIScore(safe.profile, safe.behaviour, stability));
+
   return {
     mode: "v2",
     behaviourScore,
@@ -1103,6 +1485,12 @@ export function calculateFinancialHealthV2(assessment) {
     stabilityScore: stability.score,
     healthScore,
     categoryBand,
+
+    // Cashflow health metrics (new — 20% of stability component)
+    savingsRate: stability.savingsRate,
+    savingsRateScore: stability.savingsRateScore,
+    monthlyCashflow: stability.monthlyCashflow,
+
     survivalMonthsRaw: stability.survivalMonthsRaw,
     survivalMonthsDisplay: formatMonths(stability.survivalMonthsRaw),
     bareMinimumSurvivalMonthsRaw: stability.bareMinimumSurvivalMonthsRaw,
@@ -1123,6 +1511,8 @@ export function calculateFinancialHealthV2(assessment) {
     strongestComponent: highest,
 
     recommendedActionText,
+    recommendedActionConfidence,
+    friScore,
 
     debtSchedule,
     habits,
@@ -1143,8 +1533,18 @@ export function calculateFinancialHealthV2(assessment) {
     blindSpotPerceived: blindSpot.perceivedSurvivalMonthsDisplay,
     blindSpotActual: blindSpot.actualSurvivalMonthsDisplay,
     blindSpotGap: blindSpot.gapDisplay,
-    blindSpotDirection: blindSpot.direction,
-
+    decisionQuality,
+    adaptiveWeights,
+    baselineHealthScore,
+    incomeVolatilityIndex,
+    riskAdjustedSurvivalMonthsRaw,
+    riskAdjustedSurvivalMonthsDisplay: formatMonths(riskAdjustedSurvivalMonthsRaw),
+    awarenessIntegrityScore,
+    strategyConsistencyScore,
+    componentDivergence,
+    futureConfidenceScore,
+    peerCohortComparison,
+    weatherIndex,
     summary: `${categoryBand.label} financial health with ${survivalBand.label.toLowerCase()}.`
   };
 }
@@ -1255,10 +1655,12 @@ export function buildAnonymousTelemetryPayload(assessmentResult, coreAssessment)
     },
     scores: {
       financial_health_score: assessmentResult.healthScore,
+      fri_score: assessmentResult.friScore ?? null,
       behaviour_score: Math.round(assessmentResult.behaviourScore * 10) / 10,
       awareness_score: Math.round(assessmentResult.awarenessScore * 10) / 10,
       stability_score: Math.round(assessmentResult.stabilityScore * 10) / 10,
-      habits_score: assessmentResult.habits?.habitScore ?? 0
+      habits_score: assessmentResult.habits?.habitScore ?? 0,
+      recommended_action_confidence: assessmentResult.recommendedActionConfidence ?? null
     },
     predictive_analytics: {
       personality_type: assessmentResult.personalityType,

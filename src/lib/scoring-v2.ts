@@ -131,6 +131,30 @@ export interface BlindSpotData {
   direction: "underestimate" | "overestimate";
 }
 
+export interface DecisionQualityResult {
+  index: number;
+  band: string;
+  narrative: string;
+  componentBreakdown: {
+    awareness: number;
+    behaviour: number;
+    stability: number;
+  };
+  whatItMeans: string;
+}
+
+export interface PeerCohortComparison {
+  label: string;
+  percentile: number;
+  insight: string;
+}
+
+export interface AdaptiveWeights {
+  behaviour: number;
+  awareness: number;
+  stability: number;
+}
+
 /**
  * Debt schedule estimate
  */
@@ -207,12 +231,25 @@ export interface FinancialHealthV2Result {
 
   // Actions and recommendations
   recommendedActionText: string;
+  recommendedActionConfidence: number;
 
   // Detailed metrics
   debtSchedule: DebtSchedule;
   habits: HabitsInput;
   futureRiskScore: number;
   futureRiskLabel: string;
+  decisionQuality: DecisionQualityResult;
+  adaptiveWeights: AdaptiveWeights;
+  baselineHealthScore: number;
+  incomeVolatilityIndex: number;
+  riskAdjustedSurvivalMonthsRaw: number;
+  riskAdjustedSurvivalMonthsDisplay: string;
+  awarenessIntegrityScore: number;
+  strategyConsistencyScore: number;
+  componentDivergence: number;
+  futureConfidenceScore: number;
+  peerCohortComparison: PeerCohortComparison;
+  weatherIndex: number;
 
   // Personality and behavior
   personalityType: PersonalityType;
@@ -414,6 +451,25 @@ export function calculateHabitsMetricsV2(habits?: HabitsInput | null): HabitsInp
  */
 export function calculateFutureRiskV2(profile?: ProfileInput | null): FutureRisk {
   return ScoringEngine.calculateFutureRiskV2(profile) as FutureRisk;
+}
+
+/**
+ * Calculate adaptive BAST weights for a profile and component scores
+ */
+export function calculateAdaptiveBASTWeights(
+  profile?: ProfileInput | null,
+  behaviourScore?: number,
+  awarenessScore?: number,
+  stability?: { score?: number; survivalMonthsRaw?: number } | null,
+  awarenessMetrics?: AwarenessMetrics | null
+): AdaptiveWeights {
+  return ScoringEngine.calculateAdaptiveBASTWeights(
+    profile,
+    behaviourScore,
+    awarenessScore,
+    stability,
+    awarenessMetrics
+  ) as AdaptiveWeights;
 }
 
 /**

@@ -109,7 +109,8 @@ export function migrateAnonymousData(userId) {
     "twin-snapshots",
     "event-log",
     "pending-sync",
-    "sync-metadata"
+    "sync-metadata",
+    "settings"
   ];
 
   for (const key of keysToMigrate) {

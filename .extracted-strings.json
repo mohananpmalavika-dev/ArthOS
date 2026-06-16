@@ -1,0 +1,906 @@
+{
+  "timestamp": "2026-06-16T11:57:06.825Z",
+  "totalStrings": 3253,
+  "strings": [
+    {
+      "string": "react",
+      "occurrences": 115,
+      "files": [
+        "src\\components\\ActionFollowUpPanel.jsx",
+        "src\\components\\ActionScreen.jsx",
+        "src\\components\\AdminSection.jsx"
+      ]
+    },
+    {
+      "string": "lucide-react",
+      "occurrences": 69,
+      "files": [
+        "src\\components\\ActionFollowUpPanel.jsx",
+        "src\\components\\AiCoachInterface.jsx",
+        "src\\components\\AnalyticsDashboard.jsx"
+      ]
+    },
+    {
+      "string": "undefined",
+      "occurrences": 29,
+      "files": [
+        "src\\components\\BigRevealAnimation.jsx",
+        "src\\components\\DigitalTwinDashboard.jsx",
+        "src\\components\\ErrorBoundary.jsx"
+      ]
+    },
+    {
+      "string": "Content-Type",
+      "occurrences": 17,
+      "files": [
+        "src\\components\\ActionFollowUpPanel.jsx",
+        "src\\components\\BankingIntegrationDashboard.jsx",
+        "src\\components\\DailyCheckinForm.jsx"
+      ]
+    },
+    {
+      "string": "application/json",
+      "occurrences": 17,
+      "files": [
+        "src\\components\\ActionFollowUpPanel.jsx",
+        "src\\components\\BankingIntegrationDashboard.jsx",
+        "src\\components\\DailyCheckinForm.jsx"
+      ]
+    },
+    {
+      "string": "number",
+      "occurrences": 17,
+      "files": [
+        "src\\components\\AnalyticsDashboard.jsx",
+        "src\\components\\AssessmentBuildingScreen.jsx",
+        "src\\components\\FinancialTwin.jsx"
+      ]
+    },
+    {
+      "string": "prop-types",
+      "occurrences": 14,
+      "files": [
+        "src\\components\\AssessmentSection.jsx",
+        "src\\components\\FinancialWeatherCard.jsx",
+        "src\\components\\FlowNavigation.jsx"
+      ]
+    },
+    {
+      "string": "high",
+      "occurrences": 11,
+      "files": [
+        "src\\components\\DailyCheckinForm.jsx",
+        "src\\components\\EnhancedInsightNarrative.jsx",
+        "src\\components\\FinancialTwin.jsx"
+      ]
+    },
+    {
+      "string": "framer-motion",
+      "occurrences": 10,
+      "files": [
+        "src\\components\\AssessmentBuildingScreen.jsx",
+        "src\\components\\BigRevealAnimation.jsx",
+        "src\\components\\FutureTrajectory.jsx"
+      ]
+    },
+    {
+      "string": "low",
+      "occurrences": 9,
+      "files": [
+        "src\\components\\DailyCheckinForm.jsx",
+        "src\\components\\EnhancedInsightNarrative.jsx",
+        "src\\components\\FinancialTwin.jsx"
+      ]
+    },
+    {
+      "string": "High",
+      "occurrences": 9,
+      "files": [
+        "src\\components\\EmotionalTriggersCard.jsx",
+        "src\\components\\FutureTrajectory.jsx",
+        "src\\engines\\cognitionEngine.js"
+      ]
+    },
+    {
+      "string": "Low",
+      "occurrences": 9,
+      "files": [
+        "src\\components\\EmotionalTriggersCard.jsx",
+        "src\\components\\FutureScreen.jsx",
+        "src\\components\\FutureTrajectory.jsx"
+      ]
+    },
+    {
+      "string": "critical",
+      "occurrences": 9,
+      "files": [
+        "src\\components\\EnhancedInsightNarrative.jsx",
+        "src\\components\\FinancialTwin.jsx",
+        "src\\components\\InsightNarrative.jsx"
+      ]
+    },
+    {
+      "string": "free",
+      "occurrences": 8,
+      "files": [
+        "src\\components\\AssessmentLimitNotice.jsx",
+        "src\\components\\FeaturePaywall.jsx",
+        "src\\components\\SubscriptionManagement.jsx"
+      ]
+    },
+    {
+      "string": "recharts",
+      "occurrences": 8,
+      "files": [
+        "src\\components\\CompletionDashboard.jsx",
+        "src\\components\\ConsequenceForecastCard.jsx",
+        "src\\components\\PeerComparisonCard.jsx"
+      ]
+    },
+    {
+      "string": "react-router-dom",
+      "occurrences": 8,
+      "files": [
+        "src\\components\\FlowNavigation.jsx",
+        "src\\components\\Header.jsx",
+        "src\\components\\UnifiedJourneyHome.jsx"
+      ]
+    },
+    {
+      "string": "improving",
+      "occurrences": 8,
+      "files": [
+        "src\\components\\ForecastModelCard.jsx",
+        "src\\components\\LongitudinalLearningDashboard.jsx",
+        "src\\components\\ScenarioForecast.jsx"
+      ]
+    },
+    {
+      "string": "behaviour",
+      "occurrences": 8,
+      "files": [
+        "src\\components\\SingleRecommendedAction.jsx",
+        "src\\lib\\copy.js",
+        "src\\lib\\copy.ts"
+      ]
+    },
+    {
+      "string": "positive",
+      "occurrences": 7,
+      "files": [
+        "src\\components\\AssessmentBuildingScreen.jsx",
+        "src\\components\\DigitalTwinDashboard.jsx",
+        "src\\components\\FutureScreen.jsx"
+      ]
+    },
+    {
+      "string": "never",
+      "occurrences": 7,
+      "files": [
+        "src\\components\\DailyCheckinForm.jsx",
+        "src\\lib\\scoring-v2.js",
+        "src\\lib\\scoring.js"
+      ]
+    },
+    {
+      "string": "medium",
+      "occurrences": 7,
+      "files": [
+        "src\\components\\DailyCheckinForm.jsx",
+        "src\\components\\EnhancedInsightNarrative.jsx",
+        "src\\engines\\digitalTwinEngine.js"
+      ]
+    },
+    {
+      "string": "Moderate",
+      "occurrences": 7,
+      "files": [
+        "src\\components\\EmotionalTriggersCard.jsx",
+        "src\\engines\\cognitionEngine.js",
+        "src\\engines\\consequenceForecastEngine.js"
+      ]
+    },
+    {
+      "string": "en-IN",
+      "occurrences": 7,
+      "files": [
+        "src\\components\\RetentionDashboard.jsx",
+        "src\\components\\ScoreTrendStrip.jsx",
+        "src\\components\\UserHistory.jsx"
+      ]
+    },
+    {
+      "string": "awareness",
+      "occurrences": 7,
+      "files": [
+        "src\\lib\\copy.js",
+        "src\\lib\\copy.ts",
+        "src\\lib\\scoring-v2.js"
+      ]
+    },
+    {
+      "string": "steady",
+      "occurrences": 6,
+      "files": [
+        "src\\components\\AnalyticsDashboard.jsx",
+        "src\\components\\DigitalTwinDashboard.jsx",
+        "src\\components\\LongitudinalLearningDashboard.jsx"
+      ]
+    },
+    {
+      "string": "demo",
+      "occurrences": 6,
+      "files": [
+        "src\\components\\B2BPartnerPortal.jsx",
+        "src\\components\\DecisionHistory.jsx",
+        "src\\components\\DeveloperIntelligenceSection.jsx"
+      ]
+    },
+    {
+      "string": "N/A",
+      "occurrences": 6,
+      "files": [
+        "src\\components\\BankingIntegrationDashboard.jsx",
+        "src\\components\\CompletionDashboard.jsx",
+        "src\\components\\ForecastModelCard.jsx"
+      ]
+    },
+    {
+      "string": "warning",
+      "occurrences": 6,
+      "files": [
+        "src\\components\\DigitalTwinDashboard.jsx",
+        "src\\lib\\errorMonitoring.js",
+        "src\\lib\\errorMonitoring.ts"
+      ]
+    },
+    {
+      "string": "stable",
+      "occurrences": 6,
+      "files": [
+        "src\\components\\ForecastModelCard.jsx",
+        "src\\engines\\cognitionEngine.js",
+        "src\\engines\\forecastEngine.js"
+      ]
+    },
+    {
+      "string": "Medium",
+      "occurrences": 6,
+      "files": [
+        "src\\components\\FutureScreen.jsx",
+        "src\\components\\FutureTrajectory.jsx",
+        "src\\components\\NextBestActionCard.jsx"
+      ]
+    },
+    {
+      "string": "habits",
+      "occurrences": 5,
+      "files": [
+        "src\\components\\AssessmentBuildingScreen.jsx",
+        "src\\components\\AssessmentSection.jsx",
+        "src\\lib\\copy.js"
+      ]
+    },
+    {
+      "string": "decisions",
+      "occurrences": 5,
+      "files": [
+        "src\\components\\AssessmentBuildingScreen.jsx",
+        "src\\components\\CognitionGraphDashboard.jsx",
+        "src\\components\\CognitionGraphView.jsx"
+      ]
+    },
+    {
+      "string": "short",
+      "occurrences": 5,
+      "files": [
+        "src\\components\\AssessmentLimitNotice.jsx",
+        "src\\components\\I18nExamples.jsx",
+        "src\\components\\RetentionDashboard.jsx"
+      ]
+    },
+    {
+      "string": "numeric",
+      "occurrences": 5,
+      "files": [
+        "src\\components\\AssessmentLimitNotice.jsx",
+        "src\\components\\I18nExamples.jsx",
+        "src\\components\\RetentionDashboard.jsx"
+      ]
+    },
+    {
+      "string": "error",
+      "occurrences": 5,
+      "files": [
+        "src\\components\\BankingIntegrationDashboard.jsx",
+        "src\\lib\\errorLogger.js",
+        "src\\lib\\errorLogger.ts"
+      ]
+    },
+    {
+      "string": "sometimes",
+      "occurrences": 5,
+      "files": [
+        "src\\components\\DailyCheckinForm.jsx",
+        "src\\components\\TraitMatrixVisualizer.jsx",
+        "src\\lib\\scoring-v2.js"
+      ]
+    },
+    {
+      "string": "often",
+      "occurrences": 5,
+      "files": [
+        "src\\components\\DailyCheckinForm.jsx",
+        "src\\components\\TraitMatrixVisualizer.jsx",
+        "src\\lib\\scoring-v2.js"
+      ]
+    },
+    {
+      "string": "always",
+      "occurrences": 5,
+      "files": [
+        "src\\components\\DailyCheckinForm.jsx",
+        "src\\components\\TraitMatrixVisualizer.jsx",
+        "src\\lib\\scoring-v2.js"
+      ]
+    },
+    {
+      "string": "Critical",
+      "occurrences": 5,
+      "files": [
+        "src\\components\\EmotionalTriggersCard.jsx",
+        "src\\lib\\scoring-v2.js",
+        "src\\engines\\consequenceForecastEngine.js"
+      ]
+    },
+    {
+      "string": "You",
+      "occurrences": 5,
+      "files": [
+        "src\\components\\EnhancedInsightNarrative.jsx",
+        "src\\components\\StoryHome.jsx",
+        "src\\engines\\peerComparisonEngine.js"
+      ]
+    },
+    {
+      "string": ";\n  }\n  return ",
+      "occurrences": 5,
+      "files": [
+        "src\\components\\ExportPDF.jsx",
+        "src\\engines\\assessmentTelemetry.js",
+        "src\\engines\\decisionIntelligence.js"
+      ]
+    },
+    {
+      "string": "Behaviour",
+      "occurrences": 5,
+      "files": [
+        "src\\components\\HeroSection.jsx",
+        "src\\components\\StoryHome.jsx",
+        "src\\lib\\assessmentCardBuilder.js"
+      ]
+    },
+    {
+      "string": "Risk Taker",
+      "occurrences": 5,
+      "files": [
+        "src\\components\\SingleRecommendedAction.jsx",
+        "src\\lib\\constants\\personality.js",
+        "src\\lib\\scoring-v2.js"
+      ]
+    },
+    {
+      "string": "6_plus",
+      "occurrences": 5,
+      "files": [
+        "src\\lib\\assessmentCardBuilder.js",
+        "src\\lib\\copy.js",
+        "src\\lib\\copy.ts"
+      ]
+    },
+    {
+      "string": "stability",
+      "occurrences": 5,
+      "files": [
+        "src\\lib\\copy.js",
+        "src\\lib\\copy.ts",
+        "src\\lib\\scoring-v2.js"
+      ]
+    },
+    {
+      "string": "negative",
+      "occurrences": 4,
+      "files": [
+        "src\\components\\AssessmentBuildingScreen.jsx",
+        "src\\components\\FutureScreen.jsx",
+        "src\\components\\UserHistory.jsx"
+      ]
+    },
+    {
+      "string": "overview",
+      "occurrences": 4,
+      "files": [
+        "src\\components\\B2BPartnerPortal.jsx",
+        "src\\components\\LongitudinalLearningDashboard.jsx",
+        "src\\lib\\copy.js"
+      ]
+    },
+    {
+      "string": "text-gray-600 hover:text-gray-900",
+      "occurrences": 4,
+      "files": [
+        "src\\components\\BankingIntegrationDashboard.jsx",
+        "src\\components\\CognitionGraphDashboard.jsx",
+        "src\\components\\LanguageSwitcher.jsx"
+      ]
+    },
+    {
+      "string": "very_likely",
+      "occurrences": 4,
+      "files": [
+        "src\\components\\DailyCheckinForm.jsx",
+        "src\\components\\TraitMatrixVisualizer.jsx",
+        "src\\lib\\scoring-v2.js"
+      ]
+    },
+    {
+      "string": "moderate",
+      "occurrences": 4,
+      "files": [
+        "src\\components\\DailyCheckinForm.jsx",
+        "src\\components\\FinancialTwin.jsx",
+        "src\\engines\\consequenceForecastEngine.js"
+      ]
+    },
+    {
+      "string": ",\n      description: ",
+      "occurrences": 4,
+      "files": [
+        "src\\components\\DecisionSimulator.jsx",
+        "src\\engines\\insightGenerator.js",
+        "src\\engines\\interventionEngine.js"
+      ]
+    },
+    {
+      "string": "Digital Twin",
+      "occurrences": 4,
+      "files": [
+        "src\\components\\DeveloperIntelligenceSection.jsx",
+        "src\\components\\FeaturePaywall.jsx",
+        "src\\lib\\copy.ts"
+      ]
+    },
+    {
+      "string": "Balanced",
+      "occurrences": 4,
+      "files": [
+        "src\\components\\DigitalTwinDashboard.jsx",
+        "src\\components\\FutureYou.jsx",
+        "src\\pages\\BigReveal.jsx"
+      ]
+    },
+    {
+      "string": "#assessment",
+      "occurrences": 4,
+      "files": [
+        "src\\components\\DigitalTwinDashboard.jsx",
+        "src\\lib\\copy.js",
+        "src\\lib\\copy.ts"
+      ]
+    },
+    {
+      "string": "var(--red)",
+      "occurrences": 4,
+      "files": [
+        "src\\components\\EmotionalTriggersCard.jsx",
+        "src\\components\\FinancialTwin.jsx",
+        "src\\components\\ForecastModelCard.jsx"
+      ]
+    },
+    {
+      "string": "boredomSpending",
+      "occurrences": 4,
+      "files": [
+        "src\\components\\EmotionalTriggersCard.jsx",
+        "src\\lib\\copy.js",
+        "src\\lib\\copy.ts"
+      ]
+    },
+    {
+      "string": "socialPressure",
+      "occurrences": 4,
+      "files": [
+        "src\\components\\EmotionalTriggersCard.jsx",
+        "src\\lib\\copy.js",
+        "src\\lib\\copy.ts"
+      ]
+    },
+    {
+      "string": "anxietyAvoidance",
+      "occurrences": 4,
+      "files": [
+        "src\\components\\EmotionalTriggersCard.jsx",
+        "src\\lib\\copy.js",
+        "src\\lib\\copy.ts"
+      ]
+    },
+    {
+      "string": "Unknown",
+      "occurrences": 4,
+      "files": [
+        "src\\components\\ErrorBoundary.jsx",
+        "src\\components\\TraitMatrixVisualizer.jsx",
+        "src\\components\\UserAssessmentHistory.jsx"
+      ]
+    },
+    {
+      "string": "Future You",
+      "occurrences": 4,
+      "files": [
+        "src\\components\\FutureYou.jsx",
+        "src\\pages\\FutureYou.jsx",
+        "src\\lib\\copy.ts"
+      ]
+    },
+    {
+      "string": "scarcityVsAbundance",
+      "occurrences": 4,
+      "files": [
+        "src\\components\\MoneyBeliefsCard.jsx",
+        "src\\lib\\copy.js",
+        "src\\lib\\copy.ts"
+      ]
+    },
+    {
+      "string": "moneyAsIdentity",
+      "occurrences": 4,
+      "files": [
+        "src\\components\\MoneyBeliefsCard.jsx",
+        "src\\lib\\copy.js",
+        "src\\lib\\copy.ts"
+      ]
+    },
+    {
+      "string": "moneyAsSecurity",
+      "occurrences": 4,
+      "files": [
+        "src\\components\\MoneyBeliefsCard.jsx",
+        "src\\lib\\copy.js",
+        "src\\lib\\copy.ts"
+      ]
+    },
+    {
+      "string": "moneyAsFreedom",
+      "occurrences": 4,
+      "files": [
+        "src\\components\\MoneyBeliefsCard.jsx",
+        "src\\lib\\copy.js",
+        "src\\lib\\copy.ts"
+      ]
+    },
+    {
+      "string": "Future risk",
+      "occurrences": 4,
+      "files": [
+        "src\\components\\RealityScreen.jsx",
+        "src\\components\\UnifiedJourneyHome.jsx",
+        "src\\lib\\copy.js"
+      ]
+    },
+    {
+      "string": "Optimizer",
+      "occurrences": 4,
+      "files": [
+        "src\\components\\SingleRecommendedAction.jsx",
+        "src\\lib\\constants\\personality.js",
+        "src\\lib\\scoring-v2.js"
+      ]
+    },
+    {
+      "string": "Today",
+      "occurrences": 4,
+      "files": [
+        "src\\components\\StoryHome.jsx",
+        "src\\components\\UpgradeJourney.jsx",
+        "src\\lib\\copy.js"
+      ]
+    },
+    {
+      "string": ", label: ",
+      "occurrences": 4,
+      "files": [
+        "src\\components\\ValidationFeedbackForm.jsx",
+        "src\\lib\\copy.js",
+        "src\\lib\\copy.ts"
+      ]
+    },
+    {
+      "string": "${API_BASE}${endpoint}",
+      "occurrences": 4,
+      "files": [
+        "src\\lib\\decisionLedger.js",
+        "src\\lib\\decisionLedger.ts",
+        "src\\engines\\financialMemoryEngine.js"
+      ]
+    },
+    {
+      "string": "unhandledrejection",
+      "occurrences": 4,
+      "files": [
+        "src\\lib\\errorLogger.js",
+        "src\\lib\\errorLogger.ts",
+        "src\\lib\\errorMonitoring.js"
+      ]
+    },
+    {
+      "string": "info",
+      "occurrences": 4,
+      "files": [
+        "src\\lib\\errorMonitoring.js",
+        "src\\lib\\errorMonitoring.ts",
+        "src\\engines\\notificationEngine.js"
+      ]
+    },
+    {
+      "string": "unknown",
+      "occurrences": 4,
+      "files": [
+        "src\\lib\\roastAnalytics.js",
+        "src\\engines\\assessmentTelemetry.js",
+        "src\\engines\\digitalTwinEngine.js"
+      ]
+    },
+    {
+      "string": "regularly",
+      "occurrences": 4,
+      "files": [
+        "src\\lib\\scoring-v2.js",
+        "src\\lib\\scoring.js",
+        "src\\engines\\adaptiveQuestionEngine.js"
+      ]
+    },
+    {
+      "string": "function",
+      "occurrences": 3,
+      "files": [
+        "src\\components\\AssessmentBuildingScreen.jsx",
+        "src\\lib\\integrations.js",
+        "src\\lib\\providerMarketplace.js"
+      ]
+    },
+    {
+      "string": "email",
+      "occurrences": 3,
+      "files": [
+        "src\\components\\AssessmentSection.jsx",
+        "src\\lib\\reminderPrefs.js",
+        "src\\engines\\mlChurnPredictionEngine.js"
+      ]
+    },
+    {
+      "string": "Hide",
+      "occurrences": 3,
+      "files": [
+        "src\\components\\BadgeDisplay.jsx",
+        "src\\components\\SingleMostImportantInsight.jsx",
+        "src\\components\\StoryHome.jsx"
+      ]
+    },
+    {
+      "string": "accounts",
+      "occurrences": 3,
+      "files": [
+        "src\\components\\BankingIntegrationDashboard.jsx",
+        "src\\components\\I18nExamples.jsx",
+        "src\\lib\\routeMap.js"
+      ]
+    },
+    {
+      "string": "decision",
+      "occurrences": 3,
+      "files": [
+        "src\\components\\CognitionGraphDashboard.jsx",
+        "src\\lib\\decisionLedger.js",
+        "src\\lib\\decisionLedger.ts"
+      ]
+    },
+    {
+      "string": "true",
+      "occurrences": 3,
+      "files": [
+        "src\\components\\ConsentBanner.jsx",
+        "src\\components\\LanguageSwitcher.jsx",
+        "src\\hooks\\useUIState.js"
+      ]
+    },
+    {
+      "string": "false",
+      "occurrences": 3,
+      "files": [
+        "src\\components\\ConsentBanner.jsx",
+        "src\\components\\LanguageSwitcher.jsx",
+        "src\\hooks\\useUIState.js"
+      ]
+    },
+    {
+      "string": "rarely",
+      "occurrences": 3,
+      "files": [
+        "src\\components\\DailyCheckinForm.jsx",
+        "src\\components\\TraitMatrixVisualizer.jsx",
+        "src\\lib\\scoring-v2.js"
+      ]
+    },
+    {
+      "string": "very_frequently",
+      "occurrences": 3,
+      "files": [
+        "src\\components\\DailyCheckinForm.jsx",
+        "src\\lib\\scoring-v2.js",
+        "src\\engines\\insightGenerator.js"
+      ]
+    },
+    {
+      "string": "content-type",
+      "occurrences": 3,
+      "files": [
+        "src\\components\\DecisionHistory.jsx",
+        "src\\hooks\\useSubscription.js",
+        "src\\hooks\\useUserAssessments.js"
+      ]
+    },
+    {
+      "string": "var(--orange)",
+      "occurrences": 3,
+      "files": [
+        "src\\components\\EmotionalTriggersCard.jsx",
+        "src\\components\\FinancialTwin.jsx",
+        "src\\components\\MoneyBeliefsCard.jsx"
+      ]
+    },
+    {
+      "string": "var(--yellow)",
+      "occurrences": 3,
+      "files": [
+        "src\\components\\EmotionalTriggersCard.jsx",
+        "src\\components\\FinancialTwin.jsx",
+        "src\\components\\TraitMatrixVisualizer.jsx"
+      ]
+    },
+    {
+      "string": "stressSpending",
+      "occurrences": 3,
+      "files": [
+        "src\\components\\EmotionalTriggersCard.jsx",
+        "src\\lib\\copy.js",
+        "src\\lib\\copy.ts"
+      ]
+    },
+    {
+      "string": "Stress-Triggered Spending",
+      "occurrences": 3,
+      "files": [
+        "src\\components\\EmotionalTriggersCard.jsx",
+        "src\\lib\\copy.js",
+        "src\\lib\\copy.ts"
+      ]
+    },
+    {
+      "string": "Boredom Impulse Buying",
+      "occurrences": 3,
+      "files": [
+        "src\\components\\EmotionalTriggersCard.jsx",
+        "src\\lib\\copy.js",
+        "src\\lib\\copy.ts"
+      ]
+    },
+    {
+      "string": "Social Pressure Spending",
+      "occurrences": 3,
+      "files": [
+        "src\\components\\EmotionalTriggersCard.jsx",
+        "src\\lib\\copy.js",
+        "src\\lib\\copy.ts"
+      ]
+    },
+    {
+      "string": "Anxiety-Avoidance Behavior",
+      "occurrences": 3,
+      "files": [
+        "src\\components\\EmotionalTriggersCard.jsx",
+        "src\\lib\\copy.js",
+        "src\\lib\\copy.ts"
+      ]
+    },
+    {
+      "string": "celebratorySpending",
+      "occurrences": 3,
+      "files": [
+        "src\\components\\EmotionalTriggersCard.jsx",
+        "src\\lib\\copy.js",
+        "src\\lib\\copy.ts"
+      ]
+    },
+    {
+      "string": "Celebration Overspending",
+      "occurrences": 3,
+      "files": [
+        "src\\components\\EmotionalTriggersCard.jsx",
+        "src\\lib\\copy.js",
+        "src\\lib\\copy.ts"
+      ]
+    },
+    {
+      "string": "development",
+      "occurrences": 3,
+      "files": [
+        "src\\components\\ErrorBoundary.jsx",
+        "src\\lib\\errorMonitoring.js",
+        "src\\lib\\errorMonitoring.ts"
+      ]
+    },
+    {
+      "string": "Pro",
+      "occurrences": 3,
+      "files": [
+        "src\\components\\FeaturePaywall.jsx",
+        "src\\components\\SubscriptionManagement.jsx",
+        "src\\lib\\b2bPartnerEngine.js"
+      ]
+    },
+    {
+      "string": "Sovereign",
+      "occurrences": 3,
+      "files": [
+        "src\\components\\FinancialWeatherCard.jsx",
+        "src\\lib\\scoring-v2.js",
+        "src\\engines\\milestoneEngine.js"
+      ]
+    },
+    {
+      "string": "Stability",
+      "occurrences": 3,
+      "files": [
+        "src\\components\\JourneyLevelCard.jsx",
+        "src\\components\\StoryHome.jsx",
+        "src\\lib\\scoringHelpers.js"
+      ]
+    },
+    {
+      "string": "Scarcity vs Abundance",
+      "occurrences": 3,
+      "files": [
+        "src\\components\\MoneyBeliefsCard.jsx",
+        "src\\lib\\copy.js",
+        "src\\lib\\copy.ts"
+      ]
+    },
+    {
+      "string": "Money as Identity",
+      "occurrences": 3,
+      "files": [
+        "src\\components\\MoneyBeliefsCard.jsx",
+        "src\\lib\\copy.js",
+        "src\\lib\\copy.ts"
+      ]
+    },
+    {
+      "string": "Money as Security",
+      "occurrences": 3,
+      "files": [
+        "src\\components\\MoneyBeliefsCard.jsx",
+        "src\\lib\\copy.js",
+        "src\\lib\\copy.ts"
+      ]
+    },
+    {
+      "string": "Money as Freedom",
+      "occurrences": 3,
+      "files": [
+        "src\\components\\MoneyBeliefsCard.jsx",
+        "src\\lib\\copy.js",
+        "src\\lib\\copy.ts"
+      ]
+    }
+  ]
+}

@@ -83,12 +83,12 @@ export function ForecastModelCard({ forecast }) {
     if (!horizons) {
       return "stable";
     }
-    const h = horizons[hKey];
+        const h = horizons?.[hKey];
     if (!h) {
       return "stable";
     }
     const p50 = h.p50 || 0;
-    const base = horizons.day30?.p50 || p50;
+    const base = horizons?.day30?.p50 || p50;
     if (p50 > base + 3) {
       return "improving";
     }
@@ -138,7 +138,7 @@ export function ForecastModelCard({ forecast }) {
           {modelMetrics?.r2?.toFixed(2) ?? "N/A"} — {r2Grade})
         </span>
         <span className="forecast-model-badge-meta">
-          {dataPoints} data points ·{" "}
+          {dataPoints ?? "—"} data points ·{" "}
           <span style={{ color: confidenceColor(confidence) }}>{confidence}% confidence</span>
         </span>
       </div>
@@ -146,7 +146,7 @@ export function ForecastModelCard({ forecast }) {
       {/* Horizon Cards */}
       <div className="premium-report-grid premium-report-grid-3 forecast-scenarios-grid">
         {horizonDays.map(({ key, label, subtitle }) => {
-          const h = horizons[key];
+          const h = horizons?.[key];
           if (!h) {
             return null;
           }
