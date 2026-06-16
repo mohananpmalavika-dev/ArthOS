@@ -601,6 +601,13 @@ export default function App({ demoMode = false }) {
     }
   }, [assessment, effectiveUserId]);
 
+  // Redirect to login when user logs out
+  useEffect(() => {
+    if (!authLoading && !isAuthenticated) {
+      navigate("/login", { replace: true });
+    }
+  }, [isAuthenticated, authLoading, navigate]);
+
   useEffect(() => {
     if (!isBrowser()) {
       return;

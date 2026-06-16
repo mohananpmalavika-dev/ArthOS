@@ -88,9 +88,12 @@
                 newWorker.addEventListener('statechange', () => {
                   if (newWorker.state === 'activated') {
                     console.log('[App] New Service Worker activated');
-                    // Notify user of update (optional)
-                    if (window.confirm('A new version of ARTH.OS is available. Reload to update?')) {
-                      window.location.reload();
+                    if (!import.meta.env.DEV) {
+                      if (window.confirm('A new version of ARTH.OS is available. Reload to update?')) {
+                        window.location.reload();
+                      }
+                    } else {
+                      console.info('[App] Dev mode: skipping service worker reload prompt');
                     }
                   }
                 });

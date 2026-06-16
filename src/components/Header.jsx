@@ -166,11 +166,11 @@ function Header({
           </button>
         ) : null}
 
-        <a className="model-avatar-btn" href="#admin" aria-label="Admin dashboard">
+        <a className="model-avatar-btn" href="/dashboard#admin" aria-label="Admin dashboard">
           <span>A</span>
           <ChevronDown size={15} />
         </a>
-        <a className="model-start-btn" href="#assessment">
+        <a className="model-start-btn" href="/dashboard#assessment">
           Start Assessment
         </a>
       </div>
