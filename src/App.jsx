@@ -107,6 +107,7 @@ import PrivacySettings from "./components/PrivacySettings.jsx";
 import FeaturePaywall from "./components/FeaturePaywall.jsx";
 import AssessmentLimitNotice from "./components/AssessmentLimitNotice.jsx";
 import { FeatureFlagProvider } from "./lib/featureFlagEngine.js";
+import { BootProvider, useBoot } from "./context/BootContext.jsx";
 import { PanelMinimizeButton } from "./components/PanelMinimizer.jsx";
 import { useSubscription } from "./hooks/useSubscription.js";
 import { useAssessmentState } from "./hooks/useAssessmentState.js";
@@ -784,7 +785,6 @@ export default function App({ demoMode = false }) {
       return;
     }
 
-    initOfflineApiQueue();
     refreshQueuedSaveCount();
     setIsOnline(navigator.onLine);
     void flushQueuedAssessmentSavesAndRefresh();
@@ -1327,10 +1327,32 @@ export default function App({ demoMode = false }) {
     window.print();
   }
 
+  function BootDegradedBanner() {
+    const { isDegraded } = useBoot();
+    if (!isDegraded) {
+      return null;
+    }
+    return (
+      <div
+        style={{
+          padding: "10px 18px",
+          margin: "16px",
+          borderRadius: "16px",
+          background: "#fef3c7",
+          color: "#92400e",
+          border: "1px solid #fde68a"
+        }}
+      >
+        ARTH.OS is running in degraded mode. Some background sync or subscription checks may be delayed.
+      </div>
+    );
+  }
+
   return (
     <FeatureFlagProvider userId={effectiveUserId}>
-      <div className="app-shell">
-        <Header
+      <BootProvider subscriptionLoading={subscriptionLoading} subscriptionError={subscriptionError}>
+        <div className="app-shell">
+          <Header
         activeHash={activeHash}
         saveState={saveState}
         saveStatusLabel={saveStatusLabel}
@@ -1418,6 +1440,8 @@ export default function App({ demoMode = false }) {
         isOpen={showNotificationPanel && !showNotificationsPage}
         onClose={() => setShowNotificationPanel(false)}
       />
+
+      <BootDegradedBanner />
 
       <NotificationToast />
 
@@ -2554,7 +2578,11 @@ export default function App({ demoMode = false }) {
         )}
       </main>
     </div>
-  </FeatureFlagProvider>
+  </BootProvider>
+</FeatureFlagProvider>
+    );
+}
+
 // Note: deriveDrivers imported from app-utils.js
 
 function ScoreRing({ score }) {

@@ -191,7 +191,7 @@ class FeatureFlagManager {
 export const featureFlagManager = new FeatureFlagManager();
 
 // React Context & Hook
-const FeatureFlagContext = createContext();
+export const FeatureFlagContext = createContext();
 
 export function FeatureFlagProvider({ children, userId }) {
   const [isReady, setIsReady] = useState(false);
