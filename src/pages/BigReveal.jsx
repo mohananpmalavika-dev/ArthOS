@@ -10,6 +10,7 @@ import WhyScreen from "../components/WhyScreen.jsx";
 import FutureScreen from "../components/FutureScreen.jsx";
 import WeeklyMissionCard from "../components/WeeklyMissionCard.jsx";
 import SingleRecommendedAction from "../components/SingleRecommendedAction.jsx";
+import BigRevealAnimation from "../components/BigRevealAnimation.jsx";
 import "./big-reveal.css";
 
 function clampScore(value) {
@@ -123,6 +124,8 @@ export default function BigReveal() {
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: 0.4, duration: 1 }}
           >
+            <BigRevealAnimation />
+
             <div className={`big-reveal-score-ring ${showFull ? "muted" : ""}`} style={{ "--score": currentScore }}>
               <div className="big-reveal-score-inner">
                 <motion.div

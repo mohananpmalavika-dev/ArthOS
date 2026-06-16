@@ -28,6 +28,25 @@ import {
   BarChart3,
   CheckCircle2
 } from "lucide-react";
+import ErrorState from "./ErrorState.jsx";
+import { PageSkeleton } from "./Skeleton.jsx";
+import "./skeleton.css";
+
+const statusClasses = {
+  active: "text-green-700 bg-green-100",
+  pending: "text-yellow-800 bg-yellow-100",
+  error: "text-red-700 bg-red-100",
+  revoked: "text-orange-700 bg-orange-100",
+  disconnected: "text-gray-700 bg-gray-100"
+};
+
+const statusLabel = {
+  active: "Connected",
+  pending: "Pending",
+  error: "Connection failed",
+  revoked: "Re-authorize",
+  disconnected: "Disconnected"
+};
 
 const BankingIntegrationDashboard = ({ userId }) => {
   const [accounts, setAccounts] = useState([]);
@@ -37,7 +56,10 @@ const BankingIntegrationDashboard = ({ userId }) => {
   const [lendingOffers, setLendingOffers] = useState([]);
   const [syncStatus, setSyncStatus] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(null);
+  const [actionError, setActionError] = useState(null);
   const [activeTab, setActiveTab] = useState("accounts");
+  const [infoMessage, setInfoMessage] = useState(null);
 
   useEffect(() => {
     loadBankingData();
@@ -45,6 +67,8 @@ const BankingIntegrationDashboard = ({ userId }) => {
 
   const loadBankingData = async () => {
     setLoading(true);
+    setLoadError(null);
+    setActionError(null);
     try {
       const [accountRes, transactionRes, insuranceRes, creditRes, lendingRes, syncRes] =
         await Promise.all([
@@ -76,13 +100,24 @@ const BankingIntegrationDashboard = ({ userId }) => {
       }
     } catch (error) {
       console.error("Failed to load banking data:", error);
+      setLoadError(error?.message || 'Failed to load banking data');
     } finally {
       setLoading(false);
     }
   };
 
-  const connectBank = async () => {
-    const bankCode = window.prompt("Enter bank code (HDFC, ICICI, AXIS, YES, KOTAK):");
+  const showActionNotification = (message, error = null) => {
+    setInfoMessage(message);
+    setActionError(error);
+  };
+
+  const normalizeBankCode = bankName => {
+    if (!bankName) return null;
+    return bankName.replace(/\s+/g, "_").toUpperCase();
+  };
+
+  const connectBank = async (bankCodeFromCard = null) => {
+    const bankCode = bankCodeFromCard || window.prompt("Enter bank code (HDFC, ICICI, AXIS, YES, KOTAK):");
     if (!bankCode) {
       return;
     }
@@ -96,16 +131,24 @@ const BankingIntegrationDashboard = ({ userId }) => {
 
       const data = await res.json();
       if (data.oauthUrl) {
+        setInfoMessage(`Redirecting to ${bankCode} for authorization...`);
         window.location.href = data.oauthUrl;
+        return;
+      }
+      if (data.success) {
+        setInfoMessage(`Bank ${bankCode} connection started.`);
+      } else {
+        throw new Error(data.error || 'Connection initiation failed');
       }
     } catch (error) {
-      alert("Failed to connect bank: " + error.message);
+      setInfoMessage(null);
+      setActionError("Failed to connect bank: " + error.message);
     }
   };
 
   const connectAA = async () => {
     try {
-      const res = await fetch("/api/banking/aa/consent/request", {
+      const res = await fetch("/api/banking/aa/consent-request", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -120,22 +163,59 @@ const BankingIntegrationDashboard = ({ userId }) => {
       });
 
       const data = await res.json();
-      if (data.consentUrl) {
-        // Open in new window or redirect
-        window.location.href = data.consentUrl;
+      if (data.consentArtifact) {
+        setInfoMessage("Account Aggregator consent flow started. Please complete authorization.");
+        return;
+      }
+      if (data.success) {
+        setInfoMessage("Account Aggregator request created. Complete consent to begin data sync.");
+      } else {
+        throw new Error(data.error || 'AA consent request failed');
       }
     } catch (error) {
-      alert("Failed to connect Account Aggregator: " + error.message);
+      setInfoMessage(null);
+      setActionError("Failed to connect Account Aggregator: " + error.message);
+    }
+  };
+
+  const reauthorizeAA = async () => {
+    try {
+      const res = await fetch("/api/banking/aa/consent-request", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          userId,
+          dataScope: {
+            accounts: true,
+            transactions: true,
+            creditProfile: true,
+            insurance: true
+          }
+        })
+      });
+      const data = await res.json();
+      if (data.success) {
+        setInfoMessage("Re-authorization flow started. Complete consent to restore connectivity.");
+      } else {
+        throw new Error(data.error || 'Reauthorization failed');
+      }
+    } catch (error) {
+      setActionError("Failed to re-authorize Account Aggregator: " + error.message);
     }
   };
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-screen bg-gray-50">
-        <div className="text-center">
-          <RefreshCw className="w-12 h-12 animate-spin text-blue-600 mx-auto mb-4" />
-          <p className="text-gray-600">Loading banking data...</p>
-        </div>
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-6">
+        <PageSkeleton />
+      </div>
+    );
+  }
+
+  if (loadError) {
+    return (
+      <div className="max-w-7xl mx-auto p-6">
+        <ErrorState title="Unable to load banking data" message={loadError} onRetry={loadBankingData} />
       </div>
     );
   }
@@ -167,6 +247,17 @@ const BankingIntegrationDashboard = ({ userId }) => {
           </div>
         </div>
       </div>
+
+      {infoMessage && (
+        <div className="max-w-7xl mx-auto mb-6 rounded-lg border border-blue-200 bg-blue-50 px-6 py-4 text-blue-900">
+          {infoMessage}
+        </div>
+      )}
+      {actionError && (
+        <div className="max-w-7xl mx-auto mb-6 rounded-lg border border-red-200 bg-red-50 px-6 py-4 text-red-900">
+          {actionError}
+        </div>
+      )}
 
       {/* Quick Stats */}
       <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
@@ -250,7 +341,7 @@ const BankingIntegrationDashboard = ({ userId }) => {
                       key={account.id}
                       className="border rounded-lg p-4 hover:shadow-md transition"
                     >
-                      <div className="flex items-start justify-between mb-3">
+                      <div className="flex items-start justify-between mb-3 gap-4 flex-wrap">
                         <div>
                           <p className="text-sm text-gray-600">
                             {account.bank_connections?.bank_name}
@@ -259,7 +350,23 @@ const BankingIntegrationDashboard = ({ userId }) => {
                             {account.account_type.toUpperCase()}
                           </p>
                         </div>
-                        <CheckCircle2 className="w-5 h-5 text-green-600" />
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span
+                            className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold ${
+                              statusClasses[account.bank_connections?.status] || statusClasses.disconnected
+                            }`}
+                          >
+                            {statusLabel[account.bank_connections?.status] || statusLabel.disconnected}
+                          </span>
+                          {['revoked', 'error', 'disconnected'].includes(account.bank_connections?.status) && (
+                            <button
+                              onClick={reauthorizeAA}
+                              className="text-indigo-700 text-sm underline"
+                            >
+                              Re-authorize
+                            </button>
+                          )}
+                        </div>
                       </div>
                       <p className="text-2xl font-bold text-gray-900">
                         ₹{parseFloat(account.current_balance).toLocaleString()}

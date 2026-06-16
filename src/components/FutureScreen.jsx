@@ -4,6 +4,7 @@ import { ScenarioForecast } from "./ScenarioForecast.jsx";
 import TrajectoryHeroVisual from "./TrajectoryHeroVisual.jsx";
 import FutureTrajectory from "./FutureTrajectory.jsx";
 import ContextualCoachPrompt from "./ContextualCoachPrompt.jsx";
+import WeeklyMission from "./WeeklyMission.jsx";
 import ScoreCard from "./ScoreCard.jsx";
 import { normalizeScore } from "../lib/scoring-v2";
 
@@ -104,6 +105,7 @@ export default function FutureScreen({ result, assessment, digitalTwin }) {
           </p>
           <ScenarioForecast profile={assessment?.profile} assessmentResult={result} />
         </section>
+        <WeeklyMission user={assessment?.profile} result={result} />
 
         <ContextualCoachPrompt
           context="future"

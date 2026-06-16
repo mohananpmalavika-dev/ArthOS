@@ -1,0 +1,278 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`FlowComponents > renders a flow section with title, description, and badge 1`] = `
+<section
+  class="flow-section active"
+  id="flow-overview"
+>
+  <div
+    class="flow-section-container"
+  >
+    <div
+      class="flow-section-header"
+    >
+      <h1>
+        Financial Flow
+      </h1>
+      <p>
+        A guided snapshot of your current health.
+      </p>
+      <span>
+        Live
+      </span>
+    </div>
+    <div>
+      Child content
+    </div>
+  </div>
+</section>
+`;
+
+exports[`FlowComponents > renders a highlight card with CTA and visual 1`] = `
+<div
+  class="flow-highlight-card"
+>
+  <div
+    class="flow-highlight-content"
+  >
+    <h2>
+      Actionable Insight
+    </h2>
+    <p>
+      See the one change that most improves your next money move.
+    </p>
+    <p>
+      Automated insights connect your spending, saving, and goals.
+    </p>
+    <button
+      class="flow-highlight-cta"
+    >
+      Review plan
+    </button>
+  </div>
+  <div
+    class="flow-highlight-visual"
+  >
+    <div
+      style="width: 80px; height: 80px; background: rgb(15, 23, 42);"
+    />
+  </div>
+</div>
+`;
+
+exports[`FlowComponents > renders flow cards grid with interactive and linked cards 1`] = `
+<div
+  class="flow-cards-grid"
+>
+  <a
+    class="flow-card"
+    href="#confidence"
+  >
+    <div
+      class="flow-card-icon"
+    >
+      <svg
+        class="lucide lucide-activity"
+        fill="none"
+        height="24"
+        stroke="currentColor"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        stroke-width="2"
+        viewBox="0 0 24 24"
+        width="24"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <path
+          d="M22 12h-2.48a2 2 0 0 0-1.93 1.46l-2.35 8.36a.25.25 0 0 1-.48 0L9.24 2.18a.25.25 0 0 0-.48 0l-2.35 8.36A2 2 0 0 1 4.49 12H2"
+        />
+      </svg>
+    </div>
+    <div
+      class="flow-card-title"
+    >
+      Confidence Score
+    </div>
+    <div
+      class="flow-card-desc"
+    >
+      Your current financial confidence in one clear snapshot.
+    </div>
+    <div
+      class="flow-card-meta"
+    >
+      +12% this month
+    </div>
+  </a>
+  <div
+    class="flow-card"
+    style="cursor: pointer;"
+  >
+    <div
+      class="flow-card-icon"
+    >
+      <svg
+        class="lucide lucide-sparkles"
+        fill="none"
+        height="24"
+        stroke="currentColor"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        stroke-width="2"
+        viewBox="0 0 24 24"
+        width="24"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <path
+          d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"
+        />
+        <path
+          d="M20 3v4"
+        />
+        <path
+          d="M22 5h-4"
+        />
+        <path
+          d="M4 17v2"
+        />
+        <path
+          d="M5 18H3"
+        />
+      </svg>
+    </div>
+    <div
+      class="flow-card-title"
+    >
+      Behavior Signals
+    </div>
+    <div
+      class="flow-card-desc"
+    >
+      Track the actions that changed your outlook.
+    </div>
+    <div
+      class="flow-card-meta"
+    >
+      3 active signals
+    </div>
+  </div>
+  <div
+    class="flow-card"
+  >
+    <div
+      class="flow-card-icon"
+    >
+      <svg
+        class="lucide lucide-shield-check"
+        fill="none"
+        height="24"
+        stroke="currentColor"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        stroke-width="2"
+        viewBox="0 0 24 24"
+        width="24"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <path
+          d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"
+        />
+        <path
+          d="m9 12 2 2 4-4"
+        />
+      </svg>
+    </div>
+    <div
+      class="flow-card-title"
+    >
+      Resilience Plan
+    </div>
+    <div
+      class="flow-card-desc"
+    >
+      A recommended next step to strengthen your runway.
+    </div>
+    <div
+      class="flow-card-meta"
+    >
+      Next review: today
+    </div>
+  </div>
+</div>
+`;
+
+exports[`FlowComponents > renders progress tracker with active and completed items 1`] = `
+<div
+  class="flow-progress-tracker"
+>
+  <div
+    class="flow-progress-item completed"
+  >
+    <div
+      class="flow-progress-number"
+    >
+      1
+    </div>
+    <div
+      class="flow-progress-content"
+    >
+      <div
+        class="flow-progress-label"
+      >
+        Collect data
+      </div>
+      <div
+        class="flow-progress-desc"
+      >
+        Connect your accounts and review habits.
+      </div>
+    </div>
+  </div>
+  <div
+    class="flow-progress-item active"
+  >
+    <div
+      class="flow-progress-number"
+    >
+      2
+    </div>
+    <div
+      class="flow-progress-content"
+    >
+      <div
+        class="flow-progress-label"
+      >
+        Score health
+      </div>
+      <div
+        class="flow-progress-desc"
+      >
+        See your financial resilience score.
+      </div>
+    </div>
+  </div>
+  <div
+    class="flow-progress-item "
+  >
+    <div
+      class="flow-progress-number"
+    >
+      3
+    </div>
+    <div
+      class="flow-progress-content"
+    >
+      <div
+        class="flow-progress-label"
+      >
+        Start plan
+      </div>
+      <div
+        class="flow-progress-desc"
+      >
+        Take action on the highest impact change.
+      </div>
+    </div>
+  </div>
+</div>
+`;

@@ -34,6 +34,8 @@ import {
   LineChart,
   BarChart3
 } from "lucide-react";
+import { PageSkeleton } from "./Skeleton.jsx";
+import "./skeleton.css";
 
 const LongitudinalLearningDashboard = ({ userId }) => {
   const [lifecycle, setLifecycle] = useState(null);
@@ -91,11 +93,8 @@ const LongitudinalLearningDashboard = ({ userId }) => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-screen bg-gray-50">
-        <div className="text-center">
-          <Activity className="w-12 h-12 animate-spin text-indigo-600 mx-auto mb-4" />
-          <p className="text-gray-600">Loading your financial journey...</p>
-        </div>
+      <div className="min-h-screen bg-gradient-to-br from-indigo-50 to-purple-100 p-6">
+        <PageSkeleton blockCount={5} />
       </div>
     );
   }

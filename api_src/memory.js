@@ -278,12 +278,13 @@ async function handleGet(subroute, query, res) {
       }
 
       try {
-        const { fetchDecisionsForUser } = await import("./dbClient.js");
-        // We use fetchDecisionsForUser pattern but for memory events
-        // For now, return empty array; in production this queries the financial_memory table
-        return res.status(200).json({ events: [], source: "database" });
+        const { fetchMemoryEventsForUser } = await import("./dbClient.js");
+        const rows = await fetchMemoryEventsForUser(query.userId);
+        const events = (rows || []).map((r) => ({ event: r.memory || null, timestamp: r.recorded_at || null }));
+        return res.status(200).json({ events, source: "database" });
       } catch (err) {
-        return res.status(200).json({ events: [], source: "error", error: err.message });
+        console.error("[Memory] fetch events error", err);
+        return res.status(500).json({ events: [], source: "error", error: err.message });
       }
     }
 

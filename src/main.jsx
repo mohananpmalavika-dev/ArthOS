@@ -1,5 +1,7 @@
 import React from "react";
 import { createRoot } from "react-dom/client";
+import { I18nextProvider } from "react-i18next";
+import i18n from "./i18n.js";
 import AppRouter from "./AppRouter.jsx";
 import { AuthProvider } from "./context/AuthContext.jsx";
 import { HistoricalDataProvider } from "./context/HistoricalDataContext.jsx";
@@ -16,13 +18,15 @@ initializeErrorMonitoring();
 
 createRoot(document.getElementById("root")).render(
   <React.StrictMode>
-    <ErrorBoundary>
-      <ConsentBanner />
-      <AuthProvider>
-        <HistoricalDataProvider>
-          <AppRouter />
-        </HistoricalDataProvider>
-      </AuthProvider>
-    </ErrorBoundary>
+    <I18nextProvider i18n={i18n}>
+      <ErrorBoundary>
+        <ConsentBanner />
+        <AuthProvider>
+          <HistoricalDataProvider>
+            <AppRouter />
+          </HistoricalDataProvider>
+        </AuthProvider>
+      </ErrorBoundary>
+    </I18nextProvider>
   </React.StrictMode>
 );

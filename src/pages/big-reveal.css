@@ -88,6 +88,30 @@
   width: 100%;
 }
 
+.big-reveal-animation-container {
+  width: 100%;
+  max-width: 320px;
+  height: 320px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.big-reveal-animation-graphic,
+.big-reveal-animation-placeholder {
+  width: 100%;
+  max-width: 320px;
+  height: auto;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .big-reveal-hero-orbits,
+  .big-reveal-animation-graphic {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
 .hero-metric {
   padding: 18px 22px;
   border-radius: 18px;

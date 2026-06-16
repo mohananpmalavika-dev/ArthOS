@@ -118,6 +118,29 @@ function Header({
           </a>
         ) : null}
 
+        {typeof window !== "undefined" &&
+        window.localStorage?.getItem("arth-os-dev-mode") === "true" ? (
+          <button
+            type="button"
+            className="model-icon-btn dev-qa-btn"
+            title="QA: trigger interstitial to /future-you"
+            onClick={() => {
+              try {
+                if (window.__arth_triggerInterstitial) {
+                  window.__arth_triggerInterstitial('/future-you');
+                } else {
+                  // fallback: navigate directly
+                  window.location.href = '/future-you';
+                }
+              } catch (e) {
+                // noop
+              }
+            }}
+          >
+            QA
+          </button>
+        ) : null}
+
         <a className="model-avatar-btn" href="#admin" aria-label="Admin dashboard">
           <span>A</span>
           <ChevronDown size={15} />

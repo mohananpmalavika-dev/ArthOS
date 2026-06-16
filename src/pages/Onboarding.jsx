@@ -9,6 +9,7 @@ import {
   componentMaximumsV2
 } from "../lib/scoring-v2.js";
 import AssessmentSection from "../components/AssessmentSection.jsx";
+import PrivacyConsent from "../components/PrivacyConsent.jsx";
 import AssessmentBuildingScreen from "../components/AssessmentBuildingScreen.jsx";
 import {
   v2BehaviourQuestions,
@@ -115,18 +116,26 @@ export default function Onboarding() {
               </div>
             </motion.div>
 
-            <motion.button
-              className="onboarding-cta"
-              onClick={() => setStage("assessment")}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 1, duration: 0.6 }}
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-            >
-              Launch discovery
-              <ArrowRight size={18} />
-            </motion.button>
+            <PrivacyConsent
+              onAccept={() => {
+                try {
+                  window.localStorage.setItem(
+                    "arthos:privacy",
+                    JSON.stringify({ telemetry: true, personalized: true, sharedAnonymized: false })
+                  );
+                } catch (e) {
+                  /* ignore */
+                }
+                setStage("assessment");
+              }}
+              onManage={(settings) => {
+                try {
+                  window.localStorage.setItem("arthos:privacy", JSON.stringify(settings));
+                } catch (e) {
+                  /* ignore */
+                }
+              }}
+            />
           </div>
 
           <motion.div

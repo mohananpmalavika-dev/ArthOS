@@ -87,6 +87,38 @@ export async function fetchDecisionsForUser(userId) {
   throw new Error("No database configuration found. Set DATABASE_URL or SUPABASE_URL/SUPABASE_SERVICE_ROLE_KEY.");
 }
 
+export async function fetchMemoryEventsForUser(userId) {
+  if (!userId) return [];
+
+  if (DATABASE_URL) {
+    const pool = getPgPool();
+    if (!pool) {
+      throw new Error("PostgreSQL pool could not be initialized.");
+    }
+
+    const sql = `SELECT memory, recorded_at FROM "financial_memory" WHERE user_id = $1 ORDER BY recorded_at ASC`;
+    const { rows } = await pool.query(sql, [userId]);
+    return rows.map((row) => ({ memory: row.memory || null, recorded_at: row.recorded_at }));
+  }
+
+  const supabase = createSupabaseClient();
+  if (supabase) {
+    const { data, error } = await supabase
+      .from("financial_memory")
+      .select("memory, recorded_at")
+      .eq("user_id", userId)
+      .order("recorded_at", { ascending: true });
+
+    if (error) {
+      throw error;
+    }
+
+    return (data || []).map((entry) => ({ memory: entry.memory || null, recorded_at: entry.recorded_at }));
+  }
+
+  throw new Error("No database configuration found. Set DATABASE_URL or SUPABASE_URL/SUPABASE_SERVICE_ROLE_KEY.");
+}
+
 export async function query(sql, params = []) {
   if (DATABASE_URL) {
     const pool = getPgPool();

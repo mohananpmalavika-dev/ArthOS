@@ -21,14 +21,7 @@ interface TierConfig {
   features: FeatureFlags;
 }
 
-interface FeatureMatrix {
-  [tier in UserTier]: TierConfig;
-}
-
-interface AssessmentLimitResult {
-  allowed: boolean;
-  remaining: number | null;
-}
+type FeatureMatrix = { [tier in UserTier]: TierConfig };
 
 // ============================================================================
 // CONSTANTS

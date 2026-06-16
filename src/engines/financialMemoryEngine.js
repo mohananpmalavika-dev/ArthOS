@@ -489,6 +489,34 @@ export function persistFinancialMemory(memory) {
   safeWrite(FINANCIAL_MEMORY_KEY, memory);
 }
 
+function normalizeRemoteMemoryEvent(entry) {
+  if (!entry) return null;
+  const rawEvent = entry.event || entry;
+  const timestamp = entry.timestamp || entry.recorded_at || rawEvent?.timestamp || new Date().toISOString();
+  const id = rawEvent?.id || `mem_${Math.round(Date.now() * Math.random())}`;
+  return {
+    ...rawEvent,
+    id,
+    timestamp
+  };
+}
+
+function mergeFinancialMemory(localMemory, remoteEvents) {
+  const merged = new Map();
+  const addEntry = (item) => {
+    if (!item || !item.timestamp) return;
+    const key = item.id || `${item.timestamp}-${JSON.stringify(item).slice(0, 100)}`;
+    if (!merged.has(key)) {
+      merged.set(key, item);
+    }
+  };
+
+  localMemory.forEach(addEntry);
+  (remoteEvents || []).map(normalizeRemoteMemoryEvent).forEach(addEntry);
+
+  return Array.from(merged.values()).sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+}
+
 export async function addFinancialMemoryEvent(event, userId = null) {
   if (!isBrowser()) {
     return [];
@@ -515,21 +543,36 @@ export async function addFinancialMemoryEvent(event, userId = null) {
   return memory;
 }
 
+export async function refreshFinancialMemory(userId = null) {
+  const localMemory = loadFinancialMemory();
+  if (!userId) {
+    return localMemory;
+  }
+
+  try {
+    const remote = await apiGet(`/memory/events?userId=${userId}`);
+    if (!remote || !Array.isArray(remote.events)) {
+      return localMemory;
+    }
+
+    const merged = mergeFinancialMemory(localMemory, remote.events);
+    persistFinancialMemory(merged);
+    return merged;
+  } catch (error) {
+    console.warn("[financialMemoryEngine] Failed to sync financial memory from server:", {
+      userId,
+      error: error?.message
+    });
+    return localMemory;
+  }
+}
+
 export function getFinancialMemoryTimeline(userId = null, limit = 50) {
   const memory = loadFinancialMemory();
   if (userId) {
-    apiGet(`/memory/events?userId=${userId}`)
-      .then(remote => {
-        if (remote && Array.isArray(remote.events) && remote.events.length > memory.length) {
-          persistFinancialMemory(remote.events);
-        }
-      })
-      .catch(error => {
-        console.warn("[financialMemoryEngine] Failed to sync financial memory from server:", {
-          userId,
-          error: error?.message
-        });
-      });
+    refreshFinancialMemory(userId).catch((error) => {
+      console.warn("[financialMemoryEngine] refreshFinancialMemory failed:", { userId, error: error?.message });
+    });
   }
   return memory.slice(0, limit);
 }

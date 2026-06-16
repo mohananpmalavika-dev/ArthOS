@@ -118,7 +118,19 @@ function parseJsonBody(req) {
 
 function createResponseHelpers(res) {
   res.status = (code) => { res.statusCode = code; return res; };
-  res.json = (payload) => { res.setHeader('Content-Type', 'application/json'); return res.end(JSON.stringify(payload)); };
+  // Wrap error responses in a standardized envelope: { status: 'error', error: { message, ... } }
+  res.json = (payload) => {
+    res.setHeader('Content-Type', 'application/json');
+    try {
+      if (res.statusCode >= 400) {
+        const errPayload = (payload && payload.error) ? payload.error : payload;
+        return res.end(JSON.stringify({ status: 'error', error: errPayload }));
+      }
+      return res.end(JSON.stringify(payload));
+    } catch (e) {
+      return res.end('{}');
+    }
+  };
 }
 
 export default async function handler(req, res) {
@@ -141,6 +153,15 @@ export default async function handler(req, res) {
       res.status(400).json({ error: 'Invalid JSON payload' });
       return;
     }
+  }
+
+  // Validate incoming request against OpenAPI if possible
+  try {
+    const { validateIncoming } = await import('./openapiValidator.js');
+    const validation = await validateIncoming(req, res);
+    if (validation && validation.ok === false) return; // response already sent for validation error
+  } catch (e) {
+    // if import fails, continue without validation
   }
 
   try {

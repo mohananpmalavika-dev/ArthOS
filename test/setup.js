@@ -1,6 +1,12 @@
 import "@testing-library/jest-dom";
 import { expect, afterEach, vi } from "vitest";
 import { cleanup } from "@testing-library/react";
+import { axe, toHaveNoViolations } from "jest-axe";
+
+expect.extend(toHaveNoViolations);
+
+// Make axe available globally for accessibility tests
+global.axe = axe;
 
 // Cleanup after each test
 afterEach(() => {
