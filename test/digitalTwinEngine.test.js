@@ -141,6 +141,8 @@ console.log(`  Improvement: ${((projection[11].discipline - projection[0].discip
 console.log('\nTEST 5: buildCompleteTwin Orchestrator');
 console.log('----');
 const twin = buildCompleteTwin(mockAssessment, mockProfile, mockHistory);
+let simulationResult;
+let scenarios;
 
 if (twin) {
   console.log(`✓ Digital twin built successfully`);
@@ -166,13 +168,13 @@ if (twin) {
     monthlyImpact: 5000,
     confidence: 0.7,
   };
-  const simulationResult = twin.methods.simulateDecision(simulatedDecision);
+  simulationResult = twin.methods.simulateDecision(simulatedDecision);
   console.log(`\n✓ Simulated decision`);
   console.log(`  Decision ID: ${simulationResult.decisionId}`);
   console.log(`  Projected final runway: ${simulationResult.projectedOutcome.runway.toFixed(2)} months`);
 
   // Test getFutureScenarios
-  const scenarios = twin.methods.getFutureScenarios();
+  scenarios = twin.methods.getFutureScenarios();
   console.log(`\n✓ Retrieved future scenarios`);
   console.log(`  Median runway (60m): ${scenarios.median.toFixed(1)} months`);
   console.log(`  Pessimistic (5%): ${scenarios.pessimistic.toFixed(1)} months`);

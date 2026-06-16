@@ -79,11 +79,11 @@ function getTrendRate(trend) {
   if (normalizedTrend.includes('improving') || normalizedTrend.includes('positive')) {
     return 0.03;
   }
-  if (normalizedTrend.includes('declining') || normalizedTrend.includes('negative')) {
-    return -0.04;
-  }
   if (normalizedTrend.includes('rapidly')) {
     return -0.08;
+  }
+  if (normalizedTrend.includes('declining') || normalizedTrend.includes('negative')) {
+    return -0.04;
   }
   return 0.0;
 }
@@ -206,8 +206,10 @@ export function getTrajectoryWarning(result) {
   let severity = 'none';
   let message = 'No immediate trajectory warning.';
   const recommended_actions = [];
-
-  if (trajectory.oneYear <= 30) {
+  // If projection drops precipitously relative to today, escalate to critical
+  const today = Math.max(1, trajectory.today || 0);
+  const dropRatio = trajectory.oneYear / today;
+  if (dropRatio <= 0.5 || trajectory.oneYear <= 30) {
     severity = 'critical';
     message = 'Your trajectory suggests critical financial stress within 12 months without intervention.';
     recommended_actions.push('Start interventions immediately.');

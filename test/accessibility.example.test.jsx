@@ -21,7 +21,7 @@ describe("Accessibility Tests - ArthOS Components", () => {
   describe("PageSkeleton Component", () => {
     it("should have no accessibility violations", async () => {
       const { container } = render(
-        <div aria-busy="true" aria-label="Loading page content">
+        <div role="status" aria-busy="true" aria-label="Loading page content">
           <div className="h-12 bg-slate-200 rounded animate-pulse"></div>
         </div>
       );

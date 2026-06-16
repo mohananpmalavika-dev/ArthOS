@@ -14,6 +14,10 @@ const ALLOWED_TABLES = [
   "anonymous_telemetry",
   "tester_feedback",
   "users",
+  "user_preferences",
+  "user_telemetry",
+  "user_drafts",
+  "user_decisions",
   // Blueprint longitudinal tables
   "decision_history",
   "user_scores_history",

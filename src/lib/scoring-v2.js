@@ -43,9 +43,9 @@ export function calculateAdaptiveBASTWeights(
 
   switch (userProfileType) {
     case "Crisis":
-      weights.stability = 0.6;
-      weights.behaviour = 0.2; // Adjust other weights proportionally
-      weights.awareness = 0.2;
+      weights.stability = 0.525;
+      weights.behaviour = 0.2375; // Emphasize stability, but keep behaviour and awareness meaningful
+      weights.awareness = 0.2375;
       break;
     case "Stable":
       weights.behaviour = 0.45;
