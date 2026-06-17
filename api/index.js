@@ -4,6 +4,7 @@ import riskOpportunityHandler from '../api_src/risk-opportunity.js';
 import feedbackHandler from '../api_src/feedback.js';
 import saveAssessmentHandler from '../api_src/saveAssessment.js';
 import telemetryHandler from '../api_src/telemetry.js';
+import cognitionAdapter from './cognition_adapter.js';
 import errorLogHandler from '../api_src/error-log.js';
 import memoryHandler from '../api_src/memory.js';
 import authLoginHandler from '../api_src/auth/login.js';
@@ -34,7 +35,6 @@ import backgroundHealthHandler from '../api_src/backgroundHealth.js';
 import { createRequire } from 'module';
 const requireModule = createRequire(import.meta.url);
 const longitudinalIndex = requireModule('../api_src/longitudinal/index.js');
-const cognitionRouter = requireModule('../api_src/longitudinal/cognition-graph-index.js');
 import calendarExportHandler from './calendar_export.js';
 import durableJobProcessorAdapter from './durableJobProcessor.js';
 import userExportHandler from '../api_src/user/export.js';
@@ -153,29 +153,7 @@ const routeDefinitions = [
       }
     } },
   // Cognition graph router (express-style router exported); strip prefix and invoke
-  { match: (pathname) => pathname.startsWith('/api/cognition'), handler: async (req, res) => {
-      try {
-        // clone req.url and strip prefix so router paths match (router defines '/beliefs', '/biases', etc.)
-        const original = req.headers['x-vercel-original-url'] || req.headers['x-now-original-url'] || req.url || '';
-        let localPath = original.split('?')[0].replace(/^\/api\/cognition/, '') || '/';
-        // Create minimal wrapper to call the express router function
-        req.url = localPath + (original.includes('?') ? '?' + original.split('?')[1] : '');
-        // cognitionRouter is an express router; call it directly
-        if (typeof cognitionRouter === 'function') {
-          return cognitionRouter(req, res, (err) => {
-            if (err) {
-              console.error('[Cognition Adapter] router error', err);
-              return res.status(500).json({ error: err.message || 'Internal server error' });
-            }
-            return res.status(404).json({ error: 'Cognition route not found' });
-          });
-        }
-        return res.status(500).json({ error: 'Cognition router not available' });
-      } catch (err) {
-        console.error('[Cognition Adapter] Error', err);
-        return res.status(500).json({ error: err.message || 'Internal server error' });
-      }
-    } },
+  { match: (pathname) => pathname.startsWith('/api/cognition'), handler: cognitionAdapter },
   { match: (pathname) => {
       const match = /^\/api\/share\/([^/]+)\/([^/]+)\/?$/.exec(pathname);
       return match || null;
