@@ -1,4 +1,5 @@
 import React from "react";
+import { useNavigate } from "react-router-dom";
 
 export function FlowSection({ id, active = false, title, description, badge, children }) {
   return (
@@ -19,6 +20,7 @@ export function FlowSection({ id, active = false, title, description, badge, chi
 
 export function FlowCard({ title, description, meta, icon: Icon, children, onClick, href }) {
   const className = "flow-card";
+  const navigate = useNavigate();
   const content = (
     <>
       {Icon && (
@@ -35,7 +37,19 @@ export function FlowCard({ title, description, meta, icon: Icon, children, onCli
 
   if (href) {
     return (
-      <a href={href} className={className}>
+      <a
+        href={href}
+        className={className}
+        onClick={e => {
+          e.preventDefault();
+          try {
+            navigate(href);
+          } catch (err) {
+            // fallback to full navigation
+            window.location.href = href;
+          }
+        }}
+      >
         {content}
       </a>
     );

@@ -52,15 +52,19 @@ function Header({
           const active = isHashLink ? activeHash === item.path : currentPath === item.path;
 
           return isHashLink ? (
-            <a
-              href={item.path}
-              key={item.id}
-              className={active ? "active" : ""}
-              aria-current={active ? "page" : undefined}
-            >
-              {item.label}
-            </a>
-          ) : (
+              <button
+                type="button"
+                key={item.id}
+                className={active ? "active" : ""}
+                aria-current={active ? "page" : undefined}
+                onClick={() => {
+                  const basePath = currentPath.startsWith('/dashboard') ? '/dashboard' : currentPath;
+                  navigate(`${basePath}${item.path}`);
+                }}
+              >
+                {item.label}
+              </button>
+            ) : (
             <NavLink
               key={item.id}
               to={item.path}

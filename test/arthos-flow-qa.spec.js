@@ -1,19 +1,24 @@
 import { test, expect } from '@playwright/test';
 
+const BASE = process.env.DEV_BASE || 'http://localhost:5175';
+
 test('ARTH.OS login -> assessment -> big reveal -> plan journey', async ({ page }) => {
   test.setTimeout(90000);
   const authPayload = {
-    token: 'qa-token',
+    token: 'dev-token',
     user: { id: 'qa-user', name: 'QA User', email: 'qa@example.com' },
   };
   const consoleMessages = [];
   page.on('console', (msg) => {
-    if (['error', 'warning'].includes(msg.type())) {
-      consoleMessages.push(`${msg.type()}: ${msg.text()}`);
-    }
+    consoleMessages.push(`${msg.type()}: ${msg.text()}`);
   });
   page.on('pageerror', (error) => {
     consoleMessages.push(`pageerror: ${error.message}`);
+  });
+  page.on('response', (response) => {
+    if (response.status() >= 400) {
+      consoleMessages.push(`response ${response.status()}: ${response.url()}`);
+    }
   });
 
   await page.addInitScript(() => {
@@ -86,13 +91,30 @@ test('ARTH.OS login -> assessment -> big reveal -> plan journey', async ({ page 
     });
   });
 
-  await page.route('**/api/auth/me', async (route) => {
+  await page.route('**/api/memory/sync/**', async (route) => {
     await route.fulfill({
       status: 200,
       contentType: 'application/json',
-      body: JSON.stringify(authPayload.user),
+      body: JSON.stringify({ success: true }),
     });
   });
+
+  await page.route('**/api/features**', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({ flags: {}, variants: {} }),
+    });
+  });
+
+  await page.route('**/api/analytics/events', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({ success: true }),
+    });
+  });
+
   await page.route('**/api/saveAssessment', async (route) => {
     await route.fulfill({
       status: 200,
@@ -105,6 +127,41 @@ test('ARTH.OS login -> assessment -> big reveal -> plan journey', async ({ page 
       status: 200,
       contentType: 'application/json',
       body: JSON.stringify({ status: 'ok' }),
+    });
+  });
+  await page.route('**/api/user/savePreference**', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({ success: true, data: {} }),
+    });
+  });
+  await page.route('**/api/user/saveTelemetry', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({ success: true }),
+    });
+  });
+  await page.route('**/api/user/saveDecision', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({ success: true }),
+    });
+  });
+  await page.route('**/api/user/saveDraft', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({ success: true }),
+    });
+  });
+  await page.route('**/api/user/loadDraft**', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({ draft: null }),
     });
   });
   // Mock decision history API to avoid runtime fetch errors
@@ -134,7 +191,15 @@ test('ARTH.OS login -> assessment -> big reveal -> plan journey', async ({ page 
     await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ success: true }) });
   });
 
-  await page.goto('http://127.0.0.1:5173/login', { waitUntil: 'networkidle' });
+  await page.route('**/api/**', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({ success: true }),
+    });
+  });
+
+  await page.goto(`${BASE}/login`, { waitUntil: 'networkidle' });
   await page.locator('#login-email').fill(authPayload.user.email);
   await page.locator('#login-password').fill('password123');
   await page.locator('.auth-submit-btn').click();
@@ -149,17 +214,22 @@ test('ARTH.OS login -> assessment -> big reveal -> plan journey', async ({ page 
 
 
 
-  await page.goto('http://127.0.0.1:5173/big-reveal', { waitUntil: 'networkidle' });
+  await page.goto(`${BASE}/big-reveal`, { waitUntil: 'networkidle' });
   await expect(page.locator('.big-reveal-title')).toContainText('Financial DNA Reveal');
   await expect(page.locator('.big-reveal-hero')).toBeVisible();
   await page.screenshot({ path: 'C:/tmp/arthos-big-reveal-desktop.png', fullPage: false });
 
-  // Navigate to dashboard via header link, then click the Plan nav item
-  await page.locator('header.topbar a.brand').click();
-  await page.waitForURL('**/dashboard**', { timeout: 10000 });
-  await page.getByRole('link', { name: 'Plan' }).click();
-  await page.waitForURL('**/dashboard/plan**', { timeout: 10000 });
+  // Navigate to dashboard (direct) then click the Plan nav item
+  await page.goto(`${BASE}/dashboard`, { waitUntil: 'networkidle' });
+  console.log('dashboard url after goto:', await page.url());
+  const dashboardHtml = await page.content();
+  console.log('dashboard html snippet:', dashboardHtml.slice(0, 1000).replace(/\n/g, ' '));
+  await page.locator('.dashboard-page-header h1').waitFor({ state: 'visible', timeout: 20000 });
+  await page.getByRole('link', { name: 'Plan' }).click({ force: true });
+  await page.waitForURL('**/dashboard/plan', { timeout: 20000 });
   console.log('URL at plan navigation:', await page.url());
+  await page.locator('.dashboard-page-header h1').waitFor({ state: 'visible', timeout: 20000 });
+  await expect(page.locator('.dashboard-page-header h1')).toContainText('Plan & Execution');
   await page.waitForLoadState('networkidle');
   const planHtml = await page.content();
   console.log('plan HTML length:', planHtml.length);

@@ -6,6 +6,7 @@
  */
 
 import React from 'react';
+import { NavLink } from 'react-router-dom';
 import {
   useCapability,
   useCapabilityDetails,
@@ -260,24 +261,48 @@ export function MainNavigation() {
   return (
     <nav className="main-nav">
       <ul>
-        <li><a href="/dashboard">Dashboard</a></li>
+        <li>
+          <NavLink to="/dashboard" className={({ isActive }) => (isActive ? 'active' : '')} end>
+            Dashboard
+          </NavLink>
+        </li>
 
         {bankingEnabled && (
-          <li><a href="/banking">Banking</a></li>
+          <li>
+            <NavLink to="/banking" className={({ isActive }) => (isActive ? 'active' : '')}>
+              Banking
+            </NavLink>
+          </li>
         )}
 
         {coachEnabled && (
-          <li><a href="/coach">AI Coach</a></li>
+          <li>
+            <NavLink to="/coach" className={({ isActive }) => (isActive ? 'active' : '')}>
+              AI Coach
+            </NavLink>
+          </li>
         )}
 
         {b2bEnabled && (
-          <li><a href="/b2b">Partners</a></li>
+          <li>
+            <NavLink to="/b2b" className={({ isActive }) => (isActive ? 'active' : '')}>
+              Partners
+            </NavLink>
+          </li>
         )}
 
-        <li><a href="/analytics">Analytics</a></li>
+        <li>
+          <NavLink to="/analytics" className={({ isActive }) => (isActive ? 'active' : '')}>
+            Analytics
+          </NavLink>
+        </li>
 
         {adminEnabled && (
-          <li><a href="/admin">Admin</a></li>
+          <li>
+            <NavLink to="/admin" className={({ isActive }) => (isActive ? 'active' : '')}>
+              Admin
+            </NavLink>
+          </li>
         )}
       </ul>
     </nav>

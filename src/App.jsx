@@ -1284,8 +1284,12 @@ export default function App({ demoMode = false }) {
     });
     setDigitalTwin(completeTwin);
     // After assessment completion, navigate to the cinematic Big Reveal route
+    // Do not override users who manually navigate directly to the dashboard.
     try {
-      if (!demoMode) {
+      console.log('App redirect check', { currentPath: window.location.pathname, demoMode, resultHealth: result.healthScore });
+      const currentPath = window.location.pathname || "";
+      if (!demoMode && !currentPath.startsWith("/dashboard")) {
+        console.log('App redirect to /big-reveal', { currentPath });
         navigate("/big-reveal", { replace: true });
       }
     } catch (err) {
@@ -1302,8 +1306,11 @@ export default function App({ demoMode = false }) {
     if (authLoading) return;
     if (!isAuthenticated) return;
     try {
-      // `scoreHistory` is provided by historicalData hook; if it's empty, treat as first-time
-      if (Array.isArray(scoreHistory) && scoreHistory.length === 0) {
+      // `scoreHistory` is provided by historicalData hook; if it's empty, treat as first-time.
+      // Only redirect to onboarding when the user lands on the root/home path.
+      const currentPath = location.pathname || "";
+      const shouldRedirectToOnboarding = currentPath === "/" || currentPath === "/home";
+      if (shouldRedirectToOnboarding && Array.isArray(scoreHistory) && scoreHistory.length === 0) {
         navigate("/onboarding", { replace: true });
       }
     } catch (err) {

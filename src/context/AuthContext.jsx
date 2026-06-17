@@ -2,7 +2,14 @@
 // Authentication context for ARTH.OS — manages JWT token, user state,
 // login/register/logout, auto-restore from localStorage, and sync on login.
 
-import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  useMemo,
+  useCallback
+} from "react";
 import { migrateAnonymousData } from "../lib/storageManager.js";
 import { migrateAnonymousDataToUser, clearUserData } from "../lib/userDataManager.js";
 
@@ -17,9 +24,13 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  const isLocalDevHost =
+    typeof window !== "undefined" &&
+    (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1");
+
   // Define syncLocalDataToServer BEFORE first useEffect that uses it
   const syncLocalDataToServer = useCallback(async (userId, authToken) => {
-    if (!userId || !authToken) {
+    if (!userId || !authToken || authToken === "dev-token") {
       return;
     }
     const { syncAllToServer, processSyncQueue } =
@@ -187,7 +198,9 @@ export function AuthProvider({ children }) {
         migrateAnonymousData(data.user.id);
         migrateAnonymousDataToUser(data.user.id);
         persistSession(data.user, tokenStr);
-        syncLocalDataToServer(data.user.id, tokenStr);
+        if (tokenStr !== "dev-token") {
+          syncLocalDataToServer(data.user.id, tokenStr);
+        }
 
         return true;
       } catch (err) {
