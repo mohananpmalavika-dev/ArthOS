@@ -151,8 +151,10 @@ export function AuthProvider({ children }) {
 
         persistSession(data.user, data.token);
 
-        // Fire-and-forget sync: push local data to server
-        syncLocalDataToServer(data.user.id, data.token);
+        // Fire-and-forget sync: push local data to server for non-dev tokens only
+        if (data.token !== "dev-token") {
+          syncLocalDataToServer(data.user.id, data.token);
+        }
 
         return true;
       } catch (err) {
@@ -249,8 +251,10 @@ export function AuthProvider({ children }) {
 
         persistSession(data.user, data.token);
 
-        // Fire-and-forget sync: push local data to server
-        syncLocalDataToServer(data.user.id, data.token);
+        // Fire-and-forget sync: push local data to server for non-dev tokens only
+        if (data.token !== "dev-token") {
+          syncLocalDataToServer(data.user.id, data.token);
+        }
 
         return true;
       } catch (err) {

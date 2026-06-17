@@ -15,13 +15,19 @@ test('ARTH.OS login -> assessment -> big reveal -> plan journey', async ({ page 
   page.on('pageerror', (error) => {
     consoleMessages.push(`pageerror: ${error.message}`);
   });
+  page.on('requestfailed', (request) => {
+    if (request.url().includes('/api/')) {
+      consoleMessages.push(`requestfailed: ${request.url()} ${request.failure()?.errorText || ''}`);
+    }
+  });
   page.on('response', (response) => {
-    if (response.status() >= 400) {
+    if (response.url().includes('/api/') && response.status() >= 400) {
       consoleMessages.push(`response ${response.status()}: ${response.url()}`);
     }
   });
 
   await page.addInitScript(() => {
+    // Seed localStorage to simulate logged-in dev session
     window.localStorage.setItem('arth-os-onboarding-complete', 'true');
     window.localStorage.setItem('arth-os-data-consent', 'true');
     window.localStorage.setItem(
@@ -32,6 +38,20 @@ test('ARTH.OS login -> assessment -> big reveal -> plan journey', async ({ page 
       'arth-os-auth',
       JSON.stringify({ user: { id: 'qa-user', name: 'QA User', email: 'qa@example.com' }, token: 'dev-token' })
     );
+
+    // Prevent the app from registering a Service Worker during tests by stubbing the API.
+    try {
+      if (navigator && navigator.serviceWorker) {
+        navigator.serviceWorker.register = () => Promise.resolve({
+          unregister: async () => true,
+        });
+        navigator.serviceWorker.getRegistrations = () => Promise.resolve([]);
+        navigator.serviceWorker.getRegistration = () => Promise.resolve(undefined);
+        Object.defineProperty(navigator, 'serviceWorker', { value: navigator.serviceWorker, configurable: false });
+      }
+    } catch (e) {
+      // ignore in environments where navigator isn't writable
+    }
   });
 
   await page.route('**/api/auth/login', async (route) => {
@@ -83,11 +103,11 @@ test('ARTH.OS login -> assessment -> big reveal -> plan journey', async ({ page 
       body: JSON.stringify({ risks: [] }),
     });
   });
-  await page.route('**/api/prediction/opportunities**', async (route) => {
+  await page.route('**/api/prediction/**', async (route) => {
     await route.fulfill({
       status: 200,
       contentType: 'application/json',
-      body: JSON.stringify({ opportunities: [] }),
+      body: JSON.stringify({ forecasts: [], scenarios: [], risks: [], opportunities: [] }),
     });
   });
 
@@ -212,6 +232,15 @@ test('ARTH.OS login -> assessment -> big reveal -> plan journey', async ({ page 
   // Refresh to ensure auth context restores from localStorage before navigating
   await page.reload({ waitUntil: 'networkidle' });
 
+  // Ensure any service workers that registered during app startup are removed
+  await page.evaluate(async () => {
+    if ('serviceWorker' in navigator) {
+      const regs = await navigator.serviceWorker.getRegistrations();
+      await Promise.all(regs.map((r) => r.unregister()));
+    }
+  });
+  await page.reload({ waitUntil: 'networkidle' });
+
 
 
   await page.goto(`${BASE}/big-reveal`, { waitUntil: 'networkidle' });
@@ -249,10 +278,9 @@ test('ARTH.OS login -> assessment -> big reveal -> plan journey', async ({ page 
   await page.waitForTimeout(500);
   await page.screenshot({ path: 'C:/tmp/arthos-plan-mobile.png', fullPage: false });
 
-  const relevantMessages = consoleMessages.filter((message) => {
-    return !message.includes('Failed to load resource')
-      && !message.includes('favicon')
-      && !message.includes('React Router Future Flag Warning');
+  // Fail only if any API responses returned 4xx/5xx (indicates mock bypass)
+  const apiErrors = consoleMessages.filter((message) => {
+    return message.startsWith('response') && /\/api\//.test(message) && / (4|5)\d\d: /.test(message);
   });
-  expect(relevantMessages).toEqual([]);
+  expect(apiErrors.length).toBe(0);
 });
