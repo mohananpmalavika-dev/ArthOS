@@ -14,13 +14,13 @@ export default {
 };
 
 const flowCards = (
-  <FlowCardsGrid>
+    <FlowCardsGrid>
     <FlowCard
       title="Confidence Score"
       description="Your current financial confidence in one clear snapshot."
       meta="+12% this month"
       icon={Activity}
-      href="#confidence"
+      onClick={() => console.log('Navigate to confidence (story)')}
     />
     <FlowCard
       title="Behavior Signals"

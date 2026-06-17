@@ -1,5 +1,6 @@
 import React from "react";
 import { ArrowRight, Brain, BarChart3, ShieldCheck } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { componentMaximumsV2 } from "../lib/scoring-v2.js";
 import { normalizeScore } from "../lib/scoring-v2";
 import { HERO_STATS, HERO_ACTIONS } from "../lib/copy.ts";
@@ -47,6 +48,7 @@ function buildLiveInsightCards(result, assessment) {
 }
 
 export default function HeroSection({ assessment, result }) {
+  const navigate = useNavigate();
   if (!result || !result.healthScore) {
     return null;
   }
@@ -98,16 +100,26 @@ export default function HeroSection({ assessment, result }) {
           </div>
           <div className="model-hero-actions">
             {HERO_ACTIONS.map(action => (
-              <a
+              <button
                 key={action.label}
+                type="button"
                 className={
                   action.href === "#assessment" ? "model-primary-cta" : "model-secondary-cta"
                 }
-                href={action.href}
+                onClick={() => {
+                  if (action.href && action.href.startsWith("#")) {
+                    const basePath = window.location.pathname.startsWith("/dashboard")
+                      ? "/dashboard"
+                      : window.location.pathname;
+                    navigate(`${basePath}${action.href}`);
+                  } else if (action.href) {
+                    navigate(action.href);
+                  }
+                }}
               >
                 {action.label}
                 <ArrowRight size={18} />
-              </a>
+              </button>
             ))}
           </div>
         </div>
@@ -164,10 +176,18 @@ export default function HeroSection({ assessment, result }) {
           </div>
           <div className="model-engine-footer">
             <span>Scoring based on 12 behavioral dimensions</span>
-            <a href="#assessment">
+            <button
+              type="button"
+              onClick={() => {
+                const basePath = window.location.pathname.startsWith("/dashboard")
+                  ? "/dashboard"
+                  : window.location.pathname;
+                navigate(`${basePath}#assessment`);
+              }}
+            >
               View full breakdown
               <ArrowRight size={17} />
-            </a>
+            </button>
           </div>
         </article>
 
@@ -175,9 +195,18 @@ export default function HeroSection({ assessment, result }) {
           <div className="model-insights-header">
             <h2>Live Insights</h2>
             <div>
-              <a className="model-view-insights" href="#reports">
+              <button
+                type="button"
+                className="model-view-insights"
+                onClick={() => {
+                  const basePath = window.location.pathname.startsWith("/dashboard")
+                    ? "/dashboard"
+                    : window.location.pathname;
+                  navigate(`${basePath}#reports`);
+                }}
+              >
                 View all
-              </a>
+              </button>
             </div>
           </div>
 

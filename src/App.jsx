@@ -265,6 +265,7 @@ function DemoBanner() {
 }
 
 function ReportsFlowHeader({ result, decisionHistoryCount, memoryTimeline }) {
+  const navigate = useNavigate();
   const score = normalizeScore(result);
   const reportSections = [
     {
@@ -351,7 +352,17 @@ function ReportsFlowHeader({ result, decisionHistoryCount, memoryTimeline }) {
           {reportSections.map((section, index) => {
             const Icon = section.icon;
             return (
-              <a href={section.href} className="report-menu-step" key={section.href}>
+              <button
+                type="button"
+                className="report-menu-step"
+                key={section.href}
+                onClick={() => {
+                  const basePath = window.location.pathname.startsWith("/dashboard")
+                    ? "/dashboard"
+                    : window.location.pathname;
+                  navigate(`${basePath}${section.href}`);
+                }}
+              >
                 <span className="report-menu-index">{String(index + 1).padStart(2, "0")}</span>
                 <span className="report-menu-icon">
                   <Icon size={18} />
@@ -360,7 +371,7 @@ function ReportsFlowHeader({ result, decisionHistoryCount, memoryTimeline }) {
                   <strong>{section.label}</strong>
                   <small>{section.caption}</small>
                 </span>
-              </a>
+              </button>
             );
           })}
         </nav>
@@ -2982,6 +2993,7 @@ function UpgradeJourney({ result, currentScore }) {
 const sIcons = { behaviour: Brain, awareness: BarChart3, stability: ShieldCheck };
 
 function HeroSection({ assessment, result }) {
+  const navigate = useNavigate();
   if (!result || !result.healthScore) {
     return null;
   }
@@ -3033,16 +3045,26 @@ function HeroSection({ assessment, result }) {
           </div>
           <div className="model-hero-actions">
             {HERO_ACTIONS.map(action => (
-              <a
+              <button
                 key={action.label}
+                type="button"
                 className={
                   action.href === "#assessment" ? "model-primary-cta" : "model-secondary-cta"
                 }
-                href={action.href}
+                onClick={() => {
+                  if (action.href && action.href.startsWith("#")) {
+                    const basePath = window.location.pathname.startsWith("/dashboard")
+                      ? "/dashboard"
+                      : window.location.pathname;
+                    navigate(`${basePath}${action.href}`);
+                  } else if (action.href) {
+                    navigate(action.href);
+                  }
+                }}
               >
                 {action.label}
                 <ArrowRight size={18} />
-              </a>
+              </button>
             ))}
           </div>
         </div>
@@ -3099,10 +3121,18 @@ function HeroSection({ assessment, result }) {
           </div>
           <div className="model-engine-footer">
             <span>Scoring based on 12 behavioral dimensions</span>
-            <a href="#assessment">
+            <button
+              type="button"
+              onClick={() => {
+                const basePath = window.location.pathname.startsWith("/dashboard")
+                  ? "/dashboard"
+                  : window.location.pathname;
+                navigate(`${basePath}#assessment`);
+              }}
+            >
               View full breakdown
               <ArrowRight size={17} />
-            </a>
+            </button>
           </div>
         </article>
 
@@ -3110,9 +3140,18 @@ function HeroSection({ assessment, result }) {
           <div className="model-insights-header">
             <h2>Live Insights</h2>
             <div>
-              <a className="model-view-insights" href="#reports">
+              <button
+                type="button"
+                className="model-view-insights"
+                onClick={() => {
+                  const basePath = window.location.pathname.startsWith("/dashboard")
+                    ? "/dashboard"
+                    : window.location.pathname;
+                  navigate(`${basePath}#reports`);
+                }}
+              >
                 View all
-              </a>
+              </button>
             </div>
           </div>
 

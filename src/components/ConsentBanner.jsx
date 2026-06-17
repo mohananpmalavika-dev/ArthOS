@@ -41,25 +41,23 @@ export default function ConsentBanner() {
             scores, categories, and ratios.
           </p>
           <div className="consent-links">
-            <a
-              href="#privacy"
-              onClick={e => {
-                e.preventDefault();
+            <button
+              type="button"
+              onClick={() => {
                 alert("Privacy policy would open here");
               }}
             >
               Privacy Policy
-            </a>
+            </button>
             <span className="separator">•</span>
-            <a
-              href="#terms"
-              onClick={e => {
-                e.preventDefault();
+            <button
+              type="button"
+              onClick={() => {
                 alert("Terms would open here");
               }}
             >
               Terms
-            </a>
+            </button>
           </div>
         </div>
         <div className="consent-actions">

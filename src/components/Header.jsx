@@ -12,6 +12,7 @@ import {
   LineChart,
   Share2
 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { OS_SHELL_ROUTES } from "../lib/routeMap.js";
 
 function Header({
@@ -34,6 +35,7 @@ function Header({
 }) {
   const location = useLocation();
   const currentPath = location.pathname || "";
+  const navigate = useNavigate();
 
   return (
     <header className="topbar">
@@ -134,14 +136,18 @@ function Header({
 
         {/** Only show developer tools link when devMode is enabled in UI state. */}
         {devMode ? (
-          <a
+          <button
+            type="button"
             className="dev-intelligence-link"
-            href="#intelligence"
+            onClick={() => {
+              const basePath = currentPath.startsWith("/dashboard") ? "/dashboard" : currentPath;
+              navigate(`${basePath}#intelligence`);
+            }}
             aria-label="Developer Intelligence"
           >
             <LineChart size={16} />
             <span>Dev Intelligence</span>
-          </a>
+          </button>
         ) : null}
 
         {devMode ? (
@@ -166,13 +172,22 @@ function Header({
           </button>
         ) : null}
 
-        <a className="model-avatar-btn" href="/dashboard#admin" aria-label="Admin dashboard">
+        <button
+          type="button"
+          className="model-avatar-btn"
+          onClick={() => navigate('/dashboard#admin')}
+          aria-label="Admin dashboard"
+        >
           <span>A</span>
           <ChevronDown size={15} />
-        </a>
-        <a className="model-start-btn" href="/dashboard#assessment">
+        </button>
+        <button
+          type="button"
+          className="model-start-btn"
+          onClick={() => navigate('/dashboard#assessment')}
+        >
           Start Assessment
-        </a>
+        </button>
       </div>
     </header>
   );
