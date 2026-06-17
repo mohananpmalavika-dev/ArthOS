@@ -35,7 +35,7 @@ function Header({
   const location = useLocation();
   const currentPath = location.pathname || "";
   const navigate = useNavigate();
-  const appRootPath = currentPath.startsWith('/demo') ? '/demo' : '/dashboard';
+  const appRootPath = currentPath.startsWith("/demo") ? "/demo" : "/dashboard";
 
   return (
     <header className="topbar">
@@ -47,16 +47,20 @@ function Header({
       </Link>
 
       <nav className="nav-links" aria-label="Primary navigation">
-        {OS_SHELL_ROUTES.map(item => (
-          <NavLink
-            key={item.id}
-            to={item.path}
-            end={item.path === "/dashboard"}
-            className={({ isActive }) => (isActive ? "active" : "")}
-          >
-            {item.label}
-          </NavLink>
-        ))}
+        {OS_SHELL_ROUTES.map(item => {
+          const Icon = item.icon;
+          return (
+            <NavLink
+              key={item.id}
+              to={item.path}
+              end={item.path === "/dashboard"}
+              className={({ isActive }) => (isActive ? "active" : "")}
+            >
+              <Icon size={15} aria-hidden="true" />
+              <span>{item.label}</span>
+            </NavLink>
+          );
+        })}
       </nav>
 
       <div className="model-header-actions" aria-label="Product actions">
@@ -141,11 +145,11 @@ function Header({
             onClick={() => {
               try {
                 if (window.__arth_triggerInterstitial) {
-                  window.__arth_triggerInterstitial('/future-you');
+                  window.__arth_triggerInterstitial("/future-you");
                 } else {
-                  navigate('/future-you');
+                  navigate("/future-you");
                 }
-              } catch (e) {
+              } catch {
                 // noop
               }
             }}
@@ -157,17 +161,13 @@ function Header({
         <button
           type="button"
           className="model-avatar-btn"
-          onClick={() => navigate('/dashboard/admin')}
+          onClick={() => navigate("/dashboard/admin")}
           aria-label="Admin dashboard"
         >
           <span>A</span>
           <ChevronDown size={15} />
         </button>
-        <button
-          type="button"
-          className="model-start-btn"
-          onClick={() => navigate('/assessment')}
-        >
+        <button type="button" className="model-start-btn" onClick={() => navigate("/assessment")}>
           Start Assessment
         </button>
       </div>

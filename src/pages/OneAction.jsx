@@ -8,9 +8,18 @@ export default function OneAction() {
   const result = calculateFinancialHealthV2(assessment);
 
   return (
-    <div style={{ padding: 24 }}>
-      <h1>One Recommended Action</h1>
-      <div style={{ marginTop: 12 }}>
+    <div className="premium-route-shell premium-route-shell-compact">
+      <section className="premium-route-hero premium-route-hero-split">
+        <div>
+          <p className="premium-route-kicker">Next Best Move</p>
+          <h1>One recommended action to move the score.</h1>
+          <p>
+            ARTH.OS compresses the analysis into the single move most likely to improve your
+            financial trajectory right now.
+          </p>
+        </div>
+      </section>
+      <div className="premium-route-card">
         <SingleRecommendedAction result={result} assessment={assessment} />
       </div>
     </div>

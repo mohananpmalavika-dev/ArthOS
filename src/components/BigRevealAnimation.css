@@ -77,6 +77,61 @@
   animation: shimmer 3s infinite;
 }
 
+/* Loading state */
+.big-reveal-loading {
+  position: relative;
+  z-index: 1;
+  font-size: clamp(1.25rem, 2.5vw, 2rem);
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.9);
+  letter-spacing: 0.03em;
+  animation: pulse 1.2s infinite ease-in-out;
+}
+
+@keyframes pulse {
+  0% { opacity: 0.35; transform: translateY(0); }
+  50% { opacity: 1; transform: translateY(-4px); }
+  100% { opacity: 0.35; transform: translateY(0); }
+}
+
+/* Spinner */
+.big-reveal-spinner {
+  position: relative;
+  z-index: 1;
+  width: 56px;
+  height: 56px;
+  display: grid;
+  place-items: center;
+}
+.spinner {
+  width: 56px;
+  height: 56px;
+}
+.spinner .path {
+  stroke: rgba(98, 228, 209, 0.9);
+  stroke-linecap: round;
+  stroke-dasharray: 90;
+  stroke-dashoffset: 60;
+  transform-origin: 50% 50%;
+  animation: dash 1.2s ease-in-out infinite, rot 1.6s linear infinite;
+}
+
+@keyframes dash {
+  0% { stroke-dashoffset: 90; }
+  50% { stroke-dashoffset: 20; }
+  100% { stroke-dashoffset: 90; }
+}
+
+@keyframes rot {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Make the animated number crisp during transitions */
+.big-reveal-animation-score {
+  transition: transform 160ms ease, opacity 220ms ease;
+}
+
 @keyframes reveal {
   from {
     opacity: 0;

@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { ArrowRight } from "lucide-react";
+import { CheckCircle2 } from "lucide-react";
 import { useAssessmentState } from "../hooks/useAssessmentState.js";
 import {
   calculateFinancialHealthV2,
@@ -19,12 +19,43 @@ import {
 } from "../data/questionnaire-v2.js";
 import "./onboarding.css";
 
+const onboardingBenefits = [
+  {
+    title: "Your Financial DNA",
+    copy: "Behavior patterns that define your money choices"
+  },
+  {
+    title: "Survival Reality",
+    copy: "Exactly how long your money lasts"
+  },
+  {
+    title: "One Powerful Action",
+    copy: "The single move that matters most right now"
+  },
+  {
+    title: "Your AI Coach",
+    copy: "Personalized guidance on every decision"
+  }
+];
+
+const particlePositions = [
+  [12, 18],
+  [78, 10],
+  [26, 72],
+  [88, 64],
+  [48, 24],
+  [58, 84],
+  [8, 52],
+  [72, 42]
+];
+
 export default function Onboarding() {
   const { assessment } = useAssessmentState();
   const result = calculateFinancialHealthV2(assessment);
-  const [stage, setStage] = useState("welcome"); // welcome | assessment | building | complete
+  const [stage, setStage] = useState("welcome");
+  const navigate = useNavigate();
+  const { saveSetting } = useSettings();
 
-  // Construct ui prop for AssessmentSection
   const ui = {
     behaviourQuestions: v2BehaviourQuestions,
     awarenessQuestions: v2AwarenessQuestions,
@@ -37,23 +68,24 @@ export default function Onboarding() {
     }
   };
 
-  const navigate = useNavigate();
-
-  const { saveSetting } = useSettings();
-
   const handleBuildingComplete = () => {
     setStage("complete");
     navigate("/big-reveal", { replace: true });
   };
 
-  // If assessment has been completed, move to building screen
   useEffect(() => {
-    if (stage === "assessment" && result && result.healthScore !== undefined && result.healthScore !== null) {
-      setStage("building");
+    if (
+      stage === "assessment" &&
+      result &&
+      result.healthScore !== undefined &&
+      result.healthScore !== null
+    ) {
+      const handle = window.setTimeout(() => setStage("building"), 0);
+      return () => window.clearTimeout(handle);
     }
-  }, [result?.healthScore, stage, navigate]);
+    return undefined;
+  }, [result, result?.healthScore, stage]);
 
-  // Welcome screen
   if (stage === "welcome") {
     return (
       <div className="onboarding-container">
@@ -78,8 +110,8 @@ export default function Onboarding() {
                 Launch your AI discovery journey and reveal the hidden structure of your finances.
               </p>
               <p className="onboarding-description">
-                In just a few minutes, ARTH.OS scans your Financial DNA, surfaces your runway,
-                and maps the exact levers that turn risk into resilience.
+                In just a few minutes, ARTH.OS scans your Financial DNA, surfaces your runway, and
+                maps the exact levers that turn risk into resilience.
               </p>
             </motion.div>
 
@@ -89,34 +121,17 @@ export default function Onboarding() {
               animate={{ opacity: 1 }}
               transition={{ delay: 0.6, duration: 0.6 }}
             >
-              <div className="benefit-item">
-                <div className="benefit-icon">✓</div>
-                <div className="benefit-text">
-                  <strong>Your Financial DNA</strong>
-                  <span>Behavior patterns that define your money choices</span>
+              {onboardingBenefits.map(benefit => (
+                <div className="benefit-item" key={benefit.title}>
+                  <div className="benefit-icon">
+                    <CheckCircle2 size={17} aria-hidden="true" />
+                  </div>
+                  <div className="benefit-text">
+                    <strong>{benefit.title}</strong>
+                    <span>{benefit.copy}</span>
+                  </div>
                 </div>
-              </div>
-              <div className="benefit-item">
-                <div className="benefit-icon">✓</div>
-                <div className="benefit-text">
-                  <strong>Survival Reality</strong>
-                  <span>Exactly how long your money lasts</span>
-                </div>
-              </div>
-              <div className="benefit-item">
-                <div className="benefit-icon">✓</div>
-                <div className="benefit-text">
-                  <strong>One Powerful Action</strong>
-                  <span>The single move that matters most right now</span>
-                </div>
-              </div>
-              <div className="benefit-item">
-                <div className="benefit-icon">✓</div>
-                <div className="benefit-text">
-                  <strong>Your AI Coach</strong>
-                  <span>Personalized guidance on every decision</span>
-                </div>
-              </div>
+              ))}
             </motion.div>
 
             <PrivacyConsent
@@ -128,7 +143,7 @@ export default function Onboarding() {
                 });
                 setStage("assessment");
               }}
-              onManage={async (privacySettings) => {
+              onManage={async privacySettings => {
                 await saveSetting("privacy", privacySettings);
               }}
             />
@@ -140,14 +155,14 @@ export default function Onboarding() {
             animate={{ opacity: 1 }}
             transition={{ delay: 1.2 }}
           >
-            {Array.from({ length: 8 }).map((_, i) => (
+            {particlePositions.map(([left, top], index) => (
               <div
-                key={i}
+                key={`${left}-${top}`}
                 className="particle"
                 style={{
-                  "--delay": `${i * 0.15}s`,
-                  left: `${Math.random() * 100}%`,
-                  top: `${Math.random() * 100}%`
+                  "--delay": `${index * 0.15}s`,
+                  left: `${left}%`,
+                  top: `${top}%`
                 }}
               />
             ))}
@@ -157,7 +172,6 @@ export default function Onboarding() {
     );
   }
 
-  // Assessment stage
   if (stage === "assessment") {
     return (
       <div className="onboarding-container">
@@ -177,12 +191,10 @@ export default function Onboarding() {
     );
   }
 
-  // Building screen
   if (stage === "building") {
     return <AssessmentBuildingScreen result={result} onComplete={handleBuildingComplete} />;
   }
 
-  // Complete — show Big Reveal
   if (stage === "complete") {
     return (
       <div className="onboarding-container">
@@ -191,9 +203,8 @@ export default function Onboarding() {
           animate={{ opacity: 1 }}
           transition={{ duration: 0.6 }}
         >
-          {/* The Big Reveal is now shown in the routed /big-reveal page */}
-          <div style={{ textAlign: "center", padding: 60 }}>
-            <h2>🎉 Your Assessment is Complete!</h2>
+          <div className="onboarding-complete-card">
+            <h2>Your assessment is complete.</h2>
             <p>Redirecting to your personalized report...</p>
           </div>
         </motion.div>

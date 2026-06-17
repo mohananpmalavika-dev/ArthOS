@@ -10,7 +10,17 @@ export default function Future() {
   const result = calculateFinancialHealthV2(assessment);
 
   return (
-    <div style={{ padding: 24 }}>
+    <div className="premium-route-shell">
+      <section className="premium-route-hero">
+        <div>
+          <p className="premium-route-kicker">Forecast Lab</p>
+          <h1>Your financial future, modeled before it happens.</h1>
+          <p>
+            Compare the current trajectory with stronger choices and see where runway, stress, and
+            resilience can move.
+          </p>
+        </div>
+      </section>
       <FutureScreen result={result} assessment={assessment} digitalTwin={digitalTwin} />
     </div>
   );

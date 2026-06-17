@@ -1,4 +1,5 @@
 import React, { Suspense, useState } from "react";
+import { BarChart3, BrainCircuit } from "lucide-react";
 import { useAssessmentState } from "../hooks/useAssessmentState.js";
 import { calculateFinancialHealthV2 } from "../lib/scoring-v2.js";
 import { useHistoricalDataContext } from "../context/HistoricalDataContext.jsx";
@@ -7,8 +8,23 @@ import ErrorBoundary from "../components/ErrorBoundary.jsx";
 const AnalyticsDashboard = React.lazy(() => import("../components/AnalyticsDashboard.jsx"));
 const DigitalTwinDashboard = React.lazy(() => import("../components/DigitalTwinDashboard.jsx"));
 
+const advancedTabs = [
+  {
+    id: "analytics",
+    label: "Analytics Dashboard",
+    description: "Signals, trends, and behavioral analytics",
+    icon: BarChart3
+  },
+  {
+    id: "digital-twin",
+    label: "Digital Twin",
+    description: "Projection model and scenario intelligence",
+    icon: BrainCircuit
+  }
+];
+
 const LazyComponentFallback = () => (
-  <div style={{ padding: 32, textAlign: "center", color: "#999" }}>
+  <div className="premium-route-loading">
     <p>Loading analytics...</p>
   </div>
 );
@@ -20,49 +36,52 @@ export default function AdvancedArea() {
   const [activeTab, setActiveTab] = useState("analytics");
 
   return (
-    <div style={{ padding: 24 }}>
-      <h1>Advanced Analytics Hub</h1>
-      <p>
-        Comprehensive view of your financial metrics, digital twin projection, and analytical deep-dives.
-      </p>
+    <div className="premium-route-shell advanced-route">
+      <section className="premium-route-hero">
+        <div>
+          <p className="premium-route-kicker">Advanced Analytics Hub</p>
+          <h1>Deep intelligence for your financial operating system.</h1>
+          <p>
+            Move between portfolio-grade analytics and your financial twin projection without
+            leaving the command center.
+          </p>
+        </div>
+      </section>
 
-      {/* Tab Navigation */}
-      <div className="advanced-area-tabs">
-        <button
-          className={`tab-button ${activeTab === "analytics" ? "active" : ""}`}
-          onClick={() => setActiveTab("analytics")}
-        >
-          Analytics Dashboard
-        </button>
-        <button
-          className={`tab-button ${activeTab === "digital-twin" ? "active" : ""}`}
-          onClick={() => setActiveTab("digital-twin")}
-        >
-          Digital Twin
-        </button>
+      <div className="advanced-area-tabs" role="tablist" aria-label="Advanced analytics views">
+        {advancedTabs.map(tab => {
+          const Icon = tab.icon;
+          const isActive = activeTab === tab.id;
+          return (
+            <button
+              key={tab.id}
+              type="button"
+              role="tab"
+              aria-selected={isActive}
+              className={`tab-button ${isActive ? "active" : ""}`}
+              onClick={() => setActiveTab(tab.id)}
+            >
+              <Icon size={18} aria-hidden="true" />
+              <span>
+                <strong>{tab.label}</strong>
+                <small>{tab.description}</small>
+              </span>
+            </button>
+          );
+        })}
       </div>
 
-      {/* Analytics Content */}
-      {activeTab === "analytics" && (
-        <div style={{ marginTop: 24 }}>
-          <Suspense fallback={<LazyComponentFallback />}>
-            <ErrorBoundary>
+      <section className="premium-route-card advanced-route-panel">
+        <Suspense fallback={<LazyComponentFallback />}>
+          <ErrorBoundary>
+            {activeTab === "analytics" ? (
               <AnalyticsDashboard result={result} />
-            </ErrorBoundary>
-          </Suspense>
-        </div>
-      )}
-
-      {/* Digital Twin Content */}
-      {activeTab === "digital-twin" && (
-        <div style={{ marginTop: 24 }}>
-          <Suspense fallback={<LazyComponentFallback />}>
-            <ErrorBoundary>
+            ) : (
               <DigitalTwinDashboard twin={digitalTwin} result={result} assessment={assessment} />
-            </ErrorBoundary>
-          </Suspense>
-        </div>
-      )}
+            )}
+          </ErrorBoundary>
+        </Suspense>
+      </section>
     </div>
   );
 }
