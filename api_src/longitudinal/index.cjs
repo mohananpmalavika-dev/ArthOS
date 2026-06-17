@@ -5,10 +5,22 @@ const BehaviorEvolutionEngine = require('./behavior-evolution-engine.cjs');
 const PatternLearningEngine = require('./pattern-learning-engine.cjs');
 const LifecycleScoringSystem = require('./lifecycle-scoring-system.cjs');
 
-const supabase = createClient(
-  process.env.SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_ROLE_KEY
-);
+function isPlaceholderValue(value) {
+  if (!value) return true;
+  const lower = String(value).trim().toLowerCase();
+  return lower.includes('your-project') || lower.includes('your-service-role-key') || lower.includes('xxx') || lower.includes('replace') || lower.includes('example');
+}
+
+function createSupabaseClient() {
+  const url = process.env.SUPABASE_URL;
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!url || !key || isPlaceholderValue(url) || isPlaceholderValue(key)) {
+    throw new Error('Missing or invalid Supabase configuration. Set SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY to valid values.');
+  }
+  return createClient(url, key);
+}
+
+const supabase = createSupabaseClient();
 
 async function getBehaviorSnapshot(req, res) {
   const { userId } = req.query;

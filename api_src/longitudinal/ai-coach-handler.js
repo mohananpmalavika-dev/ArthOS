@@ -7,7 +7,9 @@
 
 import 'dotenv/config';
 import { createClient } from '@supabase/supabase-js';
-import AICoachEngine from './ai-coach-engine.js';
+import { createRequire } from 'module';
+const requireModule = createRequire(import.meta.url);
+const AICoachEngine = requireModule('./ai-coach-engine.cjs');
 import { requireAuth } from '../auth/jwt.js';
 
 const SUPABASE_URL = process.env.SUPABASE_URL;

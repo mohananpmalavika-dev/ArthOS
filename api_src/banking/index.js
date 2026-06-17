@@ -12,7 +12,9 @@
  */
 
 import { createClient } from '@supabase/supabase-js';
-import AAConnector from './aa-connector.js';
+import { createRequire } from 'module';
+const requireModule = createRequire(import.meta.url);
+const AAConnector = requireModule('./aa-connector.cjs');
 import UPIIngestion from './upi-ingestion.js';
 import BankFeeds from './bank-feeds.js';
 import InsuranceAPIs from './insurance-apis.js';

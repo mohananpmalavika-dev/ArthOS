@@ -189,6 +189,15 @@ function parseJsonBody(req) {
 
 function createResponseHelpers(res) {
   res.status = (code) => { res.statusCode = code; return res; };
+  res.send = (payload) => {
+    if (payload === undefined || payload === null) {
+      return res.end();
+    }
+    if (typeof payload === 'object' && !Buffer.isBuffer(payload)) {
+      return res.json(payload);
+    }
+    return res.end(typeof payload === 'string' ? payload : Buffer.from(payload));
+  };
   // Wrap error responses in a standardized envelope: { status: 'error', error: { message, ... } }
   res.json = (payload) => {
     res.setHeader('Content-Type', 'application/json');

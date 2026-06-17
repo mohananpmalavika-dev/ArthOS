@@ -2,9 +2,11 @@ import fs from 'fs';
 import path from 'path';
 import YAML from 'js-yaml';
 let validator = null;
+let initAttempted = false;
 
 async function init() {
-  if (validator) return validator;
+  if (validator || initAttempted) return validator;
+  initAttempted = true;
   try {
     const { default: OpenAPIBackend } = await import('openapi-backend');
     const specPath = path.resolve(process.cwd(), 'docs', 'openapi.yml');
@@ -28,8 +30,10 @@ async function init() {
     await validator.init();
     return validator;
   } catch (err) {
-    // If the validator can't be initialized, log but continue with noop validator
-    console.warn('[openapiValidator] init failed, validation disabled:', err && err.message);
+    // If the validator can't be initialized, log once and continue with noop validator
+    if (!validator) {
+      console.warn('[openapiValidator] init failed, validation disabled:', err && err.message);
+    }
     validator = null;
     return null;
   }
