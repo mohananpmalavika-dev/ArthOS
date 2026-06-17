@@ -1,9 +1,9 @@
 /* Longitudinal Learning API Router (CommonJS copy) */
 
 const { createClient } = require('@supabase/supabase-js');
-const BehaviorEvolutionEngine = require('./behavior-evolution-engine');
-const PatternLearningEngine = require('./pattern-learning-engine');
-const LifecycleScoringSystem = require('./lifecycle-scoring-system');
+const BehaviorEvolutionEngine = require('./behavior-evolution-engine.cjs');
+const PatternLearningEngine = require('./pattern-learning-engine.cjs');
+const LifecycleScoringSystem = require('./lifecycle-scoring-system.cjs');
 
 const supabase = createClient(
   process.env.SUPABASE_URL,
