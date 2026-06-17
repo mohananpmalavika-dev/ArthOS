@@ -88,7 +88,7 @@ export const INSIGHT_TITLES = {
   awarenessGap: "Awareness Gap",
   futureRisk: "Future risk",
   behaviorCorrelation: "Behavioral correlation",
-  liveInsights: "Live Insights",
+  liveInsights: "Insights",
   viewAllInsights: "View all insights"
 };
 

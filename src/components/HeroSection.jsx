@@ -89,8 +89,8 @@ export default function HeroSection({ assessment, result }) {
             your money leaves behind.
           </h1>
           <p>
-            ARTH.OS turns behavior, awareness and stability into a private intelligence layer for
-            clearer financial decisions.
+            ARTH.OS turns behavior, awareness and stability into clearer signals for
+            financial decisions.
           </p>
           <div className="hero-stat-card">
             {HERO_STATS.map(item => (
@@ -124,7 +124,7 @@ export default function HeroSection({ assessment, result }) {
         <article className="model-engine-panel" id="intelligence">
           <div className="model-panel-title">
             <span className="model-orb" />
-            <h2>ARTH.OS Intelligence Engine</h2>
+            <h2>Financial engine</h2>
           </div>
           <div className="model-engine-content">
             <div className="model-score-block">
@@ -187,7 +187,7 @@ export default function HeroSection({ assessment, result }) {
 
         <aside className="model-insights-rail">
           <div className="model-insights-header">
-            <h2>Live Insights</h2>
+            <h2>Insights</h2>
             <div>
               <button
                 type="button"

@@ -11,7 +11,7 @@ export default function Why() {
     <div className="premium-route-shell">
       <section className="premium-route-hero">
         <div>
-          <p className="premium-route-kicker">Behavior Intelligence</p>
+          <p className="premium-route-kicker">Behavior insights</p>
           <h1>The why behind your money patterns.</h1>
           <p>
             Understand the habits, beliefs, and hidden drivers shaping your score so improvement

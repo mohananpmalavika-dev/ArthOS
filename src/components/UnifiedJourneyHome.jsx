@@ -199,8 +199,8 @@ export default function UnifiedJourneyHome({ result, assessment, onCoachOpen }) 
 
       <div className="home-block">
         <div className="section-header">
-          <span className="section-eyebrow">Command Center</span>
-          <h2 className="section-title">Financial command center</h2>
+          <span className="section-eyebrow">Overview</span>
+          <h2 className="section-title">Financial snapshot</h2>
           <p className="section-copy">
             One place for score, runway, risk, and the right decisions your AI coach is already
             tracking.
@@ -275,13 +275,14 @@ export default function UnifiedJourneyHome({ result, assessment, onCoachOpen }) 
 
       <div className="home-block">
         <div className="section-header">
-          <span className="section-eyebrow">Digital Twin</span>
-          <h2 className="section-title">Your future self preview</h2>
+          <span className="section-eyebrow">Projected profile</span>
+          <h2 className="section-title">Where your current plan leads</h2>
           <p className="section-copy">
-              A snapshot of your future financial profile if you stay on the current plan.
-         </p> <FutureYou data={futureYouData} />
-          <FinancialWeatherCard weatherIndex={result?.weatherIndex} healthScore={result?.healthScore ?? 0} />
+            A snapshot of your future financial profile if you stay on the current plan.
+          </p>
         </div>
+        <FutureYou data={futureYouData} />
+        <FinancialWeatherCard weatherIndex={result?.weatherIndex} healthScore={result?.healthScore ?? 0} />
       </div>
 
       <div className="home-block">
@@ -309,8 +310,8 @@ export default function UnifiedJourneyHome({ result, assessment, onCoachOpen }) 
 
       <div className="home-block">
         <div className="section-header">
-          <span className="section-eyebrow">Scenario Lab</span>
-          <h2 className="section-title">Test plan outcomes with the AI lab</h2>
+          <span className="section-eyebrow">Scenario view</span>
+          <h2 className="section-title">Compare plan outcomes</h2>
           <p className="section-copy">
             Compare your baseline with recommended actions and see which choices move your score
             forward.
@@ -322,8 +323,8 @@ export default function UnifiedJourneyHome({ result, assessment, onCoachOpen }) 
 
       <div className="home-block">
         <div className="section-header">
-          <span className="section-eyebrow">AI command center</span>
-          <h2 className="section-title">Conversation-ready signals</h2>
+          <span className="section-eyebrow">Coach shortcuts</span>
+          <h2 className="section-title">Actions and guidance</h2>
           <p className="section-copy">
             Talk to the coach about the exact levers that matter most right now.
           </p>
@@ -344,7 +345,7 @@ export default function UnifiedJourneyHome({ result, assessment, onCoachOpen }) 
 
       <div className="home-block">
         <div className="section-header">
-          <span className="section-eyebrow">Live insights</span>
+          <span className="section-eyebrow">Insights</span>
           <h2 className="section-title">Quick insights</h2>
           <p className="section-copy">
             High-value takeaways surfaced in a quick, swipeable format.
@@ -391,8 +392,8 @@ export default function UnifiedJourneyHome({ result, assessment, onCoachOpen }) 
 
       <div className="home-block mission-block">
         <div className="section-header">
-          <span className="section-eyebrow">Mission system</span>
-          <h2 className="section-title">Your weekly mission and next best move</h2>
+          <span className="section-eyebrow">Weekly focus</span>
+          <h2 className="section-title">Your next best move</h2>
           <p className="section-copy">
             A single focus area plus the step-by-step move that matters most this week.
           </p>
@@ -406,8 +407,8 @@ export default function UnifiedJourneyHome({ result, assessment, onCoachOpen }) 
 
       <div id="journey" className="home-block">
         <div className="section-header">
-          <span className="section-eyebrow">Journey map</span>
-          <h2 className="section-title">Your long-term trajectory</h2>
+          <span className="section-eyebrow">Trajectory</span>
+          <h2 className="section-title">Your long-term path</h2>
           <p className="section-copy">
             See the current path, the recommended path, and how one decision changes the whole
             outlook.

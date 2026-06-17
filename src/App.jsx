@@ -258,11 +258,11 @@ function DemoBanner() {
       }}
     >
       <strong style={{ display: "block", marginBottom: "6px", color: "#1647dc" }}>
-        Investor demo route active
+        Demo route active
       </strong>
       <p style={{ margin: 0, color: "#1f2a56" }}>
-        This experience is optimized for clarity — one unified financial view built for investor
-        review.
+        This experience is optimized for clarity — a unified financial dashboard for review and
+        planning.
       </p>
     </section>
   );
@@ -1281,7 +1281,7 @@ export default function App({ demoMode = false }) {
       history: memoryEngine.getHistory()
     });
     setDigitalTwin(completeTwin);
-    // After assessment completion, navigate to the cinematic Big Reveal route
+    // After assessment completion, navigate to the Big Reveal route
     // Do not override users who manually navigate directly to the dashboard.
     try {
       console.log('App redirect check', { currentPath: window.location.pathname, demoMode, resultHealth: safeHealthScore });
@@ -1465,7 +1465,7 @@ export default function App({ demoMode = false }) {
     }
   }
 
-  // Interstitial UI state: show a short cinematic overlay before navigating to BigReveal
+  // Interstitial UI state: show a short transition overlay before navigating to BigReveal
   const [showInterstitial, setShowInterstitial] = useState(false);
 
   // Navigate with interstitial: show overlay, wait, then navigate
@@ -1478,7 +1478,7 @@ export default function App({ demoMode = false }) {
       } catch (e) {
         // ignore
       }
-    }, 1400); // 1400ms cinematic delay to match progress animation
+    }, 1400); // 1400ms transition delay to match progress animation
   }
 
   // Dev helper: expose a global trigger to simulate assessment completion during local testing
@@ -1591,7 +1591,7 @@ export default function App({ demoMode = false }) {
                   <text x="42" y="48" fontSize="22" fontWeight="700" textAnchor="middle" fill="#04233a">ARTH</text>
                 </motion.svg>
               </div>
-              <div className="interstitial-hero">Refining your Financial DNA...</div>
+              <div className="interstitial-hero">Preparing your financial summary...</div>
               <div className="interstitial-progress">
                 <motion.div
                   className="interstitial-progress-bar"
@@ -2983,8 +2983,8 @@ function HeroSection({ assessment, result }) {
             your money leaves behind.
           </h1>
           <p>
-            ARTH.OS turns behavior, awareness and stability into a private intelligence layer for
-            clearer financial decisions.
+            ARTH.OS turns behavior, awareness and stability into clearer signals for
+            financial decisions.
           </p>
           <div className="hero-stat-card">
             {HERO_STATS.map(item => (
@@ -3018,7 +3018,7 @@ function HeroSection({ assessment, result }) {
         <article className="model-engine-panel" id="intelligence">
           <div className="model-panel-title">
             <span className="model-orb" />
-            <h2>ARTH.OS Intelligence Engine</h2>
+            <h2>Financial engine</h2>
           </div>
           <div className="model-engine-content">
             <div className="model-score-block">
@@ -3081,7 +3081,7 @@ function HeroSection({ assessment, result }) {
 
         <aside className="model-insights-rail">
           <div className="model-insights-header">
-            <h2>Live Insights</h2>
+            <h2>Insights</h2>
             <div>
               <button
                 type="button"

@@ -98,7 +98,7 @@ export default function FutureScreen({ result, assessment, digitalTwin }) {
 
         <section className="result-card forecast-card" style={{ padding: "24px" }}>
           <h2 style={{ margin: 0, fontSize: "1.3rem", fontWeight: 700, color: "var(--ink-0)", marginBottom: "16px" }}>
-            Scenario Lab
+            Scenario comparison
           </h2>
           <p style={{ margin: "0 0 20px", color: "var(--ink-3)", lineHeight: 1.6 }}>
             Try different decisions and see how your future changes.

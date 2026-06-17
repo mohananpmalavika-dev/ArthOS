@@ -39,11 +39,11 @@ export default function AdvancedArea() {
     <div className="premium-route-shell advanced-route">
       <section className="premium-route-hero">
         <div>
-          <p className="premium-route-kicker">Advanced Analytics Hub</p>
-          <h1>Deep intelligence for your financial operating system.</h1>
+          <p className="premium-route-kicker">Advanced analytics</p>
+          <h1>Deep analysis for your financial plan.</h1>
           <p>
-            Move between portfolio-grade analytics and your financial twin projection without
-            leaving the command center.
+            Move between detailed analytics and your financial projection without leaving the main
+            dashboard.
           </p>
         </div>
       </section>

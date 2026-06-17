@@ -56,7 +56,7 @@ function AppRouter() {
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
 
-          {/* Guided story and cinematic flow */}
+          {/* Onboarding route */}
           <Route
             path="/onboarding"
             element={

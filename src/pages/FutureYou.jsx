@@ -36,11 +36,11 @@ export default function FutureYou() {
     <div className="premium-route-shell future-you-route">
       <section className="premium-route-hero future-you-hero">
         <div>
-          <p className="premium-route-kicker">Future You Trajectory</p>
+          <p className="premium-route-kicker">Future projection</p>
           <h1>The version of you that your money can become.</h1>
           <p>
             {archetypeIntro} Explore projected runway, core strengths, and the weekly mission that
-            turns this story into momentum.
+            helps you make measurable progress.
           </p>
         </div>
         <button type="button" className="premium-route-cta" onClick={() => navigate("/action")}>
@@ -59,8 +59,8 @@ export default function FutureYou() {
           <section className="premium-route-card future-you-nudge">
             <h2>Turn it into real momentum</h2>
             <p>
-              Your Financial DNA is the engine. The mission below is the first spark that moves your
-              score, runway, and stress profile in the same direction.
+              Your current financial profile is the foundation. The mission below helps improve your
+              score, runway, and stress outlook together.
             </p>
             <button type="button" onClick={() => navigate("/action")} className="premium-route-cta">
               Start the mission
@@ -73,11 +73,11 @@ export default function FutureYou() {
       <section className="premium-route-section">
         <div className="premium-route-section-head">
           <div>
-            <p className="premium-route-kicker">Future momentum</p>
+            <p className="premium-route-kicker">Projection summary</p>
             <h2>One week, one mission, one stronger next step.</h2>
             <p>
-              The weekly mission below is designed to bridge your current Financial DNA to the
-              future self you just previewed.
+              The weekly mission below is designed to connect your current financial profile with the
+              future outcome you just reviewed.
             </p>
           </div>
           <button

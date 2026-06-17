@@ -19,13 +19,13 @@ const BigReveal = ({
 
       <div className="cinematic-content">
         <div className="cinematic-left">
-          <p className="cinematic-system-line">Financial Health OS</p>
+          <p className="cinematic-system-line">Financial health overview</p>
           <h1 id="big-reveal-title" className="cinematic-title">
-            Your money system, decoded into one operating score.
+            A single score for your financial profile.
           </h1>
           <p className="cinematic-lede">
-            ARTH.OS turns income, runway, behaviour, and risk into a clear command center so the
-            next financial move is obvious.
+            ARTH.OS combines income, runway, behavior, and risk into a clear view so your next
+            financial move is easier to see.
           </p>
 
           <div className="cinematic-metrics" aria-label="Current financial signals">

@@ -13,7 +13,7 @@ export default function Future() {
     <div className="premium-route-shell">
       <section className="premium-route-hero">
         <div>
-          <p className="premium-route-kicker">Forecast Lab</p>
+          <p className="premium-route-kicker">Forecast</p>
           <h1>Your financial future, modeled before it happens.</h1>
           <p>
             Compare the current trajectory with stronger choices and see where runway, stress, and
