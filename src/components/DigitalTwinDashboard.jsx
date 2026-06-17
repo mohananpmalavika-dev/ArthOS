@@ -40,7 +40,11 @@ export default function DigitalTwinDashboard({ twin, result, twinData, assessmen
     survivalRate: stats.survivalRate
   };
 
-  const score = clampScore(normalizeScore(currentState.median?.healthScore ?? twinSource.financial?.score ?? 0));
+  const medianHealthScore = currentState.median?.healthScore;
+  const score =
+    medianHealthScore != null
+      ? clampScore(medianHealthScore)
+      : clampScore(normalizeScore(twinSource.financial?.score ?? 0));
   const runway = Number(
     currentState.median?.runway ?? twinSource.financial?.runway ?? future?.median ?? 0
   ).toFixed(1);

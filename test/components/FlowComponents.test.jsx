@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/react';
+import { MemoryRouter } from 'react-router-dom';
 import { Activity, Sparkles, ShieldCheck } from 'lucide-react';
 import {
   FlowSection,
@@ -31,28 +32,30 @@ describe('FlowComponents', () => {
 
   it('renders flow cards grid with interactive and linked cards', () => {
     const { container } = render(
-      <FlowCardsGrid>
-        <FlowCard
-          title="Confidence Score"
-          description="Your current financial confidence in one clear snapshot."
-          meta="+12% this month"
-          icon={Activity}
-          href="#confidence"
-        />
-        <FlowCard
-          title="Behavior Signals"
-          description="Track the actions that changed your outlook."
-          meta="3 active signals"
-          icon={Sparkles}
-          onClick={() => {}}
-        />
-        <FlowCard
-          title="Resilience Plan"
-          description="A recommended next step to strengthen your runway."
-          meta="Next review: today"
-          icon={ShieldCheck}
-        />
-      </FlowCardsGrid>
+      <MemoryRouter>
+        <FlowCardsGrid>
+          <FlowCard
+            title="Confidence Score"
+            description="Your current financial confidence in one clear snapshot."
+            meta="+12% this month"
+            icon={Activity}
+            href="#confidence"
+          />
+          <FlowCard
+            title="Behavior Signals"
+            description="Track the actions that changed your outlook."
+            meta="3 active signals"
+            icon={Sparkles}
+            onClick={() => {}}
+          />
+          <FlowCard
+            title="Resilience Plan"
+            description="A recommended next step to strengthen your runway."
+            meta="Next review: today"
+            icon={ShieldCheck}
+          />
+        </FlowCardsGrid>
+      </MemoryRouter>
     );
 
     expect(screen.getByText('Confidence Score')).toBeInTheDocument();
