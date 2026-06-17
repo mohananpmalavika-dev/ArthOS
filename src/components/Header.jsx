@@ -10,8 +10,11 @@ import {
   CircleUserRound,
   ChevronDown,
   LineChart,
-  Share2
+  Share2,
+  ChevronLeft,
+  ChevronRight
 } from "lucide-react";
+import { useRef, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { OS_SHELL_ROUTES } from "../lib/routeMap.js";
 
@@ -36,6 +39,85 @@ function Header({
   const currentPath = location.pathname || "";
   const navigate = useNavigate();
   const appRootPath = currentPath.startsWith("/demo") ? "/demo" : "/dashboard";
+  const navRef = useRef(null);
+  const isDragging = useRef(false);
+  const startX = useRef(0);
+  const startScroll = useRef(0);
+  const [showNavControls, setShowNavControls] = useState(false);
+
+  const scrollNav = delta => {
+    const el = navRef.current;
+    if (!el) return;
+    el.scrollBy({ left: delta, behavior: "smooth" });
+  };
+
+  useEffect(() => {
+    // auto-scroll the active nav item into view on route change
+    const el = navRef.current;
+    if (!el) return;
+    const active = el.querySelector("a.active");
+    if (active) {
+      try {
+        active.scrollIntoView({ inline: "center", behavior: "smooth", block: "nearest" });
+      } catch (e) {
+        const rect = active.getBoundingClientRect();
+        const parentRect = el.getBoundingClientRect();
+        const offset = rect.left - parentRect.left - parentRect.width / 2 + rect.width / 2;
+        el.scrollBy({ left: offset, behavior: "smooth" });
+      }
+    }
+  }, [location.pathname]);
+
+  useEffect(() => {
+    const el = navRef.current;
+    if (!el) return;
+
+    const update = () => {
+      setShowNavControls(el.scrollWidth > el.clientWidth + 4);
+    };
+
+    update();
+    window.addEventListener("resize", update);
+    el.addEventListener("scroll", update);
+
+    return () => {
+      window.removeEventListener("resize", update);
+      el.removeEventListener("scroll", update);
+    };
+  }, []);
+
+  // drag-to-scroll handlers
+  const handlePointerDown = e => {
+    const el = navRef.current;
+    if (!el) return;
+    isDragging.current = true;
+    startX.current = e.pageX || e.touches?.[0]?.pageX || 0;
+    startScroll.current = el.scrollLeft;
+    el.classList.add("dragging");
+  };
+
+  const handlePointerMove = e => {
+    if (!isDragging.current) return;
+    const el = navRef.current;
+    const x = e.pageX || e.touches?.[0]?.pageX || 0;
+    const dx = x - startX.current;
+    el.scrollLeft = startScroll.current - dx;
+  };
+
+  const handlePointerUp = () => {
+    if (!isDragging.current) return;
+    const el = navRef.current;
+    isDragging.current = false;
+    el.classList.remove("dragging");
+  };
+
+  const handleKeyDown = e => {
+    if (e.key === "ArrowRight") {
+      scrollNav(160);
+    } else if (e.key === "ArrowLeft") {
+      scrollNav(-160);
+    }
+  };
 
   return (
     <header className="topbar">
@@ -46,22 +128,59 @@ function Header({
         <small>POWERED BY SANKHYA</small>
       </Link>
 
-      <nav className="nav-links" aria-label="Primary navigation">
-        {OS_SHELL_ROUTES.map(item => {
-          const Icon = item.icon;
-          return (
-            <NavLink
-              key={item.id}
-              to={item.path}
-              end={item.path === "/dashboard"}
-              className={({ isActive }) => (isActive ? "active" : "")}
-            >
-              <Icon size={15} aria-hidden="true" />
-              <span>{item.label}</span>
-            </NavLink>
-          );
-        })}
-      </nav>
+      <div className="nav-wrap">
+        <button
+          type="button"
+          className={`nav-scroll-btn left ${showNavControls ? "visible" : "hidden"}`}
+          aria-label="Scroll nav left"
+          aria-hidden={!showNavControls}
+          disabled={!showNavControls}
+          onClick={() => scrollNav(-220)}
+        >
+          <ChevronLeft size={16} />
+        </button>
+
+        <nav
+          ref={navRef}
+          className="nav-links"
+          aria-label="Primary navigation"
+          onMouseDown={handlePointerDown}
+          onMouseMove={handlePointerMove}
+          onMouseUp={handlePointerUp}
+          onMouseLeave={handlePointerUp}
+          onTouchStart={handlePointerDown}
+          onTouchMove={handlePointerMove}
+          onTouchEnd={handlePointerUp}
+          onKeyDown={handleKeyDown}
+          tabIndex={0}
+        >
+          {OS_SHELL_ROUTES.map(item => {
+            const Icon = item.icon;
+            return (
+              <NavLink
+                key={item.id}
+                to={item.path}
+                end={item.path === "/dashboard"}
+                className={({ isActive }) => (isActive ? "active" : "")}
+              >
+                <Icon size={15} aria-hidden="true" />
+                <span>{item.label}</span>
+              </NavLink>
+            );
+          })}
+        </nav>
+
+        <button
+          type="button"
+          className={`nav-scroll-btn right ${showNavControls ? "visible" : "hidden"}`}
+          aria-label="Scroll nav right"
+          aria-hidden={!showNavControls}
+          disabled={!showNavControls}
+          onClick={() => scrollNav(220)}
+        >
+          <ChevronRight size={16} />
+        </button>
+      </div>
 
       <div className="model-header-actions" aria-label="Product actions">
         <span className={`header-sync save-state-${saveStatusClass}`}>{saveStatusLabel}</span>

@@ -357,7 +357,7 @@ main {
   right: 0;
   z-index: 100;
   display: grid;
-  grid-template-columns: minmax(190px, 0.34fr) minmax(0, 1fr) minmax(540px, 0.42fr);
+  grid-template-columns: auto 1fr auto;
   align-items: center;
   gap: 14px;
   min-height: 68px;
@@ -419,19 +419,75 @@ main {
   display: flex;
   align-items: center;
   justify-content: flex-start;
-  gap: 4px;
+  gap: 6px;
   min-width: 0;
+  flex: 1 1 auto;
   width: 100%;
-  max-width: 100%;
-  margin: 0 auto;
-  padding: 5px;
-  overflow: visible;
+  max-width: none;
+  margin: 0 12px;
+  padding: 6px 8px;
+  overflow-x: auto;
+  overflow-y: visible;
+  -webkit-overflow-scrolling: touch;
+  z-index: 110;
   flex-wrap: wrap;
   border: 1px solid rgba(255, 255, 255, 0.09);
   border-radius: var(--radius-xs);
   background: rgba(255, 255, 255, 0.038);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
   scrollbar-width: none;
+}
+
+.nav-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.nav-scroll-btn {
+  display: none;
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 38px;
+  height: 38px;
+  border-radius: 8px;
+  background: rgba(5,7,19,0.6);
+  border: 1px solid rgba(255,255,255,0.04);
+  color: var(--ink-1);
+  align-items: center;
+  justify-content: center;
+  z-index: 120;
+}
+
+.nav-scroll-btn.left { left: 6px; }
+.nav-scroll-btn.right { right: 6px; }
+
+@media (min-width: 720px) {
+  .nav-scroll-btn { display: inline-flex; }
+}
+
+.nav-scroll-btn.hidden { opacity: 0; pointer-events: none; transform: translateY(-50%) scale(0.94); transition: opacity 180ms ease, transform 180ms ease; }
+.nav-scroll-btn.visible { opacity: 1; pointer-events: auto; transform: translateY(-50%) scale(1); }
+
+.nav-links.dragging { cursor: grabbing; cursor: -webkit-grabbing; user-select: none; }
+
+/* edge fade masks to indicate overflow */
+.nav-wrap::before,
+.nav-wrap::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 36px;
+  pointer-events: none;
+}
+.nav-wrap::before { left: 0; background: linear-gradient(90deg, rgba(5,7,19,0.98), rgba(5,7,19,0.06)); }
+.nav-wrap::after { right: 0; background: linear-gradient(270deg, rgba(5,7,19,0.98), rgba(5,7,19,0.06)); }
+
+@media (min-width: 1200px) {
+  /* make arrows subtler on very wide screens */
+  .nav-scroll-btn { width: 34px; height: 34px; }
 }
 
 /* Desktop / Laptop: ensure all nav items are visible with no scrolling */
@@ -445,22 +501,57 @@ main {
   /* Allow the topbar to grow to two lines and keep page content clear of it */
   .topbar {
     align-items: flex-start;
+    grid-template-rows: auto auto;
+  }
+
+  /* Layout: brand + actions on first row, nav on second row */
+  .brand {
+    grid-column: 1 / 2;
+    grid-row: 1 / 2;
+  }
+
+  .model-header-actions {
+    grid-column: 3 / 4;
+    grid-row: 1 / 2;
+    justify-self: end;
+  }
+
+  .nav-links {
+    grid-column: 1 / -1;
+    grid-row: 2 / 3;
+    margin: 8px 20px;
+    justify-content: flex-start;
+    /* keep nav on a single line on wide screens and allow horizontal scroll */
+    flex-wrap: nowrap;
+    white-space: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
   }
 
   .page-shell-main {
-    padding-top: 120px; /* accommodate taller header when nav wraps */
+    padding-top: 140px; /* accommodate two-line header */
   }
 }
 
 .nav-links::-webkit-scrollbar {
-  display: none;
+  height: 10px;
+}
+
+@media (min-width: 1024px) {
+  .nav-links::-webkit-scrollbar {
+    display: block;
+  }
+  .nav-links::-webkit-scrollbar-thumb {
+    background: rgba(255,255,255,0.12);
+    border-radius: 999px;
+  }
 }
 
 .nav-links a {
   display: inline-flex;
   align-items: center;
   min-height: 32px;
-  padding: 0 9px;
+  padding: 0 8px;
   min-width: max-content;
   border-radius: 6px;
   color: var(--ink-2);
@@ -484,6 +575,7 @@ main {
   gap: 6px;
   min-width: 0;
   overflow: visible;
+  flex-wrap: wrap;
 }
 
 .header-sync {
