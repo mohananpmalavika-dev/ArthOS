@@ -1,12 +1,10 @@
 import React, { Suspense } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import BigRevealPage from "./pages/BigReveal.jsx";
 import App from "./App.jsx";
 import { RoastViewPage } from "./pages/RoastViewPage.jsx";
 import LoginPage from "./pages/LoginPage.jsx";
 import RegisterPage from "./pages/RegisterPage.jsx";
 import Onboarding from "./pages/Onboarding.jsx";
-import { routeChunks } from "./lib/routeChunking.js";
 import Reality from "./pages/Reality.jsx";
 import Why from "./pages/Why.jsx";
 import Future from "./pages/Future.jsx";
@@ -33,7 +31,7 @@ function AppRouter() {
   const advancedRoute = OS_SHELL_ROUTES.find(route => route.id === "advanced");
   const futureYouRoute = OS_SHELL_ROUTES.find(route => route.id === "future-you");
   const dashboardBasePath = dashboardRoute?.path || "/dashboard";
-  const BigRevealChunk = routeChunks.bigReveal;
+  
 
   // Show nothing while checking authentication status
   if (loading) {
@@ -72,23 +70,11 @@ function AppRouter() {
           />
           <Route
             path="/"
-            element={
-              isAuthenticated ? (
-                <BigRevealPage />
-              ) : (
-                <Navigate to="/login" replace />
-              )
-            }
+            element={isAuthenticated ? <Navigate to="/dashboard/home" replace /> : <Navigate to="/login" replace />}
           />
           <Route
             path="/big-reveal"
-            element={
-              isAuthenticated ? (
-                <BigRevealPage />
-              ) : (
-                <Navigate to="/login" replace />
-              )
-            }
+            element={isAuthenticated ? <Navigate to="/dashboard/home" replace /> : <Navigate to="/login" replace />}
           />
           <Route
             path="/dashboard"
