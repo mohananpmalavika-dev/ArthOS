@@ -31,6 +31,15 @@ import followUpHandler from '../api_src/follow-up/follow-up-handler.js';
 import shareHandler from '../api_src/share.js';
 import subscriptionsHandler from '../api_src/subscriptions-handler.js';
 import backgroundHealthHandler from '../api_src/backgroundHealth.js';
+import { createRequire } from 'module';
+const requireModule = createRequire(import.meta.url);
+const longitudinalIndex = requireModule('../api_src/longitudinal/index.js');
+const cognitionRouter = requireModule('../api_src/longitudinal/cognition-graph-index.js');
+import calendarExportHandler from './calendar_export.js';
+import durableJobProcessorAdapter from './durableJobProcessor.js';
+import userExportHandler from '../api_src/user/export.js';
+import userDeleteHandler from '../api_src/user/delete.js';
+import userRetentionHandler from '../api_src/user/retention.js';
 // ─── Missing user endpoints ────────────────────────────────────
 import saveDecisionHandler from '../api_src/user/saveDecision.js';
 import loadDraftHandler from '../api_src/user/loadDraft.js';
@@ -47,6 +56,8 @@ const routeDefinitions = [
   { match: (pathname) => pathname === '/api/feedback', handler: feedbackHandler },
   { match: (pathname) => pathname === '/api/saveAssessment', handler: saveAssessmentHandler },
   { match: (pathname) => pathname === '/api/telemetry', handler: telemetryHandler },
+  // analytics/events is used by client-side feature flag engine
+  { match: (pathname) => pathname === '/api/analytics/events', handler: telemetryHandler },
   {
     match: (pathname) => {
       const match = /^\/api\/features(?:\/(.+))?$/.exec(pathname);
@@ -96,6 +107,16 @@ const routeDefinitions = [
     getParams: (match) => ({ id: match[1] || null }),
   },
   { match: (pathname) => pathname === '/api/user/scores', handler: userScoresHandler },
+  { match: (pathname) => pathname === '/api/user/export', handler: userExportHandler },
+  { match: (pathname) => pathname === '/api/user/delete', handler: userDeleteHandler },
+  {
+    match: (pathname) => {
+      const match = /^\/api\/user\/retention\/(.+)\/??$/.exec(pathname);
+      return match || null;
+    },
+    handler: userRetentionHandler,
+    getParams: (match) => ({ categoryId: match[1] })
+  },
   // ─── User data persistence endpoints (were missing in production) ──
   { match: (pathname) => pathname === '/api/user/saveDecision', handler: saveDecisionHandler },
   { match: (pathname) => pathname === '/api/user/loadDraft', handler: loadDraftHandler },
@@ -108,6 +129,53 @@ const routeDefinitions = [
   { match: (pathname) => pathname.startsWith('/api/coach'), handler: aiCoachHandler },
   { match: (pathname) => pathname.startsWith('/api/prediction'), handler: predictionEngineHandler },
   { match: (pathname) => pathname.startsWith('/api/follow-up'), handler: followUpHandler },
+  // Longitudinal learning router (many sub-routes implemented in api_src/longitudinal/index.js)
+  { match: (pathname) => pathname.startsWith('/api/longitudinal'), handler: async (req, res) => {
+      const pathname = (req.headers['x-vercel-original-url'] || req.headers['x-now-original-url'] || req.url || '').split('?')[0];
+      // Delegate based on method+pathname to functions exported by longitudinal index
+      try {
+        // Map a few common paths used by frontend to exported functions
+        if (req.method === 'GET' && pathname.startsWith('/api/longitudinal/lifecycle')) return longitudinalIndex.getUserLifecycle(req, res);
+        if (req.method === 'POST' && pathname.startsWith('/api/longitudinal/lifecycle/calculate')) return longitudinalIndex.calculateLifecycle(req, res);
+        if (req.method === 'GET' && pathname.startsWith('/api/longitudinal/patterns')) return longitudinalIndex.getPatterns(req, res);
+        if (req.method === 'POST' && pathname.startsWith('/api/longitudinal/patterns/detect')) return longitudinalIndex.detectPatterns(req, res);
+        if (req.method === 'GET' && pathname.startsWith('/api/longitudinal/trends')) return longitudinalIndex.getFinancialTrends(req, res);
+        if (req.method === 'GET' && pathname.startsWith('/api/longitudinal/anomalies')) return longitudinalIndex.getAnomalies(req, res);
+        if (req.method === 'PUT' && pathname.match(/^\/api\/longitudinal\/anomalies\/.+\/acknowledge/)) return longitudinalIndex.acknowledgeAnomaly(req, res);
+        if (req.method === 'GET' && pathname.startsWith('/api/longitudinal/insights')) return longitudinalIndex.getPredictiveInsights(req, res);
+        if (req.method === 'GET' && pathname.startsWith('/api/longitudinal/journal')) return longitudinalIndex.getEvolutionJournal(req, res);
+        if (req.method === 'POST' && pathname.startsWith('/api/longitudinal/journal')) return longitudinalIndex.createJournalEntry(req, res);
+        // Fallback: not handled here
+        return res.status(404).json({ error: 'Longitudinal route not found' });
+      } catch (err) {
+        console.error('[Longitudinal Adapter] Error handling', pathname, err);
+        return res.status(500).json({ error: err.message || 'Internal server error' });
+      }
+    } },
+  // Cognition graph router (express-style router exported); strip prefix and invoke
+  { match: (pathname) => pathname.startsWith('/api/cognition'), handler: async (req, res) => {
+      try {
+        // clone req.url and strip prefix so router paths match (router defines '/beliefs', '/biases', etc.)
+        const original = req.headers['x-vercel-original-url'] || req.headers['x-now-original-url'] || req.url || '';
+        let localPath = original.split('?')[0].replace(/^\/api\/cognition/, '') || '/';
+        // Create minimal wrapper to call the express router function
+        req.url = localPath + (original.includes('?') ? '?' + original.split('?')[1] : '');
+        // cognitionRouter is an express router; call it directly
+        if (typeof cognitionRouter === 'function') {
+          return cognitionRouter(req, res, (err) => {
+            if (err) {
+              console.error('[Cognition Adapter] router error', err);
+              return res.status(500).json({ error: err.message || 'Internal server error' });
+            }
+            return res.status(404).json({ error: 'Cognition route not found' });
+          });
+        }
+        return res.status(500).json({ error: 'Cognition router not available' });
+      } catch (err) {
+        console.error('[Cognition Adapter] Error', err);
+        return res.status(500).json({ error: err.message || 'Internal server error' });
+      }
+    } },
   { match: (pathname) => {
       const match = /^\/api\/share\/([^/]+)\/([^/]+)\/?$/.exec(pathname);
       return match || null;
@@ -117,6 +185,10 @@ const routeDefinitions = [
   },
   { match: (pathname) => pathname === '/api/background/health', handler: backgroundHealthHandler },
   { match: (pathname) => pathname.startsWith('/api/subscriptions'), handler: subscriptionsHandler },
+  // Calendar export endpoint (returns .ics files)
+  { match: (pathname) => pathname === '/api/calendar/export', handler: calendarExportHandler },
+  // Durable job processor adapter
+  { match: (pathname) => pathname === '/api/durableJobProcessor', handler: durableJobProcessorAdapter },
 ];
 
 function getPathname(req) {
