@@ -20,6 +20,7 @@ import { startDeduplicationCleanup } from './idempotentRequests';
 
 const log = (...args: any[]) => console.info('[BackgroundServicesInitializer]', ...args);
 const err = (...args: any[]) => console.error('[BackgroundServicesInitializer]', ...args);
+const isTestMode = typeof import.meta !== 'undefined' && import.meta.env?.MODE === 'test';
 
 // ============================================================================
 // JOB PROCESSOR IMPLEMENTATION
@@ -85,6 +86,11 @@ export interface BackgroundServicesConfig {
  * Should be called once on app startup (e.g., in App.jsx useEffect).
  */
 export async function initializeBackgroundServices(config: BackgroundServicesConfig = {}): Promise<void> {
+  if (isTestMode) {
+    log('Test mode detected; skipping background services initialization.');
+    return;
+  }
+
   log('Initializing background services...');
 
   try {

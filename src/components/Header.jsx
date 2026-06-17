@@ -16,7 +16,6 @@ import { useNavigate } from "react-router-dom";
 import { OS_SHELL_ROUTES } from "../lib/routeMap.js";
 
 function Header({
-  activeHash = "#",
   saveStatusLabel = "Saved",
   saveStatusClass = "saved",
   onExport = () => {},
@@ -36,6 +35,7 @@ function Header({
   const location = useLocation();
   const currentPath = location.pathname || "";
   const navigate = useNavigate();
+  const appRootPath = currentPath.startsWith('/demo') ? '/demo' : '/dashboard';
 
   return (
     <header className="topbar">
@@ -47,34 +47,16 @@ function Header({
       </Link>
 
       <nav className="nav-links" aria-label="Primary navigation">
-        {OS_SHELL_ROUTES.map(item => {
-          const isHashLink = item.path?.startsWith("#");
-          const active = isHashLink ? activeHash === item.path : currentPath === item.path;
-
-          return isHashLink ? (
-              <button
-                type="button"
-                key={item.id}
-                className={active ? "active" : ""}
-                aria-current={active ? "page" : undefined}
-                onClick={() => {
-                  const basePath = currentPath.startsWith('/dashboard') ? '/dashboard' : currentPath;
-                  navigate(`${basePath}${item.path}`);
-                }}
-              >
-                {item.label}
-              </button>
-            ) : (
-            <NavLink
-              key={item.id}
-              to={item.path}
-              end={item.path === "/dashboard"}
-              className={({ isActive }) => (isActive ? "active" : "")}
-            >
-              {item.label}
-            </NavLink>
-          );
-        })}
+        {OS_SHELL_ROUTES.map(item => (
+          <NavLink
+            key={item.id}
+            to={item.path}
+            end={item.path === "/dashboard"}
+            className={({ isActive }) => (isActive ? "active" : "")}
+          >
+            {item.label}
+          </NavLink>
+        ))}
       </nav>
 
       <div className="model-header-actions" aria-label="Product actions">
@@ -143,10 +125,7 @@ function Header({
           <button
             type="button"
             className="dev-intelligence-link"
-            onClick={() => {
-              const basePath = currentPath.startsWith("/dashboard") ? "/dashboard" : currentPath;
-              navigate(`${basePath}#intelligence`);
-            }}
+            onClick={() => navigate(`${appRootPath}/intelligence`)}
             aria-label="Developer Intelligence"
           >
             <LineChart size={16} />
@@ -164,8 +143,7 @@ function Header({
                 if (window.__arth_triggerInterstitial) {
                   window.__arth_triggerInterstitial('/future-you');
                 } else {
-                  // fallback: navigate directly
-                  window.location.href = '/future-you';
+                  navigate('/future-you');
                 }
               } catch (e) {
                 // noop
@@ -179,7 +157,7 @@ function Header({
         <button
           type="button"
           className="model-avatar-btn"
-          onClick={() => navigate('/dashboard#admin')}
+          onClick={() => navigate('/dashboard/admin')}
           aria-label="Admin dashboard"
         >
           <span>A</span>
@@ -188,7 +166,7 @@ function Header({
         <button
           type="button"
           className="model-start-btn"
-          onClick={() => navigate('/dashboard#assessment')}
+          onClick={() => navigate('/assessment')}
         >
           Start Assessment
         </button>
@@ -198,7 +176,6 @@ function Header({
 }
 
 Header.propTypes = {
-  activeHash: PropTypes.string,
   saveState: PropTypes.string,
   saveStatusLabel: PropTypes.string,
   saveStatusClass: PropTypes.string,

@@ -269,43 +269,43 @@ function ReportsFlowHeader({ result, decisionHistoryCount, memoryTimeline }) {
   const score = normalizeScore(result);
   const reportSections = [
     {
-      href: "#reports",
+      href: "/reports#reports",
       label: "Signal",
       caption: "Score and export",
       icon: Sparkles
     },
     {
-      href: "#forecast",
+      href: "/reports#forecast",
       label: "Forecast",
       caption: "Runway and scenarios",
       icon: BarChart3
     },
     {
-      href: "#cognition",
+      href: "/reports#cognition",
       label: "Cognition",
       caption: "Bias and calibration",
       icon: Brain
     },
     {
-      href: "#simulator",
+      href: "/reports#simulator",
       label: "Simulate",
       caption: "What-if choices",
       icon: Target
     },
     {
-      href: "#memory",
+      href: "/reports#memory",
       label: "Memory",
       caption: "Learning timeline",
       icon: Network
     },
     {
-      href: "#insights",
+      href: "/reports#insights",
       label: "Action",
       caption: "Next move",
       icon: ThumbsUp
     },
     {
-      href: "#decisions",
+      href: "/reports#decisions",
       label: "Decisions",
       caption: "Decision ledger",
       icon: Save
@@ -409,6 +409,7 @@ export default function App({ demoMode = false }) {
   const isDashboardRoute = pathname.startsWith("/dashboard");
   const showDashboardHome = dashboardSection === "home";
   const showInsightsPage = dashboardSection === "insights";
+  const showAssessmentPage = dashboardSection === "assessment";
   const showForecastPage = dashboardSection === "forecast";
   const showCohortsPage = dashboardSection === "cohorts";
   const showDecisionQualityPage = dashboardSection === "decisions";
@@ -484,8 +485,6 @@ export default function App({ demoMode = false }) {
   } = historicalData;
 
   const {
-    activeHash,
-    setActiveHash,
     showOnboarding,
     setShowOnboarding,
     showAuthModal,
@@ -498,7 +497,6 @@ export default function App({ demoMode = false }) {
     setSmsEnrichment,
     showSmsForm,
     setShowSmsForm,
-    navigateTo,
     completeOnboarding,
     resetOnboarding,
     devMode,
@@ -680,7 +678,7 @@ export default function App({ demoMode = false }) {
     setShowPaywall(false);
   };
 
-  function handleOpenPanel(hash, primaryConcern = null) {
+  function handleOpenPanel(path, primaryConcern = null) {
     if (primaryConcern) {
       setCoachPrimaryConcern(primaryConcern);
     } else {
@@ -688,24 +686,16 @@ export default function App({ demoMode = false }) {
     }
 
     startTransition(() => {
-      setActiveHash(hash);
-      if (!hash) {
+      if (!path) {
         return;
       }
 
-      if (hash === "#future-you") {
-        navigate("/future-you");
+      if (path === "/future-you") {
+        navigate(path);
         return;
       }
 
-      if (hash.startsWith("/")) {
-        navigate(hash);
-      } else {
-        const basePath = location.pathname.startsWith("/dashboard")
-          ? "/dashboard"
-          : location.pathname;
-        navigate(`${basePath}${hash}`);
-      }
+      navigate(path);
     });
   }
 
@@ -946,6 +936,10 @@ export default function App({ demoMode = false }) {
   // wire push notification handlers, and start the reminder engine.
   useEffect(() => {
     if (!isBrowser()) return;
+    if (import.meta.env.MODE === 'test') {
+      console.info('[App] Skipping background services and notification setup in test mode');
+      return;
+    }
 
     let unsubscribeClick = null;
     let unsubscribeClose = null;
@@ -1330,20 +1324,11 @@ export default function App({ demoMode = false }) {
     }
   };
 
-  const reportRoutes = [
-    "#reports",
-    "#cognition",
-    "#simulator",
-    "#decisions",
-    "#memory",
-    "#history"
-  ];
-  const isWorkflowRoute = activeHash === "#assessment" || activeHash === "#simulator";
-  const isReportsRoute = reportRoutes.includes(activeHash);
-  const showHeroSection =
-    activeHash === "#" || activeHash === "#intelligence" || (!isWorkflowRoute && !isReportsRoute);
-  const showAssessmentSection = activeHash === "#assessment";
-  const showReportsSection = isReportsRoute;
+  const showAssessmentSection = pathname === "/assessment";
+  const showReportsSection = pathname === "/reports" || pathname.startsWith("/reports/");
+  const showCoachSection = pathname === "/coach";
+  const showHeroSection = !showAssessmentSection && !showReportsSection && !showCoachSection;
+  const showIntelligencePage = dashboardSection === "intelligence";
 
   function updateGroup(group, key, value) {
     setAssessment(current => ({
@@ -1548,7 +1533,6 @@ export default function App({ demoMode = false }) {
       <BootProvider subscriptionLoading={subscriptionLoading} subscriptionError={subscriptionError}>
         <div className="app-shell">
           <Header
-            activeHash={activeHash}
             saveState={saveState}
             saveStatusLabel={saveStatusLabel}
             saveStatusClass={saveStatusClass}
@@ -1618,14 +1602,10 @@ export default function App({ demoMode = false }) {
 
       {!showAuthModal && (
         <FlowNavigation
-          activeHash={activeHash}
-          onNavigate={hash => {
+          onNavigate={path => {
             startTransition(() => {
-              setActiveHash(hash);
-              if (hash && hash.startsWith("/")) {
-                navigate(hash);
-              } else if (hash && hash.startsWith("#")) {
-                navigate(`${location.pathname}${hash}`);
+              if (path) {
+                navigate(path);
               }
             });
           }}
@@ -2129,7 +2109,7 @@ export default function App({ demoMode = false }) {
               <UnifiedJourneyHome
                 assessment={assessment}
                 result={result}
-                onCoachOpen={topic => handleOpenPanel("#coach", topic)}
+                onCoachOpen={topic => handleOpenPanel("/coach", topic)}
               />
             )}
             {showAssessmentSection && (
@@ -2169,7 +2149,7 @@ export default function App({ demoMode = false }) {
               </ErrorBoundary>
             )}
 
-            {showSmsForm && activeHash === "#assessment" && (
+            {showSmsForm && showAssessmentSection && (
               <section style={{ maxWidth: "1200px", margin: "20px auto", padding: "0 16px" }}>
                 <div className="section-card">
                   <h2 style={{ marginBottom: "20px" }}>Enrich Your Assessment with Banking Data</h2>
@@ -3056,15 +3036,10 @@ function HeroSection({ assessment, result }) {
                 key={action.label}
                 type="button"
                 className={
-                  action.href === "#assessment" ? "model-primary-cta" : "model-secondary-cta"
+                  action.href === "/assessment" ? "model-primary-cta" : "model-secondary-cta"
                 }
                 onClick={() => {
-                  if (action.href && action.href.startsWith("#")) {
-                    const basePath = window.location.pathname.startsWith("/dashboard")
-                      ? "/dashboard"
-                      : window.location.pathname;
-                    navigate(`${basePath}${action.href}`);
-                  } else if (action.href) {
+                  if (action.href) {
                     navigate(action.href);
                   }
                 }}
@@ -3131,10 +3106,7 @@ function HeroSection({ assessment, result }) {
             <button
               type="button"
               onClick={() => {
-                const basePath = window.location.pathname.startsWith("/dashboard")
-                  ? "/dashboard"
-                  : window.location.pathname;
-                navigate(`${basePath}#assessment`);
+                navigate("/assessment");
               }}
             >
               View full breakdown
@@ -3151,10 +3123,7 @@ function HeroSection({ assessment, result }) {
                 type="button"
                 className="model-view-insights"
                 onClick={() => {
-                  const basePath = window.location.pathname.startsWith("/dashboard")
-                    ? "/dashboard"
-                    : window.location.pathname;
-                  navigate(`${basePath}#reports`);
+                  navigate("/reports");
                 }}
               >
                 View all

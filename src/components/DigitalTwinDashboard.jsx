@@ -259,7 +259,7 @@ export default function DigitalTwinDashboard({ twin, result, twinData, assessmen
           className="secondary-button"
           onClick={() => {
             if (typeof window !== "undefined") {
-              window.location.hash = "#assessment";
+              window.location.href = "/assessment";
             }
           }}
         >

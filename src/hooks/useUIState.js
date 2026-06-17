@@ -14,9 +14,6 @@ import { isBrowser } from "../lib/app-utils.jsx";
 
 export function useUIState() {
   const { settings, saveSetting } = useSettings();
-  const [activeHash, setActiveHash] = useState(() =>
-    isBrowser() ? window.location.hash || "#" : "#"
-  );
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [authMode, setAuthMode] = useState("login");
   const [paywallFeature, setPaywallFeature] = useState(null);
@@ -27,6 +24,7 @@ export function useUIState() {
     settings?.onboarding?.complete === true ? false : true
   );
 
+
   useEffect(() => {
     if (settings?.ui?.devMode !== undefined) {
       setDevMode(settings.ui.devMode);
@@ -35,27 +33,6 @@ export function useUIState() {
       setShowOnboarding(settings.onboarding.complete === true ? false : true);
     }
   }, [settings]);
-
-  // Listen to hash changes
-  useEffect(() => {
-    const handleHashChange = () => {
-      startTransition(() => {
-        setActiveHash(window.location.hash || "#");
-      });
-    };
-
-    if (isBrowser()) {
-      window.addEventListener("hashchange", handleHashChange);
-      return () => window.removeEventListener("hashchange", handleHashChange);
-    }
-  }, [settings]);
-
-  const navigateTo = useCallback(hash => {
-    if (isBrowser()) {
-      window.location.hash = hash;
-    }
-    setActiveHash(hash);
-  }, []);
 
   const openAuthModal = useCallback((mode = "login") => {
     setAuthMode(mode);
@@ -90,8 +67,6 @@ export function useUIState() {
 
   return {
     // State
-    activeHash,
-    setActiveHash,
     showOnboarding,
     setShowOnboarding,
     showAuthModal,
@@ -105,7 +80,6 @@ export function useUIState() {
     showSmsForm,
     setShowSmsForm,
     // Methods
-    navigateTo,
     openAuthModal,
     closeAuthModal,
     completeOnboarding,

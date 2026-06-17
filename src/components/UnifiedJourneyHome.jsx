@@ -7,7 +7,7 @@ const FutureScreen = React.lazy(() => import("./FutureScreen.jsx"));
 import PropTypes from "prop-types";
 import { AnimatePresence, motion } from "framer-motion";
 import { MessageCircle } from "lucide-react";
-import TrajectoryHeroVisual from "./TrajectoryHeroVisual.jsx";
+import BigReveal from "./BigReveal";
 import { normalizeScore } from "../lib/scoring-v2";
 import { buildLiveInsightCards } from "../lib/assessmentCardBuilder.js";
 import SingleRecommendedAction from "./SingleRecommendedAction.jsx";
@@ -196,68 +196,7 @@ export default function UnifiedJourneyHome({ result, assessment, onCoachOpen }) 
 
   return (
     <main className="home-hero" ref={heroRef}>
-      <section className="cinematic-hero">
-        <div className="cinematic-mesh" aria-hidden="true" />
-        <div className="cinematic-content">
-          <div className="cinematic-left">
-            <p className="cinematic-eyebrow">YOUR FINANCIAL OS</p>
-            <h1 className="cinematic-score">
-              <span className="score-number">{currentScore}</span>
-            </h1>
-            <div className="cinematic-metrics">
-              <div className="metric-delta">
-                {currentScore >= 0
-                  ? `${currentScore >= 50 ? "+" : ""}${Math.round((currentScore - 50) / 2)} pts`
-                  : ""}{" "}
-                today
-              </div>
-              <div className="metric-percent">{scorePhrase}</div>
-            </div>
-            <div className="cinematic-cta-row">
-              <button className="hero-cta" onClick={() => onCoachOpen?.("start")}>
-                Talk to your AI coach
-              </button>
-              <button
-                className="hero-secondary"
-                onClick={() =>
-                  document.getElementById("journey")?.scrollIntoView({ behavior: "smooth" })
-                }
-              >
-                View journey map
-              </button>
-            </div>
-          </div>
-          <div className="cinematic-right">
-            <div className="score-ring-large" style={{ ["--score"]: currentScore }}>
-              <div className="score-inner-large">
-                <motion.div
-                  className="score-number-hero-large"
-                  animate={{ scale: [1, 1.06, 1] }}
-                  transition={{ duration: 2.6, repeat: Infinity, ease: "easeInOut" }}
-                >
-                  {currentScore}
-                </motion.div>
-                <div className="score-label-large">{scoreLabel}</div>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div className="cinematic-particles" aria-hidden="true">
-          {particles.map((p, idx) => (
-            <span
-              key={idx}
-              className="particle"
-              style={{
-                left: p.left,
-                top: p.top,
-                width: p.size,
-                height: p.size,
-                animationDelay: p.delay
-              }}
-            />
-          ))}
-        </div>
-      </section>
+      <BigReveal score={currentScore} />
 
       <div className="home-block">
         <div className="section-header">

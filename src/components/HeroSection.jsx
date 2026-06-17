@@ -104,15 +104,10 @@ export default function HeroSection({ assessment, result }) {
                 key={action.label}
                 type="button"
                 className={
-                  action.href === "#assessment" ? "model-primary-cta" : "model-secondary-cta"
+                  action.href === "/assessment" ? "model-primary-cta" : "model-secondary-cta"
                 }
                 onClick={() => {
-                  if (action.href && action.href.startsWith("#")) {
-                    const basePath = window.location.pathname.startsWith("/dashboard")
-                      ? "/dashboard"
-                      : window.location.pathname;
-                    navigate(`${basePath}${action.href}`);
-                  } else if (action.href) {
+                  if (action.href) {
                     navigate(action.href);
                   }
                 }}
@@ -179,10 +174,7 @@ export default function HeroSection({ assessment, result }) {
             <button
               type="button"
               onClick={() => {
-                const basePath = window.location.pathname.startsWith("/dashboard")
-                  ? "/dashboard"
-                  : window.location.pathname;
-                navigate(`${basePath}#assessment`);
+                navigate("/assessment");
               }}
             >
               View full breakdown
@@ -199,10 +191,7 @@ export default function HeroSection({ assessment, result }) {
                 type="button"
                 className="model-view-insights"
                 onClick={() => {
-                  const basePath = window.location.pathname.startsWith("/dashboard")
-                    ? "/dashboard"
-                    : window.location.pathname;
-                  navigate(`${basePath}#reports`);
+                  navigate("/reports");
                 }}
               >
                 View all

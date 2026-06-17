@@ -120,8 +120,7 @@ export const OS_SHELL_ROUTES = [
 export const STORY_NAV_ITEMS = [
   {
     id: "assessment",
-    path: "/dashboard",
-    hash: "#assessment",
+    path: "/assessment",
     label: "Assessment",
     icon: ClipboardList,
     description: "Financial health quiz"
@@ -135,21 +134,21 @@ export const STORY_NAV_ITEMS = [
   },
   {
     id: "reality",
-    hash: "#reality",
+    path: "/reality",
     label: "Reality",
     icon: Home,
     description: "Where am I?"
   },
   {
     id: "mind",
-    hash: "#mind",
+    path: "/why",
     label: "Why",
     icon: Brain,
     description: "Why am I here?"
   },
   {
     id: "future",
-    hash: "#future",
+    path: "/future",
     label: "Future",
     icon: Target,
     description: "What happens next?"
@@ -163,14 +162,14 @@ export const STORY_NAV_ITEMS = [
   },
   {
     id: "action",
-    hash: "#action",
+    path: "/action",
     label: "Actions",
     icon: GitBranch,
     description: "What should I do?"
   },
   {
     id: "coach",
-    hash: "#coach",
+    path: "/coach",
     label: "Coach",
     icon: MessageCircle,
     description: "Help me execute"
@@ -180,22 +179,21 @@ export const STORY_NAV_ITEMS = [
 export const DEV_NAV_ITEMS = [
   {
     id: "b2b",
-    hash: "#b2b",
+    path: "/dashboard/settings",
     label: "Partners",
     icon: Users,
     description: "B2B portal"
   },
   {
     id: "developer-intelligence",
-    hash: "#intelligence",
-    aliases: ["#predictions"],
+    path: "/dashboard/intelligence",
     label: "Advanced Intelligence",
     icon: LineChart,
     description: "Understand your financial engines"
   },
   {
     id: "admin",
-    hash: "#admin",
+    path: "/dashboard/settings",
     label: "Admin",
     icon: ShieldCheck,
     description: "Operations console"

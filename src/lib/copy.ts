@@ -293,11 +293,11 @@ export const HERO_STATS: HeroStat[] = [
 export const HERO_ACTIONS: HeroAction[] = [
   {
     label: "Build My Score",
-    href: "#assessment",
+    href: "/assessment",
   },
   {
     label: "View Intelligence",
-    href: "#intelligence",
+    href: "/reports",
   },
 ];
 

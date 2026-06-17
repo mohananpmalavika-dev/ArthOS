@@ -4,12 +4,11 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { Sparkles } from "lucide-react";
 import { OS_SHELL_ROUTES, STORY_NAV_ITEMS, DEV_NAV_ITEMS } from "../lib/routeMap.js";
 
-export default function FlowNavigation({ activeHash, onNavigate, devMode, onToggleDev }) {
+export default function FlowNavigation({ onNavigate, devMode, onToggleDev }) {
   const navigate = useNavigate();
   const location = useLocation();
   const [showDeveloperMenu, setShowDeveloperMenu] = useState(false);
 
-  const currentHash = activeHash || "#";
   const currentPath = location?.pathname || "";
   const isOSContext = OS_SHELL_ROUTES.some(route => route.path === currentPath);
   const coreNarrative = useMemo(
@@ -19,35 +18,23 @@ export default function FlowNavigation({ activeHash, onNavigate, devMode, onTogg
   const developerMenu = useMemo(() => DEV_NAV_ITEMS, []);
 
   const isActive = item => {
-    if (item.path) {
-      return currentPath === item.path;
+    if (!item.path) {
+      return false;
     }
-    if (item.hash) {
-      return currentHash === item.hash || (item.aliases && item.aliases.includes(currentHash));
-    }
-    return false;
+    return currentPath === item.path || currentPath.endsWith(item.path);
   };
 
   const handleNavClick = item => {
-    const target = item.path || item.hash;
+    if (!item?.path) {
+      return;
+    }
+
     if (onNavigate) {
-      onNavigate(target);
+      onNavigate(item.path);
       return;
     }
 
-    if (!target) {
-      return;
-    }
-
-    if (target.startsWith("/")) {
-      navigate(target);
-      return;
-    }
-
-    if (target.startsWith("#")) {
-      const basePath = currentPath.startsWith("/dashboard") ? "/dashboard" : currentPath;
-      navigate(`${basePath}${target}`);
-    }
+    navigate(item.path);
   };
 
   return (
@@ -123,7 +110,6 @@ export default function FlowNavigation({ activeHash, onNavigate, devMode, onTogg
 }
 
 FlowNavigation.propTypes = {
-  activeHash: PropTypes.string,
   onNavigate: PropTypes.func,
   devMode: PropTypes.bool,
   onToggleDev: PropTypes.func
