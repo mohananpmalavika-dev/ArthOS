@@ -151,12 +151,12 @@ class PushNotificationService {
       if (!subscription) {
         // For demo purposes, use a dummy server key
         // In production, use your actual VAPID public key
-        const vapidPublicKey = process.env.REACT_APP_VAPID_PUBLIC_KEY ||
-          'dummy_key_for_testing';
+        const vapidPublicKey =
+          import.meta.env.VITE_VAPID_PUBLIC_KEY || 'dummy_key_for_testing';
 
         subscription = await registration.pushManager.subscribe({
           userVisibleOnly: true,
-          applicationServerKey: this.urlBase64ToUint8Array(vapidPublicKey)
+          applicationServerKey: this.urlBase64ToUint8Array(vapidPublicKey) as BufferSource
         });
       }
 

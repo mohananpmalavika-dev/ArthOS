@@ -16,7 +16,6 @@
  *   // Batches automatically on timer or size limit
  */
 
-import { IdempotentRequest } from './idempotentRequests';
 import { getGlobalDurableJobQueue } from './durableJobQueue';
 
 export interface TelemetryEvent {

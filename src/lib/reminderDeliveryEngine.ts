@@ -11,8 +11,6 @@
  */
 
 import { getGlobalDurableJobQueue } from './durableJobQueue';
-import { getPushNotificationService } from './pushNotificationService';
-import { getCalendarIntegration } from './calendarIntegration';
 
 export type ReminderChannel = 'push' | 'email' | 'in-app' | 'calendar' | 'browser';
 
@@ -50,6 +48,13 @@ export interface ReminderSpec {
   idempotencyKey: string;
   createdAt: number;
   metadata?: Record<string, any>;
+
+  // Populated when persisted / during delivery
+  status?: 'pending' | 'delivered' | 'failed' | 'cancelled';
+  attempts?: number;
+  lastAttemptAt?: number;
+  lastError?: string;
+  channelStatus?: Partial<Record<ReminderChannel, 'pending' | 'delivered' | 'failed'>>;
 }
 
 export interface DeliveryStatus {
@@ -58,6 +63,39 @@ export interface DeliveryStatus {
   lastAttempt: number;
   retries: number;
   error?: string;
+}
+
+function createDefaultChannelStatus(): Record<ReminderChannel, 'pending' | 'delivered' | 'failed'> {
+  return {
+    push: 'pending',
+    email: 'pending',
+    'in-app': 'pending',
+    calendar: 'pending',
+    browser: 'pending'
+  };
+}
+
+function getChannelPreference(
+  preferences: ReminderSpec['channelPreferences'],
+  channel: ReminderChannel
+) {
+  if (!preferences) {
+    return undefined;
+  }
+
+  switch (channel) {
+    case 'push':
+    case 'browser':
+      return preferences.push;
+    case 'email':
+      return preferences.email;
+    case 'in-app':
+      return preferences.inApp;
+    case 'calendar':
+      return preferences.calendar;
+    default:
+      return undefined;
+  }
 }
 
 class ReminderDeliveryEngine {
@@ -216,15 +254,18 @@ class ReminderDeliveryEngine {
     if (!reminder) {
       return {
         status: 'pending',
-        channels: {},
+        channels: createDefaultChannelStatus(),
         lastAttempt: 0,
         retries: 0
       };
     }
 
     return {
-      status: reminder.status,
-      channels: reminder.channelStatus || {},
+      status: reminder.status || 'pending',
+      channels: {
+        ...createDefaultChannelStatus(),
+        ...(reminder.channelStatus || {})
+      },
       lastAttempt: reminder.lastAttemptAt || 0,
       retries: reminder.attempts || 0,
       error: reminder.lastError
@@ -283,7 +324,7 @@ class ReminderDeliveryEngine {
 
     // Enqueue job for each channel
     for (const channel of reminder.channels) {
-      const channelPref = reminder.channelPreferences?.[channel];
+      const channelPref = getChannelPreference(reminder.channelPreferences, channel);
 
       // Skip disabled channels
       if (channelPref && !channelPref.enabled) {

@@ -182,7 +182,7 @@ export class DurableJobQueue {
    * Get queue statistics.
    */
   async getStats(): Promise<DurableJobQueueStats> {
-    const db = await initDB();
+    await initDB();
     const stats: DurableJobQueueStats = {
       queued: 0,
       inFlight: 0,

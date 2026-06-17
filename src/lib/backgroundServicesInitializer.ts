@@ -17,6 +17,7 @@ import { initTelemetryPipeline } from './telemetryBatchingPipeline';
 import { getGlobalBackgroundTaskScheduler } from './backgroundTaskScheduler';
 import { getGlobalFollowUpWorkflow } from './followUpWorkflow';
 import { startDeduplicationCleanup } from './idempotentRequests';
+import { getTelemetryPipeline } from './telemetryBatchingPipeline';
 
 const log = (...args: any[]) => console.info('[BackgroundServicesInitializer]', ...args);
 const err = (...args: any[]) => console.error('[BackgroundServicesInitializer]', ...args);
@@ -73,7 +74,7 @@ async function processDurableJobOnServer(job: DurableJob): Promise<any> {
 // ============================================================================
 
 export interface BackgroundServicesConfig {
-  telemetryEndpoint?: string;
+  telemetryEndpoint?: string | false;
   telemetryBatchWindowMs?: number;
   telemetrySamplingRate?: number;
   enableCheckInScheduler?: boolean;
@@ -155,7 +156,7 @@ export async function initializeBackgroundServices(config: BackgroundServicesCon
     // 4. Initialize follow-up delivery workflow
     if (config.enableFollowUpWorkflow !== false) {
       log('Setting up follow-up delivery workflow...');
-      const followUpWorkflow = getGlobalFollowUpWorkflow();
+      getGlobalFollowUpWorkflow();
       // Workflow starts processing automatically in constructor
       log('✓ Follow-up delivery workflow ready');
     }
@@ -258,7 +259,6 @@ export async function logBackgroundServicesHealth(): Promise<void> {
  */
 export function trackEvent(name: string, properties?: Record<string, any>, userId?: string): void {
   try {
-    const { getTelemetryPipeline } = require('./telemetryBatchingPipeline');
     getTelemetryPipeline().track(name, properties, userId);
   } catch (error) {
     err('Failed to track telemetry:', error);

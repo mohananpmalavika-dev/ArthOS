@@ -29,7 +29,7 @@ export interface ICalendarEvent {
   location?: string;
   alarmMinutesBefore?: number[];
   recurrence?: {
-    frequency: 'daily' | 'weekly' | 'monthly';
+    frequency: 'daily' | 'weekly' | 'monthly' | 'yearly';
     interval: number;
     endTime?: number;
   };
@@ -99,7 +99,6 @@ class CalendarIntegration {
    */
   openNativeCalendarApp(event: ICalendarEvent): void {
     const startDate = new Date(event.startTime);
-    const endDate = event.endTime ? new Date(event.endTime) : new Date(event.startTime + 60 * 60 * 1000);
 
     // iOS calendar scheme
     const iosCalendarUrl = `calshow://${this.dateToCalendarFormat(startDate)}`;
@@ -121,7 +120,7 @@ class CalendarIntegration {
   /**
    * Save events to Google Calendar via OAuth (web)
    */
-  async saveToGoogleCalendar(events: ICalendarEvent[]): Promise<void> {
+  async saveToGoogleCalendar(_events: ICalendarEvent[]): Promise<void> {
     // This would require Google Calendar API setup + OAuth flow
     // For now, provide instructions
     console.info('Google Calendar integration requires OAuth setup');
@@ -134,7 +133,7 @@ class CalendarIntegration {
   /**
    * Save events to Microsoft Calendar via OAuth (web)
    */
-  async saveToMicrosoftCalendar(events: ICalendarEvent[]): Promise<void> {
+  async saveToMicrosoftCalendar(_events: ICalendarEvent[]): Promise<void> {
     // This would require Microsoft Graph API setup + OAuth flow
     console.info('Microsoft Calendar integration requires OAuth setup');
     console.info('See: https://docs.microsoft.com/graph/api/resources/calendar');

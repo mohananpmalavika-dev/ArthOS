@@ -351,7 +351,7 @@ export class BackgroundTaskScheduler {
   /**
    * Get stats.
    */
-  getStats(): { total: number; active: number; duesoon: number } {
+  getStats(): { total: number; active: number; dueSoon: number } {
     const now = new Date();
     const soonThreshold = new Date(now.getTime() + 15 * 60_000);  // Next 15 minutes
 

@@ -5,8 +5,6 @@
  * and deep linking context preservation.
  */
 
-import crypto from 'crypto';
-
 export interface ShareableAsset {
   title: string;
   description: string;
@@ -71,7 +69,7 @@ class ShareIntentHandler {
    */
   async shareInsight(
     insightId: string,
-    options?: { template?: 'image' | 'link' }
+    _options?: { template?: 'image' | 'link' }
   ): Promise<ShareMetadata> {
     const asset = await this.prepareShareableAsset('insight', insightId);
 
@@ -96,7 +94,7 @@ class ShareIntentHandler {
   /**
    * Generate shareable graphic (assessment summary card)
    */
-  async generateShareableGraphic(assessmentId: string): Promise<Blob> {
+  async generateShareableGraphic(_assessmentId: string): Promise<Blob> {
     // In a real implementation, this would:
     // 1. Fetch assessment data
     // 2. Generate SVG or canvas image
@@ -326,8 +324,8 @@ class ShareIntentHandler {
 
   private generateAccessToken(): string {
     // Simple token generation (in production, use cryptographically secure method)
-    return Array.from(crypto.getRandomValues(new Uint8Array(16)))
-      .map((b) => b.toString(16).padStart(2, '0'))
+    return Array.from(globalThis.crypto.getRandomValues(new Uint8Array(16)))
+      .map((byte: number) => byte.toString(16).padStart(2, '0'))
       .join('');
   }
 }
