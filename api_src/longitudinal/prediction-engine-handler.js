@@ -19,16 +19,34 @@ function isPlaceholderValue(value) {
   return lower.includes('your-project') || lower.includes('your-service-role-key') || lower.includes('xxx') || lower.includes('replace') || lower.includes('example');
 }
 
-function createSupabaseClient() {
+let _supabaseClient = null;
+function getSupabaseClient() {
+  if (_supabaseClient) return _supabaseClient;
   const url = process.env.SUPABASE_URL;
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
   if (!url || !key || isPlaceholderValue(url) || isPlaceholderValue(key)) {
     throw new Error('Missing or invalid Supabase configuration. Set SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY to valid values.');
   }
-  return createClient(url, key);
+  _supabaseClient = createClient(url, key);
+  return _supabaseClient;
 }
 
-const supabase = createSupabaseClient();
+const supabase = new Proxy({}, {
+  get(_, prop) {
+    const client = getSupabaseClient();
+    const value = client[prop];
+    return typeof value === 'function' ? value.bind(client) : value;
+  }
+});
+
+function getSupabaseConfigError() {
+  try {
+    getSupabaseClient();
+    return null;
+  } catch (err) {
+    return err;
+  }
+}
 
 export default async function handler(req, res) {
   // Enable CORS
@@ -39,6 +57,15 @@ export default async function handler(req, res) {
   if (req.method === 'OPTIONS') {
     res.status(200).end();
     return;
+  }
+
+  const configError = getSupabaseConfigError();
+  if (configError) {
+    return res.status(503).json({
+      status: 'error',
+      error: 'Prediction service unavailable',
+      details: configError.message
+    });
   }
 
   // ─── Enforce JWT authentication ───

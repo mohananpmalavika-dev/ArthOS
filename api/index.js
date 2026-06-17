@@ -132,6 +132,10 @@ const routeDefinitions = [
   // Longitudinal learning router (many sub-routes implemented in api_src/longitudinal/index.js)
   { match: (pathname) => pathname.startsWith('/api/longitudinal'), handler: async (req, res) => {
       const pathname = (req.headers['x-vercel-original-url'] || req.headers['x-now-original-url'] || req.url || '').split('?')[0];
+      const configError = longitudinalIndex.getSupabaseConfigError ? longitudinalIndex.getSupabaseConfigError() : null;
+      if (configError) {
+        return res.status(503).json({ error: 'Longitudinal service unavailable', details: configError.message });
+      }
       // Delegate based on method+pathname to functions exported by longitudinal index
       try {
         // Map a few common paths used by frontend to exported functions
