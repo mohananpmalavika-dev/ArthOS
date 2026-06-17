@@ -356,12 +356,7 @@ function ReportsFlowHeader({ result, decisionHistoryCount, memoryTimeline }) {
                 type="button"
                 className="report-menu-step"
                 key={section.href}
-                onClick={() => {
-                  const basePath = window.location.pathname.startsWith("/dashboard")
-                    ? "/dashboard"
-                    : window.location.pathname;
-                  navigate(`${basePath}${section.href}`);
-                }}
+                onClick={() => navigate(section.href)}
               >
                 <span className="report-menu-index">{String(index + 1).padStart(2, "0")}</span>
                 <span className="report-menu-icon">

@@ -1,13 +1,13 @@
 export const NAV_ITEMS = [
-  { label: "Home", href: "#" },
-  { label: "Assess", href: "#assessment" },
-  { label: "Reports", href: "#reports" },
-  { label: "Cognition", href: "#cognition" },
-  { label: "Simulator", href: "#simulator" },
-  { label: "Decisions", href: "#decisions" },
-  { label: "Memory", href: "#memory" },
-  { label: "Predictions", href: "#predictions" },
-  { label: "Partners", href: "#b2b" }
+  { label: "Home", href: "/" },
+  { label: "Assess", href: "/assessment" },
+  { label: "Reports", href: "/reports" },
+  { label: "Cognition", href: "/reality" },
+  { label: "Simulator", href: "/future" },
+  { label: "Decisions", href: "/decision" },
+  { label: "Memory", href: "/learning" },
+  { label: "Predictions", href: "/forecast" },
+  { label: "Partners", href: "/dashboard/settings" }
 ];
 
 export const ENGINE_SIGNALS = [
@@ -59,11 +59,11 @@ export const HERO_STATS = [
 export const HERO_ACTIONS = [
   {
     label: "Build My Score",
-    href: "#assessment"
+    href: "/assessment"
   },
   {
     label: "View Intelligence",
-    href: "#intelligence"
+    href: "/reports"
   }
 ];
 

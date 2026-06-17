@@ -16,6 +16,7 @@ import FutureYou from "./FutureYou.jsx";
 import FinancialWeatherCard from "./FinancialWeatherCard.jsx";
 import WeeklyMissionCard from "./WeeklyMissionCard.jsx";
 import { ScenarioForecast } from "./ScenarioForecast.jsx";
+import TrajectoryHeroVisual from "./TrajectoryHeroVisual.jsx";
 
 function clampScore(value) {
   return Math.max(0, Math.min(100, Math.round(value)));

@@ -1,13 +1,33 @@
-.big-reveal {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100vh;
-  background-color: #000;
+.big-reveal-skip-button {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
   color: #fff;
+  text-decoration: none;
+  font-size: 0.8rem;
 }
 
-.big-reveal-score {
-  font-size: 10rem;
+.big-reveal-page {
+  position: relative;
+  height: 100vh;
+  background-color: #000;
+  overflow: hidden;
+}
+
+.big-reveal-button {
+  position: absolute;
+  bottom: 2rem;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 1rem 2rem;
+  background-color: #fff;
+  color: #000;
+  text-decoration: none;
+  border-radius: 5px;
   font-weight: bold;
+  transition: all 0.3s ease;
+}
+
+.big-reveal-button:hover {
+  background-color: #ccc;
 }

@@ -43,10 +43,14 @@ export default async function handler(req, res) {
       });
     }
 
+    const payload = Array.isArray(result)
+      ? result[0]
+      : result?.data?.[0] || result?.data || result?.[0] || result;
+
     console.log(`[savePreference] Saved preference ${preference_key} for user ${user.id}`);
     return res.status(200).json({
       status: "ok",
-      data: result[0] || result,
+      data: payload,
     });
   } catch (error) {
     console.error("[savePreference] Error:", error);

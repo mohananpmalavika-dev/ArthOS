@@ -14,18 +14,20 @@ import {
  * Build live insight cards from assessment result and user responses
  * Shows real-time behavioral patterns, spending signals, risk exposure, focus areas
  */
-export function buildLiveInsightCards(result, assessment) {
-  const lowestComponent = result.componentRows?.[0];
-  const stressPattern = assessment.behaviour?.spendWhenStressed;
-  const impulsePattern = assessment.behaviour?.regretImpulseFreq;
-  const planState = assessment.awareness?.hasFinancialPlan;
+export function buildLiveInsightCards(result = {}, assessment = {}) {
+  const safeResult = result || {};
+  const safeAssessment = assessment || {};
+  const lowestComponent = safeResult.componentRows?.[0];
+  const stressPattern = safeAssessment.behaviour?.spendWhenStressed;
+  const impulsePattern = safeAssessment.behaviour?.regretImpulseFreq;
+  const planState = safeAssessment.awareness?.hasFinancialPlan;
   const focusLabel = lowestComponent?.label ?? "Behaviour";
 
   return [
     {
       icon: Brain,
       title: "Behavior Pattern",
-      copy: `${result.personalityType ?? "Current"} profile detected from your active responses.`,
+      copy: `${safeResult.personalityType ?? "Current"} profile detected from your active responses.`,
       time: "Live now",
       tone: "purple"
     },
@@ -41,7 +43,7 @@ export function buildLiveInsightCards(result, assessment) {
     {
       icon: ShieldCheck,
       title: "Risk Exposure",
-      copy: `${result.futureRiskLabel ?? "Risk"} based on your current stability inputs.`,
+      copy: `${safeResult.futureRiskLabel ?? "Risk"} based on your current stability inputs.`,
       time: "Live now",
       tone: "purple"
     },

@@ -1,5 +1,7 @@
 import React, { Suspense } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import BigRevealPage from "./pages/BigReveal.jsx";
+import UnifiedJourneyHome from "./components/UnifiedJourneyHome.jsx";
 import App from "./App.jsx";
 import { RoastViewPage } from "./pages/RoastViewPage.jsx";
 import LoginPage from "./pages/LoginPage.jsx";
@@ -70,13 +72,21 @@ function AppRouter() {
             }
           />
           <Route
-            path="/big-reveal"
+            path="/"
+            element={
+              isAuthenticated ? (
+                <BigRevealPage />
+              ) : (
+                <Navigate to="/login" replace />
+              )
+            }
+          />
+          <Route
+            path="/dashboard"
             element={
               isAuthenticated ? (
                 <PageShell>
-                  <Suspense fallback={<div>Loading experience...</div>}>
-                    <BigRevealChunk />
-                  </Suspense>
+                  <UnifiedJourneyHome />
                 </PageShell>
               ) : (
                 <Navigate to="/login" replace />

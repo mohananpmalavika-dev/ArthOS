@@ -108,8 +108,8 @@ self.addEventListener('push', (event) => {
 
   const options = {
     body,
-    badge: badge || '/badge.png',
-    icon: icon || '/app-icon.png',
+    badge: badge || undefined,
+    icon: icon || undefined,
     tag: tag || 'default',
     data: data || {},
     persistent: true,
@@ -230,8 +230,8 @@ async function handleNetworkFirst(request) {
   try {
     const response = await fetch(request);
 
-    // Cache successful responses
-    if (response.ok) {
+    // Cache successful GET/HEAD responses only (POST/PUT/DELETE not cacheable)
+    if (response.ok && (request.method === 'GET' || request.method === 'HEAD')) {
       const cache = await caches.open(CACHE_VERSIONS.API);
       cache.put(request, response.clone());
     }
@@ -240,10 +240,12 @@ async function handleNetworkFirst(request) {
   } catch (error) {
     console.warn('[SW] Network request failed:', error);
 
-    // Try cache
-    const cached = await caches.match(request);
-    if (cached) {
-      return cached;
+    // Try cache (only for GET/HEAD)
+    if (request.method === 'GET' || request.method === 'HEAD') {
+      const cached = await caches.match(request);
+      if (cached) {
+        return cached;
+      }
     }
 
     // Fallback to offline page
@@ -256,16 +258,19 @@ async function handleNetworkFirst(request) {
  * Cache-first strategy with network fallback
  */
 async function handleCacheFirst(request) {
-  const cached = await caches.match(request);
-
-  if (cached) {
-    return cached;
+  // Only use cache for GET/HEAD requests
+  if (request.method === 'GET' || request.method === 'HEAD') {
+    const cached = await caches.match(request);
+    if (cached) {
+      return cached;
+    }
   }
 
   try {
     const response = await fetch(request);
 
-    if (response.ok) {
+    // Cache successful GET/HEAD responses only
+    if (response.ok && (request.method === 'GET' || request.method === 'HEAD')) {
       const cache = await caches.open(CACHE_VERSIONS.ASSETS);
       cache.put(request, response.clone());
     }

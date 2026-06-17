@@ -1,5 +1,6 @@
 ﻿import React, { useMemo } from "react";
 import "./DigitalTwinDashboard.css";
+import { normalizeScore } from "../lib/scoring-v2";
 import ScoreRing from "./ScoreRing.jsx";
 import { EnhancedInsightNarrative } from "./EnhancedInsightNarrative.jsx";
 import TraitMatrixVisualizer from "./TraitMatrixVisualizer.jsx";
@@ -7,6 +8,10 @@ import WeeklyMissionCard from "./WeeklyMissionCard.jsx";
 import BadgeDisplay from "./BadgeDisplay.jsx";
 import EmotionalTriggersCard from "./EmotionalTriggersCard.jsx";
 import DecisionSimulator from "./DecisionSimulator.jsx";
+
+function clampScore(value) {
+  return Math.max(0, Math.min(100, Math.round(value)));
+}
 
 export default function DigitalTwinDashboard({ twin, result, twinData, assessment }) {
   const twinSource = twin || result || twinData;
@@ -35,9 +40,7 @@ export default function DigitalTwinDashboard({ twin, result, twinData, assessmen
     survivalRate: stats.survivalRate
   };
 
-  const score = Math.round(
-    currentState.median?.healthScore ?? twinSource.financial?.score ?? 0
-  );
+  const score = clampScore(normalizeScore(currentState.median?.healthScore ?? twinSource.financial?.score ?? 0));
   const runway = Number(
     currentState.median?.runway ?? twinSource.financial?.runway ?? future?.median ?? 0
   ).toFixed(1);

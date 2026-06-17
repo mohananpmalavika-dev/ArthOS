@@ -9,7 +9,6 @@ export default {
 export const DefaultNavigation = {
   render: () => (
     <FlowNavigation
-      activeHash="#assessment"
       devMode={false}
       onNavigate={(target) => console.log('Navigate to', target)}
       onToggleDev={() => console.log('Toggle dev')}
@@ -20,7 +19,6 @@ export const DefaultNavigation = {
 export const DeveloperMenuOpen = {
   render: () => (
     <FlowNavigation
-      activeHash="#admin"
       devMode={true}
       onNavigate={(target) => console.log('Navigate to', target)}
       onToggleDev={() => console.log('Toggle dev')}
