@@ -14929,3 +14929,231 @@ body,
     padding: 20px 16px;
   }
 }
+
+/* Simple view home */
+.simple-journey-home {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 1.5rem 1rem 3rem;
+  display: grid;
+  gap: 1.5rem;
+}
+
+.simple-hero h1 {
+  margin: 0.35rem 0 0.75rem;
+  font-size: clamp(1.6rem, 4vw, 2.2rem);
+}
+
+.simple-hero-eyebrow {
+  margin: 0;
+  font-size: 0.8rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #a5b4fc;
+}
+
+.simple-hero-copy {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.72);
+  line-height: 1.6;
+}
+
+.simple-score-card {
+  margin-top: 1.25rem;
+  display: flex;
+  gap: 1.25rem;
+  align-items: center;
+  padding: 1.25rem;
+  border-radius: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.simple-score-ring {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: conic-gradient(#8b5cf6 calc(var(--score) * 1%), rgba(255, 255, 255, 0.08) 0);
+  position: relative;
+}
+
+.simple-score-ring::after {
+  content: "";
+  position: absolute;
+  inset: 10px;
+  border-radius: 50%;
+  background: #0f172a;
+}
+
+.simple-score-number,
+.simple-score-max {
+  position: relative;
+  z-index: 1;
+}
+
+.simple-score-number {
+  font-size: 2rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.simple-score-max {
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.simple-score-band {
+  margin: 0 0 0.35rem;
+  font-weight: 600;
+}
+
+.simple-score-hint {
+  margin: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  color: rgba(255, 255, 255, 0.65);
+}
+
+.simple-metrics {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.simple-metric-card,
+.simple-block {
+  padding: 1.1rem;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.simple-metric-card span,
+.simple-block-header span {
+  display: block;
+  font-size: 0.82rem;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.simple-metric-card strong {
+  display: block;
+  margin: 0.35rem 0;
+  font-size: 1.35rem;
+}
+
+.simple-metric-card p,
+.simple-block-header p {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.68);
+  line-height: 1.5;
+}
+
+.simple-block-header h2 {
+  margin: 0 0 0.35rem;
+}
+
+.simple-cta-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.simple-primary-btn,
+.simple-secondary-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.8rem 1.1rem;
+  border-radius: 12px;
+  border: none;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.simple-primary-btn {
+  background: linear-gradient(135deg, #8b5cf6, #06b6d4);
+  color: #fff;
+}
+
+.simple-secondary-btn {
+  background: rgba(255, 255, 255, 0.06);
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.simple-footnote {
+  margin: 0;
+  font-size: 0.88rem;
+  color: rgba(255, 255, 255, 0.55);
+}
+
+.app-view-settings {
+  padding: 1.25rem;
+}
+
+.app-view-settings h2 {
+  margin: 0 0 0.35rem;
+}
+
+.app-view-settings-copy {
+  margin: 0 0 1rem;
+  color: rgba(255, 255, 255, 0.68);
+}
+
+.app-view-settings-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.app-view-settings-option {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.03);
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.app-view-settings-option.active {
+  border-color: rgba(139, 92, 246, 0.65);
+  background: rgba(139, 92, 246, 0.1);
+}
+
+.app-view-settings-option strong {
+  display: block;
+}
+
+.app-view-settings-option span {
+  display: block;
+  font-size: 0.82rem;
+  color: rgba(255, 255, 255, 0.58);
+}
+
+.app-view-settings-message {
+  margin: 0.85rem 0 0;
+  color: #86efac;
+}
+
+.dashboard-grid-item--full {
+  grid-column: 1 / -1;
+}
+
+@media (max-width: 768px) {
+  .simple-metrics,
+  .app-view-settings-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .simple-score-card {
+    flex-direction: column;
+    text-align: center;
+  }
+}

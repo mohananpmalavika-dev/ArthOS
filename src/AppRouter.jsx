@@ -11,6 +11,7 @@ import Future from "./pages/Future.jsx";
 import FutureYou from "./pages/FutureYou.jsx";
 import OneAction from "./pages/OneAction.jsx";
 import PageShell from "./components/PageShell.jsx";
+import ViewModeSelection from "./pages/ViewModeSelection.jsx";
 import AdvancedArea from "./pages/AdvancedArea.jsx";
 import ErrorBoundary from "./components/ErrorBoundary.jsx";
 import { useAuth } from "./context/AuthContext.jsx";
@@ -144,6 +145,14 @@ function AppRouter() {
               ) : (
                 <Navigate to="/login" replace />
               )
+            }
+          />
+
+          {/* Choose app view after login */}
+          <Route
+            path="/choose-view"
+            element={
+              isAuthenticated ? <ViewModeSelection /> : <Navigate to="/login" replace />
             }
           />
 

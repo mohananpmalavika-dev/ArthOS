@@ -37,7 +37,7 @@ export default function LoginPage({ onSwitchToRegister, onClose }) {
         if (onClose) {
           onClose();
         } else {
-          navigate('/', { replace: true });
+          navigate("/choose-view", { replace: true });
         }
       } else {
         setOauthError('Google sign-in failed. Please try again.');
@@ -59,7 +59,7 @@ export default function LoginPage({ onSwitchToRegister, onClose }) {
       if (onClose) {
         onClose();
       } else {
-        navigate("/", { replace: true });
+        navigate("/choose-view", { replace: true });
       }
     }
   };

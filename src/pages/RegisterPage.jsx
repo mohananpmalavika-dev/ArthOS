@@ -1,10 +1,12 @@
 // src/pages/RegisterPage.jsx
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext.jsx";
 import { UserPlus, Mail, Lock, User, AlertCircle, Eye, EyeOff, ArrowRight } from "lucide-react";
 
 export default function RegisterPage({ onSwitchToLogin, onClose }) {
   const { register, error, loading, clearError } = useAuth();
+  const navigate = useNavigate();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -35,8 +37,12 @@ export default function RegisterPage({ onSwitchToLogin, onClose }) {
     }
 
     const success = await register(name.trim(), email.trim(), password);
-    if (success && onClose) {
-      onClose();
+    if (success) {
+      if (onClose) {
+        onClose();
+      } else {
+        navigate("/choose-view", { replace: true });
+      }
     }
   };
 

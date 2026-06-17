@@ -17,6 +17,7 @@ import {
 import { useRef, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { OS_SHELL_ROUTES } from "../lib/routeMap.js";
+import { isSimpleViewMode, SIMPLE_SHELL_ROUTES } from "../lib/viewMode.js";
 
 function Header({
   saveStatusLabel = "Saved",
@@ -33,7 +34,8 @@ function Header({
   onEnableNotifications = () => {},
   showShareActions = false,
   showPushActions = false,
-  devMode = false
+  devMode = false,
+  viewMode = "classic"
 }) {
   const location = useLocation();
   const currentPath = location.pathname || "";
@@ -119,6 +121,8 @@ function Header({
     }
   };
 
+  const navRoutes = isSimpleViewMode(viewMode) ? SIMPLE_SHELL_ROUTES : OS_SHELL_ROUTES;
+
   return (
     <header className="topbar">
       <Link className="brand" to="/dashboard" aria-label="ARTH.OS home">
@@ -154,7 +158,7 @@ function Header({
           onKeyDown={handleKeyDown}
           tabIndex={0}
         >
-          {OS_SHELL_ROUTES.map(item => {
+          {navRoutes.map(item => {
             const Icon = item.icon;
             return (
               <NavLink
@@ -315,7 +319,8 @@ Header.propTypes = {
   pushEnabled: PropTypes.bool,
   showShareActions: PropTypes.bool,
   showPushActions: PropTypes.bool,
-  devMode: PropTypes.bool
+  devMode: PropTypes.bool,
+  viewMode: PropTypes.string
 };
 
 export default Header;

@@ -112,6 +112,7 @@ import { PanelMinimizeButton } from "./components/PanelMinimizer.jsx";
 import { useSubscription } from "./hooks/useSubscription.js";
 import { useCapability, useCapabilityDetails } from "./context/CapabilitiesContext.jsx";
 import useFeatureAvailability from "./hooks/useFeatureAvailability.js";
+import { useViewMode } from "./hooks/useViewMode.js";
 import { useAssessmentState } from "./hooks/useAssessmentState.js";
 import { useNotificationState } from "./hooks/useNotificationState.js";
 import { useHistoricalDataContext } from "./context/HistoricalDataContext.jsx";
@@ -200,6 +201,8 @@ import { InterventionsPrescriptionCard } from "./components/InterventionsPrescri
 import { StrategicMetricsCard } from "./components/StrategicMetricsCard.jsx";
 import DailyCheckinForm from "./components/DailyCheckinForm.jsx";
 import UnifiedJourneyHome from "./components/UnifiedJourneyHome.jsx";
+import SimpleJourneyHome from "./components/SimpleJourneyHome.jsx";
+import AppViewSettings from "./components/AppViewSettings.jsx";
 import Header from "./components/Header.jsx";
 import ReminderPreferences from "./components/ReminderPreferences.jsx";
 import DecisionHistory from "./components/DecisionHistory.jsx";
@@ -395,6 +398,7 @@ const dependentsOptions = DEPENDENTS_OPTIONS;
 
 export default function App({ demoMode = false }) {
   const { user, token, isAuthenticated, loading: authLoading, logout } = useAuth();
+  const { viewMode, isSimpleView } = useViewMode();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -1551,6 +1555,7 @@ export default function App({ demoMode = false }) {
             onEnableNotifications={handleEnablePushNotifications}
             showPushActions={pushHealth.isSupported}
             devMode={devMode}
+            viewMode={viewMode}
           />
       <AnimatePresence>
         {showInterstitial && (
@@ -1611,6 +1616,7 @@ export default function App({ demoMode = false }) {
           }}
           devMode={devMode}
           onToggleDev={toggleDevMode}
+          viewMode={viewMode}
         />
       )}
 
@@ -1678,12 +1684,18 @@ export default function App({ demoMode = false }) {
             {authMode === "login" ? (
               <LoginPage
                 onSwitchToRegister={() => setAuthMode("register")}
-                onClose={() => setShowAuthModal(false)}
+                onClose={() => {
+                  setShowAuthModal(false);
+                  navigate("/choose-view", { replace: true });
+                }}
               />
             ) : (
               <RegisterPage
                 onSwitchToLogin={() => setAuthMode("login")}
-                onClose={() => setShowAuthModal(false)}
+                onClose={() => {
+                  setShowAuthModal(false);
+                  navigate("/choose-view", { replace: true });
+                }}
               />
             )}
           </div>
@@ -1961,6 +1973,9 @@ export default function App({ demoMode = false }) {
                 <p>Manage your subscription, partner integrations, account preferences, and data privacy.</p>
               </div>
               <div className="dashboard-grid">
+                <div className="dashboard-grid-item dashboard-grid-item--full">
+                  <AppViewSettings />
+                </div>
                 <div className="dashboard-grid-item">
                   <SubscriptionManagement userId={currentUserId} />
                 </div>
@@ -2031,76 +2046,19 @@ export default function App({ demoMode = false }) {
               </div>
             </section>
           ) : showDashboardHome ? (
-            <UnifiedJourneyHome
-              assessment={assessment}
-              result={result}
-              onCoachOpen={topic => handleOpenPanel("/coach", topic)}
-            />
-          ) : showDashboardHome ? (
-            <section className="dashboard-page">
-              <div className="dashboard-page-header">
-                <h1>Dashboard</h1>
-                <p>Your ARTH.OS home base for insights, plans, accounts, and score history.</p>
-              </div>
-              <div className="dashboard-teaser-panel">
-                <div className="teaser-card">
-                  <span className="teaser-label">Weather Index</span>
-                  <strong>{result.weatherIndex ?? "—"}/100</strong>
-                  <p>Resilience and macro stability outlook for your current financial profile.</p>
-                </div>
-                <div className="teaser-card">
-                  <span className="teaser-label">Future Confidence</span>
-                  <strong>{result.futureConfidenceScore ?? "—"}%</strong>
-                  <p>How certain the platform is about your upcoming path and runway forecast.</p>
-                </div>
-                <div className="teaser-card">
-                  <span className="teaser-label">Volatility</span>
-                  <strong>{result.incomeVolatilityIndex ?? "—"}%</strong>
-                  <p>Income stability risk driven by cashflow variability and runway pressure.</p>
-                </div>
-                <div className="teaser-card teaser-actions-card">
-                  <span className="teaser-label">Explore more</span>
-                  <div className="teaser-actions">
-                    <button type="button" onClick={() => navigate("/future-you")}>Future You</button>
-                    <button type="button" onClick={() => navigate("/advanced")}>Advanced Analytics</button>
-                  </div>
-                </div>
-              </div>
-              <div className="dashboard-grid">
-                <div className="dashboard-grid-item">
-                  <Suspense fallback={<LazyComponentFallback />}>
-                    <ErrorBoundary>
-                      <AnalyticsDashboard result={result} />
-                    </ErrorBoundary>
-                  </Suspense>
-                </div>
-                <div className="dashboard-grid-item">
-                  <Suspense fallback={<LazyComponentFallback />}>
-                    <ErrorBoundary>
-                      <PredictionEngineDashboard userId={effectiveUserId} />
-                    </ErrorBoundary>
-                  </Suspense>
-                </div>
-                <div className="dashboard-grid-item">
-                  <Suspense fallback={<LazyComponentFallback />}>
-                    <ErrorBoundary>
-                      <DigitalTwinDashboard twin={digitalTwin} assessment={result} />
-                    </ErrorBoundary>
-                  </Suspense>
-                </div>
-                <div className="dashboard-grid-item">
-                  <Suspense fallback={<LazyComponentFallback />}>
-                    <ErrorBoundary>
-                      <UserHistory
-                        className="summary-span"
-                        currentScore={safeHealthScore}
-                        personalityType={result.personalityType}
-                      />
-                    </ErrorBoundary>
-                  </Suspense>
-                </div>
-              </div>
-            </section>
+            isSimpleView ? (
+              <SimpleJourneyHome
+                assessment={assessment}
+                result={result}
+                onCoachOpen={topic => handleOpenPanel("/coach", topic)}
+              />
+            ) : (
+              <UnifiedJourneyHome
+                assessment={assessment}
+                result={result}
+                onCoachOpen={topic => handleOpenPanel("/coach", topic)}
+              />
+            )
           ) : (
             <section className="dashboard-page">
               <div className="dashboard-page-header">

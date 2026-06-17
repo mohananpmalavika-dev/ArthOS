@@ -21,7 +21,8 @@ const DEFAULT_SETTINGS = {
     complete: false
   },
   ui: {
-    devMode: false
+    devMode: false,
+    viewMode: null
   },
   reminders: {
     enabled: true,

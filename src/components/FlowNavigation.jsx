@@ -3,18 +3,21 @@ import PropTypes from "prop-types";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Sparkles } from "lucide-react";
 import { OS_SHELL_ROUTES, STORY_NAV_ITEMS, DEV_NAV_ITEMS } from "../lib/routeMap.js";
+import { isSimpleViewMode, SIMPLE_SHELL_ROUTES } from "../lib/viewMode.js";
 
-export default function FlowNavigation({ onNavigate, devMode, onToggleDev }) {
+export default function FlowNavigation({ onNavigate, devMode, onToggleDev, viewMode = "classic" }) {
   const navigate = useNavigate();
   const location = useLocation();
   const [showDeveloperMenu, setShowDeveloperMenu] = useState(false);
 
   const currentPath = location?.pathname || "";
   const isOSContext = OS_SHELL_ROUTES.some(route => route.path === currentPath);
-  const coreNarrative = useMemo(
-    () => (isOSContext ? OS_SHELL_ROUTES : STORY_NAV_ITEMS),
-    [isOSContext]
-  );
+  const coreNarrative = useMemo(() => {
+    if (isSimpleViewMode(viewMode)) {
+      return SIMPLE_SHELL_ROUTES;
+    }
+    return isOSContext ? OS_SHELL_ROUTES : STORY_NAV_ITEMS;
+  }, [isOSContext, viewMode]);
   const developerMenu = useMemo(() => DEV_NAV_ITEMS, []);
 
   const isActive = item => {
@@ -59,6 +62,7 @@ export default function FlowNavigation({ onNavigate, devMode, onToggleDev }) {
           );
         })}
 
+        {!isSimpleViewMode(viewMode) && (
         <button
           className={`app-nav-tab app-nav-dev-toggle ${devMode ? "dev-active" : ""}`}
           onClick={() => {
@@ -74,9 +78,10 @@ export default function FlowNavigation({ onNavigate, devMode, onToggleDev }) {
           <span className="app-nav-tab-label">Dev</span>
           <small>Tools</small>
         </button>
+        )}
       </nav>
 
-      {showDeveloperMenu && (
+      {showDeveloperMenu && !isSimpleViewMode(viewMode) && (
         <nav className="app-nav-developer-menu" aria-label="Developer Tools">
           <div className="dev-menu-header">
             <p className="dev-menu-title">Intelligence & Administration</p>
@@ -112,5 +117,6 @@ export default function FlowNavigation({ onNavigate, devMode, onToggleDev }) {
 FlowNavigation.propTypes = {
   onNavigate: PropTypes.func,
   devMode: PropTypes.bool,
-  onToggleDev: PropTypes.func
+  onToggleDev: PropTypes.func,
+  viewMode: PropTypes.string
 };
