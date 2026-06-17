@@ -349,7 +349,7 @@ export default function UnifiedJourneyHome({ result, assessment, onCoachOpen }) 
       <div className="home-block">
         <div className="section-header">
           <span className="section-eyebrow">Live insights</span>
-          <h2 className="section-title">Netflix-style insight stream</h2>
+          <h2 className="section-title">Insight stream</h2>
           <p className="section-copy">
             High-value takeaways surfaced in a quick, swipeable format.
           </p>

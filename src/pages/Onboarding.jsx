@@ -97,7 +97,7 @@ export default function Onboarding() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2, duration: 0.8 }}
             >
-              <span className="onboarding-eyebrow">Cinematic discovery</span>
+              <span className="onboarding-eyebrow">Guided discovery</span>
               <h1 className="onboarding-title">
                 Welcome to <span>ARTH.OS</span>
               </h1>
