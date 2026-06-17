@@ -3,6 +3,9 @@ Required environment variables
 - `DATABASE_URL` — PostgreSQL connection string used by `scripts/run_migrations.js` and server-side code. Example: `postgres://user:pass@host:5432/dbname`
 - `SUPABASE_URL` — Supabase project URL (optional if using `DATABASE_URL` directly)
 - `SUPABASE_SERVICE_ROLE_KEY` — Supabase service role key (optional if using `DATABASE_URL`)
+- `VITE_SENTRY_DSN` — Sentry DSN for browser error monitoring; leave blank to disable
+- `STRIPE_SECRET_KEY` — Stripe API secret key for subscription and payment operations
+- `STRIPE_WEBHOOK_SECRET` — Stripe webhook signing secret for webhook signature verification
 - `REACT_APP_VAPID_PUBLIC_KEY` — VAPID public key used by the client for Web Push
 - `PG_SSL` — set to `true` to enable SSL for `DATABASE_URL` when required
 

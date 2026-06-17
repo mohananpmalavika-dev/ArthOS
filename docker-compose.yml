@@ -31,8 +31,6 @@ services:
     restart: unless-stopped
     depends_on:
       - app
-    profiles:
-      - "backend"
 
 volumes:
   app_cache:
