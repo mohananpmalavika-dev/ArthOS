@@ -195,7 +195,7 @@ export class ArthOSPartnerSDK {
       behaviour: {},
       awareness: {}
     });
-    return result.healthScore;
+    return result?.healthScore ?? 0;
   }
 
   /**

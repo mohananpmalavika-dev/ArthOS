@@ -48,7 +48,7 @@ export default function Onboarding() {
 
   // If assessment has been completed, move to building screen
   useEffect(() => {
-    if (stage === "assessment" && result && result.healthScore) {
+    if (stage === "assessment" && result && result.healthScore !== undefined && result.healthScore !== null) {
       setStage("building");
     }
   }, [result?.healthScore, stage, navigate]);

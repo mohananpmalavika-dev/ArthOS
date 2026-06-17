@@ -395,7 +395,7 @@ function SegmentedControl({ labelledBy, name, options, value, onChange }) {
 }
 
 function LiveResultSnapshot({ result }) {
-  if (!result || !result.healthScore) {
+  if (!result || result.healthScore === undefined || result.healthScore === null) {
     return null;
   }
 
@@ -1170,8 +1170,8 @@ export default function AssessmentSection({
           )}
 
           {showFeedback && (
-            <ValidationFeedbackForm
-              healthScore={result.healthScore}
+              <ValidationFeedbackForm
+                healthScore={normalizeScore(result?.healthScore ?? 0)}
               onSubmitFeedback={async feedbackPayload => {
                 const ok = await dispatchAnonymousFeedbackEvent(feedbackPayload, "/api/feedback");
                 const resultsEl = document.querySelector(".result-stack");

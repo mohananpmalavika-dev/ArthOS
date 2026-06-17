@@ -15,7 +15,9 @@ export default function TrajectoryHeroVisual({ result, assessment, data }) {
   const [countedWorst, setCountedWorst] = useState(0);
   const [countedBest, setCountedBest] = useState(0);
 
-  const currentScore = result?.healthScore ? normalizeScore(result.healthScore) : 72;
+  const currentScore = (typeof result?.healthScore === 'number' && !Number.isNaN(result.healthScore))
+    ? normalizeScore(result.healthScore)
+    : 72;
   const projectedWorst = Math.max(20, currentScore - 22);
   const projectedBest = Math.min(100, currentScore + 16);
 

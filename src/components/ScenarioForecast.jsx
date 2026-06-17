@@ -309,9 +309,9 @@ export function ScenarioForecast({ profile, assessmentResult }) {
 }
 
 ScenarioForecast.propTypes = {
-  profile: PropTypes.object.isRequired,
+  profile: PropTypes.object,
   assessmentResult: PropTypes.shape({
     healthScore: PropTypes.number,
     futureRiskScore: PropTypes.number
-  }).isRequired
+  })
 };

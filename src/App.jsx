@@ -188,6 +188,7 @@ import ActionFollowUpPanel from "./components/ActionFollowUpPanel.jsx";
 import DecisionSimulator from "./components/DecisionSimulator.jsx";
 import ExportPDF from "./components/ExportPDF.jsx";
 import RealityScreen from "./components/RealityScreen.jsx";
+import WeeklyMissionCard from "./components/WeeklyMissionCard.jsx";
 import WhyScreen from "./components/WhyScreen.jsx";
 import MindDashboard from "./components/MindDashboard.jsx";
 import FutureScreen from "./components/FutureScreen.jsx";
@@ -644,7 +645,11 @@ export default function App({ demoMode = false }) {
   const closeShareDialog = useCallback(() => setShareDialogData(null), []);
 
   // Calculate financial health scores — must be before useEffect hooks that depend on it
-  const result = useMemo(() => calculateFinancialHealthV2(assessment), [assessment]);
+  // Ensure result is always an object to avoid null dereference when downstream code
+  // reads properties like `result.healthScore`.
+  const result = useMemo(() => calculateFinancialHealthV2(assessment) || {}, [assessment]);
+
+  const safeHealthScore = useMemo(() => normalizeScore(result), [result]);
 
   useEffect(() => {
     if (isBrowser()) {
@@ -712,30 +717,30 @@ export default function App({ demoMode = false }) {
     if (!isBrowser()) {
       return;
     }
-    if (result.healthScore <= 0) {
+    if (safeHealthScore <= 0) {
       return;
     }
 
     const prev = prevScoreRef.current;
-    if (prev > 0 && result.healthScore !== prev) {
+    if (prev > 0 && safeHealthScore !== prev) {
       // Score changed — fire in-app notification
-      detectAndNotifyScoreChange(result.healthScore, prev);
+      detectAndNotifyScoreChange(safeHealthScore, prev);
       refreshNotificationCount();
     }
-    prevScoreRef.current = result.healthScore;
-  }, [result.healthScore, refreshNotificationCount]);
+    prevScoreRef.current = safeHealthScore;
+  }, [safeHealthScore, refreshNotificationCount]);
 
   // Check and unlock milestones on score/checkin changes
   useEffect(() => {
     if (!isBrowser()) {
       return;
     }
-    if (result.healthScore <= 0) {
+    if (safeHealthScore <= 0) {
       return;
     }
 
     const milestones = checkAndUnlockMilestones({
-      currentScore: result.healthScore,
+      currentScore: safeHealthScore,
       firstScore: scoreHistory.length > 0 ? scoreHistory[0]?.score : null,
       assessmentCount: scoreHistory.length,
       streak: calculateConsecutiveStreak(weeklyCheckins),
@@ -752,7 +757,7 @@ export default function App({ demoMode = false }) {
       refreshNotificationCount();
     }
   }, [
-    result.healthScore,
+    safeHealthScore,
     scoreHistory,
     weeklyCheckins,
     decisionHistoryCount,
@@ -1072,18 +1077,18 @@ export default function App({ demoMode = false }) {
   const habitProgress = useMemo(() => evaluateHabitProgress(weeklyCheckins), [weeklyCheckins]);
   const forecastHealthValues = useMemo(() => {
     return forecastHealth(
-      result.healthScore,
+      safeHealthScore,
       Math.round(habitProgress.score / 8),
       scoreHistory.length,
       decisionHistoryCount
     );
-  }, [result.healthScore, habitProgress.score, scoreHistory.length, decisionHistoryCount]);
+  }, [safeHealthScore, habitProgress.score, scoreHistory.length, decisionHistoryCount]);
 
   // New: Prediction Engine (multi-model ensemble) forecasts
   const predictionEngineForecast = useMemo(() => {
     try {
       return predictionEngineForecastHealth(
-        result.healthScore,
+        safeHealthScore,
         scoreHistory.map(s => s.score || s),
         assessment.profile,
         12 // monthly seasonality
@@ -1091,7 +1096,7 @@ export default function App({ demoMode = false }) {
     } catch (e) {
       return null;
     }
-  }, [result.healthScore, scoreHistory, assessment.profile]);
+  }, [safeHealthScore, scoreHistory, assessment.profile]);
   const memoryInsight = useMemo(() => generateMemoryInsight(weeklyCheckins), [weeklyCheckins]);
   const opportunity = useMemo(() => opportunityForecast(assessment.profile), [assessment.profile]);
   const goalEvolution = useMemo(
@@ -1168,7 +1173,7 @@ export default function App({ demoMode = false }) {
       { id: "spendWhenStressed", value: assessment.behaviour.spendWhenStressed || null },
       { id: "regretImpulseFreq", value: assessment.behaviour.regretImpulseFreq || null }
     ].filter(item => item.value !== null);
-    graph.outcomes = [{ id: "healthScore", value: result.healthScore }];
+    graph.outcomes = [{ id: "healthScore", value: safeHealthScore }];
     graph.connect("beliefs", "biases");
     graph.connect("biases", "emotions");
     graph.connect("emotions", "decisions");
@@ -1179,7 +1184,7 @@ export default function App({ demoMode = false }) {
     biasProfile,
     emotionalTriggers,
     assessment.behaviour,
-    result.healthScore
+    safeHealthScore
   ]);
 
   const cognitionGraphData = useMemo(() => {
@@ -1236,14 +1241,14 @@ export default function App({ demoMode = false }) {
     if (!isBrowser()) {
       return;
     }
-    if (typeof result?.healthScore !== "number" || Number.isNaN(result.healthScore)) {
+    if (typeof safeHealthScore !== "number" || Number.isNaN(safeHealthScore)) {
       return;
     }
-    if (result.healthScore <= 0) {
+    if (safeHealthScore <= 0) {
       return;
     }
 
-    const updatedHistory = appendScoreHistory(result.healthScore);
+    const updatedHistory = appendScoreHistory(safeHealthScore);
     setScoreHistory(updatedHistory);
     appendAssessmentHistory(result);
 
@@ -1253,14 +1258,14 @@ export default function App({ demoMode = false }) {
 
     memoryEngine.addEvent({
       type: "assessment_result",
-      score: result.healthScore,
+      score: safeHealthScore,
       personalityType: result.personalityType,
       stabilityMonths: result.survivalMonthsRaw,
       source: "assessment"
     });
     memoryEngine.addEvent({
       type: "trajectory_snapshot",
-      score: result.healthScore,
+      score: safeHealthScore,
       date: new Date().toISOString()
     });
     setMemoryTimeline(memoryEngine.getHistory());
@@ -1275,7 +1280,7 @@ export default function App({ demoMode = false }) {
     // After assessment completion, navigate to the cinematic Big Reveal route
     // Do not override users who manually navigate directly to the dashboard.
     try {
-      console.log('App redirect check', { currentPath: window.location.pathname, demoMode, resultHealth: result.healthScore });
+      console.log('App redirect check', { currentPath: window.location.pathname, demoMode, resultHealth: safeHealthScore });
       const currentPath = window.location.pathname || "";
       if (!demoMode && !currentPath.startsWith("/dashboard")) {
         console.log('App redirect to /big-reveal', { currentPath });
@@ -1286,7 +1291,7 @@ export default function App({ demoMode = false }) {
       // eslint-disable-next-line no-console
       console.warn("Navigation to /big-reveal skipped:", err && err.message);
     }
-  }, [result.healthScore, assessment.profile, result, memoryEngine]);
+  }, [safeHealthScore, assessment.profile, result, memoryEngine]);
 
   // First-time landing logic: if an authenticated user has no score history,
   // send them to onboarding the first time they open the app (unless demoMode).
@@ -1743,7 +1748,7 @@ export default function App({ demoMode = false }) {
                     <ErrorBoundary>
                       <UserHistory
                         className="summary-span"
-                        currentScore={result.healthScore}
+                        currentScore={safeHealthScore}
                         personalityType={result.personalityType}
                       />
                     </ErrorBoundary>
@@ -1761,7 +1766,7 @@ export default function App({ demoMode = false }) {
                 <div className="dashboard-grid-item">
                   <Suspense fallback={<LazyComponentFallback />}>
                     <ErrorBoundary>
-                      <ScenarioForecast profile={assessment.profile} assessmentResult={result} />
+                      <ScenarioForecast profile={assessment?.profile} assessmentResult={result} />
                     </ErrorBoundary>
                   </Suspense>
                 </div>
@@ -1983,7 +1988,7 @@ export default function App({ demoMode = false }) {
                     <ErrorBoundary>
                       <UserHistory
                         className="summary-span"
-                        currentScore={result.healthScore}
+                        currentScore={safeHealthScore}
                         personalityType={result.personalityType}
                       />
                     </ErrorBoundary>
@@ -2082,7 +2087,7 @@ export default function App({ demoMode = false }) {
                     <ErrorBoundary>
                       <UserHistory
                         className="summary-span"
-                        currentScore={result.healthScore}
+                        currentScore={safeHealthScore}
                         personalityType={result.personalityType}
                       />
                     </ErrorBoundary>
@@ -2288,7 +2293,7 @@ export default function App({ demoMode = false }) {
                         </p>
                       </div>
                       <ScenarioForecast
-                        profile={assessment.profile}
+                        profile={assessment?.profile}
                         assessmentResult={result}
                         predictionEngineForecast={predictionEngineForecast}
                       />
@@ -2744,7 +2749,7 @@ export default function App({ demoMode = false }) {
                       <ErrorBoundary>
                         <UserHistory
                           className="summary-span"
-                          currentScore={result.healthScore}
+                          currentScore={safeHealthScore}
                           personalityType={result.personalityType}
                         />
                       </ErrorBoundary>
@@ -2976,7 +2981,7 @@ const sIcons = { behaviour: Brain, awareness: BarChart3, stability: ShieldCheck 
 
 function HeroSection({ assessment, result }) {
   const navigate = useNavigate();
-  if (!result || !result.healthScore) {
+  if (!result || !safeHealthScore) {
     return null;
   }
 

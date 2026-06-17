@@ -51,7 +51,7 @@ function buildLiveInsightCards(result = {}, assessment = {}) {
 
 export default function HeroSection({ assessment, result }) {
   const navigate = useNavigate();
-  if (!result || !result.healthScore) {
+  if (!result || result.healthScore === undefined || result.healthScore === null) {
     return null;
   }
 

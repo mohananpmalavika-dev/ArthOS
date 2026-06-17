@@ -28,7 +28,7 @@ export default function ExportPDF({ result, assessmentData }) {
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
       `;
 
-      const healthScorePercentage = normalizeScore(result.healthScore ?? 0);
+      const healthScorePercentage = normalizeScore(result?.healthScore ?? 0);
       const timestamp = new Date().toLocaleDateString("en-IN", {
         year: "numeric",
         month: "long",

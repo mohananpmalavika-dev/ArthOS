@@ -462,7 +462,7 @@ export function buildFinancialTwinScenarios(result, profile) {
     emergencySavingsDiscretionary: discretionarySavings,
     totalDebt: toNumber(profile?.totalDebt || 0),
     monthlyLiabilities: toNumber(profile?.monthlyLiabilities || 0),
-    healthScore: result.healthScore,
+    healthScore: result?.healthScore ?? 0,
     activeElasticityFactor: result.activeElasticityFactor || 0.4
   };
 

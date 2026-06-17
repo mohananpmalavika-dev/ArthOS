@@ -390,7 +390,7 @@ const AiCoachInterface = ({ userId, result, assessment, coachPrimaryConcern }) =
             {result?.healthScore !== undefined && (
               <article className="coach-context-card">
                 <span className="coach-context-label">Health Score</span>
-                <strong className="coach-context-value">{normalizeScore(result.healthScore)}/100</strong>
+                <strong className="coach-context-value">{normalizeScore(result?.healthScore ?? 0)}/100</strong>
                 <span className="coach-context-note">{result.categoryBand?.label}</span>
               </article>
             )}
@@ -421,11 +421,14 @@ const AiCoachInterface = ({ userId, result, assessment, coachPrimaryConcern }) =
         {result && (
           <div className="coach-context-summary">
             <strong>Coach Context:</strong> {
-              result.healthScore >= 80
-                ? `You're in good shape with ${result.categoryBand?.label}. Let's work on optimizing your growth.`
-                : result.healthScore >= 60
-                  ? `Your situation is ${result.categoryBand?.label?.toLowerCase()}. Focus on strengthening your runway and reducing blind spots.`
-                  : `You're under pressure. Let's create an action plan to improve your financial stability.`
+              (() => {
+                const hs = normalizeScore(result?.healthScore ?? 0);
+                return hs >= 80
+                  ? `You're in good shape with ${result.categoryBand?.label}. Let's work on optimizing your growth.`
+                  : hs >= 60
+                    ? `Your situation is ${result.categoryBand?.label?.toLowerCase()}. Focus on strengthening your runway and reducing blind spots.`
+                    : `You're under pressure. Let's create an action plan to improve your financial stability.`
+              })()
             }
           </div>
         )}

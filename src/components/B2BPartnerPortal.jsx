@@ -1453,7 +1453,7 @@ const result = await sdk.getIntelligence({
   },
 });
 
-console.log('Health score:', result.healthScore.score);
+console.log('Health score:', result?.healthScore?.score);
 console.log('Risk level:', result.riskProfile.level);
 console.log('Bias load:', result.cognitiveBiases.biasLoad);`}
           </pre>

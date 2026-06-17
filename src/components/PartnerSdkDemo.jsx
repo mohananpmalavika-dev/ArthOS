@@ -331,27 +331,27 @@ export default function PartnerSdkDemo({ userId = "demo", assessment = {} }) {
               <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
                 <MetricTile
                   label="Score"
-                  value={intelligenceResult.healthScore.score}
+                  value={intelligenceResult.healthScore.score ?? '—'}
                   suffix="/100"
                 />
-                <MetricTile label="Category" value={intelligenceResult.healthScore.category} />
+                <MetricTile label="Category" value={intelligenceResult.healthScore.category ?? '—'} />
                 <MetricTile
                   label="Personality"
-                  value={intelligenceResult.healthScore.personality?.type}
+                  value={intelligenceResult.healthScore.personality?.type ?? '—'}
                 />
                 <MetricTile
                   label="Survival Months"
-                  value={intelligenceResult.healthScore.survival?.months}
+                  value={intelligenceResult.healthScore.survival?.months ?? '—'}
                   suffix="mos"
                 />
                 <MetricTile
                   label="Awareness Gap"
-                  value={intelligenceResult.healthScore.survival?.awarenessGap}
+                  value={intelligenceResult.healthScore.survival?.awarenessGap ?? '—'}
                   suffix="mos"
                 />
               </div>
               <div style={{ marginTop: 8, fontSize: 12, color: "var(--gray-600)" }}>
-                {intelligenceResult.healthScore.summary}
+                {intelligenceResult.healthScore.summary ?? ''}
               </div>
             </div>
           )}

@@ -158,8 +158,8 @@ function ValidationFeedbackForm({ healthScore, onSubmitFeedback }) {
 }
 
 ValidationFeedbackForm.propTypes = {
-  healthScore: PropTypes.number.isRequired,
-  onSubmitFeedback: PropTypes.func.isRequired
+  healthScore: PropTypes.number,
+  onSubmitFeedback: PropTypes.func
 };
 
 export default ValidationFeedbackForm;

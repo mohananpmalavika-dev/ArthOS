@@ -10,7 +10,7 @@ const BigReveal = ({ score }) => {
 };
 
 BigReveal.propTypes = {
-  score: PropTypes.number.isRequired,
+  score: PropTypes.number,
 };
 
 export default BigReveal;

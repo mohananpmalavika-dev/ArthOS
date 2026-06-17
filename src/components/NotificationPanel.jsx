@@ -163,8 +163,8 @@ function NotificationPanel({ isOpen, onClose, pushStatus, onEnablePushNotificati
 }
 
 NotificationPanel.propTypes = {
-  isOpen: PropTypes.bool.isRequired,
-  onClose: PropTypes.func.isRequired,
+  isOpen: PropTypes.bool,
+  onClose: PropTypes.func,
   pushStatus: PropTypes.shape({
     isSupported: PropTypes.bool,
     permissionStatus: PropTypes.oneOf(['granted', 'denied', 'default']),

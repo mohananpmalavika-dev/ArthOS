@@ -169,12 +169,12 @@ SingleRecommendedAction.propTypes = {
     awarenessScore: PropTypes.number,
     survivalMonthsDisplay: PropTypes.string,
     personalityType: PropTypes.string
-  }).isRequired,
+  }),
   assessment: PropTypes.shape({
     profile: PropTypes.object,
     behaviour: PropTypes.object,
     awareness: PropTypes.object
-  }).isRequired
+  })
 };
 
 export default SingleRecommendedAction;
