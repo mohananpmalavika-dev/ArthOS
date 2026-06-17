@@ -54,36 +54,45 @@ const LongitudinalLearningDashboard = ({ userId }) => {
   const loadLongitudinalData = async () => {
     setLoading(true);
     try {
+      // Helper to safely fetch JSON and fallback to an empty object on error or non-JSON responses
+      const safeFetchJson = async (url) => {
+        try {
+          const res = await fetch(url);
+          if (!res.ok) return { success: false };
+          // Try parse JSON, if it fails return a failure object
+          try {
+            const body = await res.json();
+            return body || { success: false };
+          } catch (e) {
+            // non-json response (HTML or text) — treat as failure
+            return { success: false };
+          }
+        } catch (e) {
+          return { success: false };
+        }
+      };
+
       const [lifecycleRes, patternsRes, trendsRes, insightsRes, anomaliesRes, journalRes] =
         await Promise.all([
-          fetch(`/api/longitudinal/lifecycle?userId=${userId}`).then(r => r.json()),
-          fetch(`/api/longitudinal/patterns?userId=${userId}&active=true`).then(r => r.json()),
-          fetch(`/api/longitudinal/trends?userId=${userId}`).then(r => r.json()),
-          fetch(`/api/longitudinal/insights?userId=${userId}&shown=false`).then(r => r.json()),
-          fetch(`/api/longitudinal/anomalies?userId=${userId}&acknowledged=false`).then(r =>
-            r.json()
-          ),
-          fetch(`/api/longitudinal/journal?userId=${userId}&limit=10`).then(r => r.json())
+          safeFetchJson(`/api/longitudinal/lifecycle?userId=${userId}`),
+          safeFetchJson(`/api/longitudinal/patterns?userId=${userId}&active=true`),
+          safeFetchJson(`/api/longitudinal/trends?userId=${userId}`),
+          safeFetchJson(`/api/longitudinal/insights?userId=${userId}&shown=false`),
+          safeFetchJson(`/api/longitudinal/anomalies?userId=${userId}&acknowledged=false`),
+          safeFetchJson(`/api/longitudinal/journal?userId=${userId}&limit=10`)
         ]);
 
-      if (lifecycleRes.success) {
+      // Only set state when the response indicates success and contains expected fields.
+      if (lifecycleRes && lifecycleRes.success) {
         setLifecycle(lifecycleRes.lifecycle || lifecycleRes);
+      } else {
+        setLifecycle(null);
       }
-      if (patternsRes.success) {
-        setPatterns(patternsRes.patterns || []);
-      }
-      if (trendsRes.success) {
-        setTrends(trendsRes.trends || []);
-      }
-      if (insightsRes.success) {
-        setInsights(insightsRes.insights || []);
-      }
-      if (anomaliesRes.success) {
-        setAnomalies(anomaliesRes.anomalies || []);
-      }
-      if (journalRes.success) {
-        setJournal(journalRes.entries || []);
-      }
+      setPatterns((patternsRes && patternsRes.patterns) || []);
+      setTrends((trendsRes && trendsRes.trends) || []);
+      setInsights((insightsRes && insightsRes.insights) || []);
+      setAnomalies((anomaliesRes && anomaliesRes.anomalies) || []);
+      setJournal((journalRes && journalRes.entries) || []);
     } catch (error) {
       console.error("Failed to load longitudinal data:", error);
     } finally {
@@ -95,6 +104,29 @@ const LongitudinalLearningDashboard = ({ userId }) => {
     return (
       <div className="min-h-screen bg-gradient-to-br from-indigo-50 to-purple-100 p-6">
         <PageSkeleton blockCount={5} />
+      </div>
+    );
+  }
+
+  // Fallback: if nothing loaded (likely API unavailable or unauthorized), show helpful message
+  const noDataLoaded =
+    !lifecycle && patterns.length === 0 && trends.length === 0 && insights.length === 0 &&
+    anomalies.length === 0 && journal.length === 0;
+
+  if (noDataLoaded) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-indigo-50 to-purple-100 p-6 flex items-center justify-center">
+        <div className="bg-white rounded-lg shadow-lg p-12 max-w-2xl text-center">
+          <h2 className="text-2xl font-semibold text-gray-900 mb-3">Learning data unavailable</h2>
+          <p className="text-gray-600 mb-6">
+            We couldn't load your learning journey. This can happen if the server is unavailable
+            or you're not signed in. Try refreshing the page or sign out and sign back in.
+          </p>
+          <div className="flex items-center justify-center gap-3">
+            <button onClick={loadLongitudinalData} className="px-5 py-2 bg-indigo-600 text-white rounded-lg">Retry</button>
+            <a href="/dashboard" className="px-5 py-2 border rounded-lg text-gray-700">Back to dashboard</a>
+          </div>
+        </div>
       </div>
     );
   }
