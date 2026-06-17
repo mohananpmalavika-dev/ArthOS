@@ -521,16 +521,19 @@ main {
     grid-row: 2 / 3;
     margin: 8px 20px;
     justify-content: flex-start;
-    /* keep nav on a single line on wide screens and allow horizontal scroll */
-    flex-wrap: nowrap;
-    white-space: nowrap;
-    overflow-x: auto;
+    /* allow nav to wrap into multiple lines on desktop */
+    flex-wrap: wrap;
+    white-space: normal;
+    overflow-x: visible;
     -webkit-overflow-scrolling: touch;
   }
 
   .page-shell-main {
     padding-top: 140px; /* accommodate two-line header */
   }
+
+  /* hide scroll arrows on desktop when nav is wrapped */
+  .nav-scroll-btn { display: none !important; }
 }
 
 .nav-links::-webkit-scrollbar {
