@@ -39,7 +39,7 @@ const BigReveal = ({
             </span>
           </div>
 
-          <div className="cinematic-cta-row">
+          <div className="hero-cta-row">
             <a className="hero-cta" href="#journey">
               View Dashboard
               <ArrowRight size={17} aria-hidden="true" />
@@ -51,7 +51,7 @@ const BigReveal = ({
           </div>
         </div>
 
-        <div className="cinematic-right" aria-label={`Financial health score ${normalizedScore}`}>
+        <div className="hero-right" aria-label={`Financial health score ${normalizedScore}`}>
           <div className="score-ring-large" style={{ "--score": normalizedScore }}>
             <div className="score-inner-large">
               <Sparkles size={22} aria-hidden="true" />

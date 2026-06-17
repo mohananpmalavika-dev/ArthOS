@@ -278,12 +278,8 @@ export default function UnifiedJourneyHome({ result, assessment, onCoachOpen }) 
           <span className="section-eyebrow">Digital Twin</span>
           <h2 className="section-title">Your future self preview</h2>
           <p className="section-copy">
-            A holographic glimpse of your future financial profile if you stay on the current plan.
-          </p>
-        </div>
-
-        <div className="digital-twin-grid">
-          <FutureYou data={futureYouData} />
+              A snapshot of your future financial profile if you stay on the current plan.
+         </p> <FutureYou data={futureYouData} />
           <FinancialWeatherCard weatherIndex={result?.weatherIndex} healthScore={result?.healthScore ?? 0} />
         </div>
       </div>
@@ -349,7 +345,7 @@ export default function UnifiedJourneyHome({ result, assessment, onCoachOpen }) 
       <div className="home-block">
         <div className="section-header">
           <span className="section-eyebrow">Live insights</span>
-          <h2 className="section-title">Insight stream</h2>
+          <h2 className="section-title">Quick insights</h2>
           <p className="section-copy">
             High-value takeaways surfaced in a quick, swipeable format.
           </p>
@@ -414,7 +410,7 @@ export default function UnifiedJourneyHome({ result, assessment, onCoachOpen }) 
           <h2 className="section-title">Your long-term trajectory</h2>
           <p className="section-copy">
             See the current path, the recommended path, and how one decision changes the whole
-            story.
+            outlook.
           </p>
         </div>
 

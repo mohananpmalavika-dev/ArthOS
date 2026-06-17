@@ -97,16 +97,16 @@ export default function Onboarding() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2, duration: 0.8 }}
             >
-              <span className="onboarding-eyebrow">Guided discovery</span>
+              <span className="onboarding-eyebrow">Guided review</span>
               <h1 className="onboarding-title">
                 Welcome to <span>ARTH.OS</span>
               </h1>
               <p className="onboarding-subtitle">
-                Launch your AI discovery journey and reveal the hidden structure of your finances.
+                Start your AI financial review and reveal the hidden structure of your finances.
               </p>
               <p className="onboarding-description">
-                In just a few minutes, ARTH.OS scans your Financial DNA, surfaces your runway, and
-                maps the exact levers that turn risk into resilience.
+                In just a few minutes, ARTH.OS analyzes your financial profile, surfaces your runway,
+                and maps the exact levers that turn risk into resilience.
               </p>
             </motion.div>
 

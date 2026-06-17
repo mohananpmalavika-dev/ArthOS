@@ -261,8 +261,8 @@ function DemoBanner() {
         Investor demo route active
       </strong>
       <p style={{ margin: 0, color: "#1f2a56" }}>
-        This experience is optimized for storytelling — one unified financial narrative built for
-        investor review.
+        This experience is optimized for clarity — one unified financial view built for investor
+        review.
       </p>
     </section>
   );
