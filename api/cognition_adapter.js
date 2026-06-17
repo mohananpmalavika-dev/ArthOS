@@ -2,8 +2,8 @@ import { createRequire } from 'module';
 const require = createRequire(import.meta.url);
 const express = require('express');
 
-// Load the existing Express router (CommonJS) from api_src
-const cognitionRouter = require('../api_src/longitudinal/cognition-graph-index.js');
+// Load the existing Express router (CommonJS) from api_src (.cjs wrapper)
+const cognitionRouter = require('../api_src/longitudinal/cognition-graph-index.cjs');
 
 const app = express();
 app.use(express.json());

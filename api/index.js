@@ -34,7 +34,7 @@ import subscriptionsHandler from '../api_src/subscriptions-handler.js';
 import backgroundHealthHandler from '../api_src/backgroundHealth.js';
 import { createRequire } from 'module';
 const requireModule = createRequire(import.meta.url);
-const longitudinalIndex = requireModule('../api_src/longitudinal/index.js');
+const longitudinalIndex = requireModule('../api_src/longitudinal/index.cjs');
 import calendarExportHandler from './calendar_export.js';
 import durableJobProcessorAdapter from './durableJobProcessor.js';
 import userExportHandler from '../api_src/user/export.js';
