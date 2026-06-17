@@ -2031,6 +2031,12 @@ export default function App({ demoMode = false }) {
               </div>
             </section>
           ) : showDashboardHome ? (
+            <UnifiedJourneyHome
+              assessment={assessment}
+              result={result}
+              onCoachOpen={topic => handleOpenPanel("/coach", topic)}
+            />
+          ) : showDashboardHome ? (
             <section className="dashboard-page">
               <div className="dashboard-page-header">
                 <h1>Dashboard</h1>

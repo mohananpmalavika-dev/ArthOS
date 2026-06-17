@@ -6,7 +6,7 @@ const BigRevealAnimation = ({ score }) => {
   return (
     <div className="big-reveal-animation">
       <div className="big-reveal-score-container">
-        <div className="big-reveal-score">{score}</div>
+        <div className="big-reveal-animation-score">{score}</div>
         <div className="big-reveal-shimmer" />
       </div>
     </div>

@@ -129,15 +129,6 @@ export default function UnifiedJourneyHome({ result, assessment, onCoachOpen }) 
     }
   }, [result, navigate]);
 
-  const [particles] = useState(() =>
-    Array.from({ length: 22 }).map(() => ({
-      left: Math.round(Math.random() * 100) + "%",
-      top: Math.round(Math.random() * 100) + "%",
-      size: 4 + Math.round(Math.random() * 10),
-      delay: (Math.random() * 3).toFixed(2) + "s"
-    }))
-  );
-
   UnifiedJourneyHome.propTypes = {
     result: PropTypes.shape({
       componentRows: PropTypes.arrayOf(
@@ -197,7 +188,14 @@ export default function UnifiedJourneyHome({ result, assessment, onCoachOpen }) 
 
   return (
     <main className="home-hero" ref={heroRef}>
-      <BigReveal score={currentScore} />
+      <BigReveal
+        score={currentScore}
+        scoreLabel={scoreLabel}
+        runway={runway}
+        cashflow={result?.cashflowDisplay || "INR 0"}
+        outlook={futureRisk}
+        onCoachOpen={onCoachOpen}
+      />
 
       <div className="home-block">
         <div className="section-header">
@@ -287,28 +285,6 @@ export default function UnifiedJourneyHome({ result, assessment, onCoachOpen }) 
         <div className="digital-twin-grid">
           <FutureYou data={futureYouData} />
           <FinancialWeatherCard weatherIndex={result?.weatherIndex} healthScore={result?.healthScore ?? 0} />
-        </div>
-      </div>
-
-      <div className="home-block preview-block">
-        <div className="section-header">
-          <span className="section-eyebrow">Quick previews</span>
-          <h2 className="section-title">Reality, Future & Coach</h2>
-          <p className="section-copy">Small previews so you can jump straight to the cinematic experiences.</p>
-        </div>
-
-        <div className="preview-grid">
-          <React.Suspense fallback={<div>Loading preview...</div>}>
-            <RealityScreen result={result} assessment={assessment} />
-          </React.Suspense>
-
-          <React.Suspense fallback={<div>Loading preview...</div>}>
-            <FutureScreen result={result} assessment={assessment} digitalTwin={digitalTwin} />
-          </React.Suspense>
-
-          <React.Suspense fallback={<div>Loading coach...</div>}>
-            <AiCoachInterface result={result} assessment={assessment} compact />
-          </React.Suspense>
         </div>
       </div>
 

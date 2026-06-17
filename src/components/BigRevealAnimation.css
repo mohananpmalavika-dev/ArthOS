@@ -1,4 +1,5 @@
 .big-reveal-animation {
+  position: relative;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -7,26 +8,70 @@
 
 .big-reveal-score-container {
   position: relative;
-  animation: reveal 2s ease-in-out;
+  display: grid;
+  place-items: center;
+  width: min(58vw, 420px);
+  aspect-ratio: 1;
+  border: 1px solid rgba(0, 255, 255, 0.18);
+  border-radius: 50%;
+  background:
+    radial-gradient(circle, rgba(0, 255, 255, 0.14), transparent 58%),
+    conic-gradient(from 210deg, cyan, purple, emerald, cyan);
+  box-shadow:
+    0 0 120px rgba(0, 255, 255, 0.16),
+    0 38px 110px rgba(0, 0, 0, 0.42);
+  animation: reveal 1.45s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-.big-reveal-score {
-  font-size: 10rem;
-  font-weight: bold;
+.big-reveal-score-container::before {
+  position: absolute;
+  inset: 22px;
+  content: "";
+  border-radius: inherit;
+  background:
+    linear-gradient(180deg, rgba(11, 18, 32, 0.94), rgba(5, 7, 19, 0.98)),
+    #050713;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+.big-reveal-score-container::after {
+  position: absolute;
+  inset: 46px;
+  content: "";
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: inherit;
+}
+
+.big-reveal-animation-score {
+  position: relative;
+  z-index: 1;
+  font-size: clamp(5rem, 18vw, 11rem);
+  font-weight: 950;
+  line-height: 0.85;
   color: #fff;
-  text-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
+  text-shadow: 0 0 40px rgba(0, 255, 255, 0.28);
 }
 
 .big-reveal-shimmer {
+  position: absolute;
+  inset: 12%;
+  border-radius: 50%;
+  overflow: hidden;
+  opacity: 0.7;
+  mix-blend-mode: screen;
+}
+
+.big-reveal-shimmer::before {
   position: absolute;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
+  content: "";
   background: linear-gradient(
     to right,
     transparent 0%,
-    rgba(255, 255, 255, 0.5) 50%,
+    rgba(255, 255, 255, 0.38) 50%,
     transparent 100%
   );
   animation: shimmer 3s infinite;
