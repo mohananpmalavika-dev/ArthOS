@@ -73,18 +73,13 @@ export default function Onboarding() {
     navigate("/big-reveal", { replace: true });
   };
 
+  // The assessment flow should only transition to the building stage
+  // after the user completes the guided assessment and explicitly invokes
+  // the completion callback. Do not auto-advance when the score is present.
   useEffect(() => {
-    if (
-      stage === "assessment" &&
-      result &&
-      result.healthScore !== undefined &&
-      result.healthScore !== null
-    ) {
-      const handle = window.setTimeout(() => setStage("building"), 0);
-      return () => window.clearTimeout(handle);
-    }
+    // No automatic stage transition required here.
     return undefined;
-  }, [result, result?.healthScore, stage]);
+  }, []);
 
   if (stage === "welcome") {
     return (
