@@ -126,13 +126,6 @@ export const STORY_NAV_ITEMS = [
     description: "Financial health quiz"
   },
   {
-    id: "big-reveal",
-    path: "/big-reveal",
-    label: "Big Reveal",
-    icon: Sparkles,
-    description: "Cinematic score reveal"
-  },
-  {
     id: "reality",
     path: "/reality",
     label: "Reality",
