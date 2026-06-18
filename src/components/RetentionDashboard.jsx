@@ -39,8 +39,8 @@ export default function RetentionDashboard() {
   return (
     <div className="retention-dashboard">
       <div className="retention-header">
-        <h2>📊 User Retention Analytics</h2>
-        <p className="subtitle">MVP Validation KPI Tracking (Ch. 12)</p>
+        <h2>📊 User Growth Tracking</h2>
+        <p className="subtitle">Community Growth Metrics</p>
         <button
           className="btn-secondary"
           onClick={() => downloadRetentionData()}
@@ -57,7 +57,7 @@ export default function RetentionDashboard() {
             <TrendingUp size={24} />
           </div>
           <div className="kpi-content">
-            <h3>Day 30 Retention</h3>
+            <h3>Month 1 Engagement</h3>
             <div className="kpi-metric">
               {day30Actual}% <span className="target">/ {day30Target}% target</span>
             </div>
@@ -66,9 +66,9 @@ export default function RetentionDashboard() {
         </div>
       </div>
 
-      {/* RETENTION CURVE */}
+      {/* Engagement Curve */}
       <div className="retention-section">
-        <h3>Retention Curve (All Cohorts)</h3>
+        <h3>Engagement Over Time</h3>
         <div className="retention-curve">
           {curve.map(dayData => (
             <div key={`day-${dayData.dayN}`} className="curve-bar">
@@ -85,14 +85,14 @@ export default function RetentionDashboard() {
         </div>
       </div>
 
-      {/* COHORT STATISTICS */}
+      {/* COMMUNITY INSIGHTS */}
       <div className="retention-stats-grid">
         <div className="stat-card">
           <div className="stat-icon">
             <Users size={20} />
           </div>
           <div className="stat-content">
-            <div className="stat-label">Total Cohorts</div>
+            <div className="stat-label">Total Groups</div>
             <div className="stat-value">{stats.totalCohorts}</div>
           </div>
         </div>

@@ -16,7 +16,7 @@ export function FinancialMindProfileCard({ profile }) {
     <div className="cognition-card" style={{ marginBottom: "20px" }}>
       <div style={{ display: "flex", alignItems: "center", marginBottom: "12px" }}>
         <Brain size={20} style={{ marginRight: "8px", color: "var(--purple)" }} />
-        <h3 style={{ margin: 0, fontSize: "16px", fontWeight: "600" }}>Financial Mind Profile</h3>
+        <h3 style={{ margin: 0, fontSize: "16px", fontWeight: "600" }}>Your Money Mind</h3>
       </div>
 
       <div
@@ -38,7 +38,7 @@ export function FinancialMindProfileCard({ profile }) {
           <div style={{ fontSize: "24px", fontWeight: "700", color: "var(--purple)" }}>
             {believesCount}
           </div>
-          <div style={{ fontSize: "12px", color: "var(--purple-700)" }}>Beliefs</div>
+          <div style={{ fontSize: "12px", color: "var(--purple-700)" }}>Your Money Beliefs</div>
         </div>
 
         <div
@@ -52,7 +52,7 @@ export function FinancialMindProfileCard({ profile }) {
           <div style={{ fontSize: "24px", fontWeight: "700", color: "var(--red)" }}>
             {biasCount}
           </div>
-          <div style={{ fontSize: "12px", color: "var(--red-700)" }}>Cognitive Biases</div>
+          <div style={{ fontSize: "12px", color: "var(--red-700)" }}>Money Mindsets</div>
         </div>
 
         <div
@@ -66,7 +66,7 @@ export function FinancialMindProfileCard({ profile }) {
           <div style={{ fontSize: "24px", fontWeight: "700", color: "var(--amber-700)" }}>
             {triggerCount}
           </div>
-          <div style={{ fontSize: "12px", color: "var(--amber-800)" }}>Triggers</div>
+          <div style={{ fontSize: "12px", color: "var(--amber-800)" }}>Money Moments</div>
         </div>
 
         <div
@@ -80,14 +80,14 @@ export function FinancialMindProfileCard({ profile }) {
           <div style={{ fontSize: "24px", fontWeight: "700", color: "var(--green-600)" }}>
             {patternCount}
           </div>
-          <div style={{ fontSize: "12px", color: "var(--green-700)" }}>Patterns</div>
+          <div style={{ fontSize: "12px", color: "var(--green-700)" }}>Your Habits</div>
         </div>
       </div>
 
       {summary.dominantBeliefs && summary.dominantBeliefs.length > 0 && (
-        <div style={{ fontSize: "12px", color: "var(--muted-2)", marginTop: "10px" }}>
-          <strong>Core Beliefs:</strong>
-          <div style={{ marginTop: "4px", fontSize: "11px", fontStyle: "italic" }}>
+        <div style={{ fontSize: "13px", color: "var(--muted-2)", marginTop: "10px", lineHeight: "1.5" }}>
+          <strong>Key Beliefs:</strong>
+          <div style={{ marginTop: "4px", fontSize: "12px", fontStyle: "italic" }}>
             {summary.dominantBeliefs.join(", ")}
           </div>
         </div>

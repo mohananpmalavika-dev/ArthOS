@@ -51,7 +51,7 @@ export function EmotionalTriggersCard({ triggers, patterns }) {
       <div style={{ display: "flex", alignItems: "center", marginBottom: "12px" }}>
         <Zap size={20} style={{ marginRight: "8px", color: "var(--orange)" }} />
         <h3 style={{ margin: 0, fontSize: "16px", fontWeight: "600" }}>
-          Emotional Trigger Heatmap
+          Your Money Moments
         </h3>
       </div>
 
