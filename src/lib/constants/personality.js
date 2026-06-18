@@ -1,16 +1,16 @@
 /**
- * Personality Type Constants & Archetypes
- * Centralized definitions for money personality archetypes
- * 
+ * Money Style Constants & Archetypes
+ * Centralized definitions for money style archetypes
+ *
  * Naming Convention:
- * - getPersonalityType() returns Title Case: "Builder", "Survivor", "Optimizer", "Dreamer", "Risk Taker"
+ * - getPersonalityType() returns Title Case: "Planner", "Protector", "Smart Saver", "Dreamer", "Bold Investor"
  * - ARCHETYPES keys: Title Case matching scoring output
- * - CSS color classes: lowercase with underscores (e.g., "risk_taker")
- * 
+ * - CSS color classes: lowercase with underscores (e.g., "bold_investor")
+ *
  * This ensures consistent naming across:
  * - Scoring engine (scoring-v2.js calculatePersonalityTypeV2)
  * - Component archetypes (FinancialTwin.jsx, SingleRecommendedAction.jsx)
- * - UI stylesheets (CSS classes: .twin-icon-wrapper.builder, etc.)
+ * - UI stylesheets (CSS classes: .twin-icon-wrapper.planner, etc.)
  */
 
 import {
@@ -22,105 +22,105 @@ import {
 } from "lucide-react";
 
 /**
- * Personality archetypes with icon, traits, strength/challenge, and guidance
+ * Money style archetypes with icon, traits, strength/challenge, and guidance
  */
 export const ARCHETYPES = {
-  Builder: {
+  Planner: {
     icon: Target,
-    color: "builder",
-    description: "Strategic planner who builds wealth systematically",
+    color: "planner",
+    description: "You plan ahead and build wealth step by step",
     traits: ["Goal-oriented", "Disciplined", "Long-term focused"],
-    strength: "Consistent progress toward financial goals",
-    challenge: "Can be rigid when markets shift",
-    hiddenAdvantage: "Your systems turn slow progress into lasting momentum.",
-    dangerZone: "Burnout from too much structure",
-    recommendedRule: "Keep a flexible emergency bucket and review commitments quarterly."
+    strength: "You reach your money goals consistently",
+    challenge: "You might be too strict when things change",
+    hiddenAdvantage: "Your systems turn small steps into big wins.",
+    dangerZone: "Burnout from being too rigid",
+    recommendedRule: "Keep some money flexible and check your plan every 3 months."
   },
-  Survivor: {
+  Protector: {
     icon: Heart,
-    color: "survivor",
-    description: "Pragmatic protector focused on stability",
+    color: "protector",
+    description: "You focus on safety and staying stable with money",
     traits: ["Risk-aware", "Security-first", "Adaptive"],
-    strength: "Strong crisis management and resilience",
-    challenge: "May miss growth opportunities",
-    hiddenAdvantage: "You stabilize turbulence before it becomes a crisis.",
-    dangerZone: "Income shock after long-term stagnation",
+    strength: "You handle money problems well and bounce back",
+    challenge: "You might miss chances to grow your money",
+    hiddenAdvantage: "You stop problems before they get big.",
+    dangerZone: "Money stops growing after not improving for a long time",
     recommendedRule:
-      "Build a basic buffer, then allocate a small growth bucket for higher confidence choices."
+      "Build a safety cushion first, then put a small part into something that grows."
   },
-  Optimizer: {
+  "Smart Saver": {
     icon: Award,
-    color: "optimizer",
-    description: "Efficiency expert maximizing every rupee",
+    color: "smart_saver",
+    description: "You get the most out of every rupee",
     traits: ["Detail-oriented", "Resourceful", "Analytical"],
-    strength: "Exceptional cost optimization",
-    challenge: "Can over-analyze minor decisions",
-    hiddenAdvantage: "Your attention to detail catches leaks before they drain your runway.",
-    dangerZone: "Missing quick timing windows",
-    recommendedRule: "Set clear review rituals and avoid overreacting to short-term spending noise."
+    strength: "You find ways to spend less",
+    challenge: "You might overthink small spending decisions",
+    hiddenAdvantage: "You spot money leaks before they drain your savings.",
+    dangerZone: "Missing good opportunities because you wait too long",
+    recommendedRule: "Check your progress regularly and don’t react to small daily changes."
   },
   Dreamer: {
     icon: Sparkles,
     color: "dreamer",
-    description: "Visionary pursuing ambitious financial dreams",
+    description: "You dream big about your money future",
     traits: ["Creative", "Optimistic", "Forward-thinking"],
-    strength: "Inspires action and innovation",
-    challenge: "Needs better risk management",
-    hiddenAdvantage: "Your imagination helps you design a compelling future with clarity.",
-    dangerZone: "Reality shock when plans meet cash flow",
-    recommendedRule: "Translate aspirations into a concrete 30-day spending plan."
+    strength: "You inspire yourself and others to try new things",
+    challenge: "You need to plan better for risks",
+    hiddenAdvantage: "You imagine a clear and exciting money future.",
+    dangerZone: "Reality check when your plans meet real money",
+    recommendedRule: "Turn your dreams into a real plan you can follow this month."
   },
-  "Risk Taker": {
+  "Bold Investor": {
     icon: Zap,
-    color: "risk_taker",
-    description: "Bold investor embracing calculated chances",
+    color: "bold_investor",
+    description: "You take smart chances with your money",
     traits: ["Confident", "Opportunistic", "Dynamic"],
-    strength: "Quick decision-making in changing markets",
-    challenge: "May overextend without safety nets",
-    hiddenAdvantage: "Your courage can capture opportunities others hesitate on.",
-    dangerZone: "High-stress market or income swings",
-    recommendedRule: "Pause major commitments and build a 2-month safety runway first."
+    strength: "You make fast decisions when money opportunities come up",
+    challenge: "You might risk too much without a backup plan",
+    hiddenAdvantage: "You jump on chances that careful people miss.",
+    dangerZone: "Money stress when things happen suddenly",
+    recommendedRule: "Build a safety fund for 2 months before making big money moves."
   }
 };
 
 /**
- * Standardized personality type display names
+ * Standardized money style display names
  * Matches getPersonalityType() output from scoring-v2.js
  */
 export const PERSONALITY_NAMES = {
-  Builder: "Builder",
-  Survivor: "Survivor",
-  Optimizer: "Optimizer",
+  Planner: "Planner",
+  Protector: "Protector",
+  "Smart Saver": "Smart Saver",
   Dreamer: "Dreamer",
-  "Risk Taker": "Risk Taker"
+  "Bold Investor": "Bold Investor"
 };
 
 /**
- * List of all personality type keys
+ * List of all money style keys
  */
 export const PERSONALITY_TYPES = Object.keys(PERSONALITY_NAMES);
 
 /**
- * Default personality type (fallback)
+ * Default money style (fallback)
  */
-export const DEFAULT_PERSONALITY = "Optimizer";
+export const DEFAULT_PERSONALITY = "Smart Saver";
 
 /**
- * Get archetype by personality type name
+ * Get archetype by money style name
  */
 export function getArchetype(personalityType) {
   return ARCHETYPES[personalityType] || ARCHETYPES[DEFAULT_PERSONALITY];
 }
 
 /**
- * Get display name for personality type
+ * Get display name for money style
  */
 export function getPersonalityDisplayName(personalityType) {
   return PERSONALITY_NAMES[personalityType] || DEFAULT_PERSONALITY;
 }
 
 /**
- * Get CSS color class for personality type
+ * Get CSS color class for money style
  */
 export function getPersonalityColorClass(personalityType) {
   const archetype = ARCHETYPES[personalityType];
@@ -129,28 +129,28 @@ export function getPersonalityColorClass(personalityType) {
 
 export const ARCHETYPE_VARIANTS = {
   strategic_survivor: {
-    label: "Strategic Survivor",
-    description: "Grounded resilience combined with a plan to protect and grow in uncertainty.",
-    signal: "Your stability and safety-first instincts create a protective edge.",
-    basedOn: ["Survivor", "Risk Taker", "Dreamer"]
+    label: "Stable & Smart",
+    description: "You’re grounded and steady with a plan to protect and grow.",
+    signal: "Your safety instincts give you an edge.",
+    basedOn: ["Protector", "Bold Investor", "Dreamer"]
   },
   optimistic_builder: {
-    label: "Optimistic Builder",
-    description: "Systematic planning with enough flexibility to seize growth opportunities.",
-    signal: "Your disciplined habits are ready for a more ambitious next chapter.",
-    basedOn: ["Builder", "Optimizer"]
+    label: "Planner & Flexible",
+    description: "You plan step-by-step and stay open to growth chances.",
+    signal: "Your habits are ready for bigger money goals.",
+    basedOn: ["Planner", "Smart Saver"]
   },
   cautious_guardian: {
-    label: "Cautious Guardian",
-    description: "A practical watcher who values runway and avoids unnecessary risk.",
-    signal: "You balance discipline with vigilance across your cash flow and decisions.",
-    basedOn: ["Optimizer", "Survivor"]
+    label: "Careful & Steady",
+    description: "You watch your money closely and avoid big risks.",
+    signal: "You balance planning with careful watching.",
+    basedOn: ["Smart Saver", "Protector"]
   },
   future_architect: {
-    label: "Future Architect",
-    description: "Visionary momentum shaped by careful decisions and future-focused design.",
-    signal: "You’re building a future self with both imagination and a backup plan.",
-    basedOn: ["Dreamer", "Risk Taker", "Builder"]
+    label: "Visionary & Prepared",
+    description: "You dream big with careful decisions backing it up.",
+    signal: "You’re building your future with both imagination and a backup plan.",
+    basedOn: ["Dreamer", "Bold Investor", "Planner"]
   }
 };
 
@@ -166,15 +166,15 @@ export function mapPersonalityToVariant(result = {}) {
   const confidence = result.futureConfidenceScore || 0;
   const futureRisk = result.futureRiskScore || 0;
 
-  if (personality === "Survivor" || stability > awareness) {
+  if (personality === "Protector" || stability > awareness) {
     return confidence > 55 ? ARCHETYPE_VARIANTS.strategic_survivor : ARCHETYPE_VARIANTS.cautious_guardian;
   }
 
-  if (personality === "Builder" || personality === "Optimizer") {
+  if (personality === "Planner" || personality === "Smart Saver") {
     return confidence > 60 ? ARCHETYPE_VARIANTS.optimistic_builder : ARCHETYPE_VARIANTS.cautious_guardian;
   }
 
-  if (personality === "Dreamer" || personality === "Risk Taker") {
+  if (personality === "Dreamer" || personality === "Bold Investor") {
     return futureRisk >= 50 ? ARCHETYPE_VARIANTS.future_architect : ARCHETYPE_VARIANTS.optimistic_builder;
   }
 
@@ -182,7 +182,7 @@ export function mapPersonalityToVariant(result = {}) {
 }
 
 /**
- * Get icon component for personality type
+ * Get icon component for money style
  */
 export function getPersonalityIcon(personalityType) {
   const archetype = ARCHETYPES[personalityType];

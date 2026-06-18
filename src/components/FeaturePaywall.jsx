@@ -25,17 +25,17 @@ export default function FeaturePaywall({
     plus: {
       name: "Plus",
       price: "$12.99/mo",
-      benefits: ["Unlimited assessments", "Score history", "Digital Twin"]
+      benefits: ["Unlimited assessments", "Your history", "Money Future"]
     },
     pro: {
       name: "Pro",
       price: "$29.99/mo",
-      benefits: ["Plus benefits", "Banking integration", "AI Coach"]
+      benefits: ["Plus benefits", "Bank connections", "Money Coach"]
     },
     elite: {
       name: "Elite",
       price: "$79.99/mo",
-      benefits: ["Pro benefits", "AI Coach Concierge", "Multi-family"]
+      benefits: ["Pro benefits", "Personal Coach", "Family access"]
     }
   };
 

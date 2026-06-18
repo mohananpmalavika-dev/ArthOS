@@ -20,11 +20,10 @@ export default function DigitalTwinDashboard({ twin, result, twinData, assessmen
     return (
       <main className="digital-twin-dashboard empty" role="main">
         <div className="empty-state">
-          <h3>🌍 Digital Twin Not Yet Generated</h3>
-          <p>Complete an assessment to generate your financial digital twin.</p>
+          <h3>🌍 Your Money Future Not Yet Created</h3>
+          <p>Complete an assessment to see your money future.</p>
           <p>
-            Once created, you can simulate decisions, explore futures, and stress-test your
-            financial life.
+            Once created, you can test different decisions, explore what might happen, and see how strong your money is.
           </p>
         </div>
       </main>

@@ -2,67 +2,67 @@ export const NAV_ITEMS = [
   { label: "Home", href: "/" },
   { label: "Assess", href: "/assessment" },
   { label: "Reports", href: "/reports" },
-  { label: "Cognition", href: "/reality" },
-  { label: "Simulator", href: "/future" },
-  { label: "Decisions", href: "/decision" },
-  { label: "Memory", href: "/learning" },
-  { label: "Predictions", href: "/forecast" },
-  { label: "Partners", href: "/dashboard/settings" }
+  { label: "Money Mindset", href: "/reality" },
+  { label: "Money Scenarios", href: "/future" },
+  { label: "Money Decisions", href: "/decision" },
+  { label: "What I've Learned", href: "/learning" },
+  { label: "Your Future", href: "/forecast" },
+  { label: "Connect", href: "/dashboard/settings" }
 ];
 
 export const ENGINE_SIGNALS = [
-  "Decodes Spending Patterns",
-  "Detects Emotional Triggers",
-  "Uncovers Money Personality",
-  "Generates Financial Health Actions"
+  "Understands Your Spending",
+  "Spots Money Triggers",
+  "Finds Your Money Style",
+  "Suggests Money Moves"
 ];
 
 export const INTELLIGENCE_ROWS = [
   {
     icon: "Network",
-    title: "AI Financial Intelligence",
-    copy: "Connects financial signals with behavioral psychology."
+    title: "Smart Money Insights",
+    copy: "Connects your money habits with how you think about money."
   },
   {
     icon: "Zap",
-    title: "Behavior Pattern Detection",
-    copy: "Reads impulse, avoidance and planning patterns in one score."
+    title: "Spending Pattern Detection",
+    copy: "Spots your habits - quick decisions, avoiding hard choices, and planning patterns."
   },
   {
     icon: "Brain",
-    title: "Psychology Driven Analysis",
-    copy: "Turns choices into a practical financial behavior profile."
+    title: "How You Think About Money",
+    copy: "Turns what you do with money into your unique money profile."
   }
 ];
 
 export const BUSINESS_CARDS = [
   {
-    title: "Behavior Layer AI",
-    copy: "Traditional fintech tracks transactions. ARTH.OS analyzes emotional spending patterns and financial personality behavior."
+    title: "Learns How You Handle Money",
+    copy: "Most apps just show you transactions. We learn your real money habits and patterns - how you spend when stressed, what makes you hesitate, and how you plan."
   },
   {
-    title: "Privacy First Architecture",
-    copy: "Assessment data stays in the browser until you choose to save or export it."
+    title: "Your Privacy Matters",
+    copy: "Your information stays on your device until you decide to save or share it. No tracking, no sharing."
   },
   {
-    title: "Scalable Intelligence Engine",
-    copy: "Built to evolve into behavioral finance infrastructure for future trust and credit systems."
+    title: "Grows With You",
+    copy: "Built to become smarter about money for banks, lenders, and apps - helping create fairer systems that understand real people."
   }
 ];
 
 export const HERO_STATS = [
-  { label: "Behavior Signals", value: "24+" },
-  { label: "BAS Dimensions", value: "3" },
-  { label: "Financial Reality Score", value: "1" }
+  { label: "Money Habits Tracked", value: "24+" },
+  { label: "Your Money Profile Areas", value: "3" },
+  { label: "Money Health Score", value: "1" }
 ];
 
 export const HERO_ACTIONS = [
   {
-    label: "Build My Score",
+    label: "Start My Assessment",
     href: "/assessment"
   },
   {
-    label: "View Intelligence",
+    label: "See My Results",
     href: "/reports"
   }
 ];
@@ -82,14 +82,14 @@ export const FORECAST_LABELS = {
 };
 
 export const INSIGHT_TITLES = {
-  narrativeTitle: "Insight Narrative",
-  narrativeSubtitle: "A concise behavioral narrative from your assessment.",
+  narrativeTitle: "Your Money Story",
+  narrativeSubtitle: "What your answers tell us about how you handle money.",
   score: "Score",
-  awarenessGap: "Awareness Gap",
-  futureRisk: "Future risk",
-  behaviorCorrelation: "Behavioral correlation",
+  awarenessGap: "Reality Check",
+  futureRisk: "What could happen",
+  behaviorCorrelation: "What this means",
   liveInsights: "Insights",
-  viewAllInsights: "View all insights"
+  viewAllInsights: "See all insights"
 };
 
 export const ADMIN_LABELS = {
@@ -131,32 +131,35 @@ export const ASSESSMENT_OPTIONS = {
 };
 
 export const ASSESSMENT_SECTIONS = [
-  { id: "behaviour", label: "Psychology", icon: "Brain" },
-  { id: "awareness", label: "Clarity", icon: "BarChart3" },
-  { id: "stability", label: "Resilience", icon: "ShieldCheck" },
-  { id: "habits", label: "Habits", icon: "Activity", conditional: true }
+  { id: "behaviour", label: "How You Think", icon: "Brain" },
+  { id: "awareness", label: "What You Know", icon: "BarChart3" },
+  { id: "stability", label: "Are You Prepared", icon: "ShieldCheck" },
+  { id: "habits", label: "What You Do", icon: "Activity", conditional: true }
 ];
 
 export const ASSESSMENT_BUTTONS = {
-  finishReviewScore: "Finish & Review Score",
+  finishReviewScore: "Done & See Results",
   continue: "Continue",
   previous: "Previous",
   next: "Next"
 };
 
-export const EMOTIONAL_TRIGGERS = [
-  { key: "stressSpending", label: "Stress-Triggered Spending", icon: "😰" },
-  { key: "boredomSpending", label: "Boredom Impulse Buying", icon: "😐" },
-  { key: "socialPressure", label: "Social Pressure Spending", icon: "👥" },
-  { key: "anxietyAvoidance", label: "Anxiety-Avoidance Behavior", icon: "🛡️" },
-  { key: "celebratorySpending", label: "Celebration Overspending", icon: "🎉" }
+export const MONEY_MOMENTS = [
+  { key: "stressSpending", label: "I Spend When Stressed", icon: "😰" },
+  { key: "boredomSpending", label: "Bored Shopping", icon: "😐" },
+  { key: "socialPressure", label: "Peer Pressure Spending", icon: "👥" },
+  { key: "anxietyAvoidance", label: "Avoiding the Hard Stuff", icon: "🛡️" },
+  { key: "celebratorySpending", label: "Celebration Splurges", icon: "🎉" }
 ];
 
+// Keeping old name for backwards compatibility
+export const EMOTIONAL_TRIGGERS = MONEY_MOMENTS;
+
 export const MONEY_BELIEFS = [
-  { key: "scarcityVsAbundance", label: "Scarcity vs Abundance", icon: "🌊" },
-  { key: "moneyAsIdentity", label: "Money as Identity", icon: "🎭" },
-  { key: "moneyAsSecurity", label: "Money as Security", icon: "🔒" },
-  { key: "moneyAsFreedom", label: "Money as Freedom", icon: "🦅" }
+  { key: "scarcityVsAbundance", label: "Do I Have Enough?", icon: "🌊" },
+  { key: "moneyAsIdentity", label: "Money Means I'm...", icon: "🎭" },
+  { key: "moneyAsSecurity", label: "Money Keeps Me Safe", icon: "🔒" },
+  { key: "moneyAsFreedom", label: "Money = Freedom", icon: "🦅" }
 ];
 
 export const B2B_TABS = [
@@ -225,8 +228,8 @@ export const B2B_FORM_FIELDS = {
 };
 
 export const VALIDATION_FIELDS = [
-  { value: "survival_months", label: "Time to Financial Crisis" },
-  { value: "recommended_action", label: "Next Action to Take" }
+  { value: "survival_months", label: "How Long Until Money Runs Out" },
+  { value: "recommended_action", label: "What to Do Next" }
 ];
 
 export const SMS_FORM = {
@@ -244,18 +247,18 @@ export const INSIGHTS_PANEL = {
 };
 
 export const COMMON_ACTIONS = {
-  viewAll: "View all",
-  viewFullResponse: "View full validation response",
-  viewRawResponse: "View raw intelligence response",
+  viewAll: "See all",
+  viewFullResponse: "See full response",
+  viewRawResponse: "See full details",
   learnMore: "Learn more",
   readMore: "Read more",
   seeMore: "See more",
-  participantData: "Participant data",
-  profileInputs: "Profile inputs",
-  behaviourAnswers: "Behaviour answers",
-  awarenessAnswers: "Awareness answers",
-  habitsAnswers: "Habits answers",
-  generateReport: "Generate report",
-  reportHint: "This produces the same report payload visible for review.",
-  reportPreviewTitle: "Generated report preview"
+  participantData: "Your info",
+  profileInputs: "What you told us",
+  behaviourAnswers: "How you spend",
+  awarenessAnswers: "What you know",
+  habitsAnswers: "What you do",
+  generateReport: "Create report",
+  reportHint: "This shows the same report you can review.",
+  reportPreviewTitle: "Your report"
 };

@@ -845,43 +845,43 @@ function getBlindSpotInsight(awarenessMetrics) {
 
 function getPersonalityReport(personalityType) {
   const profiles = {
-    Builder: {
+    Planner: {
       strengths: ["Disciplined savings", "Long-term focus"],
       risks: ["Overly rigid plans", "Ignoring lifestyle flexibility"],
       dangerZone: "Burnout from strict budgets",
-      recommendedRule: "Keep a flexible emergency bucket and review commitments quarterly."
+      recommendedRule: "Keep some money flexible and check your plan every 3 months."
     },
-    Survivor: {
+    Protector: {
       strengths: ["Protects safety", "Avoids downside risk"],
       risks: ["Underinvesting in growth", "Staying too conservative"],
-      dangerZone: "Income shock after long-term stagnation",
+      dangerZone: "Money stops growing after not improving for a long time",
       recommendedRule:
-        "Build a basic buffer, then allocate a small growth bucket for higher confidence choices."
+        "Build a safety cushion first, then put a small part into something that grows."
     },
-    Optimizer: {
+    "Smart Saver": {
       strengths: ["Tracks decisions", "Balances risk and reward"],
       risks: ["Analysis paralysis", "Micromanaging cash flow"],
-      dangerZone: "Missing quick timing windows",
+      dangerZone: "Missing good opportunities because you wait too long",
       recommendedRule:
-        "Set clear review rituals and avoid overreacting to short-term spending noise."
+        "Check your progress regularly and don't react to small daily changes."
     },
     Dreamer: {
       strengths: ["Creative planning", "Big-picture mindset"],
       risks: ["Wishful assumptions", "Underestimated expenses"],
-      dangerZone: "Reality shock when plans meet cash flow",
-      recommendedRule: "Translate aspirations into a concrete 30-day spending plan."
+      dangerZone: "Reality check when your plans meet real money",
+      recommendedRule: "Turn your dreams into a real plan you can follow this month."
     },
-    "Risk Taker": {
+    "Bold Investor": {
       strengths: ["Moves fast", "Grabs opportunities"],
       risks: ["Volatile cash flow", "Emotional spending"],
-      dangerZone: "High-stress market or income swings",
-      recommendedRule: "Pause major commitments and build a 2-month safety runway first."
+      dangerZone: "Money stress when things happen suddenly",
+      recommendedRule: "Build a safety fund for 2 months before making big money moves."
     }
   };
 
   return {
     title: personalityType,
-    ...(profiles[personalityType] ?? profiles.Survivor)
+    ...(profiles[personalityType] ?? profiles.Protector)
   };
 }
 
@@ -923,107 +923,107 @@ function getFutureRiskProfile(profile) {
 // PERSONALITY TYPE CALCULATION
 // ────────────────────────────────────────────────────────────────────────────
 // Internal trait scoring uses camelCase keys (private implementation detail).
-// Output is standardized to Title Case (public API): "Builder", "Survivor", "Optimizer", "Dreamer", "Risk Taker"
+// Output is standardized to Title Case (public API): "Planner", "Protector", "Smart Saver", "Dreamer", "Bold Investor"
 // This ensures consistency with ARCHETYPES lookups in FinancialTwin.jsx
 // ────────────────────────────────────────────────────────────────────────────
 function getPersonalityType(behaviour) {
   const traits = {
-    builder: 0,
-    survivor: 0,
-    optimizer: 0,
+    planner: 0,
+    protector: 0,
+    smartSaver: 0,
     dreamer: 0,
-    riskTaker: 0 // Internal camelCase; output will be "Risk Taker" (Title Case with space)
+    boldInvestor: 0 // Internal camelCase; output will be "Bold Investor" (Title Case with space)
   };
 
   if (behaviour.presentFutureMindset === "enjoy_today") {
-    traits.riskTaker += 2;
+    traits.boldInvestor += 2;
   }
   if (behaviour.presentFutureMindset === "balance_both") {
     traits.dreamer += 2;
   }
   if (behaviour.presentFutureMindset === "secure_future") {
-    traits.optimizer += 1;
+    traits.smartSaver += 1;
   }
   if (behaviour.presentFutureMindset === "extreme_discipline") {
-    traits.builder += 2;
+    traits.planner += 2;
   }
 
   if (behaviour.unplannedPurchaseFreq === "very_frequently") {
-    traits.riskTaker += 2;
+    traits.boldInvestor += 2;
   }
   if (behaviour.unplannedPurchaseFreq === "sometimes") {
     traits.dreamer += 1;
   }
   if (behaviour.unplannedPurchaseFreq === "rarely") {
-    traits.optimizer += 1;
+    traits.smartSaver += 1;
   }
   if (behaviour.unplannedPurchaseFreq === "never") {
-    traits.builder += 1;
+    traits.planner += 1;
   }
 
   if (behaviour.spendWhenStressed === "very_likely") {
-    traits.riskTaker += 2;
+    traits.boldInvestor += 2;
   }
   if (behaviour.spendWhenStressed === "sometimes") {
     traits.dreamer += 1;
   }
   if (behaviour.spendWhenStressed === "rarely") {
-    traits.optimizer += 1;
+    traits.smartSaver += 1;
   }
   if (behaviour.spendWhenStressed === "never") {
-    traits.builder += 1;
+    traits.planner += 1;
   }
 
   if (behaviour.plannedPurchasesOnly === "always") {
-    traits.builder += 2;
+    traits.planner += 2;
   }
   if (behaviour.plannedPurchasesOnly === "often") {
-    traits.optimizer += 1;
+    traits.smartSaver += 1;
   }
   if (behaviour.plannedPurchasesOnly === "occasionally") {
     traits.dreamer += 1;
   }
   if (behaviour.plannedPurchasesOnly === "never") {
-    traits.riskTaker += 2;
+    traits.boldInvestor += 2;
   }
 
   if (behaviour.impulseWaitRule === "always") {
-    traits.builder += 2;
+    traits.planner += 2;
   }
   if (behaviour.impulseWaitRule === "sometimes") {
-    traits.optimizer += 1;
+    traits.smartSaver += 1;
   }
   if (behaviour.impulseWaitRule === "rarely") {
     traits.dreamer += 1;
   }
   if (behaviour.impulseWaitRule === "never") {
-    traits.riskTaker += 2;
+    traits.boldInvestor += 2;
   }
 
   if (behaviour.subscriptionControl === "weekly") {
-    traits.builder += 1;
+    traits.planner += 1;
   }
   if (behaviour.subscriptionControl === "monthly") {
-    traits.optimizer += 1;
+    traits.smartSaver += 1;
   }
   if (behaviour.subscriptionControl === "occasionally") {
     traits.dreamer += 1;
   }
   if (behaviour.subscriptionControl === "never") {
-    traits.riskTaker += 1;
+    traits.boldInvestor += 1;
   }
 
   const winner = Object.entries(traits).sort((a, b) => b[1] - a[1])[0]?.[0];
-  // Standardized personality type names (matches ARCHETYPES keys in FinancialTwin.jsx)
+  // Standardized money style names (matches ARCHETYPES keys in personality.js)
   const labels = {
-    builder: "Builder",
-    survivor: "Survivor",
-    optimizer: "Optimizer",
+    planner: "Planner",
+    protector: "Protector",
+    smartSaver: "Smart Saver",
     dreamer: "Dreamer",
-    riskTaker: "Risk Taker" // Note: Title Case with space (not "risk_taker", which is for CSS)
+    boldInvestor: "Bold Investor" // Note: Title Case with space (not "bold_investor", which is for CSS)
   };
 
-  return labels[winner] ?? "Survivor";
+  return labels[winner] ?? "Protector";
 }
 
 function getHealthBand(score) {
