@@ -419,7 +419,7 @@ main {
   display: flex;
   align-items: center;
   justify-content: flex-start;
-  gap: 6px;
+  gap: 8px;
   min-width: 0;
   flex: 1 1 auto;
   width: 100%;
@@ -496,12 +496,17 @@ main {
     overflow: visible !important;
     flex-wrap: wrap;
     white-space: normal;
+    max-width: 100%;
+    width: 100%;
   }
 
   /* Allow the topbar to grow to two lines and keep page content clear of it */
   .topbar {
     align-items: flex-start;
     grid-template-rows: auto auto;
+    min-height: auto;
+    height: auto;
+    padding: 12px clamp(18px, 4vw, 54px);
   }
 
   /* Layout: brand + actions on first row, nav on second row */
@@ -519,17 +524,27 @@ main {
   .nav-links {
     grid-column: 1 / -1;
     grid-row: 2 / 3;
-    margin: 8px 20px;
+    margin: 8px 0;
+    padding: 8px 0;
     justify-content: flex-start;
+    align-items: center;
     /* allow nav to wrap into multiple lines on desktop */
     flex-wrap: wrap;
     white-space: normal;
     overflow-x: visible;
-    -webkit-overflow-scrolling: touch;
+    overflow-y: visible;
+    border: none;
+    background: transparent;
+    box-shadow: none;
+  }
+
+  .nav-links a {
+    flex: 0 0 auto;
+    margin: 4px 6px;
   }
 
   .page-shell-main {
-    padding-top: 140px; /* accommodate two-line header */
+    padding-top: 180px; /* accommodate two-line header */
   }
 
   /* hide scroll arrows on desktop when nav is wrapped */
@@ -555,12 +570,13 @@ main {
   align-items: center;
   min-height: 32px;
   padding: 0 8px;
-  min-width: max-content;
+  min-width: auto;
   border-radius: 6px;
   color: var(--ink-2);
   font-size: 12px;
   font-weight: 700;
   transition: all 160ms ease;
+  white-space: nowrap;
 }
 
 .nav-links a:hover,
@@ -13167,6 +13183,63 @@ body,
   height: 17px;
 }
 
+/* ══════════════════════════════════════════════
+   DESKTOP NAVIGATION WRAP FIX
+   Ensures nav items wrap to 2 lines on 1024px+ screens
+   ══════════════════════════════════════════════ */
+
+@media (min-width: 1024px) {
+  .topbar {
+    grid-template-columns: 1fr 1fr !important;
+    grid-template-rows: auto auto !important;
+    align-items: flex-start !important;
+    min-height: auto !important;
+    height: auto !important;
+    gap: 0 !important;
+  }
+
+  .brand {
+    grid-column: 1 / 2;
+    grid-row: 1 / 2;
+  }
+
+  .nav-links {
+    grid-column: 1 / -1;
+    grid-row: 2 / 3;
+    gap: 4px !important;
+    padding: 6px 0 !important;
+    background: transparent !important;
+    border: none !important;
+    flex-wrap: wrap !important;
+    overflow: visible !important;
+    width: 100% !important;
+    justify-content: flex-start;
+  }
+
+  .nav-links a {
+    flex: 0 0 auto !important;
+    margin: 4px 4px !important;
+    padding: 0 10px !important;
+    font-size: 13px !important;
+    min-height: 36px !important;
+    white-space: nowrap;
+  }
+
+  .model-header-actions {
+    grid-column: 2 / 3;
+    grid-row: 1 / 2;
+    justify-self: end;
+  }
+
+  .page-shell-main {
+    padding-top: 160px !important;
+  }
+
+  .nav-scroll-btn {
+    display: none !important;
+  }
+}
+
 .app-nav-developer-menu {
   top: calc(76px + 58px);
   width: min(720px, calc(100% - 24px));
@@ -14832,7 +14905,7 @@ body,
   }
 
   .page-shell-main {
-    padding-top: 148px;
+    padding-top: 170px;
   }
 
   .section-header,

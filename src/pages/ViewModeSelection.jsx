@@ -15,7 +15,11 @@ export default function ViewModeSelection() {
     setSaving(true);
     try {
       await setViewMode(selected);
-      navigate("/dashboard/home", { replace: true });
+      if (selected === VIEW_MODES.phase_flow) {
+        navigate("/dashboard/phase-flow", { replace: true });
+      } else {
+        navigate("/dashboard/home", { replace: true });
+      }
     } finally {
       setSaving(false);
     }
@@ -74,7 +78,13 @@ export default function ViewModeSelection() {
           onClick={handleContinue}
           disabled={saving}
         >
-          {saving ? "Saving..." : `Continue with ${selected === VIEW_MODES.simple ? "Simple Guide" : "Full Experience"}`}
+          {saving ? "Saving..." : `Continue with ${
+            selected === VIEW_MODES.simple
+              ? "Simple Guide"
+              : selected === VIEW_MODES.phase_flow
+                ? "4-Phase Journey"
+                : "Full Experience"
+          }`}
           <ArrowRight size={18} aria-hidden="true" />
         </button>
       </div>

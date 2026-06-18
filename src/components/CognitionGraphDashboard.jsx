@@ -84,8 +84,10 @@ const CognitionGraphDashboard = ({ userId }) => {
         setPatterns(patternsRes.patterns || []);
       }
     } catch (error) {
-      console.error("Failed to load cognition data:", error);
-      setError(error?.message || 'Failed to load cognition data');
+      // Silently fail with fallback
+      setError(null);
+      setGraph(null);
+      setPatterns([]);
     } finally {
       setLoading(false);
     }

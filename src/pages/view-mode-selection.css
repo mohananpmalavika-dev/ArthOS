@@ -10,7 +10,7 @@
 }
 
 .view-mode-card {
-  width: min(920px, 100%);
+  width: min(1200px, 100%);
   padding: 2rem;
   border-radius: 24px;
   border: 1px solid rgba(255, 255, 255, 0.08);
@@ -39,7 +39,7 @@
 
 .view-mode-options {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
   gap: 1rem;
 }
 

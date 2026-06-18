@@ -20,18 +20,21 @@
 .digital-twin-dashboard .empty-state {
   text-align: center;
   padding: 60px 20px;
+  user-select: none;
 }
 
 .digital-twin-dashboard .empty-state h3 {
   font-size: 24px;
   margin-bottom: 16px;
   color: var(--cyan);
+  font-weight: 600;
 }
 
 .digital-twin-dashboard .empty-state p {
   font-size: 16px;
   color: rgba(251, 248, 255, 0.7);
   margin: 8px 0;
+  line-height: 1.5;
 }
 
 /* Header */

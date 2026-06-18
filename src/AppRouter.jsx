@@ -15,6 +15,7 @@ import ViewModeSelection from "./pages/ViewModeSelection.jsx";
 import AdvancedArea from "./pages/AdvancedArea.jsx";
 import ErrorBoundary from "./components/ErrorBoundary.jsx";
 import { useAuth } from "./context/AuthContext.jsx";
+import PhaseFlow from "./components/PhaseFlow.jsx";
 import { OS_SHELL_ROUTES } from "./lib/routeMap.js";
 
 /**
@@ -153,6 +154,14 @@ function AppRouter() {
             path="/choose-view"
             element={
               isAuthenticated ? <ViewModeSelection /> : <Navigate to="/login" replace />
+            }
+          />
+
+          {/* Phase Flow route for 4-phase journey */}
+          <Route
+            path="/dashboard/phase-flow"
+            element={
+              isAuthenticated ? <PhaseFlow /> : <Navigate to="/login" replace />
             }
           />
 

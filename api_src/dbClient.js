@@ -39,6 +39,13 @@ function normalizeValue(value) {
 
 function createSupabaseClient() {
   if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) return null;
+
+  // Check if using placeholder credentials (development mode without real DB)
+  if (SUPABASE_URL.includes("your-project-ref") || SUPABASE_SERVICE_ROLE_KEY.includes("your-service-role-key")) {
+    console.warn("[DB] Using placeholder Supabase credentials - local mode only");
+    return null;
+  }
+
   return createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
     auth: { persistSession: false },
   });

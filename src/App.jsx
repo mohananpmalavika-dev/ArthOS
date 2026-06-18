@@ -407,6 +407,7 @@ export default function App({ demoMode = false }) {
   const pathSegments = pathname.split("/").filter(Boolean);
   const dashboardSection = pathSegments[0] === "dashboard" ? pathSegments[1] || "home" : null;
   const isDashboardRoute = pathname.startsWith("/dashboard");
+
   const showDashboardHome = dashboardSection === "home";
   const showInsightsPage = dashboardSection === "insights";
   const showAssessmentPage = dashboardSection === "assessment";
@@ -1282,11 +1283,11 @@ export default function App({ demoMode = false }) {
     });
     setDigitalTwin(completeTwin);
     // After assessment completion, navigate to the Big Reveal route
-    // Do not override users who manually navigate directly to the dashboard.
+    // Do not override users who manually navigate directly to the dashboard or are filling out the assessment.
     try {
       console.log('App redirect check', { currentPath: window.location.pathname, demoMode, resultHealth: safeHealthScore });
       const currentPath = window.location.pathname || "";
-      if (!demoMode && !currentPath.startsWith("/dashboard")) {
+      if (!demoMode && !currentPath.startsWith("/dashboard") && currentPath !== "/assessment") {
         console.log('App redirect to /big-reveal', { currentPath });
         navigate("/big-reveal", { replace: true });
       }

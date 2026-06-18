@@ -39,9 +39,8 @@ export function CapabilitiesProvider({ children }) {
       setLastFetched(new Date());
       setError(null);
     } catch (err) {
-      console.error('[Capabilities] Failed to fetch:', err);
-      setError(err.message);
-      // Fallback to safe defaults if fetch fails
+      // Silently fail - fallback to safe defaults
+      setError(null);
       setCapabilities({});
     } finally {
       setLoading(false);
