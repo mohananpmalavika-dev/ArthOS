@@ -22,6 +22,7 @@
     "test:background-health": "node scripts/test-background-health.js"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.28.0",
     "@playwright/test": "^1.60.0",
     "@supabase/supabase-js": "^2.35.0",
     "@vitejs/plugin-react": "^4.3.4",

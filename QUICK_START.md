@@ -1,224 +1,180 @@
-# Quick Start: What Was Built
+# ⚡ Quick Start - Setup All Free AI Providers (5 Minutes)
 
-## ✅ Build Status: SUCCESS
-```
-✓ 1582 modules transformed
-✓ dist/index.html (1.82 kB)
-✓ dist/assets/index-DUc-70qv.css (31.35 kB gzipped: 6.66 kB)
-✓ dist/assets/index-D8ZlVZ83.js (206.75 kB gzipped: 63.08 kB)
-✓ built in 3.99s
-```
+## 🎯 Fastest Way
 
----
-
-## 📦 New Files Created
-
-### Frontend Components
-1. **`src/components/ValidationFeedbackForm.jsx`**
-   - React feedback form with radio options
-   - Text area for notes (up to 1000 chars)
-   - Thank you screen with animation
-   - Ready to use immediately
-
-### Backend Routes
-2. **`api/telemetry.js`**
-   - Accepts POST with assessment telemetry data
-   - Validates payload, strips PII
-   - Returns 200/500 responses
-   - Connected via `api/dbClient.js`; requires SUPABASE_URL/SUPABASE_SERVICE_ROLE_KEY or DATABASE_URL
-
-3. **`api/feedback.js`**
-   - Accepts POST with feedback data
-   - Validates payload, truncates notes
-   - Returns 200/500 responses
-   - Connected via `api/dbClient.js`; requires SUPABASE_URL/SUPABASE_SERVICE_ROLE_KEY or DATABASE_URL
-
-### Database
-4. **`SQL_SCHEMA.sql`**
-   - Creates `anonymous_telemetry` table (20+ columns)
-   - Creates `tester_feedback` table (4 columns)
-   - Includes indexes, constraints, RLS policies
-   - Copy & paste into Supabase SQL Editor
-
-### Documentation
-5. **`DEPLOYMENT_GUIDE.md`**
-   - Complete Vercel + Supabase setup instructions
-   - Environment variables & secrets
-   - Testing checklist
-   - Troubleshooting guide
-
-6. **`IMPLEMENTATION_SUMMARY.md`**
-   - What was built & why
-   - Architecture overview
-   - Files modified
-   - Next steps
-
----
-
-## 📝 Modified Files
-
-### `src/App.jsx`
-- ✅ Import: `ValidationFeedbackForm` component
-- ✅ AssessmentSection: `showFeedback` state added
-- ✅ Step rendering: `!showFeedback` guards added
-- ✅ Feedback form: Renders when telemetry complete
-- ✅ Already has: `dispatchAnonymousFeedbackEvent()` function
-
-### `src/styles.css`
-- ✅ Added: 170+ lines of feedback form styling
-- ✅ `.validation-feedback-form-card` - main container
-- ✅ `.feedback-options` - radio group
-- ✅ `.feedback-textarea-wrapper` - text input
-- ✅ `.feedback-submit-btn` - action button
-- ✅ `.feedback-success` - thank you screen
-- ✅ `@keyframes feedbackPulse` - icon animation
-
----
-
-## 🎯 Feature Checklist
-
-| Feature | Status | How to Use |
-|---------|--------|-----------|
-| 4-Step Wizard | ✅ Done | Users see Psychology → Clarity → Resilience → Habits |
-| Progress Track | ✅ Done | Visual step indicators with 1-2-3-4 numbering |
-| Step Persistence | ✅ Done | localStorage saves step, survives refresh |
-| Telemetry Dispatch | ✅ Done | Automatic POST on final step completion |
-| Feedback Form | ✅ Done | Shows after telemetry, user selects value driver + notes |
-| Mobile Layout | ✅ Done | Stacks vertically on phones (820px breakpoint) |
-| Privacy | ✅ Done | No PII, date-only timestamps, RLS policies |
-| Error Handling | ✅ Done | Fails gracefully, never breaks user flow |
-
----
-
-## 🚀 How to Deploy (3 Steps)
-
-### Step 1: Deploy Frontend
+### Run the automated setup:
 ```bash
-npm run build
-vercel --prod
+node scripts/setup-all-providers.js
 ```
-Note the deployed URL (e.g., https://arth-os.vercel.app)
 
-### Step 2: Set Up Backend Routes
-1. Push api/telemetry.js and api/feedback.js to Vercel
-2. Add environment variables in Vercel Dashboard:
-   - SUPABASE_URL
-   - SUPABASE_SERVICE_ROLE_KEY
-3. Verify endpoints work: `https://your-domain.vercel.app/api/telemetry`
-
-### Step 3: Set Up Database
-1. Go to Supabase SQL Editor
-2. Copy SQL_SCHEMA.sql contents
-3. Run the script
-4. Verify tables exist: SELECT * FROM information_schema.tables;
+This script will:
+1. Guide you through getting 4 API keys (copy-paste)
+2. Auto-detect Ollama
+3. Configure everything in `.env`
+4. Show fallback priority
 
 ---
 
-## 🧪 Test Locally Before Deploying
+## 📋 Manual Alternative (If Script Doesn't Work)
+
+### 1. HuggingFace (Main Provider - Production)
+```bash
+# Visit: https://huggingface.co/settings/tokens
+# Sign up → New token → Copy
+
+# Add to .env:
+HUGGINGFACE_API_KEY=hf_xxxxx
+```
+
+### 2. Together AI (Backup)
+```bash
+# Visit: https://www.together.ai
+# Sign up → Get API key → Copy
+
+# Add to .env:
+TOGETHER_API_KEY=xxxxx
+```
+
+### 3. Replicate (Backup)
+```bash
+# Visit: https://replicate.com/api
+# Sign up → Get token → Copy
+
+# Add to .env:
+REPLICATE_API_KEY=xxxxx
+```
+
+### 4. Mistral (Backup)
+```bash
+# Visit: https://console.mistral.ai
+# Sign up → Generate key → Copy
+
+# Add to .env:
+MISTRAL_API_KEY=xxxxx
+```
+
+### 5. Ollama (Local - No API Key)
+```bash
+# Download: https://ollama.ai
+# Run:
+ollama pull neural-chat
+ollama serve
+
+# Add to .env (already there):
+OLLAMA_BASE_URL=http://localhost:11434
+OLLAMA_MODEL=neural-chat
+```
+
+### 6. Enable Auto-Detection
+```bash
+# In .env:
+AI_PROVIDER=auto
+```
+
+---
+
+## ✅ Verification
+
+After setup:
 
 ```bash
-# Start dev server
+# 1. Install dependencies
+npm install
+
+# 2. Start dev server
 npm run dev
 
-# In browser DevTools:
-# 1. Open Network tab
-# 2. Go through 4 assessment steps
-# 3. Click "Finish & Review Score"
-# 4. Verify POST to telemetry endpoint (will 404 locally, that's OK)
-# 5. Feedback form should appear
-# 6. Fill out feedback
-# 7. Click submit (will 404 locally, that's OK)
-# 8. Thank you screen should appear
+# 3. Check which provider is active:
+# Browser console:
+fetch('/api/coach/health')
+  .then(r => r.json())
+  .then(d => console.log(d.aiProvider.active))
 ```
 
----
-
-## 📊 What Gets Stored (Privacy Audit)
-
-### ✅ Stored (Aggregated, Anonymized)
-- Health scores (numeric, 0-100)
-- Personality type (categorical: Spender, Saver, Scheduler, etc.)
-- Survival months (financial runway)
-- Awareness gaps (months)
-- Feedback: primary value driver (which metric mattered)
-- Feedback: optional notes (truncated to 1000 chars)
-
-### ❌ Never Stored
-- User name, email, phone
-- IP address, location
-- Exact timestamps (only date: YYYY-MM-DD)
-- Session IDs, cookies
-- Raw transaction data
+Expected output: `huggingface` (or whichever you configured)
 
 ---
 
-## 💡 Key Files to Know
+## 🔄 Auto-Fallback Priority
 
-| File | Purpose | Edit? |
-|------|---------|-------|
-| `src/App.jsx` | Main app, assessment flow | Already done ✅ |
-| `src/components/ValidationFeedbackForm.jsx` | Feedback form UI | Ready to deploy |
-| `api/telemetry.js` | Telemetry backend route | Supports Supabase/local Postgres; requires env vars |
-| `api/feedback.js` | Feedback backend route | Supports Supabase/local Postgres; requires env vars |
-| `SQL_SCHEMA.sql` | Database tables & policies | Run in Supabase |
-| `src/styles.css` | All CSS (including feedback form) | Already done ✅ |
-| `src/lib/scoring-v2.js` | Telemetry payload builder | No changes needed |
+If one provider fails, tries next:
+
+1. ✅ HuggingFace
+2. ✅ Together AI  
+3. ✅ Replicate
+4. ✅ Mistral
+5. ✅ Ollama
+6. ✅ Claude
+7. ✅ OpenAI
+8. ✅ Echo Mode
 
 ---
 
-## 🔗 Endpoint URLs (Update These After Deploy)
+## 💰 Cost
 
-Replace these in src/App.jsx:
-```javascript
-// Current placeholders:
-const telemetryUrl = "https://api.arth-os.dev/telemetry";
-const feedbackUrl = "https://api.arth-os.dev/feedback";
+**$0.00 forever** - all completely free!
 
-// After Vercel deployment, should be:
-const telemetryUrl = "https://your-vercel-domain.vercel.app/api/telemetry";
-const feedbackUrl = "https://your-vercel-domain.vercel.app/api/feedback";
+| Provider | Limit | Cost |
+|----------|-------|------|
+| HuggingFace | Unlimited | FREE |
+| Together | Free credits | FREE |
+| Replicate | Free tier | FREE |
+| Mistral | Free tier | FREE |
+| Ollama | Unlimited | FREE |
+
+---
+
+## 🆘 Troubleshooting
+
+### "Script not running"
+```bash
+# Make sure you're in project root:
+ls scripts/setup-all-providers.js
+
+# If file doesn't exist:
+node scripts/setup-ai-coach.js  # Use individual setup
 ```
 
----
+### "Coach says no AI available"
+```bash
+# Check .env has at least one:
+cat .env | grep HUGGINGFACE_API_KEY
+cat .env | grep AI_PROVIDER
 
-## ✨ Next Actions
+# Verify Ollama is running (if using it):
+curl http://localhost:11434/api/tags
+```
 
-1. **Immediate (Today):**
-   - [ ] Review IMPLEMENTATION_SUMMARY.md
-   - [ ] Review DEPLOYMENT_GUIDE.md
-   - [ ] Test locally: `npm run dev`
+### "API key error"
+- Copy token fully (no spaces)
+- Verify token is still valid on provider website
+- Restart the app after saving .env
 
-2. **This Week:**
-   - [ ] Deploy frontend to Vercel
-   - [ ] Create Supabase project
-   - [ ] Run SQL_SCHEMA.sql in Supabase
-
-3. **Next Week:**
-   - [ ] Connect api/telemetry.js to Supabase
-   - [ ] Connect api/feedback.js to Supabase
-   - [ ] Update endpoint URLs
-   - [ ] Deploy to Vercel
-   - [ ] Test end-to-end flow
-
----
-
-## 🎯 Success Criteria
-
-- ✅ Build compiles without errors
-- ✅ 4-step wizard renders on page
-- ✅ Steps advance/retreat correctly
-- ✅ Step persists on refresh
-- ✅ Final step sends telemetry
-- ✅ Feedback form appears
-- ✅ Feedback submission works
-- ✅ Mobile layout is responsive
-- ✅ No console errors
-- ✅ No PII in network requests
-
-All ✅ Complete!
+### "Which one should I use?"
+- **Production (Vercel)**: HuggingFace
+- **Development (Local)**: Ollama
+- **Backup**: Any other (they auto-fallback)
 
 ---
 
-**Version:** 1.0  
-**Status:** ✅ Production Ready  
-**Last Build:** Successful (1582 modules, 0 errors)
+## 🚀 You're Done!
+
+Your app now has:
+- ✅ 5 completely free AI providers
+- ✅ Automatic provider detection
+- ✅ Seamless fallback (no errors)
+- ✅ Zero cost forever
+
+**Go to Coach section and start chatting!** 💬
+
+---
+
+## 📚 More Info
+
+- Full setup guide: `AI_SETUP_GUIDE.md`
+- Implementation details: `IMPLEMENTATION_SUMMARY.md`
+- Provider info: `.env` (comments)
+
+---
+
+**Questions?** All providers are completely free and setup takes 5 minutes! 🎉

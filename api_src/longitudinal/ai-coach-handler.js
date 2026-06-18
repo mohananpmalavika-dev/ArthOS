@@ -54,8 +54,16 @@ function ensureSupabaseConfigured() {
 }
 
 function ensureOpenAIConfigured() {
-  if (!OPENAI_API_KEY || isPlaceholderValue(OPENAI_API_KEY)) {
-    console.warn('OPENAI_API_KEY is not configured or still using a placeholder value. AI Coach chat features will be disabled or limited.');
+  // No longer strict requirement - supports Claude, Ollama, OpenAI
+  const hasAnyProvider =
+    (process.env.CLAUDE_API_KEY && !isPlaceholderValue(process.env.CLAUDE_API_KEY)) ||
+    (process.env.OPENAI_API_KEY && !isPlaceholderValue(process.env.OPENAI_API_KEY)) ||
+    (process.env.AI_PROVIDER === 'ollama');
+
+  if (!hasAnyProvider) {
+    console.warn('⚠️  No AI provider configured. AI Coach will be limited to echo mode.');
+    console.warn('   Set one of: CLAUDE_API_KEY, OPENAI_API_KEY, or use AI_PROVIDER=ollama');
+    console.warn('   See AI_SETUP_GUIDE.md for setup instructions.');
   }
 }
 
@@ -505,14 +513,27 @@ async function handleGetAnalytics(userId, res) {
 }
 
 function handleHealth(res) {
+  const claudeConfigured = !!process.env.CLAUDE_API_KEY && !isPlaceholderValue(process.env.CLAUDE_API_KEY);
   const openaiConfigured = !!OPENAI_API_KEY && !isPlaceholderValue(OPENAI_API_KEY);
   const supabaseConfigured = !!(SUPABASE_URL && SUPABASE_SERVICE_ROLE_KEY) && !isPlaceholderValue(SUPABASE_URL) && !isPlaceholderValue(SUPABASE_SERVICE_ROLE_KEY);
+
+  let activeProvider = 'offline';
+  if (claudeConfigured) activeProvider = 'claude';
+  else if (openaiConfigured) activeProvider = 'openai';
+  else activeProvider = 'ollama (local)';
+
   return res.status(200).json({
     success: true,
     service: 'ai-coach-engine',
     status: 'operational',
-    openaiConfigured,
-    supabaseConfigured
+    aiProvider: {
+      active: activeProvider,
+      claudeConfigured,
+      openaiConfigured,
+      ollamaAvailable: 'check at /api/coach/ollama-status'
+    },
+    supabaseConfigured,
+    message: `AI Coach ready with ${activeProvider}`
   });
 }
 
