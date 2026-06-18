@@ -58,10 +58,9 @@ export default function FutureYou() {
       <section className="premium-route-hero future-you-hero">
         <div>
           <p className="premium-route-kicker">Future projection</p>
-          <h1>The version of you that your money can become.</h1>
+          <h1>Here's The Better Version Of You</h1>
           <p>
-            {archetypeIntro} Explore projected runway, core strengths, and the weekly mission that
-            helps you make measurable progress.
+            {archetypeIntro} See your projected money situation, what works well, and your next move.
           </p>
         </div>
         <button type="button" className="premium-route-cta" onClick={() => navigate("/action")}>
@@ -78,10 +77,10 @@ export default function FutureYou() {
           <FutureYouCard data={futurePersona} />
           <FinancialDNA result={result} />
           <section className="premium-route-card future-you-nudge">
-            <h2>Turn it into real momentum</h2>
+            <h2>Make It Real</h2>
             <p>
-              Your current financial profile is the foundation. The mission below helps improve your
-              score, runway, and stress outlook together.
+              Your current money situation is the starting point. The mission below helps improve your
+              money health, savings, and stress together.
             </p>
             <button type="button" onClick={() => navigate("/action")} className="premium-route-cta">
               Start the mission
@@ -95,7 +94,7 @@ export default function FutureYou() {
         <div className="premium-route-section-head">
           <div>
             <p className="premium-route-kicker">Projection summary</p>
-            <h2>One week, one mission, one stronger next step.</h2>
+            <h2>Your Next Step To Get There</h2>
             <p>
               The weekly mission below is designed to connect your current financial profile with the
               future outcome you just reviewed.

@@ -33,10 +33,9 @@ export default function OneAction() {
       <section className="premium-route-hero premium-route-hero-split">
         <div>
           <p className="premium-route-kicker">Next Best Move</p>
-          <h1>One recommended action to move the score.</h1>
+          <h1>One Move To Improve Your Money Health</h1>
           <p>
-            ARTH.OS compresses the analysis into the single move most likely to improve your
-            financial trajectory right now.
+            Here's the single best thing you can do right now to improve your money situation.
           </p>
         </div>
       </section>

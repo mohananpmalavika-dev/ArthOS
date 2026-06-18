@@ -78,28 +78,28 @@ export const STORY_FLOW_SHELL_ROUTES = [
     path: "/reality",
     label: "Reality Check",
     icon: BookOpen,
-    description: "Your current financial position"
+    description: "Where you stand right now"
   },
   {
     id: "why",
     path: "/why",
-    label: "Behavior Insights",
+    label: "Your Money Habits",
     icon: MessageCircle,
-    description: "The why behind your patterns"
+    description: "How and why you spend money"
   },
   {
     id: "future",
     path: "/future",
-    label: "Forecast",
+    label: "What Could Happen",
     icon: Compass,
-    description: "Your financial future modeled"
+    description: "Your money possibilities"
   },
   {
     id: "future-you",
     path: "/future-you",
-    label: "Future Projection",
+    label: "Better Version of You",
     icon: Sparkles,
-    description: "The version you can become"
+    description: "A stronger money future"
   },
   {
     id: "action",

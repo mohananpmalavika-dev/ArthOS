@@ -35,9 +35,9 @@ export default function Future() {
       <section className="premium-route-hero">
         <div>
           <p className="premium-route-kicker">Forecast</p>
-          <h1>Your financial future, modeled before it happens.</h1>
+          <h1>See What Might Happen With Your Money</h1>
           <p>
-            Compare the current trajectory with stronger choices and see where runway, stress, and
+            See what happens if you stay on your current path vs. making stronger choices.
             resilience can move.
           </p>
         </div>

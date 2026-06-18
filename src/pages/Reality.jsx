@@ -34,10 +34,9 @@ export default function Reality() {
       <section className="premium-route-hero">
         <div>
           <p className="premium-route-kicker">Reality Check</p>
-          <h1>Your current financial position, made readable.</h1>
+          <h1>Where You Stand With Your Money</h1>
           <p>
-            See the gap between perceived runway, actual resilience, and the immediate signals that
-            deserve attention.
+            See the difference between what you think and what's really happening with your money.
           </p>
         </div>
       </section>
