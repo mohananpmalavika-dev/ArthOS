@@ -389,30 +389,30 @@ const AiCoachInterface = ({ userId, result, assessment, coachPrimaryConcern }) =
           <div className="coach-context-grid">
             {result?.healthScore !== undefined && (
               <article className="coach-context-card">
-                <span className="coach-context-label">Health Score</span>
+                <span className="coach-context-label">Money Health</span>
                 <strong className="coach-context-value">{normalizeScore(result?.healthScore ?? 0)}/100</strong>
                 <span className="coach-context-note">{result.categoryBand?.label}</span>
               </article>
             )}
             {result?.survivalMonthsRaw !== undefined && (
               <article className="coach-context-card">
-                <span className="coach-context-label">Runway</span>
+                <span className="coach-context-label">Money Cushion</span>
                 <strong className="coach-context-value">{Math.round(result.survivalMonthsRaw)} mo</strong>
-                <span className="coach-context-note">Financial cushion</span>
+                <span className="coach-context-note">How long your money lasts</span>
               </article>
             )}
             {result?.awarenessGapDisplay && (
               <article className="coach-context-card">
-                <span className="coach-context-label">Awareness Gap</span>
+                <span className="coach-context-label">Reality Check</span>
                 <strong className="coach-context-value">{result.awarenessGapDisplay}</strong>
-                <span className="coach-context-note">Hidden blind spot</span>
+                <span className="coach-context-note">What you might be missing</span>
               </article>
             )}
             {assessment?.profile?.monthlyExpenses && (
               <article className="coach-context-card">
-                <span className="coach-context-label">Monthly Spend</span>
+                <span className="coach-context-label">Monthly Spending</span>
                 <strong className="coach-context-value">₹{(assessment.profile.monthlyExpenses / 1000).toFixed(0)}k</strong>
-                <span className="coach-context-note">Core expenses</span>
+                <span className="coach-context-note">What you spend each month</span>
               </article>
             )}
           </div>
