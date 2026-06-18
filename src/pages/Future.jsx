@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { useAssessmentState } from "../hooks/useAssessmentState.js";
 import { useHistoricalDataContext } from "../context/HistoricalDataContext.jsx";
 import { calculateFinancialHealthV2 } from "../lib/scoring-v2.js";
@@ -8,6 +8,27 @@ export default function Future() {
   const { assessment } = useAssessmentState();
   const { digitalTwin } = useHistoricalDataContext();
   const result = calculateFinancialHealthV2(assessment);
+
+  useEffect(() => {
+    if (result && result.healthScore && assessment) {
+      const payload = {
+        assessment: assessment,
+        result: result
+      };
+      fetch('/api/saveAssessment', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      })
+        .then(res => res.json())
+        .then(data => {
+          console.log('[Future Page] Assessment auto-saved:', data);
+        })
+        .catch(err => {
+          console.log('[Future Page] Auto-save failed:', err);
+        });
+    }
+  }, [assessment, result]);
 
   return (
     <div className="premium-route-shell">

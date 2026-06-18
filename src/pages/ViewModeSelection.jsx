@@ -17,6 +17,8 @@ export default function ViewModeSelection() {
       await setViewMode(selected);
       if (selected === VIEW_MODES.phase_flow) {
         navigate("/dashboard/phase-flow", { replace: true });
+      } else if (selected === VIEW_MODES.story_flow) {
+        navigate("/reality", { replace: true });
       } else {
         navigate("/dashboard/home", { replace: true });
       }
@@ -83,7 +85,9 @@ export default function ViewModeSelection() {
               ? "Simple Guide"
               : selected === VIEW_MODES.phase_flow
                 ? "4-Phase Journey"
-                : "Full Experience"
+                : selected === VIEW_MODES.story_flow
+                  ? "Story Flow"
+                  : "Full Experience"
           }`}
           <ArrowRight size={18} aria-hidden="true" />
         </button>

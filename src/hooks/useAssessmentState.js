@@ -10,7 +10,8 @@
 import { useState, useCallback } from "react";
 import {
   makeEmptyAssessment,
-  isBrowser
+  isBrowser,
+  STORAGE_KEY
 } from "../lib/app-utils.jsx";
 import {
   loadQueuedAssessmentSaves,
@@ -19,7 +20,23 @@ import {
 } from "../lib/appAssessmentQueue.js";
 
 export function useAssessmentState() {
-  const [assessment, setAssessment] = useState(() => makeEmptyAssessment());
+  const [assessment, setAssessment] = useState(() => {
+    if (!isBrowser()) {
+      return makeEmptyAssessment();
+    }
+    // Try to load assessment from localStorage
+    try {
+      const stored = window.localStorage.getItem(STORAGE_KEY);
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        console.log("[useAssessmentState] Loaded assessment from localStorage");
+        return parsed;
+      }
+    } catch (e) {
+      console.warn("[useAssessmentState] Failed to load from localStorage:", e);
+    }
+    return makeEmptyAssessment();
+  });
   const [saveState, setSaveState] = useState("Ready");
   const [queuedSaveCount, setQueuedSaveCount] = useState(() =>
     isBrowser() ? loadQueuedAssessmentSaves().length : 0

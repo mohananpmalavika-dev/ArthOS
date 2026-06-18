@@ -467,12 +467,12 @@ main {
 
 /* Ensure page content isn't overlapped by the fixed header */
 .page-shell-main {
-  padding-top: calc(68px + 32px); /* header height + spacing for mobile */
+  padding-top: calc(100px + 32px); /* header height + spacing for mobile */
 }
 
 @media (min-width: 1024px) {
   .page-shell-main {
-    padding-top: 200px; /* accommodate two-row header on desktop */
+    padding-top: 240px; /* accommodate multi-row header on desktop */
   }
 }
 
@@ -591,7 +591,6 @@ main {
   .nav-scroll-btn { width: 34px; height: 34px; }
 }
 
-/* Desktop / Laptop: ensure all nav items are visible with no scrolling */
 @media (min-width: 1024px) {
   /* Allow the topbar to grow to accommodate wrapped nav */
   .topbar {
@@ -602,6 +601,11 @@ main {
     height: auto;
     padding: 12px clamp(18px, 4vw, 54px);
     row-gap: 12px;
+  }
+
+  .nav-wrap {
+    align-items: flex-start;
+    width: 100%;
   }
 
   /* Layout: brand on first row left, actions on first row right */
@@ -629,7 +633,7 @@ main {
     background: transparent;
     box-shadow: none;
     padding: 6px 0;
-    margin: 8px 0;
+    margin: 0;
     justify-content: flex-start;
     align-items: center;
   }
@@ -638,6 +642,7 @@ main {
     flex: 0 0 auto;
     white-space: nowrap;
     padding: 6px 12px;
+    margin: 4px 0;
   }
 
   .page-shell-main {

@@ -17,7 +17,7 @@ import {
 import { useRef, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { OS_SHELL_ROUTES } from "../lib/routeMap.js";
-import { isSimpleViewMode, SIMPLE_SHELL_ROUTES } from "../lib/viewMode.js";
+import { isSimpleViewMode, isStoryFlowMode, SIMPLE_SHELL_ROUTES, STORY_FLOW_SHELL_ROUTES } from "../lib/viewMode.js";
 
 function Header({
   saveStatusLabel = "Saved",
@@ -121,7 +121,7 @@ function Header({
     }
   };
 
-  const navRoutes = isSimpleViewMode(viewMode) ? SIMPLE_SHELL_ROUTES : OS_SHELL_ROUTES;
+  const navRoutes = isSimpleViewMode(viewMode) ? SIMPLE_SHELL_ROUTES : isStoryFlowMode(viewMode) ? STORY_FLOW_SHELL_ROUTES : OS_SHELL_ROUTES;
 
   return (
     <header className="topbar">

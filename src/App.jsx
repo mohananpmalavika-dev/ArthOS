@@ -637,6 +637,45 @@ export default function App({ demoMode = false }) {
     return () => window.removeEventListener('arth:show-share-dialog', handleShareDialog);
   }, []);
 
+  // Auto-save assessment to localStorage whenever it changes
+  useEffect(() => {
+    if (!isBrowser() || !assessment || saveState === "Ready") {
+      return;
+    }
+
+    // Save to localStorage
+    try {
+      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(assessment));
+    } catch (e) {
+      console.warn("[Auto-save] Could not save to localStorage:", e);
+    }
+
+    // Auto-save to database every time assessment changes significantly
+    // Use a debounce to avoid too many API calls
+    const timeout = setTimeout(() => {
+      if (result && result.healthScore) {
+        const payload = {
+          assessment: assessment,
+          result: result
+        };
+        fetch('/api/saveAssessment', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        })
+          .then(res => res.json())
+          .then(data => {
+            console.log('[App Auto-save] Assessment saved:', data);
+          })
+          .catch(err => {
+            console.log('[App Auto-save] Database save failed:', err);
+          });
+      }
+    }, 2000); // Debounce by 2 seconds to avoid excessive API calls
+
+    return () => clearTimeout(timeout);
+  }, [assessment, result]);
+
   useEffect(() => {
     if (!isBrowser()) {
       return;

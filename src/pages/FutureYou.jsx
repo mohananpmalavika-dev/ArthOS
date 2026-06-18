@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowRight } from "lucide-react";
 import { useAssessmentState } from "../hooks/useAssessmentState.js";
@@ -14,6 +14,27 @@ export default function FutureYou() {
   const { digitalTwin } = useHistoricalDataContext();
   const result = calculateFinancialHealthV2(assessment);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (result && result.healthScore && assessment) {
+      const payload = {
+        assessment: assessment,
+        result: result
+      };
+      fetch('/api/saveAssessment', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      })
+        .then(res => res.json())
+        .then(data => {
+          console.log('[FutureYou Page] Assessment auto-saved:', data);
+        })
+        .catch(err => {
+          console.log('[FutureYou Page] Auto-save failed:', err);
+        });
+    }
+  }, [assessment, result]);
 
   const futurePersona = useMemo(
     () => ({

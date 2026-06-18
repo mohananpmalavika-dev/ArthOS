@@ -463,6 +463,26 @@ export default function DiscoverPhase({ handleNext, onComplete }) {
           <button
             className="discover-next-cta"
             onClick={() => {
+              // Auto-save assessment to database
+              if (score) {
+                const payload = {
+                  assessment: score.assessment,
+                  result: score.result
+                };
+                fetch('/api/saveAssessment', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify(payload)
+                })
+                  .then(res => res.json())
+                  .then(data => {
+                    console.log('[DiscoverPhase] Assessment saved:', data);
+                  })
+                  .catch(err => {
+                    console.log('[DiscoverPhase] Save failed (continuing anyway):', err);
+                  });
+              }
+
               if (onComplete) onComplete(score);
               handleNext();
             }}

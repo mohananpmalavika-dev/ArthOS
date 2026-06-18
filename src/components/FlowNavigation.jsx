@@ -3,7 +3,7 @@ import PropTypes from "prop-types";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Sparkles } from "lucide-react";
 import { OS_SHELL_ROUTES, STORY_NAV_ITEMS, DEV_NAV_ITEMS } from "../lib/routeMap.js";
-import { isSimpleViewMode, SIMPLE_SHELL_ROUTES } from "../lib/viewMode.js";
+import { isSimpleViewMode, isStoryFlowMode, SIMPLE_SHELL_ROUTES, STORY_FLOW_SHELL_ROUTES } from "../lib/viewMode.js";
 
 export default function FlowNavigation({ onNavigate, devMode, onToggleDev, viewMode = "classic" }) {
   const navigate = useNavigate();
@@ -15,6 +15,9 @@ export default function FlowNavigation({ onNavigate, devMode, onToggleDev, viewM
   const coreNarrative = useMemo(() => {
     if (isSimpleViewMode(viewMode)) {
       return SIMPLE_SHELL_ROUTES;
+    }
+    if (isStoryFlowMode(viewMode)) {
+      return STORY_FLOW_SHELL_ROUTES;
     }
     return isOSContext ? OS_SHELL_ROUTES : STORY_NAV_ITEMS;
   }, [isOSContext, viewMode]);
@@ -62,7 +65,7 @@ export default function FlowNavigation({ onNavigate, devMode, onToggleDev, viewM
           );
         })}
 
-        {!isSimpleViewMode(viewMode) && (
+        {!isSimpleViewMode(viewMode) && !isStoryFlowMode(viewMode) && (
         <button
           className={`app-nav-tab app-nav-dev-toggle ${devMode ? "dev-active" : ""}`}
           onClick={() => {
@@ -81,7 +84,7 @@ export default function FlowNavigation({ onNavigate, devMode, onToggleDev, viewM
         )}
       </nav>
 
-      {showDeveloperMenu && !isSimpleViewMode(viewMode) && (
+      {showDeveloperMenu && !isSimpleViewMode(viewMode) && !isStoryFlowMode(viewMode) && (
         <nav className="app-nav-developer-menu" aria-label="Developer Tools">
           <div className="dev-menu-header">
             <p className="dev-menu-title">Intelligence & Administration</p>

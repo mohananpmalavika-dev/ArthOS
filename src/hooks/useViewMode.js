@@ -7,15 +7,20 @@ export function useViewMode() {
 
   const viewMode = useMemo(() => {
     const stored = settings?.ui?.viewMode;
-    return stored === VIEW_MODES.simple ? VIEW_MODES.simple : VIEW_MODES.classic;
+    // Support all view modes: simple, phase_flow, story_flow, or default to classic
+    if (stored === VIEW_MODES.simple || stored === VIEW_MODES.phase_flow || stored === VIEW_MODES.story_flow) {
+      return stored;
+    }
+    return VIEW_MODES.classic;
   }, [settings?.ui?.viewMode]);
 
   const isSimpleView = isSimpleViewMode(viewMode);
 
   const setViewMode = useCallback(
     async nextMode => {
-      const normalized =
-        nextMode === VIEW_MODES.simple ? VIEW_MODES.simple : VIEW_MODES.classic;
+      // Save the mode as-is if it's a valid mode
+      const valid = [VIEW_MODES.classic, VIEW_MODES.simple, VIEW_MODES.phase_flow, VIEW_MODES.story_flow];
+      const normalized = valid.includes(nextMode) ? nextMode : VIEW_MODES.classic;
       await saveSetting("ui.viewMode", normalized);
       return normalized;
     },

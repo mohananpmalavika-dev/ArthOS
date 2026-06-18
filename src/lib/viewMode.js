@@ -6,19 +6,22 @@ import {
   Settings,
   LayoutGrid,
   Sparkles,
-  Compass
+  Compass,
+  BookOpen
 } from "lucide-react";
 
 export const VIEW_MODES = {
   classic: "classic",
   simple: "simple",
-  phase_flow: "phase_flow"
+  phase_flow: "phase_flow",
+  story_flow: "story_flow"
 };
 
 export const VIEW_MODE_LABELS = {
   [VIEW_MODES.classic]: "Full Experience",
   [VIEW_MODES.simple]: "Simple Guide",
-  [VIEW_MODES.phase_flow]: "4-Phase Journey"
+  [VIEW_MODES.phase_flow]: "4-Phase Journey",
+  [VIEW_MODES.story_flow]: "Story Flow"
 };
 
 export const SIMPLE_SHELL_ROUTES = [
@@ -69,6 +72,51 @@ export const PHASE_FLOW_SHELL_ROUTES = [
   }
 ];
 
+export const STORY_FLOW_SHELL_ROUTES = [
+  {
+    id: "reality",
+    path: "/reality",
+    label: "Reality Check",
+    icon: BookOpen,
+    description: "Your current financial position"
+  },
+  {
+    id: "why",
+    path: "/why",
+    label: "Behavior Insights",
+    icon: MessageCircle,
+    description: "The why behind your patterns"
+  },
+  {
+    id: "future",
+    path: "/future",
+    label: "Forecast",
+    icon: Compass,
+    description: "Your financial future modeled"
+  },
+  {
+    id: "future-you",
+    path: "/future-you",
+    label: "Future Projection",
+    icon: Sparkles,
+    description: "The version you can become"
+  },
+  {
+    id: "action",
+    path: "/action",
+    label: "Next Best Move",
+    icon: ClipboardList,
+    description: "One recommended action"
+  },
+  {
+    id: "coach",
+    path: "/coach",
+    label: "Coach",
+    icon: MessageCircle,
+    description: "Your financial coach"
+  }
+];
+
 export const VIEW_MODE_OPTIONS = [
   {
     id: VIEW_MODES.classic,
@@ -96,6 +144,15 @@ export const VIEW_MODE_OPTIONS = [
     description:
       "Discover → Understand → Optimize → Execute. A clear step-by-step journey from financial snapshot to action plan.",
     highlights: ["Guided 4-phase flow", "Personalized insights", "Clear action steps"]
+  },
+  {
+    id: VIEW_MODES.story_flow,
+    title: "Story Flow",
+    subtitle: "Narrative experience",
+    icon: BookOpen,
+    description:
+      "Experience your financial story: Reality → Why → Future → Forecast → Action → Coach. A narrative journey through insights and guidance.",
+    highlights: ["6-step story arc", "Behavior insights", "Personal coach integration"]
   }
 ];
 
@@ -107,12 +164,19 @@ export function isPhaseFlowMode(viewMode) {
   return viewMode === VIEW_MODES.phase_flow;
 }
 
+export function isStoryFlowMode(viewMode) {
+  return viewMode === VIEW_MODES.story_flow;
+}
+
 export function getNavRoutesForViewMode(viewMode, { isDashboardContext = true } = {}) {
   if (isSimpleViewMode(viewMode)) {
     return SIMPLE_SHELL_ROUTES;
   }
   if (isPhaseFlowMode(viewMode)) {
     return PHASE_FLOW_SHELL_ROUTES;
+  }
+  if (isStoryFlowMode(viewMode)) {
+    return STORY_FLOW_SHELL_ROUTES;
   }
   if (!isDashboardContext) {
     return null;

@@ -884,6 +884,25 @@ export default function AssessmentSection({
       payload.adaptive_metrics = adaptiveMetrics;
 
       await dispatchAnonymousTelemetry(payload, "/api/telemetry");
+
+      // Auto-save assessment to Supabase
+      const savePayload = {
+        assessment: assessment,
+        result: result
+      };
+      fetch('/api/saveAssessment', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(savePayload)
+      })
+        .then(res => res.json())
+        .then(data => {
+          console.log('[AssessmentSection] Assessment auto-saved to database:', data);
+        })
+        .catch(err => {
+          console.log('[AssessmentSection] Database save failed (continuing anyway):', err);
+        });
+
       if (typeof onSaveAssessment === "function") {
         onSaveAssessment();
       }
