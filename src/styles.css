@@ -515,7 +515,7 @@ main {
   overflow-y: visible;
   -webkit-overflow-scrolling: touch;
   z-index: 110;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   border: 1px solid rgba(255, 255, 255, 0.09);
   border-radius: var(--radius-xs);
   background: rgba(255, 255, 255, 0.038);
@@ -583,18 +583,25 @@ main {
     white-space: normal;
     max-width: 100%;
     width: 100%;
+    border: none;
+    background: transparent;
+    box-shadow: none;
+    padding: 6px 0;
+    margin: 8px 0;
   }
 
-  /* Allow the topbar to grow to two lines and keep page content clear of it */
+  /* Allow the topbar to grow to accommodate wrapped nav */
   .topbar {
     align-items: flex-start;
+    grid-template-columns: auto 1fr auto;
     grid-template-rows: auto auto;
     min-height: auto;
     height: auto;
     padding: 12px clamp(18px, 4vw, 54px);
+    row-gap: 12px;
   }
 
-  /* Layout: brand + actions on first row, nav on second row */
+  /* Layout: brand on first row left, actions on first row right */
   .brand {
     grid-column: 1 / 2;
     grid-row: 1 / 2;
@@ -606,30 +613,22 @@ main {
     justify-self: end;
   }
 
+  /* Nav on second row, full width */
   .nav-links {
     grid-column: 1 / -1;
     grid-row: 2 / 3;
-    margin: 8px 0;
-    padding: 8px 0;
     justify-content: flex-start;
     align-items: center;
-    /* allow nav to wrap into multiple lines on desktop */
-    flex-wrap: wrap;
-    white-space: normal;
-    overflow-x: visible;
-    overflow-y: visible;
-    border: none;
-    background: transparent;
-    box-shadow: none;
   }
 
   .nav-links a {
     flex: 0 0 auto;
-    margin: 4px 6px;
+    white-space: nowrap;
+    padding: 6px 12px;
   }
 
   .page-shell-main {
-    padding-top: 180px; /* accommodate two-line header */
+    padding-top: 160px; /* accommodate two-line header */
   }
 
   /* hide scroll arrows on desktop when nav is wrapped */
