@@ -991,6 +991,7 @@ export default function App({ demoMode = false }) {
     const startServices = async () => {
       try {
         await initializeBackgroundServices({
+          userId: user?.id || user?.userId, // Pass authenticated user ID from auth context
           telemetryBatchWindowMs: 30_000,
           enableCheckInScheduler: true,
           enableFollowUpWorkflow: true,

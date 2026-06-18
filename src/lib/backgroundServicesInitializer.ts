@@ -74,6 +74,7 @@ async function processDurableJobOnServer(job: DurableJob): Promise<any> {
 // ============================================================================
 
 export interface BackgroundServicesConfig {
+  userId?: string; // Current authenticated user ID
   telemetryEndpoint?: string | false;
   telemetryBatchWindowMs?: number;
   telemetrySamplingRate?: number;
@@ -85,6 +86,7 @@ export interface BackgroundServicesConfig {
 /**
  * Initialize all background services.
  * Should be called once on app startup (e.g., in App.jsx useEffect).
+ * @param config Configuration object, including userId from auth context
  */
 export async function initializeBackgroundServices(config: BackgroundServicesConfig = {}): Promise<void> {
   if (isTestMode) {
@@ -119,6 +121,9 @@ export async function initializeBackgroundServices(config: BackgroundServicesCon
       log('Setting up background task scheduler...');
       const scheduler = getGlobalBackgroundTaskScheduler();
 
+      // Get userId from config (passed from App.jsx auth context)
+      const userId = config.userId || 'system';
+
       // Schedule daily check-in
       scheduler.scheduleTask({
         id: 'daily_checkin',
@@ -133,7 +138,7 @@ export async function initializeBackgroundServices(config: BackgroundServicesCon
             await jobQueue.enqueue({
               type: 'checkin_event',
               payload: {
-                userId: 'system',  // TODO: Get from auth context
+                userId: userId, // Use userId from config instead of hardcoded 'system'
                 timestamp: new Date().toISOString(),
                 data: {
                   taskId: context.taskId,
