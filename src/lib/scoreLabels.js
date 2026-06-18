@@ -1,9 +1,9 @@
 export const healthBandThresholds = [
-  { max: 19, label: "Financially Critical", tone: "critical" },
-  { max: 39, label: "Financially Fragile", tone: "warning" },
-  { max: 59, label: "Financially Developing", tone: "caution" },
-  { max: 79, label: "Financially Resilient", tone: "steady" },
-  { max: Infinity, label: "Financially Sovereign", tone: "strong" }
+  { max: 19, label: "In Crisis", tone: "critical" },
+  { max: 39, label: "Unstable", tone: "warning" },
+  { max: 59, label: "Improving", tone: "caution" },
+  { max: 79, label: "Resilient", tone: "steady" },
+  { max: Infinity, label: "Strong", tone: "strong" }
 ];
 
 export function getHealthBand(score) {
@@ -14,11 +14,11 @@ export function getHealthBand(score) {
 }
 
 export const survivalBandThresholds = [
-  { max: 1, label: "Immediate risk", tone: "critical" },
-  { max: 3, label: "Fragile cushion", tone: "warning" },
-  { max: 6, label: "Improving stability", tone: "steady" },
-  { max: 12, label: "Strong buffer", tone: "strong" },
-  { max: Infinity, label: "Highly resilient", tone: "strong" }
+  { max: 1, label: "Urgent", tone: "critical" },
+  { max: 3, label: "Tight", tone: "warning" },
+  { max: 6, label: "Getting Better", tone: "steady" },
+  { max: 12, label: "Strong", tone: "strong" },
+  { max: Infinity, label: "Very Strong", tone: "strong" }
 ];
 
 export function getSurvivalBand(months) {
@@ -29,10 +29,10 @@ export function getSurvivalBand(months) {
 }
 
 export const behaviourBandThresholds = [
-  { max: 13, label: "Critical behaviour risk" },
-  { max: 26, label: "Needs behaviour correction" },
-  { max: 34, label: "Mostly controlled" },
-  { max: Infinity, label: "Strong financial discipline" }
+  { max: 13, label: "Big Issues" },
+  { max: 26, label: "Needs Changes" },
+  { max: 34, label: "Mostly Okay" },
+  { max: Infinity, label: "Very Good" }
 ];
 
 export function getBehaviourBand(score) {
@@ -43,10 +43,10 @@ export function getBehaviourBand(score) {
 }
 
 export const awarenessBandThresholds = [
-  { max: 9, label: "Low visibility" },
-  { max: 19, label: "Basic awareness" },
-  { max: 24, label: "Solid tracking" },
-  { max: Infinity, label: "High clarity" }
+  { max: 9, label: "Low" },
+  { max: 19, label: "Basic" },
+  { max: 24, label: "Good" },
+  { max: Infinity, label: "High" }
 ];
 
 export function getAwarenessBand(score) {
@@ -57,10 +57,10 @@ export function getAwarenessBand(score) {
 }
 
 export const stabilityBandThresholds = [
-  { max: 9, label: "Fragile stability" },
-  { max: 19, label: "Some cushion" },
+  { max: 9, label: "Shaky" },
+  { max: 19, label: "Some Safety" },
   { max: 24, label: "Resilient" },
-  { max: Infinity, label: "Very stable" }
+  { max: Infinity, label: "Very Stable" }
 ];
 
 export function getStabilityBand(score) {

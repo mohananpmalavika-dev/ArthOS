@@ -312,31 +312,31 @@ function getComponentRows(scores) {
 
 function getHealthBand(score) {
   if (score <= 19) {
-    return { label: "Financially Critical", tone: "critical" };
+    return { label: "In Crisis", tone: "critical" };
   }
   if (score <= 39) {
-    return { label: "Financially Fragile", tone: "warning" };
+    return { label: "Unstable", tone: "warning" };
   }
   if (score <= 59) {
-    return { label: "Financially Developing", tone: "caution" };
+    return { label: "Improving", tone: "caution" };
   }
   if (score <= 79) {
-    return { label: "Financially Resilient", tone: "steady" };
+    return { label: "Resilient", tone: "steady" };
   }
-  return { label: "Financially Sovereign", tone: "strong" };
+  return { label: "Strong", tone: "strong" };
 }
 
 function getBehaviourBand(score) {
   if (score <= 13) {
-    return "Critical behaviour risk";
+    return "Big Issues";
   }
   if (score <= 26) {
-    return "Needs behaviour correction";
+    return "Needs Changes";
   }
   if (score <= 34) {
-    return "Mostly controlled";
+    return "Mostly Okay";
   }
-  return "Strong financial discipline";
+  return "Very Good";
 }
 
 function getAwarenessBand(score) {

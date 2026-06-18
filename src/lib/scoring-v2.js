@@ -1028,35 +1028,35 @@ function getPersonalityType(behaviour) {
 
 function getHealthBand(score) {
   if (score <= 19) {
-    return { label: "Financially Critical", tone: "critical" };
+    return { label: "In Crisis", tone: "critical" };
   }
   if (score <= 39) {
-    return { label: "Financially Fragile", tone: "warning" };
+    return { label: "Unstable", tone: "warning" };
   }
   if (score <= 59) {
-    return { label: "Financially Developing", tone: "caution" };
+    return { label: "Improving", tone: "caution" };
   }
   if (score <= 79) {
-    return { label: "Financially Resilient", tone: "steady" };
+    return { label: "Resilient", tone: "steady" };
   }
-  return { label: "Financially Sovereign", tone: "strong" };
+  return { label: "Strong", tone: "strong" };
 }
 
 // L02: Health band for /1000 normalized composite score
 function getHealthBandV2(score) {
   if (score < 200) {
-    return { label: "Financially Critical", tone: "critical", band: "critical" };
+    return { label: "In Crisis", tone: "critical", band: "critical" };
   }
   if (score < 400) {
-    return { label: "Financially Fragile", tone: "warning", band: "fragile" };
+    return { label: "Unstable", tone: "warning", band: "fragile" };
   }
   if (score < 600) {
-    return { label: "Financially Developing", tone: "caution", band: "developing" };
+    return { label: "Improving", tone: "caution", band: "developing" };
   }
   if (score < 800) {
-    return { label: "Financially Resilient", tone: "steady", band: "resilient" };
+    return { label: "Resilient", tone: "steady", band: "resilient" };
   }
-  return { label: "Financially Sovereign", tone: "strong", band: "sovereign" };
+  return { label: "Strong", tone: "strong", band: "sovereign" };
 }
 
 function getRecommendedAction(assessment, components) {
