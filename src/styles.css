@@ -443,6 +443,7 @@ main {
   z-index: 100;
   display: grid;
   grid-template-columns: auto 1fr auto;
+  grid-template-rows: auto;
   align-items: center;
   gap: 14px;
   min-height: 68px;
@@ -455,9 +456,24 @@ main {
   box-shadow: 0 14px 38px rgba(0, 0, 0, 0.24);
 }
 
+@media (min-width: 1024px) {
+  .topbar {
+    grid-template-rows: auto auto;
+    min-height: auto;
+    height: auto;
+    row-gap: 8px;
+  }
+}
+
 /* Ensure page content isn't overlapped by the fixed header */
 .page-shell-main {
-  padding-top: calc(68px + 16px); /* header height + spacing */
+  padding-top: calc(68px + 32px); /* header height + spacing for mobile */
+}
+
+@media (min-width: 1024px) {
+  .page-shell-main {
+    padding-top: 200px; /* accommodate two-row header on desktop */
+  }
 }
 
 .brand {
@@ -577,19 +593,6 @@ main {
 
 /* Desktop / Laptop: ensure all nav items are visible with no scrolling */
 @media (min-width: 1024px) {
-  .nav-links {
-    overflow: visible !important;
-    flex-wrap: wrap;
-    white-space: normal;
-    max-width: 100%;
-    width: 100%;
-    border: none;
-    background: transparent;
-    box-shadow: none;
-    padding: 6px 0;
-    margin: 8px 0;
-  }
-
   /* Allow the topbar to grow to accommodate wrapped nav */
   .topbar {
     align-items: flex-start;
@@ -617,6 +620,16 @@ main {
   .nav-links {
     grid-column: 1 / -1;
     grid-row: 2 / 3;
+    overflow: visible !important;
+    flex-wrap: wrap;
+    white-space: normal;
+    max-width: 100%;
+    width: 100%;
+    border: none;
+    background: transparent;
+    box-shadow: none;
+    padding: 6px 0;
+    margin: 8px 0;
     justify-content: flex-start;
     align-items: center;
   }
@@ -628,7 +641,7 @@ main {
   }
 
   .page-shell-main {
-    padding-top: 160px; /* accommodate two-line header */
+    padding-top: 200px; /* accommodate two-line header */
   }
 
   /* hide scroll arrows on desktop when nav is wrapped */
