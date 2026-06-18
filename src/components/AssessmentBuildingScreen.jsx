@@ -12,9 +12,9 @@ import "./assessment-building-screen.css";
  */
 export default function AssessmentBuildingScreen({ result, onComplete }) {
   const initialSteps = [
-    { id: "habits", label: "Analyzing Habits", progress: 100, completed: false, delay: 0 },
-    { id: "decisions", label: "Analyzing Decisions", progress: 80, completed: false, delay: 0.8 },
-    { id: "predicting", label: "Predicting Future", progress: 60, completed: false, delay: 1.6 }
+    { id: "habits", label: "Learning Your Habits", progress: 100, completed: false, delay: 0 },
+    { id: "decisions", label: "Understanding Your Style", progress: 80, completed: false, delay: 0.8 },
+    { id: "predicting", label: "Looking At Your Future", progress: 60, completed: false, delay: 1.6 }
   ];
 
   const [steps, setSteps] = useState(initialSteps);
