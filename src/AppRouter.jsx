@@ -1,9 +1,15 @@
 import React, { Suspense } from "react";
+import LaunchPage from "./pages/LaunchPage.jsx";
+import EnterpriseLoginPage from "./pages/EnterpriseLoginPage.jsx";
+
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import App from "./App.jsx";
 import { RoastViewPage } from "./pages/RoastViewPage.jsx";
 import LoginPage from "./pages/LoginPage.jsx";
 import RegisterPage from "./pages/RegisterPage.jsx";
+import LaunchPage from "./pages/LaunchPage.jsx";
+import EnterpriseLoginPage from "./pages/EnterpriseLoginPage.jsx";
+
 import Onboarding from "./pages/Onboarding.jsx";
 import Reality from "./pages/Reality.jsx";
 import Why from "./pages/Why.jsx";
@@ -53,9 +59,14 @@ function AppRouter() {
           {/* Public roast sharing page - no auth required */}
           <Route path="/roast/:id" element={<RoastViewPage />} />
 
+          {/* Launch / entrypoint */}
+          <Route path="/launch" element={<LaunchPage />} />
+
           {/* Auth pages */}
           <Route path="/login" element={<LoginPage />} />
+          <Route path="/enterprise-login" element={<EnterpriseLoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
+
 
           {/* Onboarding route */}
           <Route
@@ -66,28 +77,44 @@ function AppRouter() {
                   <Onboarding />
                 </PageShell>
               ) : (
-                <Navigate to="/login" replace />
+                <Navigate to="/launch" replace />
               )
             }
           />
+
           <Route
             path="/"
-            element={isAuthenticated ? <Navigate to="/dashboard/home" replace /> : <Navigate to="/login" replace />}
+            element={
+              isAuthenticated ? (
+                <Navigate to="/dashboard/home" replace />
+              ) : (
+                <Navigate to="/launch" replace />
+              )
+            }
           />
+
           <Route
             path="/big-reveal"
-            element={isAuthenticated ? <Navigate to="/dashboard/home" replace /> : <Navigate to="/login" replace />}
+            element={
+              isAuthenticated ? (
+                <Navigate to="/dashboard/home" replace />
+              ) : (
+                <Navigate to="/launch" replace />
+              )
+            }
           />
+
           <Route
             path="/dashboard"
             element={
               isAuthenticated ? (
                 <Navigate to="/dashboard/home" replace />
               ) : (
-                <Navigate to="/login" replace />
+                <Navigate to="/launch" replace />
               )
             }
           />
+
           <Route
             path="/reality"
             element={

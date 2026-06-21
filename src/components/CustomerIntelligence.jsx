@@ -1,0 +1,237 @@
+import React, { memo, useState } from "react";
+import {
+  Search,
+  Download,
+  Filter,
+  ChevronRight,
+  Eye,
+  AlertTriangle,
+  TrendingUp,
+  MoreVertical,
+  UserPlus
+} from "lucide-react";
+
+const CustomerIntelligence = memo(() => {
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filterStatus, setFilterStatus] = useState("all");
+  const [page, setPage] = useState(1);
+
+  // Mock customer data
+  const customers = [
+    {
+      id: "CS-14523",
+      name: "John Smith",
+      email: "john.smith@email.com",
+      score: 645,
+      band: "Resilient",
+      status: "active",
+      lastAssessment: "2024-06-15",
+      riskLevel: "low",
+      trend: "up",
+      accounts: 3,
+      totalDeposits: 125000
+    },
+    {
+      id: "CS-18746",
+      name: "Sarah Chen",
+      email: "sarah.chen@email.com",
+      score: 385,
+      band: "Fragile",
+      status: "alert",
+      lastAssessment: "2024-06-18",
+      riskLevel: "high",
+      trend: "down",
+      accounts: 2,
+      totalDeposits: 45000
+    },
+    {
+      id: "CS-92034",
+      name: "Michael Johnson",
+      email: "m.johnson@email.com",
+      score: 720,
+      band: "Resilient",
+      status: "active",
+      lastAssessment: "2024-06-17",
+      riskLevel: "low",
+      trend: "up",
+      accounts: 4,
+      totalDeposits: 350000
+    },
+    {
+      id: "CS-56789",
+      name: "Emily Davis",
+      email: "emily.davis@email.com",
+      score: 480,
+      band: "Developing",
+      status: "active",
+      lastAssessment: "2024-06-16",
+      riskLevel: "medium",
+      trend: "stable",
+      accounts: 2,
+      totalDeposits: 78000
+    },
+    {
+      id: "CS-34521",
+      name: "Robert Wilson",
+      email: "r.wilson@email.com",
+      score: 180,
+      band: "Critical",
+      status: "alert",
+      lastAssessment: "2024-06-19",
+      riskLevel: "critical",
+      trend: "down",
+      accounts: 1,
+      totalDeposits: 12000
+    }
+  ];
+
+  const getBandColor = (band) => {
+    const colors = {
+      Critical: "#ef4444",
+      Fragile: "#f97316",
+      Developing: "#eab308",
+      Resilient: "#22c55e",
+      Sovereign: "#06b6d4"
+    };
+    return colors[band] || "#666";
+  };
+
+  const getTrendIcon = (trend) => {
+    if (trend === "up") return "↑";
+    if (trend === "down") return "↓";
+    return "→";
+  };
+
+  const filteredCustomers = customers.filter((c) => {
+    const matchesSearch =
+      c.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      c.id.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesFilter =
+      filterStatus === "all" || c.status === filterStatus;
+    return matchesSearch && matchesFilter;
+  });
+
+  return (
+    <div className="enterprise-customer-intelligence">
+      {/* Header */}
+      <div className="enterprise-section-header">
+        <div>
+          <h2 className="enterprise-section-title">Customer Intelligence</h2>
+          <p className="enterprise-section-subtitle">
+            Monitor and manage individual customer financial health
+          </p>
+        </div>
+        <div className="enterprise-header-controls">
+          <button className="enterprise-btn-secondary">
+            <UserPlus size={16} />
+            Add Customer
+          </button>
+          <button className="enterprise-btn-secondary">
+            <Download size={16} />
+            Export List
+          </button>
+        </div>
+      </div>
+
+      {/* Search & Filters */}
+      <div className="enterprise-search-bar">
+        <Search size={16} className="search-icon" />
+        <input
+          type="text"
+          placeholder="Search by name or customer ID..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="search-input"
+        />
+        <select
+          value={filterStatus}
+          onChange={(e) => setFilterStatus(e.target.value)}
+          className="enterprise-select-compact"
+        >
+          <option value="all">All Status</option>
+          <option value="active">Active</option>
+          <option value="alert">Alert</option>
+          <option value="inactive">Inactive</option>
+        </select>
+      </div>
+
+      {/* Customers Table */}
+      <div className="enterprise-table-container">
+        <table className="enterprise-customers-table">
+          <thead>
+            <tr>
+              <th>Customer</th>
+              <th>Health Score</th>
+              <th>Risk Level</th>
+              <th>Last Assessment</th>
+              <th>Accounts</th>
+              <th>Deposits</th>
+              <th>Trend</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            {filteredCustomers.map((customer) => (
+              <tr key={customer.id} className={`status-${customer.status}`}>
+                <td className="customer-cell">
+                  <div className="customer-info">
+                    <div className="customer-name">{customer.name}</div>
+                    <div className="customer-id">{customer.id}</div>
+                  </div>
+                </td>
+                <td>
+                  <div className="score-badge">
+                    <span
+                      className="score-value"
+                      style={{ color: getBandColor(customer.band) }}
+                    >
+                      {customer.score}
+                    </span>
+                    <span className="score-band">{customer.band}</span>
+                  </div>
+                </td>
+                <td>
+                  <span
+                    className={`risk-badge risk-${customer.riskLevel}`}
+                  >
+                    {customer.riskLevel === "critical" && (
+                      <AlertTriangle size={14} />
+                    )}
+                    {customer.riskLevel.charAt(0).toUpperCase() +
+                      customer.riskLevel.slice(1)}
+                  </span>
+                </td>
+                <td>{customer.lastAssessment}</td>
+                <td>{customer.accounts}</td>
+                <td>${(customer.totalDeposits / 1000).toFixed(0)}k</td>
+                <td>
+                  <span
+                    className={`trend-indicator ${customer.trend}`}
+                  >
+                    {getTrendIcon(customer.trend)}
+                  </span>
+                </td>
+                <td>
+                  <button className="enterprise-btn-icon">
+                    <Eye size={14} />
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      {/* Pagination */}
+      <div className="enterprise-pagination">
+        <button disabled={page === 1}>← Previous</button>
+        <span>Page {page}</span>
+        <button>Next →</button>
+      </div>
+    </div>
+  );
+});
+
+CustomerIntelligence.displayName = "CustomerIntelligence";
+
+export default CustomerIntelligence;
