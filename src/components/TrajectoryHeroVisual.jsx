@@ -119,8 +119,8 @@ export default function TrajectoryHeroVisual({ result, assessment, data }) {
               strokeWidth={5}
               dot={{ fill: "cyan", r: 6 }}
               activeDot={{ r: 8, fill: "cyan" }}
-              animationDuration={1200}
-              isAnimationActive
+              animationDuration={0}
+              isAnimationActive={false}
             />
             <Line
               type="monotone"
@@ -130,8 +130,8 @@ export default function TrajectoryHeroVisual({ result, assessment, data }) {
               strokeWidth={5}
               dot={{ fill: "purple", r: 6 }}
               activeDot={{ r: 8, fill: "purple" }}
-              animationDuration={1400}
-              isAnimationActive
+              animationDuration={0}
+              isAnimationActive={false}
             />
 
           </LineChart>
