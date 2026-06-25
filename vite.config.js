@@ -266,8 +266,9 @@ export default defineConfig({
   },
   build: {
     target: "esnext",
-    minify: "terser",
-    sourcemap: false,
+    // Use esbuild minifier to avoid potential terser hoisting bugs
+    minify: "esbuild",
+    sourcemap: true,
     chunkSizeWarningLimit: 600,
     rollupOptions: {
       external: [
