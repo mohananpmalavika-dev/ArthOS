@@ -34,7 +34,7 @@ const EnterpriseBankPortal = memo(() => {
 
   return (
     <div className="enterprise-portal">
-      <EnterpriseFlowNavigation activeHash={`#${activeTab}`} />
+      <EnterpriseFlowNavigation activeHash={`#${activeTab}`} onTabSelect={setActiveTab} />
       <div className="enterprise-main-content">
         <div className="enterprise-container">
           {renderContent()}

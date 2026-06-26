@@ -10,7 +10,7 @@ import {
   Shield
 } from "lucide-react";
 
-const EnterpriseFlowNavigation = memo(({ activeHash = "#dashboard" }) => {
+const EnterpriseFlowNavigation = memo(({ activeHash = "#dashboard", onTabSelect = () => {} }) => {
   const tabs = [
     {
       id: "dashboard",
@@ -51,6 +51,7 @@ const EnterpriseFlowNavigation = memo(({ activeHash = "#dashboard" }) => {
   ];
 
   const handleTabClick = (id) => {
+    onTabSelect(id);
     window.location.hash = `#${id}`;
   };
 
