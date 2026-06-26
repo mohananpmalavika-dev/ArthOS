@@ -21,6 +21,7 @@
  */
 
 import { getGlobalDurableJobQueue } from './durableJobQueue';
+import { eventBus } from './eventBus';
 
 export type FollowUpType = 'action_reminder' | 'check_in' | 'milestone' | 'warning' | string;
 
@@ -89,11 +90,13 @@ async function initDB(): Promise<IDBDatabase> {
 
 export class FollowUpWorkflow {
   private jobQueue = getGlobalDurableJobQueue();
-  private processingInterval: NodeJS.Timeout | null = null;
+  private dueTimer: ReturnType<typeof setTimeout> | null = null;
+  private nextDueAt: number | null = null;
 
   constructor() {
     // Start background processing
     this.startProcessing();
+    eventBus.on('followup:scheduled', this.handleFollowUpScheduled);
   }
 
   /**
@@ -132,6 +135,7 @@ export class FollowUpWorkflow {
     await this.storeFollowUp(followUp);
     console.info(`[FollowUpWorkflow] Created follow-up: ${followUpId}`, { userId: config.userId, type: config.type });
 
+    eventBus.emit('followup:scheduled', followUp);
     return followUpId;
   }
 
@@ -191,18 +195,7 @@ export class FollowUpWorkflow {
    * Start background delivery processing.
    */
   private startProcessing(): void {
-    if (this.processingInterval) {
-      return;
-    }
-
-    // Check for due follow-ups every 5 minutes
-    this.processingInterval = setInterval(() => {
-      void this.processScheduledFollowUps();
-    }, 5 * 60 * 1000);
-
-    // Initial check
-    void this.processScheduledFollowUps();
-
+    this.scheduleNextDelivery();
     console.info('[FollowUpWorkflow] Started background processing');
   }
 
@@ -210,13 +203,30 @@ export class FollowUpWorkflow {
    * Stop background delivery processing.
    */
   stopProcessing(): void {
-    if (this.processingInterval) {
-      clearInterval(this.processingInterval);
-      this.processingInterval = null;
+    if (this.dueTimer) {
+      clearTimeout(this.dueTimer);
+      this.dueTimer = null;
     }
 
+    eventBus.off('followup:scheduled', this.handleFollowUpScheduled);
     console.info('[FollowUpWorkflow] Stopped background processing');
   }
+
+  private handleFollowUpScheduled = async (followUp: FollowUp): Promise<void> => {
+    if (!followUp || !followUp.deliverAt || followUp.status !== 'scheduled') {
+      return;
+    }
+
+    const nextDue = new Date(followUp.deliverAt).getTime();
+    if (nextDue <= Date.now()) {
+      await this.scheduleNextDelivery();
+      return;
+    }
+
+    if (this.nextDueAt === null || nextDue < this.nextDueAt) {
+      await this.scheduleNextDelivery();
+    }
+  };
 
   /**
    * Process all scheduled follow-ups that are due.
@@ -268,7 +278,7 @@ export class FollowUpWorkflow {
       console.info(`[FollowUpWorkflow] Enqueued delivery job: ${jobId}`, { followUpId: followUp.followUpId });
     } catch (error) {
       console.error(`[FollowUpWorkflow] Failed to enqueue delivery: ${followUp.followUpId}`, error);
-      // Will retry on next processing cycle
+      // Will retry when follow-up remains scheduled and next delivery timer fires
     }
   }
 
@@ -309,6 +319,63 @@ export class FollowUpWorkflow {
     }
 
     await this.storeFollowUp(followUp);
+  }
+
+  private async scheduleNextDelivery(): Promise<void> {
+    if (this.dueTimer) {
+      clearTimeout(this.dueTimer);
+      this.dueTimer = null;
+      this.nextDueAt = null;
+    }
+
+    const db = await initDB();
+    const now = Date.now();
+    const allScheduled = await new Promise<FollowUp[]>((resolve, reject) => {
+      const tx = db.transaction('followups', 'readonly');
+      const store = tx.objectStore('followups');
+      const index = store.index('status');
+      const request = index.getAll('scheduled');
+
+      request.onerror = () => reject(request.error);
+      request.onsuccess = () => resolve(request.result || []);
+    });
+
+    const dueFollowUps: FollowUp[] = [];
+    let nextDueTime = Infinity;
+
+    for (const followUp of allScheduled) {
+      const deliverAt = new Date(followUp.deliverAt).getTime();
+      if (deliverAt <= now) {
+        dueFollowUps.push(followUp);
+      } else if (deliverAt < nextDueTime) {
+        nextDueTime = deliverAt;
+      }
+    }
+
+    if (dueFollowUps.length) {
+      await Promise.all(dueFollowUps.map(fu => this.deliverFollowUp(fu)));
+
+      const retryDelayMs = 60 * 1000;
+      this.nextDueAt = Date.now() + retryDelayMs;
+      this.dueTimer = setTimeout(async () => {
+        this.dueTimer = null;
+        this.nextDueAt = null;
+        await this.scheduleNextDelivery();
+      }, retryDelayMs);
+      return;
+    }
+
+    if (nextDueTime === Infinity) {
+      return;
+    }
+
+    const waitMs = Math.max(0, nextDueTime - now);
+    this.nextDueAt = nextDueTime;
+    this.dueTimer = setTimeout(async () => {
+      this.dueTimer = null;
+      this.nextDueAt = null;
+      await this.scheduleNextDelivery();
+    }, waitMs);
   }
 
   /**

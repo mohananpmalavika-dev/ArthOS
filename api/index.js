@@ -29,6 +29,7 @@ import userRiskHandler from '../api_src/user/[userId]/risk.js';
 import remindersHandler from '../api_src/reminders.js';
 import aiCoachHandler from '../api_src/longitudinal/ai-coach-handler.js';
 import predictionEngineHandler from '../api_src/longitudinal/prediction-engine-handler.js';
+import engineContractsHandler from '../api_src/engine-contracts.js';
 import followUpHandler from '../api_src/follow-up/follow-up-handler.js';
 import shareHandler from '../api_src/share.js';
 import subscriptionsHandler from '../api_src/subscriptions-handler.js';
@@ -51,6 +52,13 @@ import saveTelemetryHandler from '../api_src/user/saveTelemetry.js';
 import bankingHandler from '../api_src/banking/vercel-handler.js';
 
 const routeDefinitions = [
+  { match: (pathname) => pathname === '/api/prediction/forecast', handler: engineContractsHandler },
+  { match: (pathname) => pathname === '/api/prediction/scenario', handler: engineContractsHandler },
+  { match: (pathname) => pathname === '/api/decision/score', handler: engineContractsHandler },
+  { match: (pathname) => pathname === '/api/decision/outcome/record', handler: engineContractsHandler },
+  { match: (pathname) => pathname === '/api/cognition/build-profile', handler: engineContractsHandler },
+  { match: (pathname) => pathname === '/api/cognition/beliefs/analyze', handler: engineContractsHandler },
+  { match: (pathname) => pathname === '/api/loan-health/calculate', handler: engineContractsHandler },
   { match: (pathname) => pathname === '/api/decision', handler: decisionHandler },
   { match: (pathname) => pathname === '/api/risk-score', handler: riskScoreHandler },
   { match: (pathname) => pathname === '/api/risk-opportunity', handler: riskOpportunityHandler },

@@ -1,6 +1,6 @@
 import { decisionLedger } from '../src/lib/decisionLedger.js';
 import { hasDatabaseConfig, insertIntoTable, fetchDecisionsForUser } from './dbClient.js';
-import { scoreDecision, decisionTrend } from '../src/engines/decisionIntelligence.js';
+import { scoreDecision, decisionTrend } from './services/decisionIntelligence.js';
 import { requireAuth } from './auth/jwt.js';
 
 export default async function handler(req, res) {
@@ -23,7 +23,7 @@ export default async function handler(req, res) {
     const { decision } = req.body || {};
     if (!decision) return res.status(400).json({ error: 'Missing decision' });
 
-    const scoredDecision = scoreDecision(decision);
+    const scoredDecision = scoreDecision(decision, { scope: userId });
     decisionLedger.addDecision(userId, scoredDecision);
 
     if (hasDatabaseConfig()) {

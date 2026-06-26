@@ -10,6 +10,7 @@
  * - Server-side delivery via durable jobs
  */
 
+import { eventBus } from './eventBus';
 import { getGlobalDurableJobQueue } from './durableJobQueue';
 
 export type ReminderChannel = 'push' | 'email' | 'in-app' | 'calendar' | 'browser';
@@ -101,12 +102,20 @@ function getChannelPreference(
 class ReminderDeliveryEngine {
   private static instance: ReminderDeliveryEngine;
   private db: IDBDatabase | null = null;
-  private processingIntervalId: NodeJS.Timeout | null = null;
+  private processingTimerId: ReturnType<typeof setTimeout> | null = null;
+  private nextReminderAt: number | null = null;
+  private dbReadyResolver!: () => void;
+  private dbReadyPromise: Promise<void>;
   private readonly DB_NAME = 'ArthOSReminders';
   private readonly STORE_NAME = 'reminders';
 
   private constructor() {
+    this.dbReadyPromise = new Promise((resolve) => {
+      this.dbReadyResolver = resolve;
+    });
+
     this.initializeDatabase();
+    eventBus.on('reminder:scheduled', this.handleReminderScheduled);
   }
 
   /**
@@ -132,11 +141,13 @@ class ReminderDeliveryEngine {
 
     request.onerror = () => {
       console.error('Reminder DB error:', request.error);
+      this.dbReadyResolver();
     };
 
     request.onsuccess = () => {
       this.db = request.result;
       console.info('Reminder database initialized');
+      this.dbReadyResolver();
     };
 
     request.onupgradeneeded = (event) => {
@@ -156,6 +167,7 @@ class ReminderDeliveryEngine {
    * Schedule a reminder for delivery (persists to IndexedDB + enqueues job)
    */
   async scheduleReminder(spec: ReminderSpec): Promise<{ reminderId: string }> {
+    await this.dbReadyPromise;
     if (!this.db) {
       throw new Error('Database not initialized');
     }
@@ -179,6 +191,7 @@ class ReminderDeliveryEngine {
       channels: spec.channels
     });
 
+    eventBus.emit('reminder:scheduled', reminder);
     return { reminderId };
   }
 
@@ -366,25 +379,24 @@ class ReminderDeliveryEngine {
   }
 
   /**
-   * Start background reminder processor (5-minute interval)
+   * Start background reminder processor.
    */
   start(): void {
-    if (this.processingIntervalId) {
+    if (this.processingTimerId) {
       console.warn('Reminder processor already running');
       return;
     }
 
-    // Process immediately
-    this.processAndDeliver().catch((error) => {
-      console.error('Reminder delivery process failed:', error);
-    });
-
-    // Then process every 5 minutes
-    this.processingIntervalId = setInterval(() => {
-      this.processAndDeliver().catch((error) => {
+    void this.dbReadyPromise.then(() => {
+      void this.processAndDeliver().then(() => {
+        void this.scheduleNextReminder();
+      }).catch((error) => {
         console.error('Reminder delivery process failed:', error);
+        void this.scheduleNextReminder();
       });
-    }, 5 * 60 * 1000);
+    }).catch((error) => {
+      console.error('Reminder DB readiness failed:', error);
+    });
 
     console.info('Reminder processor started');
   }
@@ -393,11 +405,81 @@ class ReminderDeliveryEngine {
    * Stop background processor
    */
   stop(): void {
-    if (this.processingIntervalId) {
-      clearInterval(this.processingIntervalId);
-      this.processingIntervalId = null;
-      console.info('Reminder processor stopped');
+    if (this.processingTimerId) {
+      clearTimeout(this.processingTimerId);
+      this.processingTimerId = null;
+      this.nextReminderAt = null;
     }
+
+    eventBus.off('reminder:scheduled', this.handleReminderScheduled);
+    console.info('Reminder processor stopped');
+  }
+
+  private handleReminderScheduled = async (reminder: ReminderSpec): Promise<void> => {
+    if (!reminder || reminder.status !== 'pending') {
+      return;
+    }
+
+    if (this.nextReminderAt === null || reminder.deliverAt < this.nextReminderAt) {
+      await this.scheduleNextReminder();
+    }
+  };
+
+  private async scheduleNextReminder(): Promise<void> {
+    if (!this.db) {
+      return;
+    }
+
+    if (this.processingTimerId) {
+      clearTimeout(this.processingTimerId);
+      this.processingTimerId = null;
+      this.nextReminderAt = null;
+    }
+
+    const now = Date.now();
+
+    const reminders = await new Promise<any[]>((resolve, reject) => {
+      const tx = this.db!.transaction([this.STORE_NAME], 'readonly');
+      const store = tx.objectStore(this.STORE_NAME);
+      const index = store.index('deliverAt');
+      const request = index.getAll();
+
+      request.onsuccess = () => {
+        resolve(
+          (request.result || []).filter(
+            (r: any) => (r.status === 'pending' || r.status === 'failed') && r.deliverAt >= now
+          )
+        );
+      };
+
+      request.onerror = () => reject(request.error);
+    });
+
+    const nextReminder = reminders.reduce((earliest: any | null, reminder: any) => {
+      if (!earliest || reminder.deliverAt < earliest.deliverAt) {
+        return reminder;
+      }
+      return earliest;
+    }, null);
+
+    if (!nextReminder) {
+      return;
+    }
+
+    const waitMs = Math.max(0, nextReminder.deliverAt - now);
+    this.nextReminderAt = nextReminder.deliverAt;
+    this.processingTimerId = setTimeout(async () => {
+      this.processingTimerId = null;
+      this.nextReminderAt = null;
+
+      try {
+        await this.processAndDeliver();
+      } catch (error) {
+        console.error('Reminder delivery process failed:', error);
+      } finally {
+        await this.scheduleNextReminder();
+      }
+    }, waitMs);
   }
 
   /**
@@ -409,7 +491,7 @@ class ReminderDeliveryEngine {
     remindersCount?: number;
   } {
     return {
-      isRunning: this.processingIntervalId !== null,
+      isRunning: this.processingTimerId !== null,
       dbReady: this.db !== null
     };
   }

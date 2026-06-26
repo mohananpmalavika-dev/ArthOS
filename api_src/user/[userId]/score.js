@@ -1,5 +1,5 @@
 import { decisionLedger } from '../../../src/lib/decisionLedger.js';
-import { decisionTrend } from '../../../src/engines/decisionIntelligence.js';
+import { decisionTrend } from '../../services/decisionIntelligence.js';
 
 export default async function handler(req, res) {
   if (req.method !== 'GET') {

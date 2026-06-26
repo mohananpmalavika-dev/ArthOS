@@ -1,13 +1,34 @@
-# TODO — Production hardening (remove mockdata + real APIs)
+# TODO — Move frontend business logic to server APIs (Priority: Very High)
 
-- [x] Remove dev-only JWT bypass (`dev-token`) from AuthContext and require real `/api/auth/me` validation in all modes
+## Step 0: Repo reconnaissance
+- [x] Identify frontend engines under `src/engines/*`
+- [x] Identify existing server API structure under `api/` and `api_src/`
 
-- [ ] Remove fallback dev JWT secret in `api_src/auth/jwt.js`; fail fast when `JWT_SECRET` missing
-- [ ] Fail fast in `api_src/dbClient.js` when DB env vars are placeholders/missing; avoid silent empty results
-- [ ] Fail fast / return 503 in `api_src/longitudinal/ai-coach-handler.js` when no AI provider configured (no echo/limited mode)
-- [ ] Audit all route handlers referenced in `api_src/api/index.js` to ensure they’re wired to real DB/real external services (no mock endpoints)
-- [ ] Validate reminders/banking/stripe endpoints for mock implementations and replace/remove them
-- [ ] Add startup env validation module (optional but recommended) and use in server entrypoints
-- [ ] Run: `npm run lint`, `npm run type-check`, `npm test`
-- [ ] Smoke test key endpoints: `/api/auth/me`, `/api/user/assessments`, `/api/coach/health`
+## Step 1: Define API contracts + server service modules (Phase 1: start engines)
+- [x] Create server-side service module for Prediction Engine (`predictionEngine.js` logic)
+- [x] Create server-side service module for Decision Intelligence (`decisionIntelligence.js` logic)
+- [x] Create server-side service module for Cognition (`cognitionEngine.js` logic, remove `window.localStorage` usage)
+- [x] Create server-side service module for Loan Health (`LoanHealthEngine.ts`)
+
+## Step 2: Add endpoints (Phase 1)
+- [ ] POST `/api/prediction/forecast`
+- [ ] POST `/api/prediction/scenario`
+- [ ] POST `/api/decision/score`
+- [ ] POST `/api/decision/outcome/record`
+- [ ] POST `/api/cognition/build-profile`
+- [ ] POST `/api/cognition/beliefs/analyze`
+- [ ] POST `/api/loan-health/calculate`
+
+## Step 3: Refactor frontend to call APIs instead of importing engines
+- [ ] Find React components importing each engine and replace with API calls
+- [ ] Ensure UI loading/error states
+
+## Step 4: Persistence strategy for calibration/outcomes
+- [ ] Start with server-side file/in-memory persistence (no DB yet)
+- [ ] Later: migrate persistence to DB and add SQL migrations
+
+## Step 5: Tests and verification
+- [ ] Unit tests for deterministic engines (Loan Health, parts of cognition/decision)
+- [ ] Contract tests for API schemas
+- [ ] Run build + smoke tests
 

@@ -125,11 +125,11 @@ export class BackgroundTaskScheduler {
   private tasks: Map<string, ScheduledTask> = new Map();
   private handlers: Map<string, (context: TaskContext) => Promise<void>> = new Map();
   private isRunning = false;
-  private processingInterval: NodeJS.Timeout | null = null;
-  private readonly pollIntervalMs = 60_000;  // Check every minute
+  private nextRunTimer: ReturnType<typeof setTimeout> | null = null;
+  private tasksLoaded = false;
 
   constructor() {
-    this.loadPersistedTasks();
+    void this.loadPersistedTasks();
   }
 
   /**
@@ -162,6 +162,7 @@ export class BackgroundTaskScheduler {
     }
 
     console.info(`[BackgroundTaskScheduler] Scheduled task: ${config.id} (${config.schedule})`);
+    void this.scheduleNextRun();
   }
 
   /**
@@ -184,6 +185,7 @@ export class BackgroundTaskScheduler {
     }
 
     console.info(`[BackgroundTaskScheduler] Unscheduled task: ${taskId}`);
+    void this.scheduleNextRun();
   }
 
   /**
@@ -196,13 +198,7 @@ export class BackgroundTaskScheduler {
 
     this.isRunning = true;
 
-    // Initial check
-    void this.checkAndRunDueTasks();
-
-    // Periodic check
-    this.processingInterval = setInterval(() => {
-      void this.checkAndRunDueTasks();
-    }, this.pollIntervalMs);
+    void this.scheduleNextRun();
 
     console.info('[BackgroundTaskScheduler] Started');
   }
@@ -217,9 +213,9 @@ export class BackgroundTaskScheduler {
 
     this.isRunning = false;
 
-    if (this.processingInterval) {
-      clearInterval(this.processingInterval);
-      this.processingInterval = null;
+    if (this.nextRunTimer) {
+      clearTimeout(this.nextRunTimer);
+      this.nextRunTimer = null;
     }
 
     console.info('[BackgroundTaskScheduler] Stopped');
@@ -229,6 +225,10 @@ export class BackgroundTaskScheduler {
    * Check for due tasks and run them.
    */
   private async checkAndRunDueTasks(): Promise<void> {
+    if (!this.isRunning) {
+      return;
+    }
+
     const now = new Date();
     const dueTasks: ScheduledTask[] = [];
 
@@ -243,9 +243,11 @@ export class BackgroundTaskScheduler {
       }
     }
 
-    for (const task of dueTasks) {
-      await this.runTask(task);
+    if (!dueTasks.length) {
+      return;
     }
+
+    await Promise.all(dueTasks.map((task) => this.runTask(task)));
   }
 
   /**
@@ -308,9 +310,46 @@ export class BackgroundTaskScheduler {
     });
   }
 
-  /**
-   * Load persisted tasks from IndexedDB.
-   */
+  private async scheduleNextRun(): Promise<void> {
+    if (!this.isRunning || !this.tasksLoaded) {
+      return;
+    }
+
+    if (this.nextRunTimer) {
+      clearTimeout(this.nextRunTimer);
+      this.nextRunTimer = null;
+    }
+
+    const now = new Date();
+    const activeTasks = Array.from(this.tasks.values()).filter((task) => task.isActive);
+    if (!activeTasks.length) {
+      return;
+    }
+
+    const nextTask = activeTasks.reduce<ScheduledTask | null>((earliest, task) => {
+      if (!earliest) {
+        return task;
+      }
+      return new Date(task.nextRun) < new Date(earliest.nextRun) ? task : earliest;
+    }, null);
+
+    if (!nextTask) {
+      return;
+    }
+
+    const waitMs = Math.max(0, new Date(nextTask.nextRun).getTime() - now.getTime());
+    this.nextRunTimer = setTimeout(async () => {
+      this.nextRunTimer = null;
+      try {
+        await this.checkAndRunDueTasks();
+      } catch (error) {
+        console.error('[BackgroundTaskScheduler] Error running due tasks:', error);
+      } finally {
+        await this.scheduleNextRun();
+      }
+    }, waitMs);
+  }
+
   private async loadPersistedTasks(): Promise<void> {
     try {
       const db = await initDB();
@@ -329,8 +368,14 @@ export class BackgroundTaskScheduler {
           resolve();
         };
       });
+      this.tasksLoaded = true;
     } catch (error) {
       console.warn('[BackgroundTaskScheduler] Failed to load persisted tasks:', error);
+      this.tasksLoaded = true;
+    }
+
+    if (this.isRunning) {
+      void this.scheduleNextRun();
     }
   }
 

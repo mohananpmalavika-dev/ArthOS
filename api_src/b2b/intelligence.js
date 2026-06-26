@@ -14,7 +14,7 @@
 
 import { b2bPartnerEngine, PARTNER_TIERS } from '../../src/lib/b2bPartnerEngine.js';
 import { calculateFinancialHealthV2, componentMaximumsV2 } from '../../src/lib/scoring-v2.js';
-import { generateRiskScore } from '../../src/engines/cognitionEngine.js';
+import { buildRiskProfile } from '../services/cognitionEngine.js';
 import { detectBiases } from '../../src/engines/biasEngine.js';
 import { detectTriggers } from '../../src/engines/emotionalTriggerEngine.js';
 import { generateAlerts } from '../../src/engines/riskOpportunityEngine.js';
@@ -75,11 +75,14 @@ function buildResponse(features, partnerId, userId, assessment, result, extra) {
   }
 
   if (features.includes('risk_profile') || features.includes('risk_profile_basic')) {
-    const riskScore = generateRiskScore({
-      ...assessment.profile,
-      ...assessment.behaviour,
-      ...assessment.awareness,
-    });
+    const riskScore = buildRiskProfile(
+      {
+        ...assessment.profile,
+        ...assessment.behaviour,
+        ...assessment.awareness,
+      },
+      { scope: `${partnerId}:${userId}` }
+    );
     response.riskProfile = {
       score: riskScore.riskScore,
       level: riskScore.riskLevel,

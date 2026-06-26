@@ -35,6 +35,8 @@ export interface DurableJob {
   metadata?: Record<string, any>;
 }
 
+import { eventBus } from './eventBus';
+
 export interface DurableJobQueueStats {
   queued: number;
   inFlight: number;
@@ -100,7 +102,8 @@ function calculateNextRetryDelay(retries: number, baseDelayMs: number = 1000): n
 export class DurableJobQueue {
   private processor: ((job: DurableJob) => Promise<any>) | null = null;
   private isProcessing = false;
-  private processingInterval: NodeJS.Timeout | null = null;
+  private isStarted = false;
+  private retryTimer: ReturnType<typeof setTimeout> | null = null;
 
   constructor() {
     // Start processing immediately
@@ -143,6 +146,7 @@ export class DurableJobQueue {
 
     await this.store(job);
     console.info(`[DurableJobQueue] Enqueued job: ${jobId} (${config.type})`);
+    eventBus.emit('durableJob:queued', job);
 
     return jobId;
   }
@@ -224,16 +228,13 @@ export class DurableJobQueue {
    * Start background processing of queued jobs.
    */
   private startProcessing(): void {
-    if (this.processingInterval) {
+    if (this.isStarted) {
       return;  // Already started
     }
 
-    // Check for ready jobs every 5 seconds
-    this.processingInterval = setInterval(() => {
-      void this.processReadyJobs();
-    }, 5000);
-
-    // Initial check
+    this.isStarted = true;
+    eventBus.on('durableJob:queued', this.handleJobQueueEvent);
+    eventBus.on('durableJob:retryScheduled', this.handleJobQueueEvent);
     void this.processReadyJobs();
   }
 
@@ -241,11 +242,19 @@ export class DurableJobQueue {
    * Stop background processing.
    */
   stopProcessing(): void {
-    if (this.processingInterval) {
-      clearInterval(this.processingInterval);
-      this.processingInterval = null;
+    if (this.retryTimer) {
+      clearTimeout(this.retryTimer);
+      this.retryTimer = null;
     }
+
+    eventBus.off('durableJob:queued', this.handleJobQueueEvent);
+    eventBus.off('durableJob:retryScheduled', this.handleJobQueueEvent);
+    this.isStarted = false;
   }
+
+  private handleJobQueueEvent = async (): Promise<void> => {
+    await this.processReadyJobs();
+  };
 
   /**
    * Process all jobs that are ready (queued or ready for retry).
@@ -282,6 +291,7 @@ export class DurableJobQueue {
       });
 
       await Promise.all(readyToRetry.map(job => this.processJob(job)));
+      await this.scheduleRetryProcessing();
     } finally {
       this.isProcessing = false;
     }
@@ -341,6 +351,38 @@ export class DurableJobQueue {
         );
       }
     }
+  }
+
+  private async scheduleRetryProcessing(): Promise<void> {
+    if (this.retryTimer) {
+      clearTimeout(this.retryTimer);
+      this.retryTimer = null;
+    }
+
+    const failed = await this.getJobsByStatus('failed');
+    const nextRetryJob = failed
+      .filter(job => job.nextRetryAt)
+      .sort((a, b) =>
+        new Date(a.nextRetryAt!).getTime() - new Date(b.nextRetryAt!).getTime()
+      )[0];
+
+    if (!nextRetryJob || !nextRetryJob.nextRetryAt) {
+      return;
+    }
+
+    const waitMs = Math.max(0, new Date(nextRetryJob.nextRetryAt).getTime() - Date.now());
+
+    if (waitMs === 0) {
+      eventBus.emit('durableJob:retryScheduled');
+      void this.processReadyJobs();
+      return;
+    }
+
+    this.retryTimer = setTimeout(() => {
+      this.retryTimer = null;
+      eventBus.emit('durableJob:retryScheduled');
+      void this.processReadyJobs();
+    }, waitMs);
   }
 
   /**

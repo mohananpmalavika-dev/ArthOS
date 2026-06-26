@@ -1,12 +1,13 @@
 import { b2bPartnerEngine, PARTNER_TIERS } from '../../src/lib/b2bPartnerEngine.js';
 import { calculateFinancialHealthV2, componentMaximumsV2 } from '../../src/lib/scoring-v2.js';
-import { generateRiskScore } from '../../src/engines/cognitionEngine.js';
+import { buildRiskProfile } from '../services/cognitionEngine.js';
 import { detectBiases } from '../../src/engines/biasEngine.js';
 import { detectTriggers } from '../../src/engines/emotionalTriggerEngine.js';
 import { generateAlerts } from '../../src/engines/riskOpportunityEngine.js';
 import { opportunityForecast } from '../../src/engines/opportunityForecastEngine.js';
 import { calculateDefaultProbability } from '../../src/engines/mlDefaultPredictionEngine.js';
 import { createDefaultProviderMarketplace } from '../../src/lib/providerMarketplace.js';
+import { calculateLoanHealth } from '../services/loanHealthEngine.js';
 
 function checkFeature(partner, feature, res) {
   if (!b2bPartnerEngine.hasFeature(partner, feature)) {
@@ -28,26 +29,6 @@ function deriveLoanType(loanData) {
   if (balance >= 200000) return 'Business Loan';
   if (balance >= 50000) return 'Personal Loan';
   return 'Micro Loan';
-}
-
-function calculateLoanHealth(customer) {
-  let score = 100;
-  if (customer.salaryDelay && customer.salaryDelay > 2) score -= 20;
-  if (customer.gamblingExpense) score -= 30;
-  if (customer.emergencySavings && customer.emi && customer.emergencySavings < customer.emi) score -= 15;
-  if (customer.stressLevel && customer.stressLevel > 80) score -= 10;
-  if (customer.loanShopping) score -= 10;
-
-  let risk = 'Low';
-  if (score > 80) {
-    risk = 'Low';
-  } else if (score > 60) {
-    risk = 'Medium';
-  } else {
-    risk = 'High';
-  }
-
-  return { score, risk };
 }
 
 function buildResponse(features, partner, userId, assessment, result, extra) {
@@ -232,7 +213,10 @@ export default async function handler(req, res) {
 
     const assessment = { profile, behaviour, awareness, habits };
     const result = calculateFinancialHealthV2(assessment);
-    const riskResult = generateRiskScore({ ...assessment.profile, ...assessment.behaviour, ...assessment.awareness });
+    const riskResult = buildRiskProfile(
+      { ...assessment.profile, ...assessment.behaviour, ...assessment.awareness },
+      { scope: `${partner.id}:${userId}` }
+    );
     const biases = detectBiases({ ...assessment.profile, ...assessment.behaviour, ...assessment.awareness });
     const triggers = detectTriggers({ ...assessment.profile, ...assessment.behaviour });
     const forecast = opportunityForecast(assessment.profile);

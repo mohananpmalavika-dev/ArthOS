@@ -1,6 +1,6 @@
 import { b2bPartnerEngine } from '../../src/lib/b2bPartnerEngine.js';
 import { calculateFinancialHealthV2 } from '../../src/lib/scoring-v2.js';
-import { generateRiskScore } from '../../src/engines/cognitionEngine.js';
+import { buildRiskProfile } from '../services/cognitionEngine.js';
 import { detectBiases } from '../../src/engines/biasEngine.js';
 import AAConnector from '../banking/aa-connector.js';
 
@@ -31,7 +31,14 @@ export default async function handler(req, res) {
 
     // 3. Process through ARTH.OS Intelligence Layers
     const healthScore = calculateFinancialHealthV2(assessment);
-    const riskProfile = generateRiskScore(assessment);
+    const riskProfile = buildRiskProfile(
+      {
+        ...assessment.profile,
+        ...assessment.behaviour,
+        ...assessment.awareness
+      },
+      { scope: `${partner.id}:${userId}` }
+    );
     const biases = detectBiases(assessment);
 
     // 4. Calculate Loan-Specific Serviceability
