@@ -1,7 +1,7 @@
 import React, { memo, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext.jsx";
-import { LogOut, MoreVertical } from "lucide-react";
+import { LogOut, MoreVertical, Key, Zap, Palette, ShieldCheck } from "lucide-react";
 import EnterpriseFlowNavigation from "./EnterpriseFlowNavigation.jsx";
 import PortfolioDashboard from "./PortfolioDashboard.jsx";
 import CustomerIntelligence from "./CustomerIntelligence.jsx";
@@ -207,11 +207,65 @@ const AnalyticsSection = memo(() => {
   );
 });
 
-const SettingsSection = memo(() => (
-  <div className="enterprise-placeholder">
-    <h2>Enterprise Configuration</h2>
-    <p>Manage API keys, webhooks, white-label branding, and user permissions.</p>
-  </div>
-));
+const SettingsSection = memo(() => {
+  const configCards = [
+    {
+      icon: Key,
+      title: "API Key Management",
+      description: "Create, rotate and revoke enterprise API keys for your integrations.",
+      action: "View keys"
+    },
+    {
+      icon: Zap,
+      title: "Webhook Delivery",
+      description: "Configure webhook endpoints and event subscriptions for system alerts.",
+      action: "Manage webhooks"
+    },
+    {
+      icon: Palette,
+      title: "Branding",
+      description: "Update company logo, colors, and portal theme for your enterprise clients.",
+      action: "Edit branding"
+    },
+    {
+      icon: ShieldCheck,
+      title: "Permissions",
+      description: "Set user roles, access control, and approval workflows for admins.",
+      action: "Review roles"
+    }
+  ];
+
+  return (
+    <div className="enterprise-settings-dashboard">
+      <div className="enterprise-section-header">
+        <div>
+          <h2 className="enterprise-section-title">Enterprise Configuration</h2>
+          <p className="enterprise-section-subtitle">
+            Manage API keys, webhooks, white-label branding, and user permissions.
+          </p>
+        </div>
+      </div>
+      <div className="enterprise-settings-grid">
+        {configCards.map((card) => {
+          const Icon = card.icon;
+          return (
+            <div key={card.title} className="enterprise-config-card">
+              <div className="config-icon-wrapper">
+                <Icon size={20} />
+              </div>
+              <div>
+                <h3>{card.title}</h3>
+                <p>{card.description}</p>
+              </div>
+              <button className="enterprise-btn-secondary enterprise-config-action">
+                {card.action}
+              </button>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+});
 
 export default EnterpriseBankPortal;

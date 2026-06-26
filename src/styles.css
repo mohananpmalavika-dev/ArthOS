@@ -15790,6 +15790,55 @@ body,
   border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
+.enterprise-settings-dashboard {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.enterprise-settings-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 1.5rem;
+}
+
+.enterprise-config-card {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1.5rem;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.config-icon-wrapper {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 3rem;
+  height: 3rem;
+  border-radius: 14px;
+  background: rgba(6, 182, 212, 0.15);
+  color: #06b6d4;
+}
+
+.enterprise-config-card h3 {
+  margin: 0;
+  font-size: 1.05rem;
+}
+
+.enterprise-config-card p {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.7);
+  line-height: 1.55;
+}
+
+.enterprise-config-action {
+  margin-top: auto;
+  justify-self: start;
+}
+
 .search-icon {
   flex-shrink: 0;
   color: rgba(255, 255, 255, 0.5);
