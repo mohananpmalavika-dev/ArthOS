@@ -25,6 +25,7 @@ import React, {
 const EnterpriseAuthContext = createContext(null);
 
 const API_BASE = "/api";
+const ENTERPRISE_SESSION_KEY = "arth-os-enterprise-auth";
 
 export function EnterpriseAuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
@@ -72,18 +73,60 @@ export function EnterpriseAuthProvider({ children }) {
     return { institution: nextInstitution, user: nextUser };
   }, []);
 
+  const persistEnterpriseSession = useCallback((data) => {
+    const nextAccessToken = data?.accessToken || data?.token || null;
+    const nextRefreshToken = data?.refreshToken || null;
+    const enterpriseUser = data?.user || data?.account || null;
+
+    if (!nextAccessToken || !enterpriseUser) {
+      return false;
+    }
+
+    const { institution: nextInstitution, user: normalizedUser } =
+      decodeEnterpriseClaims(enterpriseUser);
+
+    setAccessToken(nextAccessToken);
+    setUser(normalizedUser);
+    setInstitution(nextInstitution);
+    setError(null);
+
+    try {
+      window.localStorage.setItem(
+        ENTERPRISE_SESSION_KEY,
+        JSON.stringify({
+          accessToken: nextAccessToken,
+          refreshToken: nextRefreshToken,
+          user: normalizedUser,
+          institution: nextInstitution,
+        })
+      );
+    } catch {
+      // Storage unavailable; keep in-memory session.
+    }
+
+    return true;
+  }, [decodeEnterpriseClaims]);
+
   const refreshAccessToken = useCallback(async () => {
     if (refreshInFlightRef.current) return false;
     refreshInFlightRef.current = true;
     setError(null);
 
     try {
+      let refreshToken = null;
+      try {
+        const stored = window.localStorage.getItem(ENTERPRISE_SESSION_KEY);
+        refreshToken = stored ? JSON.parse(stored)?.refreshToken || null : null;
+      } catch {
+        refreshToken = null;
+      }
+
       const res = await fetch(`${API_BASE}/enterprise/auth/refresh`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        // No body needed for cookie-based refresh
+        body: refreshToken ? JSON.stringify({ refreshToken }) : undefined,
       });
 
       if (!res.ok) {
@@ -91,28 +134,66 @@ export function EnterpriseAuthProvider({ children }) {
       }
 
       const data = await res.json();
-
-      const nextAccessToken = data?.accessToken || data?.token || null;
-      const enterpriseUser = data?.user || data?.account || null;
-
-      if (!nextAccessToken || !enterpriseUser) {
-        return false;
-      }
-
-      const { institution: nextInstitution, user: normalizedUser } =
-        decodeEnterpriseClaims(enterpriseUser);
-
-      setAccessToken(nextAccessToken);
-      setUser(normalizedUser);
-      setInstitution(nextInstitution);
-      return true;
+      return persistEnterpriseSession(data);
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
       return false;
     } finally {
       refreshInFlightRef.current = false;
     }
-  }, [decodeEnterpriseClaims]);
+  }, [persistEnterpriseSession]);
+
+  const login = useCallback(async (email, password) => {
+    setError(null);
+    setLoading(true);
+
+    try {
+      const res = await fetch(`${API_BASE}/enterprise/auth/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setError(data?.error || data?.message || "Enterprise login failed");
+        return false;
+      }
+
+      return persistEnterpriseSession(data);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Enterprise login failed");
+      return false;
+    } finally {
+      setLoading(false);
+    }
+  }, [persistEnterpriseSession]);
+
+  const register = useCallback(async ({ name, email, password, institutionName }) => {
+    setError(null);
+    setLoading(true);
+
+    try {
+      const res = await fetch(`${API_BASE}/enterprise/auth/register`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, email, password, institutionName }),
+      });
+
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setError(data?.error || data?.message || "Enterprise registration failed");
+        return false;
+      }
+
+      return persistEnterpriseSession(data);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Enterprise registration failed");
+      return false;
+    } finally {
+      setLoading(false);
+    }
+  }, [persistEnterpriseSession]);
 
   const logout = useCallback(async () => {
     setError(null);
@@ -127,6 +208,11 @@ export function EnterpriseAuthProvider({ children }) {
       setAccessToken(null);
       setUser(null);
       setInstitution(null);
+      try {
+        window.localStorage.removeItem(ENTERPRISE_SESSION_KEY);
+      } catch {
+        // ignore
+      }
       setLoading(false);
     }
   }, []);
@@ -164,6 +250,8 @@ export function EnterpriseAuthProvider({ children }) {
       institution,
       hasPermission,
       refreshAccessToken,
+      login,
+      register,
       logout,
     }),
     [
@@ -175,6 +263,8 @@ export function EnterpriseAuthProvider({ children }) {
       institution,
       hasPermission,
       refreshAccessToken,
+      login,
+      register,
       logout,
     ]
   );

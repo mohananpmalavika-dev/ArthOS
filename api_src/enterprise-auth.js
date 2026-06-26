@@ -17,6 +17,14 @@ const JWT_CONFIG = {
 export default async function enterpriseAuthHandler(req, res) {
   const pathname = req.url || req.path || "";
 
+  if (pathname.includes("/enterprise/auth/login")) {
+    return handleLogin(req, res);
+  }
+
+  if (pathname.includes("/enterprise/auth/register")) {
+    return handleRegister(req, res);
+  }
+
   if (pathname.includes("/enterprise/auth/refresh")) {
     return handleRefresh(req, res);
   }
@@ -30,6 +38,93 @@ export default async function enterpriseAuthHandler(req, res) {
   }
 
   res.status(404).json({ error: "Enterprise auth endpoint not found" });
+}
+
+const ENTERPRISE_PERMISSIONS = [
+  "enterprise:view_portfolio",
+  "enterprise:view_customers",
+  "enterprise:view_risk_alerts",
+  "enterprise:view_compliance",
+  "enterprise:view_analytics",
+  "enterprise:manage_settings"
+];
+
+function createEnterpriseSession({ email, name, institutionName = "ARTH.OS Demo NBFC" }) {
+  const cleanedEmail = String(email || "").toLowerCase().trim();
+  const displayName = name || cleanedEmail.split("@")[0] || "Enterprise User";
+  const userId = `enterprise:${cleanedEmail}`;
+  const roles = ["enterprise_admin"];
+  const permissions = ENTERPRISE_PERMISSIONS;
+  const institution = {
+    id: "demo-nbfc",
+    name: institutionName,
+    type: "nbfc"
+  };
+
+  const claims = {
+    userId,
+    email: cleanedEmail,
+    name: displayName,
+    roles,
+    permissions,
+    institution
+  };
+
+  const accessToken = jwt.sign(claims, JWT_CONFIG.secret, { expiresIn: JWT_CONFIG.expiresIn });
+  const refreshToken = jwt.sign(claims, JWT_CONFIG.refreshSecret, {
+    expiresIn: JWT_CONFIG.refreshExpiresIn
+  });
+
+  return {
+    accessToken,
+    refreshToken,
+    user: {
+      id: userId,
+      email: cleanedEmail,
+      name: displayName,
+      roles,
+      permissions,
+      institution
+    }
+  };
+}
+
+function setRefreshCookie(res, refreshToken) {
+  if (process.env.NODE_ENV !== "production") return;
+  res.setHeader(
+    "Set-Cookie",
+    `refreshToken=${refreshToken}; HttpOnly; Secure; SameSite=Strict; Max-Age=604800; Path=/`
+  );
+}
+
+async function handleLogin(req, res) {
+  if (req.method !== "POST") {
+    return res.status(405).json({ error: "Method not allowed" });
+  }
+
+  const { email, password, institutionName } = req.body || {};
+  if (!email || !password) {
+    return res.status(400).json({ error: "Email and password are required" });
+  }
+
+  const session = createEnterpriseSession({ email, institutionName });
+  setRefreshCookie(res, session.refreshToken);
+  return res.status(200).json({ ...session, demo: true });
+}
+
+async function handleRegister(req, res) {
+  if (req.method !== "POST") {
+    return res.status(405).json({ error: "Method not allowed" });
+  }
+
+  const { email, password, name, institutionName } = req.body || {};
+  if (!email || !password) {
+    return res.status(400).json({ error: "Email and password are required" });
+  }
+
+  const session = createEnterpriseSession({ email, name, institutionName });
+  setRefreshCookie(res, session.refreshToken);
+  return res.status(201).json({ ...session, demo: true });
 }
 
 async function handleRefresh(req, res) {
@@ -64,7 +159,8 @@ async function handleRefresh(req, res) {
         email: decoded.email,
         name: decoded.name,
         roles: decoded.roles || ["user"],
-        permissions: decoded.permissions || []
+        permissions: decoded.permissions || [],
+        institution: decoded.institution || null
       },
       JWT_CONFIG.secret,
       { expiresIn: JWT_CONFIG.expiresIn }
@@ -77,19 +173,14 @@ async function handleRefresh(req, res) {
         email: decoded.email,
         name: decoded.name,
         roles: decoded.roles || ["user"],
-        permissions: decoded.permissions || []
+        permissions: decoded.permissions || [],
+        institution: decoded.institution || null
       },
       JWT_CONFIG.refreshSecret,
       { expiresIn: JWT_CONFIG.refreshExpiresIn }
     );
 
-    // Set httpOnly cookie in production
-    if (process.env.NODE_ENV === "production") {
-      res.setHeader(
-        "Set-Cookie",
-        `refreshToken=${newRefreshToken}; HttpOnly; Secure; SameSite=Strict; Max-Age=604800; Path=/`
-      );
-    }
+    setRefreshCookie(res, newRefreshToken);
 
     return res.status(200).json({
       accessToken,
@@ -99,7 +190,8 @@ async function handleRefresh(req, res) {
         email: decoded.email,
         name: decoded.name,
         roles: decoded.roles || ["user"],
-        permissions: decoded.permissions || []
+        permissions: decoded.permissions || [],
+        institution: decoded.institution || null
       }
     });
   } catch (error) {
@@ -145,7 +237,8 @@ async function handleMe(req, res) {
         email: decoded.email,
         name: decoded.name,
         roles: decoded.roles || ["user"],
-        permissions: decoded.permissions || []
+        permissions: decoded.permissions || [],
+        institution: decoded.institution || null
       }
     });
   } catch (error) {
