@@ -5,6 +5,7 @@ import {
   predictionEngineForecastHealth,
   simulateScenario as simulateScenarioInput
 } from '../../src/engines/predictionEngine.js';
+import { buildForecastExplanation } from './explainableAi.js';
 
 function toNumericSeries(value) {
   if (!Array.isArray(value)) {
@@ -43,10 +44,17 @@ export function forecastFinancialProfile(payload = {}) {
   const profile = payload.profile || payload.currentState || {};
   const history = toNumericSeries(payload.history || payload.scoreHistory || payload.timeSeries);
   const options = normalizePredictionOptions(payload.options || payload);
+  const forecast = generatePrediction(profile, history, options);
 
   return {
     contractVersion: 'prediction.forecast.v1',
-    forecast: generatePrediction(profile, history, options)
+    forecast,
+    explanation: buildForecastExplanation({
+      forecast,
+      profile,
+      history,
+      predictionType: 'financial_profile_forecast'
+    })
   };
 }
 
@@ -56,9 +64,17 @@ export function forecastHealthScore(payload = {}) {
   const profile = payload.profile || {};
   const seasonPeriod = toPositiveInteger(payload.seasonPeriod, 12);
 
+  const forecast = predictionEngineForecastHealth(currentScore, scoreHistory, profile, seasonPeriod);
+
   return {
     contractVersion: 'prediction.health.v1',
-    forecast: predictionEngineForecastHealth(currentScore, scoreHistory, profile, seasonPeriod)
+    forecast,
+    explanation: buildForecastExplanation({
+      forecast,
+      profile: { ...profile, currentScore },
+      history: scoreHistory,
+      predictionType: 'health_score_forecast'
+    })
   };
 }
 
@@ -67,30 +83,55 @@ export function runForecastModel(payload = {}) {
   const horizon = toPositiveInteger(payload.horizon || payload.forecastHorizon, 180);
   const seasonPeriod = toPositiveInteger(payload.seasonPeriod, 0);
 
+  const result = autoSelectAndForecast(history, horizon, seasonPeriod);
+
   return {
     contractVersion: 'prediction.model.v1',
-    result: autoSelectAndForecast(history, horizon, seasonPeriod)
+    result,
+    explanation: buildForecastExplanation({
+      forecast: { result, confidence: result?.confidence, model: result?.model },
+      history,
+      predictionType: 'forecast_model'
+    })
   };
 }
 
 export function simulateScenario(payload = {}) {
+  const currentState = payload.currentState || payload.profile || {};
+  const result = simulateScenarioInput(
+    currentState,
+    payload.changes || payload.scenario || {},
+    payload.options || {}
+  );
+
   return {
     contractVersion: 'prediction.scenario.v1',
-    result: simulateScenarioInput(
-      payload.currentState || payload.profile || {},
-      payload.changes || payload.scenario || {},
-      payload.options || {}
-    )
+    result,
+    explanation: buildForecastExplanation({
+      forecast: result,
+      profile: currentState,
+      history: toNumericSeries(payload.history || payload.scoreHistory),
+      predictionType: 'scenario_simulation'
+    })
   };
 }
 
 export function compareScenarios(payload = {}) {
+  const currentState = payload.currentState || payload.profile || {};
+  const scenarios = compareScenarioInputs(
+    currentState,
+    payload.scenarios || []
+  );
+
   return {
     contractVersion: 'prediction.compare.v1',
-    scenarios: compareScenarioInputs(
-      payload.currentState || payload.profile || {},
-      payload.scenarios || []
-    )
+    scenarios,
+    explanation: buildForecastExplanation({
+      forecast: { result: scenarios?.[0] || {} },
+      profile: currentState,
+      history: toNumericSeries(payload.history || payload.scoreHistory),
+      predictionType: 'scenario_comparison'
+    })
   };
 }
 

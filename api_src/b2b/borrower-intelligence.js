@@ -53,6 +53,7 @@ function buildResponse(features, partner, userId, assessment, result, extra) {
       defaultProbability: extra.defaultRisk.probability,
       defaultRiskCategory: extra.defaultRisk.riskCategory,
       defaultRiskScore: extra.defaultRisk.riskScore,
+      explanation: extra.defaultRisk.explanation,
       borrowerHealth: extra.loanHealth,
       recommendation:
         extra.defaultRisk.probability > 0.45 || extra.loanHealth.risk === 'High'

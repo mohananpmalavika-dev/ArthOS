@@ -135,6 +135,19 @@ const Borrower360 = ({ customer }) => {
                 <span>Days Past Due</span>
                 <strong>{customer.dpd}</strong>
               </div>
+              {defaultRisk?.explanation?.topReasons?.length > 0 && (
+                <div className="risk-explanation">
+                  <span>Reason</span>
+                  <ul>
+                    {defaultRisk.explanation.topReasons.map(reason => (
+                      <li key={reason.code}>
+                        <strong>{reason.label}</strong>
+                        <small>{reason.detail}</small>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
             </div>
           </div>
            <div className="panel mt-4">

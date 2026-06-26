@@ -10,6 +10,7 @@
  */
 
 import { buildModelLineage } from "./modelRegistry.js";
+import { buildDefaultRiskExplanation } from "../../api_src/services/explainableAi.js";
 
 function defaultRiskGovernance(history = {}) {
   const paymentPoints = Array.isArray(history.paymentHistory) ? history.paymentHistory.length : 0;
@@ -109,17 +110,148 @@ export function calculateDefaultProbability(customer = {}, history = {}) {
   const financialStress = calculateFinancialStress(customer);
 
   let defaultScore = 0;
+  const contributions = [];
 
   // Financial stress is a primary driver
-  defaultScore += financialStress.stressLevel * 0.005; // Scale to 0-0.5
+  const financialStressContribution = financialStress.stressLevel * 0.005; // Scale to 0-0.5
+  defaultScore += financialStressContribution;
+  if (financialStressContribution > 0) {
+    contributions.push({
+      code: "stress_score",
+      label: "Stress score",
+      detail: `Financial stress is ${financialStress.stressCategory.toLowerCase()} based on DPD, credit score, and balance pressure.`,
+      contribution: financialStressContribution * 100,
+      value: financialStress.stressLevel,
+      evidence: financialStress
+    });
+  }
 
   // DPD velocity is also critical
-  if (dpdVelocity.trend === 'accelerating') defaultScore += 0.3;
-  else if (dpdVelocity.trend === 'increasing') defaultScore += 0.15;
+  if (dpdVelocity.trend === 'accelerating') {
+    defaultScore += 0.3;
+    contributions.push({
+      code: "dpd_velocity",
+      label: "Days past due accelerating",
+      detail: "Days past due are increasing rapidly across the borrower history.",
+      contribution: 30,
+      value: Number(dpdVelocity.velocity.toFixed(2)),
+      evidence: dpdVelocity
+    });
+  } else if (dpdVelocity.trend === 'increasing') {
+    defaultScore += 0.15;
+    contributions.push({
+      code: "dpd_velocity",
+      label: "Days past due increasing",
+      detail: "Days past due are rising across the borrower history.",
+      contribution: 15,
+      value: Number(dpdVelocity.velocity.toFixed(2)),
+      evidence: dpdVelocity
+    });
+  }
 
   // Payment history trends add to the risk
-  if (paymentTrend.trend === 'negative') defaultScore += 0.2;
-  else if (paymentTrend.trend === 'worsening') defaultScore += 0.1;
+  if (paymentTrend.trend === 'negative') {
+    defaultScore += 0.2;
+    contributions.push({
+      code: "payment_history",
+      label: "Missed payment history",
+      detail: "Recent payment history includes missed payments.",
+      contribution: 20,
+      value: paymentTrend.missedPayments,
+      evidence: paymentTrend
+    });
+  } else if (paymentTrend.trend === 'worsening') {
+    defaultScore += 0.1;
+    contributions.push({
+      code: "payment_history",
+      label: "Late payment pattern",
+      detail: "Recent payment history shows repeated late payments.",
+      contribution: 10,
+      value: paymentTrend.latePayments,
+      evidence: paymentTrend
+    });
+  }
+
+  const emi = Number(customer.emi ?? customer.emiAmount ?? customer.monthlyEmi ?? 0);
+  const income = Number(customer.monthlyIncome ?? customer.salary ?? customer.income ?? 0);
+  const emiRatio = income > 0 && emi > 0 ? emi / income : 0;
+  if (emiRatio > 0.5) {
+    defaultScore += 0.15;
+    contributions.push({
+      code: "emi_ratio",
+      label: "EMI ratio",
+      detail: "EMI obligation is above 50% of reported monthly income.",
+      contribution: 15,
+      value: `${Math.round(emiRatio * 100)}%`,
+      evidence: { emi, income }
+    });
+  } else if (emiRatio > 0.35) {
+    defaultScore += 0.08;
+    contributions.push({
+      code: "emi_ratio",
+      label: "EMI ratio",
+      detail: "EMI obligation is elevated relative to reported monthly income.",
+      contribution: 8,
+      value: `${Math.round(emiRatio * 100)}%`,
+      evidence: { emi, income }
+    });
+  }
+
+  const salaryDelay = Number(customer.salaryDelay ?? history.salaryDelayDays ?? 0);
+  if (salaryDelay > 2 || customer.salaryStability === "unstable" || history.salaryStability === "unstable") {
+    defaultScore += 0.12;
+    contributions.push({
+      code: "salary_instability",
+      label: "Salary unstable",
+      detail: "Salary timing is delayed or marked unstable.",
+      contribution: 12,
+      value: salaryDelay > 0 ? `${salaryDelay} days` : "unstable",
+      evidence: { salaryDelay, salaryStability: customer.salaryStability || history.salaryStability }
+    });
+  }
+
+  const upiCashFlow = history.upiCashFlow || customer.upiCashFlow || {};
+  const netCashFlow = Number(upiCashFlow.netMonthlyCashFlow ?? upiCashFlow.netCashFlow ?? customer.netCashFlow ?? 0);
+  const cashFlowVolatility = Number(upiCashFlow.volatilityScore ?? customer.cashFlowVolatility ?? 0);
+  if (netCashFlow < 0 || cashFlowVolatility > 70) {
+    defaultScore += 0.1;
+    contributions.push({
+      code: "upi_cash_flow",
+      label: "UPI cash flow",
+      detail: netCashFlow < 0
+        ? "UPI cash flow is negative for the observed period."
+        : "UPI cash flow volatility is high.",
+      contribution: 10,
+      value: netCashFlow < 0 ? netCashFlow : cashFlowVolatility,
+      evidence: upiCashFlow
+    });
+  }
+
+  const behaviourChange = Number(history.behaviourChangeScore ?? customer.behaviourChangeScore ?? 0);
+  if (behaviourChange < -10 || history.behaviourChange === "deteriorating" || customer.behaviourChange === "deteriorating") {
+    defaultScore += 0.08;
+    contributions.push({
+      code: "behaviour_change",
+      label: "Behaviour change",
+      detail: "Recent borrower behaviour has deteriorated versus baseline.",
+      contribution: 8,
+      value: behaviourChange || "deteriorating",
+      evidence: { behaviourChangeScore: behaviourChange, behaviourChange: history.behaviourChange || customer.behaviourChange }
+    });
+  }
+
+  const stressLevel = Number(customer.stressLevel ?? history.stressLevel ?? 0);
+  if (stressLevel > 80) {
+    defaultScore += 0.08;
+    contributions.push({
+      code: "stress_score_reported",
+      label: "Stress score",
+      detail: "Reported stress score is above the high-risk threshold.",
+      contribution: 8,
+      value: stressLevel,
+      evidence: { stressLevel }
+    });
+  }
 
   const probability = Math.min(1, defaultScore);
 
@@ -128,10 +260,23 @@ export function calculateDefaultProbability(customer = {}, history = {}) {
   else if (probability > 0.4) riskCategory = 'High';
   else if (probability > 0.2) riskCategory = 'Medium';
 
+  const riskScore = Math.round(probability * 100);
+  const explanation = buildDefaultRiskExplanation({
+    customer,
+    history,
+    paymentTrend,
+    dpdVelocity,
+    financialStress,
+    riskScore,
+    riskCategory,
+    contributions
+  });
+
   return {
     probability,
     riskCategory,
-    riskScore: Math.round(probability * 100),
+    riskScore,
+    explanation,
     modelGovernance: defaultRiskGovernance(history)
   };
 }

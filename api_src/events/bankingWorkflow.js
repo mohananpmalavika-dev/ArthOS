@@ -1,6 +1,7 @@
 import { insertIntoTable } from '../dbClient.js';
 import { createLogger } from '../logger.js';
 import { hasUsableEventStoreConfig, publishEvent, subscribe } from './eventBus.js';
+import { createExplanation } from '../services/explainableAi.js';
 
 const log = createLogger('[bankingWorkflow]');
 let registered = false;
@@ -67,6 +68,23 @@ function evaluateEarlyWarning(event) {
     severity,
     reasons,
     riskScore,
+    explanation: createExplanation({
+      predictionType: 'early_warning_signal',
+      score: Math.round(riskScore * 100),
+      label: severity,
+      reasons: reasons.map((reason, index) => ({
+        code: `early_warning_${index + 1}`,
+        label: reason,
+        detail: reason,
+        contribution: Math.max(10, Math.round((riskScore * 100) / reasons.length))
+      })),
+      evidence: payload,
+      model: {
+        name: 'early-warning-event-rules-v1',
+        type: 'event_driven_rules',
+        confidence: riskScore >= 0.7 ? 'medium' : 'low'
+      }
+    }),
     recommendedAction: severity === 'critical' ? 'COLLECTIONS_REVIEW' : 'CRM_OUTREACH',
     generatedAt: new Date().toISOString()
   };

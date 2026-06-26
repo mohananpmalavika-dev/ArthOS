@@ -15321,6 +15321,21 @@ body,
   grid-column: 1 / -1;
 }
 
+/* Final shell nav guard: keep the fixed header nav in its own full-width row. */
+@media (min-width: 1024px) {
+  .topbar .nav-wrap {
+    grid-column: 1 / -1;
+    grid-row: 2 / 3;
+    width: 100%;
+    min-width: 0;
+  }
+
+  .topbar .nav-links {
+    max-height: none;
+    overflow-y: visible;
+  }
+}
+
 @media (max-width: 768px) {
   .simple-metrics,
   .app-view-settings-grid {
@@ -16288,4 +16303,18 @@ body,
   font-size: 1rem;
   color: rgba(255, 255, 255, 0.6);
   margin: 0;
+}
+
+/* Shell nav overlap fix: the header nav is a grid child wrapper, not the nav itself. */
+@media (min-width: 1024px) {
+  .topbar .nav-wrap {
+    grid-column: 1 / -1 !important;
+    grid-row: 2 / 3 !important;
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  .topbar .nav-links {
+    max-height: none !important;
+  }
 }

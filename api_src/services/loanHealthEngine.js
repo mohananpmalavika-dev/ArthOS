@@ -1,3 +1,5 @@
+import { buildLoanHealthExplanation } from './explainableAi.js';
+
 function toNumber(value, fallback = 0) {
   const parsed = Number(value);
   return Number.isFinite(parsed) ? parsed : fallback;
@@ -33,8 +35,11 @@ export function calculateLoanHealth(customer = {}) {
     score -= 20;
     riskFactors.push({
       factor: 'salaryDelay',
+      label: 'Salary unstable',
       impact: 20,
-      description: 'Salary delay exceeds two days'
+      description: 'Salary delay exceeds two days',
+      value: normalized.salaryDelay,
+      recommendedAction: 'Verify salary credit pattern and repayment date alignment'
     });
   }
 
@@ -42,8 +47,11 @@ export function calculateLoanHealth(customer = {}) {
     score -= 30;
     riskFactors.push({
       factor: 'gamblingExpense',
+      label: 'High-risk discretionary spend',
       impact: 30,
-      description: 'Gambling-related expense detected'
+      description: 'Gambling-related expense detected',
+      value: true,
+      recommendedAction: 'Route for cash-flow counselling or manual review'
     });
   }
 
@@ -51,8 +59,11 @@ export function calculateLoanHealth(customer = {}) {
     score -= 15;
     riskFactors.push({
       factor: 'emergencySavings',
+      label: 'EMI coverage gap',
       impact: 15,
-      description: 'Emergency savings are below one EMI'
+      description: 'Emergency savings are below one EMI',
+      value: normalized.emergencySavings,
+      recommendedAction: 'Discuss emergency buffer before additional credit'
     });
   }
 
@@ -60,8 +71,11 @@ export function calculateLoanHealth(customer = {}) {
     score -= 10;
     riskFactors.push({
       factor: 'stressLevel',
+      label: 'Stress score',
       impact: 10,
-      description: 'Stress level is above the high-risk threshold'
+      description: 'Stress level is above the high-risk threshold',
+      value: normalized.stressLevel,
+      recommendedAction: 'Prioritize proactive outreach'
     });
   }
 
@@ -69,18 +83,30 @@ export function calculateLoanHealth(customer = {}) {
     score -= 10;
     riskFactors.push({
       factor: 'loanShopping',
+      label: 'Behaviour change',
       impact: 10,
-      description: 'Recent loan-shopping behaviour detected'
+      description: 'Recent loan-shopping behaviour detected',
+      value: true,
+      recommendedAction: 'Check debt stacking risk before approval'
     });
   }
 
   const boundedScore = Math.max(0, Math.min(100, Math.round(score)));
 
+  const risk = riskForScore(boundedScore);
+  const explanation = buildLoanHealthExplanation({
+    score: boundedScore,
+    risk,
+    riskFactors,
+    customer: normalized
+  });
+
   return {
     contractVersion: 'loan-health.calculate.v1',
     score: boundedScore,
-    risk: riskForScore(boundedScore),
+    risk,
     riskFactors,
+    explanation,
     evaluatedAt: new Date().toISOString()
   };
 }
