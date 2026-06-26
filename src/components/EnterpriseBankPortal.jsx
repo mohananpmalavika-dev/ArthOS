@@ -68,12 +68,55 @@ const EnterpriseBankPortal = memo(() => {
 EnterpriseBankPortal.displayName = "EnterpriseBankPortal";
 
 /* Placeholder components for other tabs */
-const RiskAlertsSection = memo(() => (
-  <div className="enterprise-placeholder">
-    <h2>Risk Monitoring & Alerts</h2>
-    <p>Real-time risk detection and alert management for portfolio accounts.</p>
-  </div>
-));
+const RiskAlertsSection = memo(() => {
+  const alerts = [
+    {
+      id: "RA-001",
+      title: "High-risk customer exposure",
+      description: "Customer Sarah Chen has a sustained high-risk profile and missing third-party coverage.",
+      severity: "critical",
+      time: "2h ago"
+    },
+    {
+      id: "RA-002",
+      title: "Rapid deposit outflows",
+      description: "Portfolio accounts in the northwest region saw a 23% withdrawal spike today.",
+      severity: "warning",
+      time: "5h ago"
+    },
+    {
+      id: "RA-003",
+      title: "Compliance review required",
+      description: "Three corporate accounts require documentation refresh before the next audit window.",
+      severity: "info",
+      time: "1d ago"
+    }
+  ];
+
+  return (
+    <div className="enterprise-risk-alerts">
+      <div className="enterprise-section-header">
+        <div>
+          <h2 className="enterprise-section-title">Risk Monitoring & Alerts</h2>
+          <p className="enterprise-section-subtitle">
+            Real-time risk detection and alert management for portfolio accounts.
+          </p>
+        </div>
+      </div>
+      <div className="enterprise-alert-list">
+        {alerts.map((alert) => (
+          <div key={alert.id} className={`enterprise-alert-card alert-${alert.severity}`}>
+            <div className="enterprise-alert-card-header">
+              <strong>{alert.title}</strong>
+              <span>{alert.time}</span>
+            </div>
+            <p>{alert.description}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+});
 
 const AnalyticsSection = memo(() => (
   <div className="enterprise-placeholder">
