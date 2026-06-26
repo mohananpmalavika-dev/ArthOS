@@ -12,6 +12,8 @@
 
 import { createClient } from '@supabase/supabase-js';
 import crypto from 'crypto';
+import '../events/bankingWorkflow.js';
+import { publishEvent } from '../events/eventBus.js';
 
 const supabase = createClient(
   process.env.SUPABASE_URL || '',
@@ -175,8 +177,31 @@ async function processUPITransaction(payload, provider) {
       })
       .eq('id', bankAccountId);
 
-    // 4. Run real-time analysis
-    await runUPITransactionAnalysis(userId, financialTxn.id, txnData);
+    // 4. Publish a domain event. Risk, notification, CRM, and collections
+    // subscribers react through the server event bus.
+    const analysis = await runUPITransactionAnalysis(userId, financialTxn.id, txnData);
+    await publishEvent({
+      type: 'banking.transaction.created',
+      source: 'banking.upi-ingestion',
+      userId,
+      aggregateId: financialTxn.id,
+      idempotencyKey: `upi:${txnData.upiTransactionId}`,
+      payload: {
+        transaction: {
+          ...txnData,
+          id: financialTxn.id,
+          transactionId: txnData.transactionId,
+          transactionType: financialTxn.transaction_type,
+          transactionTime: financialTxn.transaction_time,
+          category: financialTxn.category
+        },
+        analysis: analysis.analysis || null
+      },
+      metadata: {
+        provider,
+        upiTransactionId: txnData.upiTransactionId
+      }
+    });
 
     return {
       success: true,
@@ -291,8 +316,16 @@ async function runUPITransactionAnalysis(userId, transactionId, txnData) {
         })
         .eq('id', transactionId);
 
-      // Notify user
-      await notifyHighRiskTransaction(userId, txnData, analysis);
+      await publishEvent({
+        type: 'risk.transaction.flagged',
+        source: 'banking.upi-analysis',
+        userId,
+        aggregateId: transactionId,
+        payload: {
+          transaction: txnData,
+          analysis
+        }
+      });
     }
 
     // 4. Update digital twin with transaction impact
@@ -451,5 +484,6 @@ export default {
   processUPITransaction,
   validateUPIWebhookSignature,
   runUPITransactionAnalysis,
+  analyzeUPIPatterns,
   batchUPITransactions
 };

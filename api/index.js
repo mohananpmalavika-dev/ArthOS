@@ -35,6 +35,8 @@ import shareHandler from '../api_src/share.js';
 import subscriptionsHandler from '../api_src/subscriptions-handler.js';
 import backgroundHealthHandler from '../api_src/backgroundHealth.js';
 import modelRegistryHandler from '../api_src/model-registry.js';
+import eventPublishHandler from '../api_src/events/publish.js';
+import eventRecentHandler from '../api_src/events/recent.js';
 import { createRequire } from 'module';
 const requireModule = createRequire(import.meta.url);
 const longitudinalIndex = requireModule('../api_src/longitudinal/index.cjs');
@@ -43,6 +45,7 @@ import durableJobProcessorAdapter from './durableJobProcessor.js';
 import userExportHandler from '../api_src/user/export.js';
 import userDeleteHandler from '../api_src/user/delete.js';
 import userRetentionHandler from '../api_src/user/retention.js';
+import enterpriseAuthHandler from '../api_src/enterprise-auth.js';
 // ─── Missing user endpoints ────────────────────────────────────
 import saveDecisionHandler from '../api_src/user/saveDecision.js';
 import loadDraftHandler from '../api_src/user/loadDraft.js';
@@ -63,6 +66,8 @@ const routeDefinitions = [
   { match: (pathname) => pathname === '/api/loan-default/predict', handler: engineContractsHandler },
   { match: (pathname) => pathname === '/api/opportunity/forecast', handler: engineContractsHandler },
   { match: (pathname) => pathname === '/api/model-registry' || pathname === '/api/governance/model-registry', handler: modelRegistryHandler },
+  { match: (pathname) => pathname === '/api/events/publish', handler: eventPublishHandler },
+  { match: (pathname) => pathname === '/api/events/recent', handler: eventRecentHandler },
   { match: (pathname) => pathname === '/api/decision', handler: decisionHandler },
   { match: (pathname) => pathname === '/api/risk-score', handler: riskScoreHandler },
   { match: (pathname) => pathname === '/api/risk-opportunity', handler: riskOpportunityHandler },
@@ -88,6 +93,7 @@ const routeDefinitions = [
   { match: (pathname) => pathname === '/api/auth/verify-email', handler: emailVerifyHandler },
   { match: (pathname) => pathname === '/api/auth/resend-verify', handler: emailVerifyHandler },
   { match: (pathname) => pathname.startsWith('/api/auth/reset-password'), handler: passwordResetHandler },
+  { match: (pathname) => pathname.startsWith('/api/enterprise/auth'), handler: enterpriseAuthHandler },
   { match: (pathname) => pathname === '/api/b2b/intelligence', handler: b2bIntelligenceHandler },
   { match: (pathname) => pathname === '/api/b2b/borrower-intelligence', handler: b2bBorrowerIntelligenceHandler },
   { match: (pathname) => pathname === '/api/b2b/register', handler: b2bRegisterHandler },

@@ -25,6 +25,10 @@ const ALLOWED_TABLES = [
   "goal_history",
   "financial_memory",
   "twin_snapshots",
+  "domain_events",
+  "event_deliveries",
+  "early_warning_signals",
+  "crm_events",
 ];
 
 let pgPool;

@@ -637,6 +637,13 @@ export default function App({ demoMode = false }) {
     return () => window.removeEventListener('arth:show-share-dialog', handleShareDialog);
   }, []);
 
+  // Calculate financial health scores — MUST be declared FIRST before useEffect hooks that use it
+  // Ensure result is always an object to avoid null dereference when downstream code
+  // reads properties like `result.healthScore`.
+  const result = useMemo(() => calculateFinancialHealthV2(assessment) || {}, [assessment]);
+
+  const safeHealthScore = useMemo(() => normalizeScore(result), [result]);
+
   // Auto-save assessment to localStorage whenever it changes
   useEffect(() => {
     if (!isBrowser() || !assessment || saveState === "Ready") {
@@ -687,13 +694,6 @@ export default function App({ demoMode = false }) {
   }, [refreshPushHealth]);
 
   const closeShareDialog = useCallback(() => setShareDialogData(null), []);
-
-  // Calculate financial health scores — must be before useEffect hooks that depend on it
-  // Ensure result is always an object to avoid null dereference when downstream code
-  // reads properties like `result.healthScore`.
-  const result = useMemo(() => calculateFinancialHealthV2(assessment) || {}, [assessment]);
-
-  const safeHealthScore = useMemo(() => normalizeScore(result), [result]);
 
   useEffect(() => {
     if (isBrowser()) {
