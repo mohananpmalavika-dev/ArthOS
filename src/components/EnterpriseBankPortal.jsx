@@ -1,7 +1,7 @@
-import React, { memo, useState } from "react";
+import React, { memo, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext.jsx";
-import { LogOut } from "lucide-react";
+import { LogOut, MoreVertical } from "lucide-react";
 import EnterpriseFlowNavigation from "./EnterpriseFlowNavigation.jsx";
 import PortfolioDashboard from "./PortfolioDashboard.jsx";
 import CustomerIntelligence from "./CustomerIntelligence.jsx";
@@ -17,6 +17,14 @@ const EnterpriseBankPortal = memo(() => {
   const [activeTab, setActiveTab] = useState("dashboard");
   const { logout } = useAuth();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const hash = window.location.hash.replace("#", "");
+    if (hash && ["dashboard", "customers", "risk", "compliance", "analytics", "settings"].includes(hash)) {
+      setActiveTab(hash);
+    }
+  }, []);
 
   const handleLogout = () => {
     logout();
@@ -118,12 +126,86 @@ const RiskAlertsSection = memo(() => {
   );
 });
 
-const AnalyticsSection = memo(() => (
-  <div className="enterprise-placeholder">
-    <h2>Portfolio Analytics</h2>
-    <p>Advanced analytics and performance trending for customer base insights.</p>
-  </div>
-));
+const AnalyticsSection = memo(() => {
+  const analyticsMetrics = [
+    {
+      title: "Churn Risk",
+      value: "12.4%",
+      detail: "Customers likely to churn in the next 30 days"
+    },
+    {
+      title: "Revenue at Risk",
+      value: "₹43.2M",
+      detail: "Estimated deposits exposed to high-risk segments"
+    },
+    {
+      title: "Portfolio Growth",
+      value: "+8.9%",
+      detail: "Growth vs prior quarter"
+    },
+    {
+      title: "Customer Engagement",
+      value: "78%",
+      detail: "Active accounts with engagement signals"
+    }
+  ];
+
+  const chartData = [
+    { label: "Jan", value: 68 },
+    { label: "Feb", value: 74 },
+    { label: "Mar", value: 71 },
+    { label: "Apr", value: 79 },
+    { label: "May", value: 83 },
+    { label: "Jun", value: 88 }
+  ];
+
+  return (
+    <div className="enterprise-analytics-dashboard">
+      <div className="enterprise-section-header">
+        <div>
+          <h2 className="enterprise-section-title">Portfolio Analytics</h2>
+          <p className="enterprise-section-subtitle">
+            Advanced analytics and performance trending for customer base insights.
+          </p>
+        </div>
+      </div>
+      <div className="enterprise-metrics-grid">
+        {analyticsMetrics.map((metric) => (
+          <div key={metric.title} className="enterprise-metric-card">
+            <div className="metric-label">{metric.title}</div>
+            <div className="metric-value">{metric.value}</div>
+            <div className="metric-change positive">{metric.detail}</div>
+          </div>
+        ))}
+      </div>
+      <div className="enterprise-card">
+        <div className="card-header">
+          <h3>Customer Health Trend</h3>
+          <button className="enterprise-btn-icon">
+            <MoreVertical size={16} />
+          </button>
+        </div>
+        <div className="score-distribution-chart">
+          {chartData.map((item) => (
+            <div key={item.label} className="distribution-row">
+              <div className="distribution-label">
+                <span className="band-name">{item.label}</span>
+                <span className="band-count">{item.value}%</span>
+              </div>
+              <div className="distribution-bar-container">
+                <div
+                  className="distribution-bar"
+                  style={{ width: `${item.value}%`, backgroundColor: "#06b6d4" }}
+                />
+              </div>
+              <span className="distribution-percentage">{item.value}%</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+});
 
 const SettingsSection = memo(() => (
   <div className="enterprise-placeholder">
