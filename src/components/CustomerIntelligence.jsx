@@ -161,6 +161,7 @@ const CustomerIntelligence = memo(() => {
   const assessmentMessage = selectedCustomer
     ? `Hi ${selectedCustomer.name}, complete your ARTH.OS financial assessment here: ${selectedAssessmentLink}. Use your mobile number and loan number ${selectedLoanNumber} to access it.`
     : "";
+  const topExplanationReason = selectedCustomer?.explainability?.topReasons?.[0];
 
   async function handleCopyAssessmentLink() {
     if (!selectedAssessmentLink) {
@@ -347,12 +348,39 @@ const CustomerIntelligence = memo(() => {
                 </span>
               </div>
               <div className="enterprise-insight-strip">
-                <strong>Customer assessment</strong>
+                <strong>Explainability</strong>
                 <span>
-                  Verify with mobile {selectedMobile || "not configured"} and loan number{" "}
-                  {selectedLoanNumber || "not configured"}.
+                  {topExplanationReason
+                    ? `${topExplanationReason.label}: ${topExplanationReason.detail}`
+                    : selectedCustomer.defaultExplanation?.summary ||
+                      "No material risk driver found."}
                 </span>
               </div>
+              <div className="enterprise-insight-strip">
+                <strong>Model trace</strong>
+                <span>
+                  {selectedCustomer.modelGovernance?.registryId || "loan-default"}{" "}
+                  {selectedCustomer.modelGovernance?.version || ""} | Trace{" "}
+                  {selectedCustomer.decisionTrace?.traceId || "pending"}
+                </span>
+              </div>
+              <div className="enterprise-insight-strip">
+                <strong>Customer assessment</strong>
+                <span>
+                  {selectedCustomer.assessmentStatus === "completed"
+                    ? `Completed ${selectedCustomer.assessmentSubmittedAt || ""}`
+                    : `Pending. Verify with mobile ${selectedMobile || "not configured"} and loan number ${selectedLoanNumber || "not configured"}.`}
+                </span>
+              </div>
+              {selectedCustomer.assessmentSubmissionId && (
+                <div className="enterprise-insight-strip">
+                  <strong>Submission trace</strong>
+                  <span>
+                    {selectedCustomer.assessmentSubmissionId} | Audit{" "}
+                    {selectedCustomer.assessmentAuditId || "pending"}
+                  </span>
+                </div>
+              )}
               <div className="enterprise-link-card">
                 <input className="enterprise-link-input" value={selectedAssessmentLink} readOnly />
                 <div className="enterprise-link-actions">

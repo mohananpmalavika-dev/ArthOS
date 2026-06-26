@@ -77,6 +77,9 @@ export default function EnterpriseCustomerAssessmentPage() {
   const [accessError, setAccessError] = useState(null);
   const [result, setResult] = useState(null);
   const [submitted, setSubmitted] = useState(false);
+  const [submitError, setSubmitError] = useState(null);
+  const [submitting, setSubmitting] = useState(false);
+  const [auditId, setAuditId] = useState(null);
   const [form, setForm] = useState(() => ({
     monthlyIncome: customer?.monthlyIncome || "",
     monthlyExpenses: customer?.monthlyExpenses || "",
@@ -110,26 +113,49 @@ export default function EnterpriseCustomerAssessmentPage() {
     setVerified(true);
   }
 
-  function handleSubmit(event) {
+  async function handleSubmit(event) {
     event.preventDefault();
     const assessment = buildAssessment(customer, form);
-    const nextResult = calculateFinancialHealthV2(assessment);
-    setResult(nextResult);
-    setSubmitted(true);
+    const optimisticResult = calculateFinancialHealthV2(assessment);
+    setSubmitting(true);
+    setSubmitError(null);
 
     try {
+      const response = await fetch("/api/customer-assessment/submit", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          token,
+          mobile: credentials.mobile,
+          loanNumber: credentials.loanNumber,
+          assessment
+        })
+      });
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        throw new Error(payload?.error || "Unable to submit assessment");
+      }
+
+      setResult(payload.result || optimisticResult);
+      setAuditId(payload.auditId || null);
+      setSubmitted(true);
       window.localStorage.setItem(
         `arth-os-enterprise-customer-assessment:${customer.id}`,
         JSON.stringify({
           customerId: customer.id,
           loanNumber: customer.loanNumber,
-          submittedAt: new Date().toISOString(),
+          submittedAt: payload.submittedAt || new Date().toISOString(),
           assessment,
-          result: nextResult
+          result: payload.result || optimisticResult,
+          auditId: payload.auditId || null
         })
       );
-    } catch {
-      // Local storage is best-effort for this prototype link flow.
+    } catch (err) {
+      setResult(optimisticResult);
+      setSubmitted(true);
+      setSubmitError(err?.message || "Assessment was scored locally but could not be submitted.");
+    } finally {
+      setSubmitting(false);
     }
   }
 
@@ -280,15 +306,23 @@ export default function EnterpriseCustomerAssessmentPage() {
               </label>
             </div>
 
-            <button className="enterprise-btn-primary" type="submit">
-              Submit Assessment
+            <button className="enterprise-btn-primary" type="submit" disabled={submitting}>
+              {submitting ? "Submitting..." : "Submit Assessment"}
             </button>
+
+            {submitError && (
+              <div className="enterprise-error-banner" role="alert">
+                <AlertCircle size={16} />
+                {submitError}
+              </div>
+            )}
 
             {submitted && result && (
               <div className="customer-assessment-result">
                 <strong>{result.healthScore}</strong>
                 <span>{result.categoryBand?.label || "Financial health score"}</span>
                 <p>{result.recommendedActionText}</p>
+                {auditId && <p>Submission recorded with audit ID {auditId}.</p>}
               </div>
             )}
           </form>

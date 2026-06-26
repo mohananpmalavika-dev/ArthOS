@@ -5,11 +5,16 @@ import { detectBiases } from "../src/engines/biasEngine.js";
 import { detectTriggers } from "../src/engines/emotionalTriggerEngine.js";
 import { opportunityForecast } from "../src/engines/opportunityForecastEngine.js";
 import { calculateDefaultProbability } from "../src/engines/mlDefaultPredictionEngine.js";
+import { getModelRegistryRecord } from "../src/engines/modelRegistry.js";
+import { getLatestCustomerAssessment } from "./customer-assessment-store.js";
+import { getEnterpriseAuditTrail, recordEnterpriseAuditEvent } from "./enterprise-audit-store.js";
 import { calculateLoanHealth } from "./services/loanHealthEngine.js";
 
 const JWT_SECRET = process.env.JWT_SECRET || "dev-secret-key";
 
 const generatedReports = new Map();
+
+const LOAN_DEFAULT_MODEL = getModelRegistryRecord("loan-default");
 
 const ENTERPRISE_CUSTOMERS = [
   {
@@ -376,7 +381,8 @@ function trendFromCustomer(customer) {
 
 function normalizeCustomer(customer) {
   const assessment = toAssessment(customer);
-  const health = calculateFinancialHealthV2(assessment);
+  const latestSubmission = getLatestCustomerAssessment(customer.id);
+  const health = latestSubmission?.result || calculateFinancialHealthV2(assessment);
   const riskProfile = buildRiskProfile(
     { ...assessment.profile, ...assessment.behaviour, ...assessment.awareness },
     { scope: `enterprise:${customer.id}` }
@@ -434,12 +440,42 @@ function normalizeCustomer(customer) {
     survivalMonths: health.survivalMonthsRaw,
     monthlyCashflow: health.monthlyCashflow,
     savingsRate: health.savingsRate,
+    assessmentStatus: latestSubmission ? "completed" : "pending",
+    assessmentSubmittedAt: latestSubmission?.submittedAt || null,
+    assessmentSubmissionId: latestSubmission?.id || null,
+    assessmentAuditId: latestSubmission?.auditId || null,
     riskScore: riskProfile.riskScore,
     riskCalibration: riskProfile.profile?.riskCalibration || null,
     defaultProbability: defaultRisk.probability,
     defaultRiskScore: defaultRisk.riskScore,
     defaultRiskCategory: defaultRisk.riskCategory,
     defaultExplanation: defaultRisk.explanation,
+    explainability: {
+      defaultRisk: defaultRisk.explanation,
+      topReasons: defaultRisk.explanation?.topReasons || [],
+      reasonChain: defaultRisk.explanation?.reasonChain || []
+    },
+    modelGovernance: {
+      modelKey: "loan-default",
+      registryId: LOAN_DEFAULT_MODEL.registryId,
+      version: LOAN_DEFAULT_MODEL.version,
+      trainingDate: LOAN_DEFAULT_MODEL.trainingDate,
+      validationAccuracy: LOAN_DEFAULT_MODEL.validationAccuracy,
+      approvalStatus: LOAN_DEFAULT_MODEL.approvalStatus,
+      rollbackAvailable: Boolean(LOAN_DEFAULT_MODEL.rollbackTarget)
+    },
+    decisionTrace: {
+      traceId: `ent-${customer.id}-${Date.parse(customer.lastActivity || new Date().toISOString()) || Date.now()}`,
+      generatedAt: new Date().toISOString(),
+      inputSnapshot: {
+        dpd: customer.dpd,
+        creditScore: customer.creditScore,
+        loanBalance: customer.loanBalance,
+        emi: customer.emi,
+        monthlyIncome: customer.profile.monthlyIncome,
+        stressLevel: customer.stressLevel
+      }
+    },
     loanHealth,
     cognitiveBiases: biases,
     emotionalTriggers: triggers,
@@ -615,11 +651,7 @@ function buildCompliance() {
       { regulation: "Access Controls", score: 94, status: "compliant", lastAudit: "2026-06-21" },
     ],
     reports,
-    auditTrail: [
-      { id: "aud-1", action: "Enterprise risk dashboard opened", actor: "loan.officer@arthos.demo", timestamp: "2026-06-26 09:12", status: "success" },
-      { id: "aud-2", action: "Borrower risk report generated", actor: "risk.ops@arthos.demo", timestamp: "2026-06-26 08:44", status: "success" },
-      { id: "aud-3", action: "Critical DPD alert acknowledged", actor: "collections@arthos.demo", timestamp: "2026-06-25 17:05", status: "warning" },
-    ],
+    auditTrail: getEnterpriseAuditTrail({ limit: 50 }),
   };
 }
 
@@ -644,6 +676,11 @@ export default async function enterpriseDataHandler(req, res) {
   const compliance = buildCompliance();
 
   if (req.method === "GET" && pathname === "/api/enterprise/portfolio") {
+    recordEnterpriseAuditEvent({
+      action: "Enterprise portfolio viewed",
+      actor: principal.email || principal.id,
+      tenantId: principal.institution?.id
+    });
     return sendJson(res, buildPortfolio(customers));
   }
 
@@ -660,6 +697,13 @@ export default async function enterpriseDataHandler(req, res) {
       return matchesSearch && matchesRisk;
     });
 
+    recordEnterpriseAuditEvent({
+      action: "Enterprise customer list accessed",
+      actor: principal.email || principal.id,
+      tenantId: principal.institution?.id,
+      metadata: { search: Boolean(search), risk }
+    });
+
     return sendJson(res, { items, total: items.length, asOf: new Date().toISOString() });
   }
 
@@ -667,6 +711,16 @@ export default async function enterpriseDataHandler(req, res) {
   if (req.method === "GET" && customerMatch) {
     const customer = customers.find((item) => item.id === decodeURIComponent(customerMatch[1]));
     if (!customer) return res.status(404).json({ error: "Customer not found" });
+    recordEnterpriseAuditEvent({
+      action: "Borrower 360 profile opened",
+      actor: principal.email || principal.id,
+      tenantId: principal.institution?.id,
+      customerId: customer.id,
+      metadata: {
+        traceId: customer.decisionTrace?.traceId,
+        modelVersion: customer.modelGovernance?.version
+      }
+    });
     return sendJson(res, customer);
   }
 
@@ -708,7 +762,9 @@ export default async function enterpriseDataHandler(req, res) {
 
   if (req.method === "GET" && pathname === "/api/enterprise/compliance/audit-trail") {
     const limit = Math.max(1, Math.min(Number(req.query?.limit || 20), 100));
-    return sendJson(res, { items: compliance.auditTrail.slice(0, limit) });
+    return sendJson(res, {
+      items: getEnterpriseAuditTrail({ limit, tenantId: principal.institution?.id }),
+    });
   }
 
   if (req.method === "POST" && pathname === "/api/enterprise/compliance/reports/generate") {
