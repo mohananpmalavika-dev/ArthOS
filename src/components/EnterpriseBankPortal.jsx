@@ -1,11 +1,12 @@
 import React, { memo, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "../context/AuthContext.jsx";
+import { useEnterpriseAuth } from "../context/EnterpriseAuthContext.jsx";
 import { LogOut, MoreVertical, Key, Zap, Palette, ShieldCheck } from "lucide-react";
 import EnterpriseFlowNavigation from "./EnterpriseFlowNavigation.jsx";
 import PortfolioDashboard from "./PortfolioDashboard.jsx";
 import CustomerIntelligence from "./CustomerIntelligence.jsx";
 import ComplianceReports from "./ComplianceReports.jsx";
+
 
 /**
  * Enterprise B2B Flow for Banks and Insurance Companies
@@ -15,8 +16,9 @@ import ComplianceReports from "./ComplianceReports.jsx";
  */
 const EnterpriseBankPortal = memo(() => {
   const [activeTab, setActiveTab] = useState("dashboard");
-  const { logout } = useAuth();
+  const { logout } = useEnterpriseAuth();
   const navigate = useNavigate();
+
 
   useEffect(() => {
     if (typeof window === "undefined") return;
