@@ -574,6 +574,15 @@ function ValidateKeyTab({ defaultApiKey }) {
 
 function QueryTab({ sdk, userId, assessment, defaultApiKey }) {
   const [apiKey, setApiKey] = useState(defaultApiKey || "");
+  const [queryMode, setQueryMode] = useState("standard");
+  const [loanData, setLoanData] = useState({
+    loanType: "Personal Loan",
+    loanBalance: 120000,
+    emi: 4500,
+    tenureMonths: 36,
+    dpd: 5,
+    creditScore: 690
+  });
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState(null);
   const [error, setError] = useState(null);
@@ -590,19 +599,53 @@ function QueryTab({ sdk, userId, assessment, defaultApiKey }) {
     setResult(null);
     try {
       sdk.setApiKey(apiKey);
-      const res = await sdk.getIntelligence({
-        userId,
-        profile: assessment.profile,
-        behaviour: assessment.behaviour,
-        awareness: assessment.awareness,
-        habits: assessment.habits
-      });
+      let res;
+
+      if (queryMode === "borrower") {
+        res = await sdk.getBorrowerIntelligence({
+          userId,
+          profile: assessment.profile,
+          behaviour: assessment.behaviour,
+          awareness: assessment.awareness,
+          habits: assessment.habits,
+          loanData,
+          history: {
+            paymentHistory: [
+              { date: "2024-06-05", status: "paid" },
+              { date: "2024-05-05", status: "paid" },
+              { date: "2024-04-10", status: "late" },
+              { date: "2024-03-05", status: "paid" }
+            ],
+            dpdHistory: [
+              { month: "Apr", dpd: 7 },
+              { month: "May", dpd: 0 },
+              { month: "Jun", dpd: loanData.dpd }
+            ]
+          }
+        });
+      } else {
+        res = await sdk.getIntelligence({
+          userId,
+          profile: assessment.profile,
+          behaviour: assessment.behaviour,
+          awareness: assessment.awareness,
+          habits: assessment.habits
+        });
+      }
+
       setResult(res);
     } catch (err) {
       setError(err.message || "Query failed");
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleLoanDataChange = (field, value) => {
+    setLoanData(prev => ({
+      ...prev,
+      [field]: field === "loanType" ? value : Number(value)
+    }));
   };
 
   return (
@@ -615,6 +658,83 @@ function QueryTab({ sdk, userId, assessment, defaultApiKey }) {
         and returns a comprehensive analysis of their financial health, behavior, and potential
         risks.
       </p>
+
+      <div className="partner-query-mode-toggle" style={{ display: "flex", gap: 8, marginBottom: 16 }}>
+        <button
+          type="button"
+          className={`partner-form-toggle-btn ${queryMode === "standard" ? "active" : ""}`}
+          onClick={() => setQueryMode("standard")}
+        >
+          Standard Intelligence
+        </button>
+        <button
+          type="button"
+          className={`partner-form-toggle-btn ${queryMode === "borrower" ? "active" : ""}`}
+          onClick={() => setQueryMode("borrower")}
+        >
+          Borrower Intelligence
+        </button>
+      </div>
+
+      {queryMode === "borrower" && (
+        <div className="partner-loan-data-grid" style={{ display: "grid", gap: 12, marginBottom: 16 }}>
+          <div className="partner-form-group">
+            <label className="partner-form-label">Loan Type</label>
+            <input
+              type="text"
+              value={loanData.loanType}
+              onChange={e => handleLoanDataChange("loanType", e.target.value)}
+              className="partner-form-input"
+            />
+          </div>
+          <div className="partner-form-group">
+            <label className="partner-form-label">Loan Balance</label>
+            <input
+              type="number"
+              value={loanData.loanBalance}
+              onChange={e => handleLoanDataChange("loanBalance", e.target.value)}
+              className="partner-form-input"
+            />
+          </div>
+          <div className="partner-form-group">
+            <label className="partner-form-label">Monthly EMI</label>
+            <input
+              type="number"
+              value={loanData.emi}
+              onChange={e => handleLoanDataChange("emi", e.target.value)}
+              className="partner-form-input"
+            />
+          </div>
+          <div className="partner-form-group">
+            <label className="partner-form-label">Tenure (months)</label>
+            <input
+              type="number"
+              value={loanData.tenureMonths}
+              onChange={e => handleLoanDataChange("tenureMonths", e.target.value)}
+              className="partner-form-input"
+            />
+          </div>
+          <div className="partner-form-group">
+            <label className="partner-form-label">Days Past Due</label>
+            <input
+              type="number"
+              value={loanData.dpd}
+              onChange={e => handleLoanDataChange("dpd", e.target.value)}
+              className="partner-form-input"
+            />
+          </div>
+          <div className="partner-form-group">
+            <label className="partner-form-label">Credit Score</label>
+            <input
+              type="number"
+              value={loanData.creditScore}
+              onChange={e => handleLoanDataChange("creditScore", e.target.value)}
+              className="partner-form-input"
+            />
+          </div>
+        </div>
+      )}
+
       <div style={{ display: "flex", gap: 8, marginBottom: 12 }}>
         <input
           type="text"

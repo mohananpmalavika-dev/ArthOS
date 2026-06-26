@@ -116,6 +116,26 @@ export class ArthOSSDK {
   }
 
   /**
+   * Get borrower-level intelligence, including loan underwriting, default risk,
+   * and risk-adjusted borrower health.
+   * @param {object} params
+   * @param {string} params.userId
+   * @param {object} [params.profile]
+   * @param {object} [params.behaviour]
+   * @param {object} [params.awareness]
+   * @param {object} [params.habits]
+   * @param {object} [params.loanData]
+   * @param {object} [params.history]
+   * @returns {Promise<object>}
+   */
+  async getBorrowerIntelligence({ userId, profile, behaviour, awareness, habits, loanData, history }) {
+    return this._fetch("/api/b2b/borrower-intelligence", {
+      method: "POST",
+      body: JSON.stringify({ userId, profile, behaviour, awareness, habits, loanData, history })
+    });
+  }
+
+  /**
    * Get partner analytics (requires admin API key).
    * @param {string} [partnerId] - Optional: filter to specific partner
    * @returns {Promise<object>}
