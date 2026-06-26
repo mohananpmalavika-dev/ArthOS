@@ -60,9 +60,9 @@ const EnterpriseFlowNavigation = memo(({ activeHash = "#dashboard", onTabSelect 
       <div className="enterprise-nav-header">
         <div className="enterprise-nav-logo">
           <Shield size={24} />
-          <span className="enterprise-nav-title">ARTH.OS Enterprise</span>
+          <span className="enterprise-nav-title">ARTH.OS Lending Intelligence</span>
         </div>
-        <div className="enterprise-nav-badge">Bank/Insurance Edition</div>
+        <div className="enterprise-nav-badge">NBFC & Loan Behavior</div>
       </div>
 
       <nav className="enterprise-nav-tabs">

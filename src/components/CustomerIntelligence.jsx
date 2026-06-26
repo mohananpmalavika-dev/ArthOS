@@ -19,11 +19,6 @@ const CustomerIntelligence = memo(() => {
   const [newCustomer, setNewCustomer] = useState({
     name: "",
     id: "",
-    band: "Developing",
-    status: "active",
-    lastAssessment: "2024-06-20",
-    riskLevel: "medium",
-    trend: "stable",
     accounts: 1,
     loanBalance: 0,
     onTimePaymentRate: 0.92
@@ -41,7 +36,10 @@ const CustomerIntelligence = memo(() => {
       trend: "up",
       accounts: 3,
       loanBalance: 150000,
-      onTimePaymentRate: 0.96
+      onTimePaymentRate: 0.96,
+      loanType: "Business Loan",
+      creditScore: 760,
+      dpd: 0
     },
     {
       id: "CS-18746",
@@ -54,7 +52,10 @@ const CustomerIntelligence = memo(() => {
       trend: "down",
       accounts: 2,
       loanBalance: 98000,
-      onTimePaymentRate: 0.68
+      onTimePaymentRate: 0.68,
+      loanType: "Personal Loan",
+      creditScore: 610,
+      dpd: 35
     },
     {
       id: "CS-92034",
@@ -67,7 +68,10 @@ const CustomerIntelligence = memo(() => {
       trend: "up",
       accounts: 4,
       loanBalance: 420000,
-      onTimePaymentRate: 0.98
+      onTimePaymentRate: 0.98,
+      loanType: "Mortgage",
+      creditScore: 800,
+      dpd: 0
     },
     {
       id: "CS-56789",
@@ -80,7 +84,10 @@ const CustomerIntelligence = memo(() => {
       trend: "stable",
       accounts: 2,
       loanBalance: 122000,
-      onTimePaymentRate: 0.84
+      onTimePaymentRate: 0.84,
+      loanType: "Personal Loan",
+      creditScore: 700,
+      dpd: 12
     },
     {
       id: "CS-34521",
@@ -93,48 +100,65 @@ const CustomerIntelligence = memo(() => {
       trend: "down",
       accounts: 1,
       loanBalance: 82000,
-      onTimePaymentRate: 0.54
+      onTimePaymentRate: 0.54,
+      loanType: "Personal Loan",
+      creditScore: 540,
+      dpd: 65
     }
   ]);
 
-  const getBandColor = (band) => {
-    const colors = {
-      Critical: "#ef4444",
-      Fragile: "#f97316",
-      Developing: "#eab308",
-      Resilient: "#22c55e",
-      Sovereign: "#06b6d4"
-    };
-    return colors[band] || "#666";
+  const determineLoanType = (customer) => {
+    const balance = customer.loanBalance || 0;
+    if (balance >= 300000) return "Mortgage";
+    if (balance >= 120000) return "Business Loan";
+    if (balance >= 40000) return "Personal Loan";
+    return "Micro Loan";
+  };
+
+  const deriveRiskLevel = (customer) => {
+    const paymentRate = customer.onTimePaymentRate ?? 0;
+    const loanBalance = customer.loanBalance ?? 0;
+
+    if (paymentRate < 0.60 || loanBalance > 400000) {
+      return "critical";
+    }
+    if (paymentRate < 0.75 || loanBalance > 250000) {
+      return "high";
+    }
+    if (paymentRate < 0.85 || loanBalance > 120000) {
+      return "medium";
+    }
+    return "low";
+  };
+
+  const deriveTrend = (customer) => {
+    const paymentRate = customer.onTimePaymentRate ?? 0;
+    if (paymentRate >= 0.95) return "up";
+    if (paymentRate >= 0.80) return "stable";
+    return "down";
+  };
+
+  const deriveCreditScore = (customer) => {
+    const paymentRate = customer.onTimePaymentRate ?? 0.7;
+    const loanBalance = customer.loanBalance ?? 0;
+    const balanceFactor = Math.max(0, Math.min(1, 1 - loanBalance / 500000));
+    const score = Math.round(300 + paymentRate * 400 + balanceFactor * 150 + (customer.accounts || 1) * 20);
+    return Math.max(300, Math.min(850, score));
+  };
+
+  const deriveDaysPastDue = (customer) => {
+    const paymentRate = customer.onTimePaymentRate ?? 0.7;
+    if (paymentRate >= 0.95) return 0;
+    if (paymentRate >= 0.85) return 7;
+    if (paymentRate >= 0.70) return 28;
+    if (paymentRate >= 0.50) return 60;
+    return 90;
   };
 
   const getTrendIcon = (trend) => {
     if (trend === "up") return "↑";
     if (trend === "down") return "↓";
     return "→";
-  };
-
-  const calculateCustomerHealthScore = (customer) => {
-    const loanImpact = Math.min(260, Math.round((customer.loanBalance || 0) / 1000));
-    const paymentScore = Math.round((customer.onTimePaymentRate ?? 0.75) * 260);
-    const accountBonus = Math.min(80, (customer.accounts || 1) * 10);
-    const riskAdjustment = {
-      critical: -220,
-      high: -120,
-      medium: -60,
-      low: 40
-    }[customer.riskLevel] ?? 0;
-    const trendAdjustment = customer.trend === "up" ? 40 : customer.trend === "down" ? -40 : 0;
-    const raw = 520 + paymentScore + accountBonus + trendAdjustment + riskAdjustment - loanImpact;
-    return Math.max(0, Math.min(900, raw));
-  };
-
-  const getHealthBand = (score) => {
-    if (score < 200) return "Critical";
-    if (score < 400) return "Fragile";
-    if (score < 600) return "Developing";
-    if (score < 800) return "Resilient";
-    return "Sovereign";
   };
 
   const filteredCustomers = customers.filter((c) => {
@@ -150,16 +174,34 @@ const CustomerIntelligence = memo(() => {
     if (!newCustomer.name || !newCustomer.id) {
       return;
     }
-    setCustomers((prev) => [newCustomer, ...prev]);
+
+    const derivedRiskLevel = deriveRiskLevel(newCustomer);
+    const derivedTrend = deriveTrend(newCustomer);
+    const derivedCreditScore = deriveCreditScore(newCustomer);
+    const derivedDpD = deriveDaysPastDue(newCustomer);
+    const healthScore = calculateCustomerHealthScore({
+      ...newCustomer,
+      riskLevel: derivedRiskLevel,
+      trend: derivedTrend
+    });
+
+    const customerEntry = {
+      ...newCustomer,
+      lastAssessment: new Date().toISOString().slice(0, 10),
+      riskLevel: derivedRiskLevel,
+      trend: derivedTrend,
+      creditScore: derivedCreditScore,
+      dpd: derivedDpD,
+      loanType: determineLoanType(newCustomer),
+      band: getHealthBand(healthScore),
+      status: derivedRiskLevel === "high" || derivedRiskLevel === "critical" ? "alert" : "active"
+    };
+
+    setCustomers((prev) => [customerEntry, ...prev]);
     setShowAddForm(false);
     setNewCustomer({
       name: "",
       id: "",
-      band: "Developing",
-      status: "active",
-      lastAssessment: "2024-06-20",
-      riskLevel: "medium",
-      trend: "stable",
       accounts: 1,
       loanBalance: 0,
       onTimePaymentRate: 0.92

@@ -25,13 +25,15 @@ export default function EnterpriseLoginPage() {
         <div style={{ display: "flex", alignItems: "center", gap: 10, color: "var(--ink-0)" }}>
           <Building2 size={18} />
           <span style={{ fontWeight: 700, fontSize: 12, color: "var(--ink-2)" }}>
-            Enterprise portal
+            ARTH.OS Enterprise Login
           </span>
         </div>
       </div>
 
       <div>
         <LoginPage
+          title="Enterprise sign in"
+          subtitle="Secure access for NBFC and loan operations teams."
           onSwitchToRegister={() => navigate("/enterprise-register")}
           onClose={() => navigate("/enterprise", { replace: true })}
         />

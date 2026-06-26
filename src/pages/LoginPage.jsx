@@ -4,7 +4,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext.jsx";
 import { LogIn, Mail, Lock, AlertCircle, Eye, EyeOff, ArrowRight, Sparkles } from "lucide-react";
 
-export default function LoginPage({ onSwitchToRegister, onClose }) {
+export default function LoginPage({ onSwitchToRegister, onClose, title = "Welcome back", subtitle = "Sign in to your ARTH.OS account to continue your financial journey." }) {
   const { login, loginWithToken, error, loading, clearError } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
@@ -71,8 +71,8 @@ export default function LoginPage({ onSwitchToRegister, onClose }) {
           <div className="auth-icon-wrapper">
             <LogIn size={28} />
           </div>
-          <h2>Welcome back</h2>
-          <p>Sign in to your ARTH.OS account to continue your financial journey.</p>
+          <h2>{title}</h2>
+          <p>{subtitle}</p>
         </div>
 
         <button

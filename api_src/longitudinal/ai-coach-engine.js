@@ -214,8 +214,17 @@ class AICoachEngine {
           message_order: messageOrder
         });
 
+      // --- EMI Risk Demo ---
+      // In a real implementation, this context would be passed in if the user is flagged by the loan-ews-job.
+      const emiRiskContext = {
+        amount: 5200,
+        dueDate: '2024-07-05',
+        shortfall: 1500
+      };
+      // --- End EMI Risk Demo ---
+
       // Generate coach response using GPT-4
-      const systemPrompt = this.generateSystemPrompt(cognitionData, coachMemory, sessionContext);
+      const systemPrompt = this.generateSystemPrompt(cognitionData, coachMemory, sessionContext, emiRiskContext);
       const conversationHistory = this.formatConversationHistory(messageHistory);
 
       const messages = [
@@ -276,7 +285,52 @@ class AICoachEngine {
   /**
    * Generate system prompt for coach based on user context
    */
-  static generateSystemPrompt(cognitionData, coachMemory, sessionContext) {
+  static buildEmiRecoveryPrompt(cognitionData, emiDetails) {
+    const { amount, dueDate, shortfall } = emiDetails;
+    const userFirstName = cognitionData.userName?.split(' ')[0] || 'there';
+
+    // Guidance for the AI based on user's financial state
+    let recoveryDirective = '';
+    if (cognitionData.survivalWindow < 30) {
+      recoveryDirective = `The user has less than a 30-day financial runway. The approach must be extremely sensitive, focusing on immediate, small, actionable steps to mitigate the shortfall without causing panic. Prioritize preserving their financial stability above all else.`;
+    } else if (shortfall > amount * 0.5) {
+      recoveryDirective = `The user's liquidity shortfall (₹${shortfall.toLocaleString()}) is significant compared to the EMI amount. The user may be feeling overwhelmed. Your primary goal is to de-escalate anxiety and collaboratively explore ALL possible options (e.g., partial payment, temporary hardship programs, restructuring). Avoid prescriptive solutions.`;
+    } else {
+      recoveryDirective = `The user has a manageable liquidity shortfall. Your tone should be encouraging and proactive. Frame this as a minor hurdle that can be overcome with a clear plan. Focus on building a strategy to cover the ₹${shortfall.toLocaleString()} gap before the due date.`;
+    }
+
+    return `
+*** URGENT: EMI RECOVERY MODE ACTIVATED ***
+This is a high-priority intervention. The user is at risk of missing an upcoming EMI payment. Your primary directive is to act as a financial wellness ally, not a collection agent. Your tone must be empathetic, supportive, and solutions-oriented.
+
+USER'S FINANCIAL REALITY:
+- User Name: ${userFirstName}
+- Upcoming EMI: ₹${amount.toLocaleString()} due on ${new Date(dueDate).toLocaleDateString('en-IN', { month: 'long', day: 'numeric' })}
+- Estimated Liquidity Shortfall: ₹${shortfall.toLocaleString()}
+- Key Cognitive Bias: ${cognitionData.topBias?.bias_name || 'Not identified'} - consider how this might impact their reaction to this stress.
+
+COACHING DIRECTIVE:
+1.  **Acknowledge & Validate:** Start by acknowledging the stress this situation can cause. Use phrases like, "I understand this can be worrying," or "It's okay to feel concerned, let's figure this out together."
+2.  **Collaborative Problem-Solving:** Frame the conversation as a partnership. Use "we" and "us." Your goal is to help them build a plan they feel confident in.
+3.  **Explore, Don't Prescribe:** Guide them to explore their own resources and options first. Ask questions like:
+    - "What are some initial thoughts on how we might be able to bridge this gap?"
+    - "Are there any upcoming inflows or flexible expenses we could look at?"
+4.  **Provide Hope & Agency:** Reassure them that there are options and that taking action now is the most powerful thing they can do.
+5.  **Follow Recovery-Specific Guidance:** ${recoveryDirective}
+
+Your immediate goal is to help the user create a viable plan to meet their EMI obligation and reduce their financial anxiety.
+*** END EMI RECOVERY MODE ***
+`;
+  }
+
+  /**
+   * Generate system prompt for coach based on user context
+   */
+  static generateSystemPrompt(cognitionData, coachMemory, sessionContext, emiRiskContext = null) {
+    if (emiRiskContext) {
+      return this.buildEmiRecoveryPrompt(cognitionData, emiRiskContext);
+    }
+
     const coachingStyle = coachMemory?.preferred_coaching_style || 'compassionate';
     const theme = sessionContext?.session_theme || 'general_guidance';
 

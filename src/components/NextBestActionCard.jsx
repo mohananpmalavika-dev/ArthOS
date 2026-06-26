@@ -1,33 +1,57 @@
 import React, { useMemo } from "react";
-import { TrendingUp, Clock, Zap, ChevronRight } from "lucide-react";
+import { TrendingUp, Clock, Zap, ChevronRight, Phone, MessageSquare, DollarSign } from "lucide-react";
 
-export default function NextBestActionCard({ result, assessment, onExpand }) {
-  const action = useMemo(() => {
-    if (!result) return null;
+const generateLendingActions = (customer, defaultRisk) => {
+  if (!customer || !defaultRisk) return null;
 
-    // Prioritize actions by impact and readiness level
-    // The "next best move" should be:
-    // 1. Highest impact
-    // 2. Medium difficulty (achievable)
-    // 3. Can be done in 30-90 days
-    
-    const recommendedAction = {
-      title: "Build ₹20,000 Emergency Buffer",
-      impact: 8,
-      difficulty: "Medium",
-      timeframe: "45 days",
-      description: "Your biggest vulnerability is lack of emergency reserves. Building a 20K buffer will provide resilience.",
-      story: "When unexpected expenses hit (and they will), you'll have a cushion. This single move improves your financial security by 8 points.",
-      why: "Emergency funds are your financial immune system. Without them, any disruption becomes a crisis.",
-      steps: [
-        "Automate ₹500/week transfer to savings",
-        "Skip one discretionary expense per week (coffee, dining)",
-        "Redirect any bonus or windfall to this goal"
-      ]
+  const risk = defaultRisk.riskCategory;
+
+  if (risk === 'Very High' || risk === 'High') {
+    return {
+      title: "Initiate High-Priority Collections Process",
+      impact: 9,
+      difficulty: "High",
+      timeframe: "Immediate",
+      description: `Customer ${customer.name} is at a high risk of default. Immediate action is required to mitigate loss.`,
+      story: "Prioritizing collections for high-risk accounts is crucial for portfolio health. This action focuses on recovering the outstanding balance.",
+      why: "The default prediction model has flagged this customer as high-risk. The sooner we engage, the higher the probability of successful recovery.",
+      icon: Phone,
     };
+  }
 
-    return recommendedAction;
-  }, [result, assessment]);
+  if (risk === 'Medium') {
+    return {
+      title: "Schedule a Payment Reminder Call",
+      impact: 6,
+      difficulty: "Low",
+      timeframe: "1-2 days",
+      description: `Proactively engage with ${customer.name} to ensure they are aware of their upcoming payment.`,
+      story: "A simple reminder can often prevent a payment from becoming late. This is a low-cost way to keep customers on track.",
+      why: "The customer is showing early signs of potential risk. A proactive reminder can help them stay current.",
+      icon: MessageSquare,
+    };
+  }
+
+  if (risk === 'Low') {
+    return {
+      title: "Offer a Pre-Approved Top-Up Loan",
+      impact: 7,
+      difficulty: "Medium",
+      timeframe: "5-7 days",
+      description: `Offer ${customer.name} a pre-approved top-up loan of ₹50,000.`,
+      story: "This customer has an excellent payment history. Offering them additional credit is a great way to increase revenue from a reliable client.",
+      why: "The customer's low-risk profile and excellent payment history make them a prime candidate for cross-selling.",
+      icon: DollarSign,
+    };
+  }
+
+  return null;
+};
+
+export default function NextBestActionCard({ customer, defaultRisk, onExpand }) {
+  const action = useMemo(() => {
+    return generateLendingActions(customer, defaultRisk);
+  }, [customer, defaultRisk]);
 
   if (!action) {
     return (
