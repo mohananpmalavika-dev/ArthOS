@@ -73,58 +73,37 @@ export default function DecisionSimulator({ id, profile, behaviour, assessment }
       </p>
 
       {/* 3-Path Scenario Overview */}
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(3, 1fr)",
-          gap: "var(--space-3)",
-          marginBottom: "var(--space-5)",
-        }}
-      >
+      <div className="simulator-path-grid">
         {Object.entries(paths).map(([key, path]) => {
           const Icon = path.icon;
           return (
             <div
               key={key}
-              style={{
-                padding: "var(--space-3)",
-                borderRadius: "var(--radius-2)",
-                border: `1px solid ${path.color}`,
-                backgroundColor: "var(--surface-2)",
-              }}
+              className="simulator-path-card"
+              style={{ "--path-color": path.color }}
             >
-              <div style={{ display: "flex", alignItems: "center", gap: "var(--space-2)", marginBottom: "var(--space-2)" }}>
-                <Icon size={18} style={{ color: path.color }} />
-                <strong style={{ color: "var(--ink-0)" }}>{path.label}</strong>
+              <div className="simulator-path-title">
+                <Icon size={18} />
+                <strong>{path.label}</strong>
               </div>
-              <p style={{ color: "var(--ink-2)", fontSize: "var(--type-xs)", marginBottom: "var(--space-2)", margin: 0 }}>
-                {path.description}
-              </p>
-              <div style={{ backgroundColor: "var(--surface-2)", padding: "var(--space-2)", borderRadius: "var(--radius-1)", border: "1px solid rgba(255,255,255,0.08)" }}>
-                <div style={{ fontSize: "var(--type-xs)", color: "var(--ink-3)", marginBottom: "var(--space-1)" }}>
-                  60-month runway:
-                </div>
-                <strong style={{ fontSize: "var(--type-lg)", color: path.color }}>
-                  {path.resultMonths.toFixed(1)} months
-                </strong>
+              <p>{path.description}</p>
+              <div className="simulator-path-metric">
+                <span>60-month runway</span>
+                <strong>{path.resultMonths.toFixed(1)} months</strong>
               </div>
-              <div style={{ marginTop: "var(--space-2)", fontSize: "var(--type-xs)", textAlign: "center" }}>
-                <span style={{ backgroundColor: path.color, color: "white", padding: "2px 6px", borderRadius: "3px" }}>
-                  {path.riskLevel} Risk
-                </span>
-              </div>
+              <span className="simulator-path-risk">{path.riskLevel} Risk</span>
             </div>
           );
         })}
       </div>
 
       {/* Interactive Simulator Section */}
-      <div style={{ marginTop: "var(--space-5)", paddingTop: "var(--space-4)", borderTop: "2px solid rgba(98, 228, 209, 0.16)" }}>
-        <h3 style={{ color: "var(--ink-0)", marginBottom: "var(--space-3)", display: "flex", alignItems: "center", gap: "var(--space-2)" }}>
+      <div className="simulator-test-section">
+        <h3>
           <AlertCircle size={16} />
           Test a Decision
         </h3>
-        <p style={{ color: "var(--ink-2)", fontSize: "var(--type-xs)", marginBottom: "var(--space-3)" }}>
+        <p>
           Simulate an unplanned expense to see its impact on your runway and risk profile.
         </p>
       </div>

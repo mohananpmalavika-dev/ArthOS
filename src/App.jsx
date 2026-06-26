@@ -1743,7 +1743,7 @@ export default function App({ demoMode = false }) {
         </div>
       )}
 
-      <main>
+      <main className="app-main">
         {isDashboardRoute ? (
           showNotificationsPage ? (
             <section className="dashboard-page">
