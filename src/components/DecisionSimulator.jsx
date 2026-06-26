@@ -48,7 +48,7 @@ export default function DecisionSimulator({ id, profile, behaviour, assessment }
       resultMonths: Math.max(3, baselineMonths * 0.85),
       riskLevel: "High",
       icon: TrendingUp,
-      color: "var(--orange-700)",
+      color: "var(--purple-500)",
     },
   }), [baselineMonths, monthlyBurn]);
 
