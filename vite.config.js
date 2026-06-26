@@ -267,7 +267,10 @@ export default defineConfig({
   build: {
     target: "esnext",
     // Use esbuild minifier to avoid potential terser hoisting bugs
-    minify: "esbuild",
+    // Temporary mitigation: avoid potential TDZ/minification issues in vendor chart bundles
+    // (Recharts vendor chunk was throwing: "Cannot access 'De' before initialization")
+    minify: false,
+
     sourcemap: true,
     chunkSizeWarningLimit: 600,
     rollupOptions: {

@@ -15,6 +15,7 @@ import emailVerifyHandler from '../api_src/auth/email-verify.js';
 import passwordResetHandler from '../api_src/auth/password-reset.js';
 import b2bAdminHandler from '../api_src/b2b/admin.js';
 import b2bIntelligenceHandler from '../api_src/b2b/intelligence.js';
+import b2bBorrowerIntelligenceHandler from '../api_src/b2b/borrower-intelligence.js';
 import b2bRegisterHandler from '../api_src/b2b/register.js';
 import b2bValidateKeyHandler from '../api_src/b2b/validate-key.js';
 import b2bWebhooksHandler from '../api_src/b2b/webhooks.js';
@@ -76,6 +77,7 @@ const routeDefinitions = [
   { match: (pathname) => pathname === '/api/auth/resend-verify', handler: emailVerifyHandler },
   { match: (pathname) => pathname.startsWith('/api/auth/reset-password'), handler: passwordResetHandler },
   { match: (pathname) => pathname === '/api/b2b/intelligence', handler: b2bIntelligenceHandler },
+  { match: (pathname) => pathname === '/api/b2b/borrower-intelligence', handler: b2bBorrowerIntelligenceHandler },
   { match: (pathname) => pathname === '/api/b2b/register', handler: b2bRegisterHandler },
   { match: (pathname) => pathname === '/api/b2b/validate-key', handler: b2bValidateKeyHandler },
   { match: (pathname) => pathname === '/api/config/capabilities', handler: capabilitiesHandler },
