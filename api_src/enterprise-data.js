@@ -15,6 +15,8 @@ const ENTERPRISE_CUSTOMERS = [
   {
     id: "BRW-1007",
     name: "Sarah Chen",
+    mobile: "9876501007",
+    loanNumber: "LN-1007",
     region: "Northwest",
     segment: "Salaried prime",
     loanType: "Personal Loan",
@@ -73,6 +75,8 @@ const ENTERPRISE_CUSTOMERS = [
   {
     id: "BRW-1044",
     name: "Amit Rao",
+    mobile: "9876501044",
+    loanNumber: "LN-1044",
     region: "South",
     segment: "Small business",
     loanType: "Business Loan",
@@ -131,6 +135,8 @@ const ENTERPRISE_CUSTOMERS = [
   {
     id: "BRW-1120",
     name: "Priya Menon",
+    mobile: "9876501120",
+    loanNumber: "LN-1120",
     region: "West",
     segment: "Salaried affluent",
     loanType: "Mortgage",
@@ -189,6 +195,8 @@ const ENTERPRISE_CUSTOMERS = [
   {
     id: "BRW-1199",
     name: "Daniel Brooks",
+    mobile: "9876501199",
+    loanNumber: "LN-1199",
     region: "Central",
     segment: "Gig worker",
     loanType: "Micro Loan",
@@ -247,6 +255,8 @@ const ENTERPRISE_CUSTOMERS = [
   {
     id: "BRW-1261",
     name: "Neha Kapoor",
+    mobile: "9876501261",
+    loanNumber: "LN-1261",
     region: "North",
     segment: "Young professional",
     loanType: "Education Loan",
@@ -402,6 +412,8 @@ function normalizeCustomer(customer) {
   return {
     id: customer.id,
     name: customer.name,
+    mobile: customer.mobile,
+    loanNumber: customer.loanNumber || customer.id,
     region: customer.region,
     segment: customer.segment,
     loanType: customer.loanType,

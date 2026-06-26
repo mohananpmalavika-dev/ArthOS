@@ -9,6 +9,15 @@ const CUSTOMER_FIELD_ALIASES = {
     "loanaccount"
   ],
   name: ["name", "customer_name", "customername", "borrower", "borrower_name", "borrowername"],
+  mobile: ["mobile", "mobile_number", "mobilenumber", "phone", "phone_number", "phonenumber"],
+  loanNumber: [
+    "loan_number",
+    "loannumber",
+    "loan_account",
+    "loanaccount",
+    "account_number",
+    "accountnumber"
+  ],
   region: ["region", "zone", "branch_region", "branchregion"],
   segment: [
     "segment",
@@ -186,6 +195,8 @@ function normalizeCustomer(row, index) {
   const name = String(
     pick(normalized, CUSTOMER_FIELD_ALIASES.name, `Imported Customer ${index + 1}`)
   ).trim();
+  const loanNumber = String(pick(normalized, CUSTOMER_FIELD_ALIASES.loanNumber, id)).trim();
+  const mobile = String(pick(normalized, CUSTOMER_FIELD_ALIASES.mobile, "")).trim();
   const loanBalance = parseNumber(pick(normalized, CUSTOMER_FIELD_ALIASES.loanBalance), 0);
   const emi = parseNumber(pick(normalized, CUSTOMER_FIELD_ALIASES.emi), 0);
   const dpd = parseNumber(pick(normalized, CUSTOMER_FIELD_ALIASES.dpd), 0);
@@ -213,6 +224,8 @@ function normalizeCustomer(row, index) {
   return {
     id,
     name,
+    mobile,
+    loanNumber,
     region: String(pick(normalized, CUSTOMER_FIELD_ALIASES.region, "Unassigned")),
     segment: String(pick(normalized, CUSTOMER_FIELD_ALIASES.segment, "Imported")),
     loanType: String(pick(normalized, CUSTOMER_FIELD_ALIASES.loanType, "Loan")),

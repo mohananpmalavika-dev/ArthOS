@@ -16374,6 +16374,125 @@ body,
   line-height: 1.45;
 }
 
+.enterprise-link-card {
+  display: grid;
+  gap: 0.8rem;
+  margin-top: 0.9rem;
+  padding: 1rem;
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  border-radius: 10px;
+  background: rgba(15, 23, 42, 0.58);
+}
+
+.enterprise-link-input {
+  width: 100%;
+  min-width: 0;
+  padding: 0.75rem 0.85rem;
+  border: 1px solid rgba(148, 163, 184, 0.28);
+  border-radius: 8px;
+  background: rgba(2, 6, 23, 0.78);
+  color: rgba(255, 255, 255, 0.86);
+  font-size: 0.85rem;
+}
+
+.enterprise-link-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.7rem;
+}
+
+.enterprise-link-actions a {
+  text-decoration: none;
+}
+
+.customer-assessment-page {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 2rem;
+  background:
+    linear-gradient(135deg, rgba(8, 47, 73, 0.72), rgba(15, 23, 42, 0.96)),
+    #020617;
+  color: #f8fafc;
+}
+
+.customer-assessment-panel {
+  width: min(920px, 100%);
+  padding: 1.25rem;
+  border: 1px solid rgba(148, 163, 184, 0.22);
+  border-radius: 10px;
+  background: rgba(15, 23, 42, 0.92);
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.32);
+}
+
+.customer-assessment-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.customer-assessment-header h1 {
+  margin: 0.45rem 0 0.35rem;
+  font-size: clamp(1.7rem, 3vw, 2.4rem);
+}
+
+.customer-assessment-header p {
+  margin: 0;
+  color: rgba(226, 232, 240, 0.78);
+  line-height: 1.5;
+}
+
+.customer-assessment-form {
+  display: grid;
+  gap: 1rem;
+}
+
+.customer-assessment-form label {
+  display: grid;
+  gap: 0.45rem;
+  color: rgba(226, 232, 240, 0.82);
+  font-size: 0.9rem;
+}
+
+.customer-assessment-form input,
+.customer-assessment-form select {
+  width: 100%;
+  min-width: 0;
+  padding: 0.8rem 0.9rem;
+  border: 1px solid rgba(148, 163, 184, 0.28);
+  border-radius: 8px;
+  background: rgba(2, 6, 23, 0.74);
+  color: #fff;
+}
+
+.customer-assessment-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 1rem;
+}
+
+.customer-assessment-result {
+  display: grid;
+  gap: 0.35rem;
+  padding: 1rem;
+  border: 1px solid rgba(34, 197, 94, 0.28);
+  border-radius: 10px;
+  background: rgba(22, 101, 52, 0.18);
+}
+
+.customer-assessment-result strong {
+  font-size: 2rem;
+  line-height: 1;
+}
+
+.customer-assessment-result span,
+.customer-assessment-result p {
+  margin: 0;
+  color: rgba(226, 232, 240, 0.86);
+}
+
 .enterprise-customers-table tbody tr {
   cursor: pointer;
 }

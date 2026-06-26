@@ -2,6 +2,7 @@ import React, { Suspense } from "react";
 import LaunchPage from "./pages/LaunchPage.jsx";
 import EnterpriseLoginPage from "./pages/EnterpriseLoginPage.jsx";
 import EnterpriseRegisterPage from "./pages/EnterpriseRegisterPage.jsx";
+import EnterpriseCustomerAssessmentPage from "./pages/EnterpriseCustomerAssessmentPage.jsx";
 
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import App from "./App.jsx";
@@ -71,6 +72,7 @@ function AppRouter() {
           <Route path="/login" element={<LoginPage />} />
           <Route path="/enterprise-login" element={<EnterpriseLoginPage />} />
           <Route path="/enterprise-register" element={<EnterpriseRegisterPage />} />
+          <Route path="/customer-assessment/:token" element={<EnterpriseCustomerAssessmentPage />} />
           <Route path="/register" element={<RegisterPage />} />
 
           <Route

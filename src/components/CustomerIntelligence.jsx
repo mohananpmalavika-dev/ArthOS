@@ -1,7 +1,21 @@
 import React, { memo, useEffect, useMemo, useRef, useState } from "react";
-import { AlertCircle, FileSpreadsheet, Search, UploadCloud, UserPlus } from "lucide-react";
+import {
+  AlertCircle,
+  Clipboard,
+  FileSpreadsheet,
+  Mail,
+  MessageSquare,
+  Search,
+  UploadCloud,
+  UserPlus
+} from "lucide-react";
 import { useEnterpriseAuth } from "../context/EnterpriseAuthContext.jsx";
 import { createEnterpriseApi } from "../lib/enterpriseApi.js";
+import {
+  buildCustomerAssessmentLink,
+  getCustomerLoanNumber,
+  getCustomerMobile
+} from "../lib/enterpriseAssessmentInvite.js";
 import { readEnterpriseCustomerFile } from "../lib/enterpriseCustomerImport.js";
 
 const riskOptions = [
@@ -48,6 +62,7 @@ const CustomerIntelligence = memo(() => {
   const [error, setError] = useState(null);
   const [importError, setImportError] = useState(null);
   const [importSummary, setImportSummary] = useState(null);
+  const [linkStatus, setLinkStatus] = useState(null);
   const [reloadToken, setReloadToken] = useState(0);
   const fileInputRef = useRef(null);
 
@@ -132,11 +147,32 @@ const CustomerIntelligence = memo(() => {
     setUploadedCustomers(null);
     setImportError(null);
     setImportSummary(null);
+    setLinkStatus(null);
     setReloadToken(value => value + 1);
   }
 
   const selectedCustomer =
     customers.find(customer => customer.id === selectedId) || customers[0] || null;
+  const selectedAssessmentLink = selectedCustomer
+    ? buildCustomerAssessmentLink(selectedCustomer)
+    : "";
+  const selectedMobile = selectedCustomer ? getCustomerMobile(selectedCustomer) : "";
+  const selectedLoanNumber = selectedCustomer ? getCustomerLoanNumber(selectedCustomer) : "";
+  const assessmentMessage = selectedCustomer
+    ? `Hi ${selectedCustomer.name}, complete your ARTH.OS financial assessment here: ${selectedAssessmentLink}. Use your mobile number and loan number ${selectedLoanNumber} to access it.`
+    : "";
+
+  async function handleCopyAssessmentLink() {
+    if (!selectedAssessmentLink) {
+      return;
+    }
+    try {
+      await navigator.clipboard.writeText(selectedAssessmentLink);
+      setLinkStatus("Assessment link copied.");
+    } catch {
+      setLinkStatus("Copy failed. Select and copy the link manually.");
+    }
+  }
 
   return (
     <div className="enterprise-customer-intelligence">
@@ -310,6 +346,37 @@ const CustomerIntelligence = memo(() => {
                     : ""}
                 </span>
               </div>
+              <div className="enterprise-insight-strip">
+                <strong>Customer assessment</strong>
+                <span>
+                  Verify with mobile {selectedMobile || "not configured"} and loan number{" "}
+                  {selectedLoanNumber || "not configured"}.
+                </span>
+              </div>
+              <div className="enterprise-link-card">
+                <input className="enterprise-link-input" value={selectedAssessmentLink} readOnly />
+                <div className="enterprise-link-actions">
+                  <button className="enterprise-btn-secondary" onClick={handleCopyAssessmentLink}>
+                    <Clipboard size={16} />
+                    Copy Link
+                  </button>
+                  <a
+                    className="enterprise-btn-secondary"
+                    href={`sms:${selectedMobile || ""}?&body=${encodeURIComponent(assessmentMessage)}`}
+                  >
+                    <MessageSquare size={16} />
+                    SMS
+                  </a>
+                  <a
+                    className="enterprise-btn-secondary"
+                    href={`mailto:?subject=${encodeURIComponent("ARTH.OS customer assessment")}&body=${encodeURIComponent(assessmentMessage)}`}
+                  >
+                    <Mail size={16} />
+                    Email
+                  </a>
+                </div>
+              </div>
+              {linkStatus && <div className="enterprise-empty-state">{linkStatus}</div>}
             </div>
           ) : (
             <div className="enterprise-empty-state">No customers match this filter.</div>
