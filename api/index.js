@@ -60,6 +60,8 @@ const routeDefinitions = [
   { match: (pathname) => pathname === '/api/cognition/build-profile', handler: engineContractsHandler },
   { match: (pathname) => pathname === '/api/cognition/beliefs/analyze', handler: engineContractsHandler },
   { match: (pathname) => pathname === '/api/loan-health/calculate', handler: engineContractsHandler },
+  { match: (pathname) => pathname === '/api/loan-default/predict', handler: engineContractsHandler },
+  { match: (pathname) => pathname === '/api/opportunity/forecast', handler: engineContractsHandler },
   { match: (pathname) => pathname === '/api/model-registry' || pathname === '/api/governance/model-registry', handler: modelRegistryHandler },
   { match: (pathname) => pathname === '/api/decision', handler: decisionHandler },
   { match: (pathname) => pathname === '/api/risk-score', handler: riskScoreHandler },

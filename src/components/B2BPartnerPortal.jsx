@@ -8,8 +8,10 @@ import {
   VALIDATION_FIELDS,
   COMMON_ACTIONS
 } from "../lib/copy.ts";
-import { opportunityForecast } from "../engines/opportunityForecastEngine.js";
-import { calculateLoanHealth } from "../engines/LoanHealthEngine.ts";
+import {
+  calculateLoanHealthOnServer,
+  forecastOpportunityOnServer
+} from "../lib/serverEngineClient.js";
 
 const tabs = [...B2B_TABS, { id: "forecast", label: "Opportunity Forecast" }];
 
@@ -1392,12 +1394,50 @@ function OpportunityForecastTab() {
     },
   ];
 
-  // Calculate opportunities and loan health for each user
-  const opportunities = useMemo(() => mockUsers.map(user => ({
-    ...user,
-    forecast: opportunityForecast(user.profile),
-    loanHealth: calculateLoanHealth(user.profile),
-  })), []);
+  const [opportunities, setOpportunities] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    setLoading(true);
+    setError(null);
+
+    Promise.all(
+      mockUsers.map(async user => {
+        const [forecast, loanHealth] = await Promise.all([
+          forecastOpportunityOnServer(user.profile),
+          calculateLoanHealthOnServer(user.profile)
+        ]);
+
+        return {
+          ...user,
+          forecast,
+          loanHealth
+        };
+      })
+    )
+      .then(results => {
+        if (!cancelled) {
+          setOpportunities(results);
+        }
+      })
+      .catch(err => {
+        if (!cancelled) {
+          setOpportunities([]);
+          setError(err.message || "Unable to load server-side opportunity forecast");
+        }
+      })
+      .finally(() => {
+        if (!cancelled) {
+          setLoading(false);
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   // Define the next best action based on user profile
   const getNextBestAction = (user) => {
@@ -1438,6 +1478,24 @@ function OpportunityForecastTab() {
       default: return '';
     }
   };
+
+  if (loading) {
+    return (
+      <div className="opportunity-forecast-container">
+        <h2 className="partner-section-title">Next Best Action Queue</h2>
+        <p className="partner-section-description">Loading server-side borrower intelligence...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="opportunity-forecast-container">
+        <h2 className="partner-section-title">Next Best Action Queue</h2>
+        <div className="partner-alert partner-alert-error">{error}</div>
+      </div>
+    );
+  }
 
   return (
     <div className="opportunity-forecast-container">

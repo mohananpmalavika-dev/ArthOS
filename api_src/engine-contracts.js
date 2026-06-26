@@ -11,6 +11,8 @@ import {
   buildCognitionProfile
 } from './services/cognitionEngine.js';
 import { calculateLoanHealth } from './services/loanHealthEngine.js';
+import { predictLoanDefault } from './services/defaultPredictionEngine.js';
+import { forecastOpportunity } from './services/opportunityEngine.js';
 
 function getPathname(req) {
   const original = req.headers?.['x-vercel-original-url'] || req.headers?.['x-now-original-url'] || req.url || '/';
@@ -146,6 +148,28 @@ export async function handleLoanHealthCalculate(req, res) {
   });
 }
 
+export async function handleLoanDefaultPredict(req, res) {
+  setCors(res);
+  if (!validatePost(req, res)) return;
+
+  const result = predictLoanDefault(req.body || {});
+  return ok(res, {
+    contractVersion: 'loan-default.predict.v1',
+    defaultRisk: result
+  });
+}
+
+export async function handleOpportunityForecast(req, res) {
+  setCors(res);
+  if (!validatePost(req, res)) return;
+
+  const result = forecastOpportunity(req.body || {});
+  return ok(res, {
+    contractVersion: 'opportunity.forecast.v1',
+    forecast: result
+  });
+}
+
 export default async function handler(req, res) {
   const pathname = getPathname(req);
 
@@ -157,6 +181,8 @@ export default async function handler(req, res) {
     if (pathname === '/api/cognition/build-profile') return handleCognitionBuildProfile(req, res);
     if (pathname === '/api/cognition/beliefs/analyze') return handleCognitionBeliefsAnalyze(req, res);
     if (pathname === '/api/loan-health/calculate') return handleLoanHealthCalculate(req, res);
+    if (pathname === '/api/loan-default/predict') return handleLoanDefaultPredict(req, res);
+    if (pathname === '/api/opportunity/forecast') return handleOpportunityForecast(req, res);
 
     return res.status(404).json({ error: 'Engine contract route not found' });
   } catch (error) {

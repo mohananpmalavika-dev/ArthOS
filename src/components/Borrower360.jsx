@@ -1,7 +1,7 @@
-import React, { useMemo } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { User, Briefcase, Calendar, TrendingUp, AlertTriangle, DollarSign, CheckCircle, XCircle } from "lucide-react";
 import ScoreRing from "./ScoreRing";
-import { calculateDefaultProbability } from "../engines/mlDefaultPredictionEngine";
+import { predictLoanDefault } from "../lib/serverEngineClient.js";
 import NextBestActionCard from "./NextBestActionCard";
 
 const Borrower360 = ({ customer }) => {
@@ -24,9 +24,41 @@ const Borrower360 = ({ customer }) => {
     };
   }, [customer]);
 
-  const defaultRisk = useMemo(() => {
-    if (!customer || !history) return null;
-    return calculateDefaultProbability(customer, history);
+  const [defaultRisk, setDefaultRisk] = useState(null);
+  const [riskLoading, setRiskLoading] = useState(false);
+  const [riskError, setRiskError] = useState(null);
+
+  useEffect(() => {
+    if (!customer || !history) {
+      setDefaultRisk(null);
+      return;
+    }
+
+    let cancelled = false;
+    setRiskLoading(true);
+    setRiskError(null);
+
+    predictLoanDefault(customer, history)
+      .then(result => {
+        if (!cancelled) {
+          setDefaultRisk(result);
+        }
+      })
+      .catch(error => {
+        if (!cancelled) {
+          setDefaultRisk(null);
+          setRiskError(error.message || "Unable to load default risk");
+        }
+      })
+      .finally(() => {
+        if (!cancelled) {
+          setRiskLoading(false);
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
   }, [customer, history]);
 
   if (!customer) {
@@ -34,7 +66,7 @@ const Borrower360 = ({ customer }) => {
   }
 
   const healthScore = customer.creditScore; 
-  const riskCategory = defaultRisk ? defaultRisk.riskCategory : "Low";
+  const riskCategory = defaultRisk ? defaultRisk.riskCategory : riskLoading ? "Loading" : "Unavailable";
 
   return (
     <div className="borrower-360-dashboard">
@@ -94,8 +126,11 @@ const Borrower360 = ({ customer }) => {
               </div>
               <div className="risk-metric">
                 <span>Default Risk</span>
-                <strong className={riskCategory.toLowerCase().replace(' ', '-')}>{riskCategory} ({defaultRisk?.riskScore}%)</strong>
+                <strong className={riskCategory.toLowerCase().replace(" ", "-")}>
+                  {defaultRisk ? `${riskCategory} (${defaultRisk.riskScore}%)` : riskCategory}
+                </strong>
               </div>
+              {riskError && <p className="enterprise-error-text">{riskError}</p>}
               <div className="risk-metric">
                 <span>Days Past Due</span>
                 <strong>{customer.dpd}</strong>
