@@ -24,9 +24,7 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const isLocalDevHost =
-    typeof window !== "undefined" &&
-    (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1");
+
 
   // Define syncLocalDataToServer BEFORE first useEffect that uses it
   const syncLocalDataToServer = useCallback(async (userId, authToken) => {
@@ -50,27 +48,15 @@ export function AuthProvider({ children }) {
         if (stored) {
           const parsed = JSON.parse(stored);
           if (parsed.token && parsed.user) {
-            // Local dev convenience: accept a 'dev-token' without remote validation
-            const isLocalhost = window.location.hostname === "localhost" ||
-              window.location.hostname === "127.0.0.1";
-            if (isLocalhost && parsed.token === "dev-token") {
-              setToken(parsed.token);
-              setUser(parsed.user);
-              // Do not attempt remote validation in dev shortcut
-              if (!cancelled) {
-                setLoading(false);
-              }
-              return;
-            }
-
             setToken(parsed.token);
             setUser(parsed.user);
 
-            // Verify token is still valid
+            // Verify token is still valid (no dev-token bypass in production-ready builds)
             try {
               const res = await fetch(`${API_BASE}/auth/me`, {
                 headers: { Authorization: `Bearer ${parsed.token}` }
               });
+
               if (res.ok && !cancelled) {
                 // Token valid — trigger background sync of unsynced data
                 syncLocalDataToServer(parsed.user.id, parsed.token);
@@ -151,10 +137,9 @@ export function AuthProvider({ children }) {
 
         persistSession(data.user, data.token);
 
-        // Fire-and-forget sync: push local data to server for non-dev tokens only
-        if (data.token !== "dev-token") {
-          syncLocalDataToServer(data.user.id, data.token);
-        }
+        // Fire-and-forget sync: push local data to server
+        syncLocalDataToServer(data.user.id, data.token);
+
 
         return true;
       } catch (err) {
@@ -200,9 +185,8 @@ export function AuthProvider({ children }) {
         migrateAnonymousData(data.user.id);
         migrateAnonymousDataToUser(data.user.id);
         persistSession(data.user, tokenStr);
-        if (tokenStr !== "dev-token") {
-          syncLocalDataToServer(data.user.id, tokenStr);
-        }
+        syncLocalDataToServer(data.user.id, tokenStr);
+
 
         return true;
       } catch (err) {
@@ -251,10 +235,9 @@ export function AuthProvider({ children }) {
 
         persistSession(data.user, data.token);
 
-        // Fire-and-forget sync: push local data to server for non-dev tokens only
-        if (data.token !== "dev-token") {
-          syncLocalDataToServer(data.user.id, data.token);
-        }
+        // Fire-and-forget sync: push local data to server
+        syncLocalDataToServer(data.user.id, data.token);
+
 
         return true;
       } catch (err) {
