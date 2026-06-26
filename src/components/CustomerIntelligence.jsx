@@ -15,9 +15,21 @@ const CustomerIntelligence = memo(() => {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
   const [page, setPage] = useState(1);
+  const [showAddForm, setShowAddForm] = useState(false);
+  const [newCustomer, setNewCustomer] = useState({
+    name: "",
+    id: "",
+    score: 0,
+    band: "Developing",
+    status: "active",
+    lastAssessment: "2024-06-20",
+    riskLevel: "medium",
+    trend: "stable",
+    accounts: 1,
+    totalDeposits: 0
+  });
 
-  // Mock customer data
-  const customers = [
+  const [customers, setCustomers] = useState([
     {
       id: "CS-14523",
       name: "John Smith",
@@ -111,6 +123,54 @@ const CustomerIntelligence = memo(() => {
     return matchesSearch && matchesFilter;
   });
 
+  const handleAddCustomer = () => {
+    if (!newCustomer.name || !newCustomer.id) {
+      return;
+    }
+    setCustomers((prev) => [newCustomer, ...prev]);
+    setShowAddForm(false);
+    setNewCustomer({
+      name: "",
+      id: "",
+      score: 0,
+      band: "Developing",
+      status: "active",
+      lastAssessment: "2024-06-20",
+      riskLevel: "medium",
+      trend: "stable",
+      accounts: 1,
+      totalDeposits: 0
+    });
+  };
+
+  const handleExportList = () => {
+    const rows = [
+      ["Customer", "Customer ID", "Health Score", "Risk Level", "Last Assessment", "Accounts", "Deposits", "Trend", "Status"],
+      ...filteredCustomers.map((customer) => [
+        customer.name,
+        customer.id,
+        customer.score,
+        customer.riskLevel,
+        customer.lastAssessment,
+        customer.accounts,
+        customer.totalDeposits,
+        customer.trend,
+        customer.status
+      ])
+    ];
+
+    const csvContent = rows.map((row) => row.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(",")).join("\n");
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.setAttribute("download", "enterprise-customers.csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <div className="enterprise-customer-intelligence">
       {/* Header */}
@@ -122,11 +182,11 @@ const CustomerIntelligence = memo(() => {
           </p>
         </div>
         <div className="enterprise-header-controls">
-          <button className="enterprise-btn-secondary">
+          <button className="enterprise-btn-secondary" onClick={() => setShowAddForm(true)}>
             <UserPlus size={16} />
             Add Customer
           </button>
-          <button className="enterprise-btn-secondary">
+          <button className="enterprise-btn-secondary" onClick={handleExportList}>
             <Download size={16} />
             Export List
           </button>
@@ -134,6 +194,38 @@ const CustomerIntelligence = memo(() => {
       </div>
 
       {/* Search & Filters */}
+      {showAddForm && (
+        <div className="enterprise-add-form">
+          <div className="enterprise-add-form-row">
+            <input
+              type="text"
+              placeholder="Customer name"
+              value={newCustomer.name}
+              onChange={(e) => setNewCustomer({ ...newCustomer, name: e.target.value })}
+            />
+            <input
+              type="text"
+              placeholder="Customer ID"
+              value={newCustomer.id}
+              onChange={(e) => setNewCustomer({ ...newCustomer, id: e.target.value })}
+            />
+          </div>
+          <div className="enterprise-add-form-row">
+            <input
+              type="number"
+              placeholder="Total deposits"
+              value={newCustomer.totalDeposits}
+              onChange={(e) => setNewCustomer({ ...newCustomer, totalDeposits: Number(e.target.value) })}
+            />
+            <button className="enterprise-btn-secondary" onClick={handleAddCustomer}>
+              Save Customer
+            </button>
+            <button className="enterprise-btn-secondary" onClick={() => setShowAddForm(false)}>
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
       <div className="enterprise-search-bar">
         <Search size={16} className="search-icon" />
         <input
@@ -224,9 +316,9 @@ const CustomerIntelligence = memo(() => {
 
       {/* Pagination */}
       <div className="enterprise-pagination">
-        <button disabled={page === 1}>← Previous</button>
+        <button disabled={page === 1} onClick={() => setPage((prev) => Math.max(1, prev - 1))}>← Previous</button>
         <span>Page {page}</span>
-        <button>Next →</button>
+        <button onClick={() => setPage((prev) => prev + 1)}>Next →</button>
       </div>
     </div>
   );
