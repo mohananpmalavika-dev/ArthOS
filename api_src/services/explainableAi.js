@@ -21,6 +21,7 @@ export function createExplanation({
   score,
   label,
   reasons = [],
+  explanationPath = null,
   evidence = {},
   model = {},
   limitations = []
@@ -40,7 +41,21 @@ export function createExplanation({
     .sort((a, b) => Math.abs(b.contribution) - Math.abs(a.contribution));
 
   const topReasons = normalizedReasons.filter(reason => reason.contribution > 0).slice(0, 5);
-  const reasonChain = topReasons.map(reason => reason.label);
+  const orderedPath = Array.isArray(explanationPath) && explanationPath.length
+    ? explanationPath
+        .filter(Boolean)
+        .map(reason => ({
+          code: reason.code,
+          label: reason.label,
+          detail: reason.detail,
+          direction: reason.direction || 'increases_risk',
+          contribution: normalizeContribution(reason.contribution || 0),
+          value: reason.value ?? null,
+          evidence: reason.evidence || {},
+          recommendedAction: reason.recommendedAction || null
+        }))
+    : topReasons;
+  const reasonChain = orderedPath.map(reason => reason.label);
   const scoreText = Number.isFinite(Number(score)) ? Math.round(Number(score)) : 'unknown';
 
   return {
@@ -54,6 +69,7 @@ export function createExplanation({
       label: label || null
     },
     reasonChain,
+    explanationPath: orderedPath,
     topReasons,
     factorContributions: normalizedReasons,
     evidence,
@@ -103,12 +119,25 @@ export function buildDefaultRiskExplanation({
         ? formatPercent(emiRatio)
         : item.value
   }));
+  const preferredPath = [
+    'salary_instability',
+    'emi_ratio',
+    'upi_cash_flow',
+    'behaviour_change',
+    'stress_score_reported',
+    'stress_score'
+  ];
+  const pathReasons = [
+    ...preferredPath.flatMap(code => reasons.filter(reason => reason.code === code)),
+    ...reasons.filter(reason => !preferredPath.includes(reason.code))
+  ];
 
   return createExplanation({
     predictionType: 'loan_default_risk',
     score: riskScore,
     label: riskCategory,
     reasons,
+    explanationPath: pathReasons,
     evidence,
     model: {
       name: 'loan-default-risk-v1',

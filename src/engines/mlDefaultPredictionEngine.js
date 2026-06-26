@@ -106,7 +106,7 @@ export function calculateFinancialStress(customer) {
  */
 export function calculateDefaultProbability(customer = {}, history = {}) {
   const paymentTrend = analyzePaymentHistory(history.paymentHistory);
-  const dpdVelocity = calculateDPDVelocity(history.customerHistory);
+  const dpdVelocity = calculateDPDVelocity(history.customerHistory || history.dpdHistory);
   const financialStress = calculateFinancialStress(customer);
 
   let defaultScore = 0;
@@ -122,7 +122,8 @@ export function calculateDefaultProbability(customer = {}, history = {}) {
       detail: `Financial stress is ${financialStress.stressCategory.toLowerCase()} based on DPD, credit score, and balance pressure.`,
       contribution: financialStressContribution * 100,
       value: financialStress.stressLevel,
-      evidence: financialStress
+      evidence: financialStress,
+      recommendedAction: "Review payment ageing, bureau score movement, and outstanding balance pressure before approving new exposure."
     });
   }
 
@@ -135,7 +136,8 @@ export function calculateDefaultProbability(customer = {}, history = {}) {
       detail: "Days past due are increasing rapidly across the borrower history.",
       contribution: 30,
       value: Number(dpdVelocity.velocity.toFixed(2)),
-      evidence: dpdVelocity
+      evidence: dpdVelocity,
+      recommendedAction: "Escalate to collections or restructure review before delinquency compounds."
     });
   } else if (dpdVelocity.trend === 'increasing') {
     defaultScore += 0.15;
@@ -145,7 +147,8 @@ export function calculateDefaultProbability(customer = {}, history = {}) {
       detail: "Days past due are rising across the borrower history.",
       contribution: 15,
       value: Number(dpdVelocity.velocity.toFixed(2)),
-      evidence: dpdVelocity
+      evidence: dpdVelocity,
+      recommendedAction: "Contact borrower early and verify whether the next EMI can be covered."
     });
   }
 
@@ -158,7 +161,8 @@ export function calculateDefaultProbability(customer = {}, history = {}) {
       detail: "Recent payment history includes missed payments.",
       contribution: 20,
       value: paymentTrend.missedPayments,
-      evidence: paymentTrend
+      evidence: paymentTrend,
+      recommendedAction: "Require repayment regularization before increasing limit or approving a top-up."
     });
   } else if (paymentTrend.trend === 'worsening') {
     defaultScore += 0.1;
@@ -168,7 +172,8 @@ export function calculateDefaultProbability(customer = {}, history = {}) {
       detail: "Recent payment history shows repeated late payments.",
       contribution: 10,
       value: paymentTrend.latePayments,
-      evidence: paymentTrend
+      evidence: paymentTrend,
+      recommendedAction: "Verify salary date alignment and consider EMI date adjustment."
     });
   }
 
@@ -183,7 +188,8 @@ export function calculateDefaultProbability(customer = {}, history = {}) {
       detail: "EMI obligation is above 50% of reported monthly income.",
       contribution: 15,
       value: `${Math.round(emiRatio * 100)}%`,
-      evidence: { emi, income }
+      evidence: { emi, income },
+      recommendedAction: "Keep total EMI burden below 45% or request additional income proof."
     });
   } else if (emiRatio > 0.35) {
     defaultScore += 0.08;
@@ -193,7 +199,8 @@ export function calculateDefaultProbability(customer = {}, history = {}) {
       detail: "EMI obligation is elevated relative to reported monthly income.",
       contribution: 8,
       value: `${Math.round(emiRatio * 100)}%`,
-      evidence: { emi, income }
+      evidence: { emi, income },
+      recommendedAction: "Check borrower surplus after all recurring obligations."
     });
   }
 
@@ -206,7 +213,8 @@ export function calculateDefaultProbability(customer = {}, history = {}) {
       detail: "Salary timing is delayed or marked unstable.",
       contribution: 12,
       value: salaryDelay > 0 ? `${salaryDelay} days` : "unstable",
-      evidence: { salaryDelay, salaryStability: customer.salaryStability || history.salaryStability }
+      evidence: { salaryDelay, salaryStability: customer.salaryStability || history.salaryStability },
+      recommendedAction: "Verify the latest salary credits and require two to three stable cycles."
     });
   }
 
@@ -223,7 +231,8 @@ export function calculateDefaultProbability(customer = {}, history = {}) {
         : "UPI cash flow volatility is high.",
       contribution: 10,
       value: netCashFlow < 0 ? netCashFlow : cashFlowVolatility,
-      evidence: upiCashFlow
+      evidence: upiCashFlow,
+      recommendedAction: "Review recent UPI inflows and outflows for recurring cash gaps."
     });
   }
 
@@ -236,7 +245,8 @@ export function calculateDefaultProbability(customer = {}, history = {}) {
       detail: "Recent borrower behaviour has deteriorated versus baseline.",
       contribution: 8,
       value: behaviourChange || "deteriorating",
-      evidence: { behaviourChangeScore: behaviourChange, behaviourChange: history.behaviourChange || customer.behaviourChange }
+      evidence: { behaviourChangeScore: behaviourChange, behaviourChange: history.behaviourChange || customer.behaviourChange },
+      recommendedAction: "Check whether spending, loan-shopping, or repayment behaviour changed after the last credit event."
     });
   }
 
@@ -249,7 +259,8 @@ export function calculateDefaultProbability(customer = {}, history = {}) {
       detail: "Reported stress score is above the high-risk threshold.",
       contribution: 8,
       value: stressLevel,
-      evidence: { stressLevel }
+      evidence: { stressLevel },
+      recommendedAction: "Route to manual review and consider counselling or hardship options before adverse action."
     });
   }
 

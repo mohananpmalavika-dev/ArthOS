@@ -227,6 +227,14 @@ export default async function handler(req, res) {
         creditScore: loanData.creditScore || 650,
         loanBalance: loanData.loanBalance || 0,
         dpd: loanData.dpd || 0,
+        emi: loanData.emi || profile.emi || 0,
+        monthlyIncome: profile.monthlyIncome || profile.salary || profile.income || 0,
+        salaryDelay: profile.salaryDelay,
+        salaryStability: profile.salaryStability,
+        upiCashFlow: profile.upiCashFlow,
+        behaviourChange: profile.behaviourChange,
+        behaviourChangeScore: profile.behaviourChangeScore,
+        stressLevel: profile.stressLevel,
       },
       history
     );

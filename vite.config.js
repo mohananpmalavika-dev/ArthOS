@@ -2,6 +2,7 @@ import react from "@vitejs/plugin-react";
 import { defineConfig } from "vite";
 import fs from "fs";
 import path from "path";
+import mime from "mime-types";
 import { fileURLToPath, pathToFileURL } from "url";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -208,6 +209,28 @@ function createApiPlugin() {
     async configureServer(server) {
       const handlers = await apiHandlersPromise;
 
+      // Serve manifest and service worker from project root in dev with correct MIME type
+      server.middlewares.use((req, res, next) => {
+        try {
+          const url = new URL(req.url || "", "http://localhost");
+          const pathname = url.pathname;
+          if (!pathname) return next();
+
+          if (pathname === "/manifest.json" || pathname === "/service-worker.js") {
+            const filePath = path.join(__dirname, pathname.replace(/^\//, ""));
+            if (fs.existsSync(filePath)) {
+              const content = fs.readFileSync(filePath);
+              const type = mime.lookup(filePath) || 'application/json';
+              res.setHeader('Content-Type', type);
+              return res.end(content);
+            }
+          }
+        } catch (err) {
+          // ignore and continue
+        }
+        next();
+      });
+
       // Add CSP middleware to allow data URIs, external fonts, and unsafe-inline styles
       // NOTE: Avoid breaking Vite internals (/@vite/*, /@react-refresh/*) during dev.
       server.middlewares.use((req, res, next) => {
@@ -235,6 +258,32 @@ function createApiPlugin() {
     },
     async configurePreviewServer(server) {
       const handlers = await apiHandlersPromise;
+
+      // Serve built static assets from `dist` with correct MIME types
+      server.middlewares.use((req, res, next) => {
+        try {
+          const url = new URL(req.url || "", "http://localhost");
+          const pathname = url.pathname;
+
+          // Only handle top-level static asset requests in preview (dist)
+          if (!pathname) return next();
+
+          // map /manifest.json, /service-worker.js, /assets/*, *.js, *.css
+          const isAsset = pathname === "/manifest.json" || pathname === "/service-worker.js" || pathname.startsWith("/assets/") || pathname.match(/\.(js|css|json|map)$/i);
+          if (!isAsset) return next();
+
+          const filePath = path.join(__dirname, "dist", pathname.replace(/^\//, ""));
+          if (!fs.existsSync(filePath)) return next();
+
+          const content = fs.readFileSync(filePath);
+          const type = mime.lookup(filePath) || (pathname.endsWith('.json') ? 'application/json' : 'application/octet-stream');
+          res.setHeader('Content-Type', type);
+          return res.end(content);
+        } catch (err) {
+          // If anything goes wrong, continue to next middleware
+          return next();
+        }
+      });
 
       // Add CSP middleware to allow data URIs, external fonts, and unsafe-inline styles
       server.middlewares.use((req, res, next) => {

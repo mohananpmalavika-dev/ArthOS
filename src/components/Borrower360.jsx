@@ -30,31 +30,33 @@ const Borrower360 = ({ customer }) => {
 
   useEffect(() => {
     if (!customer || !history) {
-      setDefaultRisk(null);
       return;
     }
 
     let cancelled = false;
-    setRiskLoading(true);
-    setRiskError(null);
 
-    predictLoanDefault(customer, history)
-      .then(result => {
+    async function loadDefaultRisk() {
+      setRiskLoading(true);
+      setRiskError(null);
+      setDefaultRisk(null);
+
+      try {
+        const result = await predictLoanDefault(customer, history);
         if (!cancelled) {
           setDefaultRisk(result);
         }
-      })
-      .catch(error => {
+      } catch (error) {
         if (!cancelled) {
-          setDefaultRisk(null);
           setRiskError(error.message || "Unable to load default risk");
         }
-      })
-      .finally(() => {
+      } finally {
         if (!cancelled) {
           setRiskLoading(false);
         }
-      });
+      }
+    }
+
+    loadDefaultRisk();
 
     return () => {
       cancelled = true;
@@ -67,6 +69,10 @@ const Borrower360 = ({ customer }) => {
 
   const healthScore = customer.creditScore; 
   const riskCategory = defaultRisk ? defaultRisk.riskCategory : riskLoading ? "Loading" : "Unavailable";
+  const explanationPath =
+    defaultRisk?.explanation?.explanationPath?.length > 0
+      ? defaultRisk.explanation.explanationPath
+      : defaultRisk?.explanation?.topReasons || [];
 
   return (
     <div className="borrower-360-dashboard">
@@ -135,17 +141,20 @@ const Borrower360 = ({ customer }) => {
                 <span>Days Past Due</span>
                 <strong>{customer.dpd}</strong>
               </div>
-              {defaultRisk?.explanation?.topReasons?.length > 0 && (
+              {explanationPath.length > 0 && (
                 <div className="risk-explanation">
-                  <span>Reason</span>
-                  <ul>
-                    {defaultRisk.explanation.topReasons.map(reason => (
+                  <span>Reason path</span>
+                  <ol>
+                    {explanationPath.map(reason => (
                       <li key={reason.code}>
                         <strong>{reason.label}</strong>
                         <small>{reason.detail}</small>
+                        {reason.value !== null && reason.value !== undefined && (
+                          <em>Evidence: {String(reason.value)}</em>
+                        )}
                       </li>
                     ))}
-                  </ul>
+                  </ol>
                 </div>
               )}
             </div>
