@@ -232,7 +232,7 @@ const ComplianceReports = memo(() => {
                       <div className="report-meta">
                         <span>{report.date || report.createdAt}</span>
                         <span>•</span>
-                        <span>{report.size || report.sizeLabel || "—"}</span>
+                        <span>{report.size || report.sizeLabel || "-"}</span>
                       </div>
                       <div className="report-regulations">
                         {(report.regulations || []).map((reg) => (
@@ -244,11 +244,11 @@ const ComplianceReports = memo(() => {
                     </div>
                     <div className="report-status">
                       {report.status === "completed" || report.status === "ready" ? (
-                        <span className="status-badge completed">✓ Ready</span>
+                        <span className="status-badge completed">Ready</span>
                       ) : report.status === "failed" ? (
-                        <span className="status-badge pending">⛔ Failed</span>
+                        <span className="status-badge pending">Failed</span>
                       ) : (
-                        <span className="status-badge pending">⏳ Pending</span>
+                        <span className="status-badge pending">Pending</span>
                       )}
                     </div>
                     <div className="report-actions">
@@ -304,12 +304,12 @@ const ComplianceReports = memo(() => {
                 auditTrail.map((entry) => (
                   <div key={entry.id || entry.eventId} className="audit-entry">
                     <div className={`audit-icon ${entry.status || entry.level || "info"}`}>
-                      {(entry.status || entry.level) === "success" || entry.status === "ok" ? "✓" : "⚠"}
+                      {(entry.status || entry.level) === "success" || entry.status === "ok" ? "OK" : "!"}
                     </div>
                     <div className="audit-info">
                       <div className="audit-action">{entry.action || entry.event}</div>
                       <div className="audit-details">
-                        <span>{entry.user || entry.actor || "—"}</span>
+                        <span>{entry.user || entry.actor || "-"}</span>
                         <span>•</span>
                         <span>{entry.timestamp || entry.time}</span>
                       </div>
