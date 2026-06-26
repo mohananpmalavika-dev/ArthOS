@@ -32,8 +32,8 @@ export default function EnterpriseLoginPage() {
 
       <div>
         <LoginPage
-          onSwitchToRegister={() => navigate("/register")}
-          onClose={() => navigate("/choose-view", { replace: true })}
+          onSwitchToRegister={() => navigate("/enterprise-register")}
+          onClose={() => navigate("/enterprise", { replace: true })}
         />
       </div>
     </div>

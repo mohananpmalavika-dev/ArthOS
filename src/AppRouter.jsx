@@ -1,12 +1,14 @@
 import React, { Suspense } from "react";
 import LaunchPage from "./pages/LaunchPage.jsx";
 import EnterpriseLoginPage from "./pages/EnterpriseLoginPage.jsx";
+import EnterpriseRegisterPage from "./pages/EnterpriseRegisterPage.jsx";
 
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import App from "./App.jsx";
 import { RoastViewPage } from "./pages/RoastViewPage.jsx";
 import LoginPage from "./pages/LoginPage.jsx";
 import RegisterPage from "./pages/RegisterPage.jsx";
+import EnterpriseBankPortal from "./components/EnterpriseBankPortal.jsx";
 
 import Onboarding from "./pages/Onboarding.jsx";
 import Reality from "./pages/Reality.jsx";
@@ -63,8 +65,19 @@ function AppRouter() {
           {/* Auth pages */}
           <Route path="/login" element={<LoginPage />} />
           <Route path="/enterprise-login" element={<EnterpriseLoginPage />} />
+          <Route path="/enterprise-register" element={<EnterpriseRegisterPage />} />
           <Route path="/register" element={<RegisterPage />} />
 
+          <Route
+            path="/enterprise"
+            element={
+              isAuthenticated ? (
+                <EnterpriseBankPortal />
+              ) : (
+                <Navigate to="/enterprise-login" replace />
+              )
+            }
+          />
 
           {/* Onboarding route */}
           <Route
