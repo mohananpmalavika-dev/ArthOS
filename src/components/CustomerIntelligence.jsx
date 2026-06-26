@@ -19,14 +19,14 @@ const CustomerIntelligence = memo(() => {
   const [newCustomer, setNewCustomer] = useState({
     name: "",
     id: "",
-    score: 0,
     band: "Developing",
     status: "active",
     lastAssessment: "2024-06-20",
     riskLevel: "medium",
     trend: "stable",
     accounts: 1,
-    totalDeposits: 0
+    loanBalance: 0,
+    onTimePaymentRate: 0.92
   });
 
   const [customers, setCustomers] = useState([
@@ -34,66 +34,66 @@ const CustomerIntelligence = memo(() => {
       id: "CS-14523",
       name: "John Smith",
       email: "john.smith@email.com",
-      score: 645,
       band: "Resilient",
       status: "active",
       lastAssessment: "2024-06-15",
       riskLevel: "low",
       trend: "up",
       accounts: 3,
-      totalDeposits: 125000
+      loanBalance: 150000,
+      onTimePaymentRate: 0.96
     },
     {
       id: "CS-18746",
       name: "Sarah Chen",
       email: "sarah.chen@email.com",
-      score: 385,
       band: "Fragile",
       status: "alert",
       lastAssessment: "2024-06-18",
       riskLevel: "high",
       trend: "down",
       accounts: 2,
-      totalDeposits: 45000
+      loanBalance: 98000,
+      onTimePaymentRate: 0.68
     },
     {
       id: "CS-92034",
       name: "Michael Johnson",
       email: "m.johnson@email.com",
-      score: 720,
       band: "Resilient",
       status: "active",
       lastAssessment: "2024-06-17",
       riskLevel: "low",
       trend: "up",
       accounts: 4,
-      totalDeposits: 350000
+      loanBalance: 420000,
+      onTimePaymentRate: 0.98
     },
     {
       id: "CS-56789",
       name: "Emily Davis",
       email: "emily.davis@email.com",
-      score: 480,
       band: "Developing",
       status: "active",
       lastAssessment: "2024-06-16",
       riskLevel: "medium",
       trend: "stable",
       accounts: 2,
-      totalDeposits: 78000
+      loanBalance: 122000,
+      onTimePaymentRate: 0.84
     },
     {
       id: "CS-34521",
       name: "Robert Wilson",
       email: "r.wilson@email.com",
-      score: 180,
       band: "Critical",
       status: "alert",
       lastAssessment: "2024-06-19",
       riskLevel: "critical",
       trend: "down",
       accounts: 1,
-      totalDeposits: 12000
+      loanBalance: 82000,
+      onTimePaymentRate: 0.54
     }
   ]);
 
@@ -114,6 +114,29 @@ const CustomerIntelligence = memo(() => {
     return "→";
   };
 
+  const calculateCustomerHealthScore = (customer) => {
+    const loanImpact = Math.min(260, Math.round((customer.loanBalance || 0) / 1000));
+    const paymentScore = Math.round((customer.onTimePaymentRate ?? 0.75) * 260);
+    const accountBonus = Math.min(80, (customer.accounts || 1) * 10);
+    const riskAdjustment = {
+      critical: -220,
+      high: -120,
+      medium: -60,
+      low: 40
+    }[customer.riskLevel] ?? 0;
+    const trendAdjustment = customer.trend === "up" ? 40 : customer.trend === "down" ? -40 : 0;
+    const raw = 520 + paymentScore + accountBonus + trendAdjustment + riskAdjustment - loanImpact;
+    return Math.max(0, Math.min(900, raw));
+  };
+
+  const getHealthBand = (score) => {
+    if (score < 200) return "Critical";
+    if (score < 400) return "Fragile";
+    if (score < 600) return "Developing";
+    if (score < 800) return "Resilient";
+    return "Sovereign";
+  };
+
   const filteredCustomers = customers.filter((c) => {
     const matchesSearch =
       c.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -132,29 +155,29 @@ const CustomerIntelligence = memo(() => {
     setNewCustomer({
       name: "",
       id: "",
-      score: 0,
       band: "Developing",
       status: "active",
       lastAssessment: "2024-06-20",
       riskLevel: "medium",
       trend: "stable",
       accounts: 1,
-      totalDeposits: 0
+      loanBalance: 0,
+      onTimePaymentRate: 0.92
     });
   };
 
   const handleExportList = () => {
     const rows = [
-      ["Customer", "Customer ID", "Health Score", "Risk Level", "Last Assessment", "Accounts", "Deposits", "Trend", "Status"],
+      ["Customer", "Customer ID", "Health Score", "Risk Level", "Last Assessment", "Accounts", "Loan Balance", "On-time Rate", "Trend", "Status"],
       ...filteredCustomers.map((customer) => [
         customer.name,
         customer.id,
-        customer.score,
+        calculateCustomerHealthScore(customer),
         customer.riskLevel,
         customer.lastAssessment,
         customer.accounts,
-        customer.totalDeposits,
-        customer.trend,
+        customer.loanBalance,
+        `${Math.round((customer.onTimePaymentRate ?? 0) * 100)}%`,
         customer.status
       ])
     ];
@@ -213,10 +236,21 @@ const CustomerIntelligence = memo(() => {
           <div className="enterprise-add-form-row">
             <input
               type="number"
-              placeholder="Total deposits"
-              value={newCustomer.totalDeposits}
-              onChange={(e) => setNewCustomer({ ...newCustomer, totalDeposits: Number(e.target.value) })}
+              placeholder="Outstanding loan balance"
+              value={newCustomer.loanBalance}
+              onChange={(e) => setNewCustomer({ ...newCustomer, loanBalance: Number(e.target.value) })}
             />
+            <input
+              type="number"
+              step="0.01"
+              min="0"
+              max="1"
+              placeholder="On-time payment rate (0-1)"
+              value={newCustomer.onTimePaymentRate}
+              onChange={(e) => setNewCustomer({ ...newCustomer, onTimePaymentRate: Number(e.target.value) })}
+            />
+          </div>
+          <div className="enterprise-add-form-row">
             <button className="enterprise-btn-secondary" onClick={handleAddCustomer}>
               Save Customer
             </button>
@@ -257,7 +291,8 @@ const CustomerIntelligence = memo(() => {
               <th>Risk Level</th>
               <th>Last Assessment</th>
               <th>Accounts</th>
-              <th>Deposits</th>
+              <th>Loan Balance</th>
+              <th>On-time Rate</th>
               <th>Trend</th>
               <th>Action</th>
             </tr>
@@ -272,15 +307,21 @@ const CustomerIntelligence = memo(() => {
                   </div>
                 </td>
                 <td>
-                  <div className="score-badge">
-                    <span
-                      className="score-value"
-                      style={{ color: getBandColor(customer.band) }}
-                    >
-                      {customer.score}
-                    </span>
-                    <span className="score-band">{customer.band}</span>
-                  </div>
+                  {(() => {
+                    const score = calculateCustomerHealthScore(customer);
+                    const band = getHealthBand(score);
+                    return (
+                      <div className="score-badge">
+                        <span
+                          className="score-value"
+                          style={{ color: getBandColor(band) }}
+                        >
+                          {score}
+                        </span>
+                        <span className="score-band">{band}</span>
+                      </div>
+                    );
+                  })()}
                 </td>
                 <td>
                   <span
@@ -295,7 +336,8 @@ const CustomerIntelligence = memo(() => {
                 </td>
                 <td>{customer.lastAssessment}</td>
                 <td>{customer.accounts}</td>
-                <td>₹{(customer.totalDeposits / 1000).toFixed(0)}k</td>
+                <td>₹{(customer.loanBalance / 1000).toFixed(0)}k</td>
+                <td>{Math.round((customer.onTimePaymentRate ?? 0) * 100)}%</td>
                 <td>
                   <span
                     className={`trend-indicator ${customer.trend}`}
