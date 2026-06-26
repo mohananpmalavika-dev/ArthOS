@@ -4,6 +4,8 @@ import { I18nextProvider } from "react-i18next";
 import i18n from "./i18n.js";
 import AppRouter from "./AppRouter.jsx";
 import { AuthProvider } from "./context/AuthContext.jsx";
+import { EnterpriseAuthProvider } from "./context/EnterpriseAuthContext.jsx";
+
 import { SettingsProvider } from "./context/SettingsContext.jsx";
 import { CapabilitiesProvider } from "./context/CapabilitiesContext.jsx";
 import { HistoricalDataProvider } from "./context/HistoricalDataContext.jsx";
@@ -23,15 +25,18 @@ createRoot(document.getElementById("root")).render(
     <I18nextProvider i18n={i18n}>
       <ErrorBoundary>
         <AuthProvider>
-          <SettingsProvider>
-            <ConsentBanner />
-            <CapabilitiesProvider>
-              <HistoricalDataProvider>
-                <AppRouter />
-              </HistoricalDataProvider>
-            </CapabilitiesProvider>
-          </SettingsProvider>
+          <EnterpriseAuthProvider>
+            <SettingsProvider>
+              <ConsentBanner />
+              <CapabilitiesProvider>
+                <HistoricalDataProvider>
+                  <AppRouter />
+                </HistoricalDataProvider>
+              </CapabilitiesProvider>
+            </SettingsProvider>
+          </EnterpriseAuthProvider>
         </AuthProvider>
+
       </ErrorBoundary>
     </I18nextProvider>
   </React.StrictMode>

@@ -21,6 +21,8 @@ import ViewModeSelection from "./pages/ViewModeSelection.jsx";
 import AdvancedArea from "./pages/AdvancedArea.jsx";
 import ErrorBoundary from "./components/ErrorBoundary.jsx";
 import { useAuth } from "./context/AuthContext.jsx";
+import { useEnterpriseAuth } from "./context/EnterpriseAuthContext.jsx";
+
 import PhaseFlow from "./components/PhaseFlow.jsx";
 import { OS_SHELL_ROUTES } from "./lib/routeMap.js";
 
@@ -34,6 +36,9 @@ import { OS_SHELL_ROUTES } from "./lib/routeMap.js";
  */
 function AppRouter() {
   const { isAuthenticated, loading } = useAuth();
+  const enterpriseAuth = useEnterpriseAuth();
+
+
   const demoMode = typeof window !== "undefined" && window.location.pathname.startsWith("/demo");
   const dashboardRoute = OS_SHELL_ROUTES.find(route => route.id === "dashboard");
   const advancedRoute = OS_SHELL_ROUTES.find(route => route.id === "advanced");
@@ -71,13 +76,19 @@ function AppRouter() {
           <Route
             path="/enterprise"
             element={
-              isAuthenticated ? (
+              enterpriseAuth?.loading ? (
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100vh" }}>
+                  <p>Loading...</p>
+                </div>
+              ) : enterpriseAuth?.isAuthenticated ? (
                 <EnterpriseBankPortal />
               ) : (
                 <Navigate to="/enterprise-login" replace />
               )
             }
           />
+
+
 
           {/* Onboarding route */}
           <Route

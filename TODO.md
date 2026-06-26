@@ -1,14 +1,28 @@
-# TODO
+# TODO - Enterprise Production Readiness
 
-## Chart vendor crash (ReferenceError: Cannot access 'De' before initialization)
+## Step 1: EnterpriseAuthContext validation
+- [x] Review `src/context/EnterpriseAuthContext.jsx` for `hasPermission`, token refresh, loading behavior.
 
-- [x] Confirm where charts from `recharts` are rendered on `/dashboard/home` (identified recharts usage in `src/App.jsx`).
-- [ ] Implement mitigation to avoid recharts crashing:
-  - [x] Disabled production minification in `vite.config.js` as a first mitigation.
-  - [ ] Prefer pinning `recharts` to a stable version (edit `package.json` + lockfile).
-  - [ ] Add a runtime guard to dynamically import recharts components only on the client.
+## Step 2: Gate enterprise navigation
+- [x] Update `src/components/EnterpriseFlowNavigation.jsx` to hide/disable tabs based on `hasPermission`.
+- [ ] Ensure activeTab routing/hash sync + access denied UX.
 
-- [ ] Run `npm run dev` to reproduce and verify the crash is gone.
-- [ ] Run `npm run build` to ensure the production bundle is fixed.
 
+
+## Step 3: Productionize ComplianceReports
+- [x] Replace mock data in `src/components/ComplianceReports.jsx` with API calls (reports list, compliance metrics, audit trail).
+- [x] Implement “Generate Report (API)” flow: call backend, show progress, handle status, update list.
+- [x] Implement action buttons: Download / Print / Email.
+- [x] Add loading, error, retry, and empty-state UI.
+
+
+
+## Step 4: Add/verify enterprise API integration
+- [ ] Verify `src/lib/apiClient.js` usage pattern for enterprise endpoints + auth.
+- [ ] Ensure standard error handling + telemetry/captureException usage.
+
+## Step 5: Frontend production checks
+- [ ] Run `npm test`, `npm run lint`, `npm run build`.
+- [ ] Smoke-test enterprise routes: `/enterprise` and tab gating.
+- [ ] Smoke-test compliance page: fetch + generate + download/print/email.
 

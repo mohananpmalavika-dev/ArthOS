@@ -155,6 +155,43 @@ const CustomerIntelligence = memo(() => {
     return 90;
   };
 
+  const calculateCustomerHealthScore = (customer) => {
+    const paymentRate = customer.onTimePaymentRate ?? 0.7;
+    const loanBalance = customer.loanBalance ?? 0;
+    const accounts = customer.accounts ?? 1;
+    const scoreFromPayment = Math.round(paymentRate * 50);
+    const scoreFromBalance = Math.round(Math.max(0, 50 - loanBalance / 20000));
+    const scoreFromAccounts = Math.min(20, accounts * 5);
+    const trendBonus = customer.trend === "up" ? 15 : customer.trend === "stable" ? 8 : 0;
+
+    return Math.max(0, Math.min(100, scoreFromPayment + scoreFromBalance + scoreFromAccounts + trendBonus));
+  };
+
+  const getHealthBand = (score) => {
+    if (score >= 85) return "Strong";
+    if (score >= 70) return "Resilient";
+    if (score >= 55) return "Developing";
+    if (score >= 40) return "Fragile";
+    return "Critical";
+  };
+
+  const getBandColor = (band) => {
+    switch (band) {
+      case "Strong":
+        return "#0f766e";
+      case "Resilient":
+        return "#15803d";
+      case "Developing":
+        return "#d97706";
+      case "Fragile":
+        return "#ea580c";
+      case "Critical":
+        return "#b91c1c";
+      default:
+        return "#374151";
+    }
+  };
+
   const getTrendIcon = (trend) => {
     if (trend === "up") return "↑";
     if (trend === "down") return "↓";
