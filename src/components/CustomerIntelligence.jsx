@@ -95,7 +95,7 @@ const CustomerIntelligence = memo(() => {
       accounts: 1,
       totalDeposits: 12000
     }
-  ];
+  ]);
 
   const getBandColor = (band) => {
     const colors = {
