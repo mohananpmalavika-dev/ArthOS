@@ -294,7 +294,7 @@ const ComplianceReports = memo(() => {
                   void loadAll({ type: reportType });
                 }}
               >
-                View Full History →
+                View Full History
               </button>
             </div>
             <div className="audit-trail">
@@ -328,4 +328,3 @@ const ComplianceReports = memo(() => {
 ComplianceReports.displayName = "ComplianceReports";
 
 export default ComplianceReports;
-

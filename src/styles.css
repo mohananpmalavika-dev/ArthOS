@@ -16305,6 +16305,84 @@ body,
   margin: 0;
 }
 
+.enterprise-loading,
+.enterprise-empty-state,
+.enterprise-error-banner {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem 1.25rem;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.03);
+  color: rgba(255, 255, 255, 0.78);
+}
+
+.enterprise-error-banner {
+  border-color: rgba(239, 68, 68, 0.35);
+  background: rgba(239, 68, 68, 0.08);
+  color: #fecaca;
+}
+
+.enterprise-btn-secondary:disabled,
+.enterprise-btn-primary:disabled,
+.enterprise-btn-icon:disabled {
+  opacity: 0.48;
+  cursor: not-allowed;
+}
+
+.enterprise-detail-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.enterprise-detail-grid > div {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  padding: 1rem;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.enterprise-detail-grid strong {
+  color: #fff;
+  font-size: 1rem;
+}
+
+.enterprise-insight-strip {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-top: 0.9rem;
+  padding: 0.9rem 1rem;
+  border-radius: 10px;
+  background: rgba(6, 182, 212, 0.08);
+  color: rgba(255, 255, 255, 0.78);
+}
+
+.enterprise-insight-strip strong {
+  color: #fff;
+  white-space: nowrap;
+}
+
+.enterprise-insight-strip span {
+  text-align: right;
+  line-height: 1.45;
+}
+
+.enterprise-customers-table tbody tr {
+  cursor: pointer;
+}
+
+.enterprise-customers-table tbody tr.status-monitor:hover,
+.enterprise-customers-table tbody tr.status-alert:hover {
+  background: rgba(6, 182, 212, 0.06);
+}
+
 /* Shell nav overlap fix: the header nav is a grid child wrapper, not the nav itself. */
 @media (min-width: 1024px) {
   .topbar .nav-wrap {

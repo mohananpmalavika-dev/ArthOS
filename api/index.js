@@ -46,6 +46,7 @@ import userExportHandler from '../api_src/user/export.js';
 import userDeleteHandler from '../api_src/user/delete.js';
 import userRetentionHandler from '../api_src/user/retention.js';
 import enterpriseAuthHandler from '../api_src/enterprise-auth.js';
+import enterpriseDataHandler from '../api_src/enterprise-data.js';
 // ─── Missing user endpoints ────────────────────────────────────
 import saveDecisionHandler from '../api_src/user/saveDecision.js';
 import loadDraftHandler from '../api_src/user/loadDraft.js';
@@ -94,6 +95,7 @@ const routeDefinitions = [
   { match: (pathname) => pathname === '/api/auth/resend-verify', handler: emailVerifyHandler },
   { match: (pathname) => pathname.startsWith('/api/auth/reset-password'), handler: passwordResetHandler },
   { match: (pathname) => pathname.startsWith('/api/enterprise/auth'), handler: enterpriseAuthHandler },
+  { match: (pathname) => pathname.startsWith('/api/enterprise/'), handler: enterpriseDataHandler },
   { match: (pathname) => pathname === '/api/b2b/intelligence', handler: b2bIntelligenceHandler },
   { match: (pathname) => pathname === '/api/b2b/borrower-intelligence', handler: b2bBorrowerIntelligenceHandler },
   { match: (pathname) => pathname === '/api/b2b/register', handler: b2bRegisterHandler },
