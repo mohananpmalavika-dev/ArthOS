@@ -9,6 +9,18 @@
  * - High loan balance relative to income (if available)
  */
 
+import { buildModelLineage } from "./modelRegistry.js";
+
+function defaultRiskGovernance(history = {}) {
+  const paymentPoints = Array.isArray(history.paymentHistory) ? history.paymentHistory.length : 0;
+  const customerPoints = Array.isArray(history.customerHistory) ? history.customerHistory.length : 0;
+
+  return buildModelLineage({
+    modelType: "loan-default",
+    dataPoints: paymentPoints + customerPoints
+  });
+}
+
 /**
  * Analyzes payment history to detect negative trends.
  */
@@ -91,7 +103,7 @@ export function calculateFinancialStress(customer) {
 /**
  * Calculates the probability of loan default (0-1).
  */
-export function calculateDefaultProbability(customer, history) {
+export function calculateDefaultProbability(customer = {}, history = {}) {
   const paymentTrend = analyzePaymentHistory(history.paymentHistory);
   const dpdVelocity = calculateDPDVelocity(history.customerHistory);
   const financialStress = calculateFinancialStress(customer);
@@ -120,5 +132,6 @@ export function calculateDefaultProbability(customer, history) {
     probability,
     riskCategory,
     riskScore: Math.round(probability * 100),
+    modelGovernance: defaultRiskGovernance(history)
   };
 }

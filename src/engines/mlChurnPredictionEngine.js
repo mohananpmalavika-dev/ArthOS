@@ -14,6 +14,16 @@ import {
   extractFeatures,
   sigmoid,
 } from './mlUtilities.js';
+import { buildModelLineage } from './modelRegistry.js';
+
+function churnGovernance(userHistory = [], assessmentHistory = []) {
+  return buildModelLineage({
+    modelType: 'churn',
+    dataPoints:
+      (Array.isArray(userHistory) ? userHistory.length : 0) +
+      (Array.isArray(assessmentHistory) ? assessmentHistory.length : 0)
+  });
+}
 
 /**
  * Calculate user engagement trajectory
@@ -178,6 +188,7 @@ export function calculateChurnProbability(assessment, result, userHistory = [], 
     probability: probability,
     churnRisk: probability > 0.7 ? 'Critical' : probability > 0.5 ? 'High' : probability > 0.3 ? 'Moderate' : 'Low',
     riskScore: Math.round(probability * 100),
+    modelGovernance: churnGovernance(userHistory, assessmentHistory),
   };
 }
 
@@ -212,8 +223,9 @@ export function assessChurnRisk(assessment, result, userHistory = [], assessment
     followUpRecommendation: {
       nextCheckDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
       priority: churnProb.probability > 0.5 ? 'high' : 'normal',
-      suggestedCommunication: generateCommunicationStrategy(churnProb.probability, intervention Type),
+      suggestedCommunication: generateCommunicationStrategy(churnProb.probability, interventionType),
     },
+    modelGovernance: churnGovernance(userHistory, assessmentHistory),
   };
 }
 

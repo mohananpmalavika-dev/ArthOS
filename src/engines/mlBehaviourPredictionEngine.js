@@ -10,7 +10,16 @@
  * - Behavioral archetypes evolution
  */
 
+import { buildModelLineage } from "./modelRegistry.js";
 import { extractFeatures, sigmoid, softmax, calculateMetrics } from "./mlUtilities.js";
+
+function behaviorGovernance(modelType, historicalData = [], metrics = null) {
+  return buildModelLineage({
+    modelType,
+    metrics,
+    dataPoints: Array.isArray(historicalData) ? historicalData.length : 0
+  });
+}
 
 /**
  * Simple linear regression for behavior prediction
@@ -169,6 +178,7 @@ export function predictImpulseSpendingRisk(assessment, result, historicalData = 
     return {
       riskScore: Math.min(1, Math.max(0, risk)),
       riskLevel: risk > 0.7 ? "High" : risk > 0.4 ? "Moderate" : "Low",
+      modelGovernance: behaviorGovernance("behavior-impulse-risk", historicalData),
       factors: [
         `Awareness: ${awareness}/30`,
         `Behavior Score: ${behaviour}/45`,
@@ -182,6 +192,7 @@ export function predictImpulseSpendingRisk(assessment, result, historicalData = 
   return {
     riskScore: probability,
     riskLevel: probability > 0.7 ? "High" : probability > 0.4 ? "Moderate" : "Low",
+    modelGovernance: behaviorGovernance("behavior-impulse-risk", historicalData),
     factors: features.map((f, i) => `Feature ${i}: ${(f * 100).toFixed(1)}%`)
   };
 }
@@ -203,6 +214,7 @@ export function predictSavingsConsistency(assessment, result, historicalData = [
       consistency: Math.round(consistency),
       trend: "stable",
       predictedMonthlyChange: 0,
+      modelGovernance: behaviorGovernance("behavior-savings-consistency", historicalData),
       recommendation:
         consistency > 70
           ? "Maintain current savings pattern"
@@ -216,6 +228,7 @@ export function predictSavingsConsistency(assessment, result, historicalData = [
     consistency: Math.round(Math.min(100, Math.max(0, prediction))),
     trend: prediction > 50 ? "positive" : "negative",
     predictedMonthlyChange: (prediction - 50) / 10,
+    modelGovernance: behaviorGovernance("behavior-savings-consistency", historicalData),
     recommendation:
       prediction > 60
         ? "Maintain current savings pattern"
@@ -243,6 +256,7 @@ export function predictStressSpending(assessment, result) {
   return {
     riskScore: probability,
     riskLevel: probability > 0.6 ? "High" : probability > 0.3 ? "Moderate" : "Low",
+    modelGovernance: behaviorGovernance("behavior-stress-spending"),
     triggers: stressSpendTrigger
       ? ["Work stress", "Relationship issues", "Financial pressure", "Social comparison"]
       : [],
@@ -266,7 +280,8 @@ export function predictArchetypeEvolution(assessment, result, previousAssessment
     predicted: currentPersonality,
     stabilityScore: 0.8,
     changeFactors: [],
-    timeframe: "3 months"
+    timeframe: "3 months",
+    modelGovernance: behaviorGovernance("behavior-archetype-evolution", previousAssessments)
   };
 
   if (previousAssessments.length > 0) {
@@ -333,6 +348,12 @@ export function trainBehaviorModels(historicalDataset) {
 export function generateBehaviorPredictionReport(assessment, result, historicalData = []) {
   return {
     timestamp: new Date().toISOString(),
+    modelGovernance: {
+      impulseSpendingRisk: behaviorGovernance("behavior-impulse-risk", historicalData),
+      savingsConsistency: behaviorGovernance("behavior-savings-consistency", historicalData),
+      stressSpendingRisk: behaviorGovernance("behavior-stress-spending", historicalData),
+      archetypeEvolution: behaviorGovernance("behavior-archetype-evolution", historicalData)
+    },
     impulseSpendingRisk: predictImpulseSpendingRisk(assessment, result, historicalData),
     savingsConsistency: predictSavingsConsistency(assessment, result, historicalData),
     stressSpendingRisk: predictStressSpending(assessment, result),

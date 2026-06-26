@@ -1,3 +1,5 @@
+import { buildForecastGovernance } from "./modelRegistry.js";
+
 /**
  * L09: Prediction Engine — v4 Production Upgrade
  *
@@ -778,6 +780,7 @@ export function autoSelectAndForecast(historicalData, forecastHorizon = 180, sea
     ensemble,
     allModels: models.map(m => ({
       name: m.name || m.model,
+      modelType: m.model,
       metrics: m.metrics,
       isBest: m === bestModel
     })),
@@ -820,6 +823,15 @@ export function generatePrediction(profile, history = [], options = {}) {
         p95: null,
         mean: null
       };
+      const generatedAt = new Date().toISOString();
+      const modelGovernance = buildForecastGovernance({
+        selectedModel: "none",
+        selectedModelType: "none",
+        selectedMetrics: { rmse: 0, mae: 0 },
+        generatedAt,
+        dataPoints: 0
+      });
+
       return {
         horizons: {
           day30: nullForecast,
@@ -831,7 +843,9 @@ export function generatePrediction(profile, history = [], options = {}) {
         modelMetrics: { rmse: 0, mae: 0 },
         ensembleModel: null,
         confidence: 0,
-        trendDirection: 'unknown'
+        trendDirection: 'unknown',
+        modelGovernance,
+        generatedAt
       };
     }
     
@@ -877,6 +891,23 @@ export function generatePrediction(profile, history = [], options = {}) {
   const day30 = getHorizon(30);
   const day90 = getHorizon(90);
   const day180 = getHorizon(180);
+  const ensembleModel = includeEnsemble
+    ? {
+        name: result.ensemble.name,
+        forecasts: result.ensemble.forecasts,
+        models: result.ensemble.models,
+        rmse: result.ensemble.metrics.rmse
+      }
+    : null;
+  const modelGovernance = buildForecastGovernance({
+    selectedModel: result.bestModel.name,
+    selectedModelType: result.bestModel.model,
+    selectedMetrics: result.bestModel.metrics,
+    allModels: result.allModels,
+    ensemble: ensembleModel,
+    generatedAt: result.generatedAt,
+    dataPoints: data.length
+  });
 
   return {
     horizons: {
@@ -887,17 +918,11 @@ export function generatePrediction(profile, history = [], options = {}) {
     model: result.bestModel.name,
     modelType: result.bestModel.model,
     modelMetrics: result.bestModel.metrics,
-    ensembleModel: includeEnsemble
-      ? {
-          name: result.ensemble.name,
-          forecasts: result.ensemble.forecasts,
-          models: result.ensemble.models,
-          rmse: result.ensemble.metrics.rmse
-        }
-      : null,
+    ensembleModel,
     allModels: result.allModels,
     dataPoints: data.length,
     confidence: computePredictionConfidence(result.bestModel, data.length),
+    modelGovernance,
     generatedAt: result.generatedAt
   };
 }
@@ -969,7 +994,9 @@ export function predictionEngineForecastHealth(
     modelType: prediction.modelType,
     modelMetrics: prediction.modelMetrics,
     ensemble: prediction.ensembleModel,
+    ensembleModel: prediction.ensembleModel,
     allModels: prediction.allModels,
+    modelGovernance: prediction.modelGovernance,
     trajectory,
     dataPoints: history.length,
     generatedAt: prediction.generatedAt

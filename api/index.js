@@ -34,6 +34,7 @@ import followUpHandler from '../api_src/follow-up/follow-up-handler.js';
 import shareHandler from '../api_src/share.js';
 import subscriptionsHandler from '../api_src/subscriptions-handler.js';
 import backgroundHealthHandler from '../api_src/backgroundHealth.js';
+import modelRegistryHandler from '../api_src/model-registry.js';
 import { createRequire } from 'module';
 const requireModule = createRequire(import.meta.url);
 const longitudinalIndex = requireModule('../api_src/longitudinal/index.cjs');
@@ -59,6 +60,7 @@ const routeDefinitions = [
   { match: (pathname) => pathname === '/api/cognition/build-profile', handler: engineContractsHandler },
   { match: (pathname) => pathname === '/api/cognition/beliefs/analyze', handler: engineContractsHandler },
   { match: (pathname) => pathname === '/api/loan-health/calculate', handler: engineContractsHandler },
+  { match: (pathname) => pathname === '/api/model-registry' || pathname === '/api/governance/model-registry', handler: modelRegistryHandler },
   { match: (pathname) => pathname === '/api/decision', handler: decisionHandler },
   { match: (pathname) => pathname === '/api/risk-score', handler: riskScoreHandler },
   { match: (pathname) => pathname === '/api/risk-opportunity', handler: riskOpportunityHandler },

@@ -11,11 +11,20 @@
  */
 
 import { mean, stdDev } from "./mlUtilities.js";
+import { buildModelLineage } from "./modelRegistry.js";
+
+function financialOutcomeGovernance(modelType, dataPoints = 0, metrics = null) {
+  return buildModelLineage({
+    modelType,
+    metrics,
+    dataPoints
+  });
+}
 
 /**
  * Monte Carlo simulation for financial projections
  */
-export function runMonteCarloProjection(currentState, params = {}) {
+export function runMonteCarloProjection(currentState = {}, params = {}) {
   const {
     monthlyIncome = currentState.monthlyIncome || 50000,
     monthlyExpense = currentState.monthlyExpense || 40000,
@@ -88,14 +97,15 @@ export function runMonteCarloProjection(currentState, params = {}) {
       probabilityOfZeroBalance: endingBalances.filter(b => b <= 0).length / endingBalances.length,
       worstCase: Math.min(...endingBalances),
       bestCase: Math.max(...endingBalances)
-    }
+    },
+    modelGovernance: financialOutcomeGovernance("financial-monte-carlo", simulations)
   };
 }
 
 /**
  * Predict financial goal achievement probability
  */
-export function predictGoalAchievement(currentState, goal, timeframeMonths = 12) {
+export function predictGoalAchievement(currentState = {}, goal = {}, timeframeMonths = 12) {
   const {
     monthlyIncome = currentState.monthlyIncome || 50000,
     monthlyExpense = currentState.monthlyExpense || 40000,
@@ -133,14 +143,15 @@ export function predictGoalAchievement(currentState, goal, timeframeMonths = 12)
     shortfallPerMonth: Math.max(
       0,
       (targetAmount - currentSavings) / timeframeMonths - monthlySurplus
-    )
+    ),
+    modelGovernance: financialOutcomeGovernance("goal-achievement", timeframeMonths)
   };
 }
 
 /**
  * Predict portfolio asset allocation outcomes
  */
-export function predictPortfolioOutcomes(portfolio, timeframeYears = 5) {
+export function predictPortfolioOutcomes(portfolio = {}, timeframeYears = 5) {
   const { stocks = 0, bonds = 0, cash = 0, realEstate = 0 } = portfolio;
 
   const total = stocks + bonds + cash + realEstate;
@@ -216,14 +227,15 @@ export function predictPortfolioOutcomes(portfolio, timeframeYears = 5) {
         ? "Consider reducing equity exposure"
         : portfolioVolatility < 0.03
           ? "Current allocation is very conservative"
-          : "Current allocation is well-balanced"
+          : "Current allocation is well-balanced",
+    modelGovernance: financialOutcomeGovernance("portfolio-outcome", timeframeYears)
   };
 }
 
 /**
  * Predict runway depletion risk
  */
-export function predictRunwayDepletionRisk(currentState, projectionMonths = 24) {
+export function predictRunwayDepletionRisk(currentState = {}, projectionMonths = 24) {
   const {
     savings = currentState.savings || 0,
     monthlyExpense = currentState.monthlyExpense || 40000,
@@ -264,7 +276,8 @@ export function predictRunwayDepletionRisk(currentState, projectionMonths = 24) 
             : "Low",
     depletionMonth: depletionMonth,
     trajectory: trajectory,
-    actions: getRunwayRiskActions(runwayMonths, monthlyDeficit)
+    actions: getRunwayRiskActions(runwayMonths, monthlyDeficit),
+    modelGovernance: financialOutcomeGovernance("runway-depletion", projectionMonths)
   };
 }
 
@@ -317,6 +330,7 @@ export function predictSpendingBehaviorOutcome(assessment, result, projectionMon
     monthlyDifference: monthlyDifference,
     projectionMonths: projectionMonths,
     projectedOverspend: projectedOverspend,
+    modelGovernance: financialOutcomeGovernance("spending-behavior-outcome", projectionMonths),
     impactCategory: monthlyDifference > 0 ? "Overspending Risk" : "Savings Opportunity",
     spendingTrajectory: monthlyDifference > 0 ? "Increasing" : "Decreasing",
     recommendation:
@@ -339,6 +353,16 @@ export function generateFinancialOutcomeReport(assessment, result, projectionPar
   return {
     timestamp: new Date().toISOString(),
     currentState: currentState,
+    modelGovernance: {
+      projection12Month: financialOutcomeGovernance(
+        "financial-monte-carlo",
+        projectionParams.simulations || 1000
+      ),
+      goalAchievement: financialOutcomeGovernance("goal-achievement", 60),
+      runwayRisk: financialOutcomeGovernance("runway-depletion", 24),
+      spendingOutcome: financialOutcomeGovernance("spending-behavior-outcome", 12),
+      portfolioOutcome: result?.portfolio ? financialOutcomeGovernance("portfolio-outcome", 5) : null
+    },
 
     // 12-month projection
     projection12Month: runMonteCarloProjection(currentState, {

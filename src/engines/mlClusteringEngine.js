@@ -17,6 +17,15 @@ import {
   calculateCentroid,
   calculateInertia
 } from "./mlUtilities.js";
+import { buildModelLineage } from "./modelRegistry.js";
+
+function clusteringGovernance(dataPoints = 0, metrics = null) {
+  return buildModelLineage({
+    modelType: "clustering",
+    metrics,
+    dataPoints
+  });
+}
 
 const CLUSTER_NAMES = {
   0: "Risk-Averse Planner",
@@ -182,7 +191,8 @@ export function clusterUser(assessment, result, trainedCentroids) {
     clusterId: nearestCluster,
     clusterName: CLUSTER_NAMES[nearestCluster] || `Cluster ${nearestCluster}`,
     profile: CLUSTER_PROFILES[CLUSTER_NAMES[nearestCluster]] || {},
-    confidence: 1 / (1 + nearestDistance) // Sigmoid confidence
+    confidence: 1 / (1 + nearestDistance), // Sigmoid confidence
+    modelGovernance: clusteringGovernance(trainedCentroids.length)
   };
 }
 
@@ -241,7 +251,8 @@ export function trainUserClusters(userDataset) {
       trainedAt: new Date().toISOString(),
       datasetSize: userDataset.length,
       numClusters: 5
-    }
+    },
+    modelGovernance: clusteringGovernance(userDataset.length, { inertia })
   };
 }
 
@@ -259,7 +270,8 @@ function assignClusterRuleBased(result) {
       clusterId: 0,
       clusterName: "Risk-Averse Planner",
       profile: CLUSTER_PROFILES["Risk-Averse Planner"],
-      confidence: 0.7
+      confidence: 0.7,
+      modelGovernance: clusteringGovernance()
     };
   }
 
@@ -268,7 +280,8 @@ function assignClusterRuleBased(result) {
       clusterId: 1,
       clusterName: "Impulse Spender",
       profile: CLUSTER_PROFILES["Impulse Spender"],
-      confidence: 0.65
+      confidence: 0.65,
+      modelGovernance: clusteringGovernance()
     };
   }
 
@@ -277,7 +290,8 @@ function assignClusterRuleBased(result) {
       clusterId: 2,
       clusterName: "Disciplined Accumulator",
       profile: CLUSTER_PROFILES["Disciplined Accumulator"],
-      confidence: 0.75
+      confidence: 0.75,
+      modelGovernance: clusteringGovernance()
     };
   }
 
@@ -286,7 +300,8 @@ function assignClusterRuleBased(result) {
       clusterId: 3,
       clusterName: "Struggling Survivor",
       profile: CLUSTER_PROFILES["Struggling Survivor"],
-      confidence: 0.7
+      confidence: 0.7,
+      modelGovernance: clusteringGovernance()
     };
   }
 
@@ -294,7 +309,8 @@ function assignClusterRuleBased(result) {
     clusterId: 4,
     clusterName: "Balanced Growth Seeker",
     profile: CLUSTER_PROFILES["Balanced Growth Seeker"],
-    confidence: 0.6
+    confidence: 0.6,
+    modelGovernance: clusteringGovernance()
   };
 }
 
@@ -325,6 +341,7 @@ export function exportClusterModel(clusteringResult) {
     centroids: clusteringResult.centroids,
     clusterStats: clusteringResult.clusterStats,
     model: clusteringResult.model,
+    modelGovernance: clusteringResult.modelGovernance || clusteringGovernance(),
     timestamp: new Date().toISOString()
   };
 }

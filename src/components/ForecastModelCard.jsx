@@ -20,7 +20,10 @@ import {
   CheckCircle,
   ChevronDown,
   ChevronUp,
-  Info
+  GitBranch,
+  History,
+  Info,
+  ShieldCheck
 } from "lucide-react";
 
 function round(num) {
@@ -68,10 +71,14 @@ export function ForecastModelCard({ forecast }) {
     modelType,
     modelMetrics,
     ensembleModel,
+    ensemble,
     allModels,
+    modelGovernance,
     confidence,
     dataPoints
   } = forecast;
+  const resolvedEnsembleModel = ensembleModel || ensemble;
+  const selectedGovernance = modelGovernance?.selected;
 
   const horizonDays = [
     { key: "day30", label: "30 Day", subtitle: "Near-term" },
@@ -138,6 +145,7 @@ export function ForecastModelCard({ forecast }) {
           {modelMetrics?.r2?.toFixed(2) ?? "N/A"} — {r2Grade})
         </span>
         <span className="forecast-model-badge-meta">
+          {selectedGovernance?.version ? `${selectedGovernance.version} | ` : ""}
           {dataPoints ?? "—"} data points ·{" "}
           <span style={{ color: confidenceColor(confidence) }}>{confidence}% confidence</span>
         </span>
@@ -209,6 +217,64 @@ export function ForecastModelCard({ forecast }) {
 
       {showModelDetails && (
         <div className="forecast-model-details">
+          {selectedGovernance && (
+            <div className="forecast-governance-panel">
+              <div className="forecast-subsection-title">
+                <ShieldCheck size={16} />
+                Model Registry
+              </div>
+              <div className="forecast-registry-grid">
+                <div>
+                  <span>Prediction model</span>
+                  <strong>{selectedGovernance.modelName}</strong>
+                  <small>{selectedGovernance.lineageId}</small>
+                </div>
+                <div>
+                  <span>Version</span>
+                  <strong>{selectedGovernance.version}</strong>
+                  <small>{selectedGovernance.stage}</small>
+                </div>
+                <div>
+                  <span>Training date</span>
+                  <strong>{selectedGovernance.trainingDate}</strong>
+                  <small>{selectedGovernance.approvalStatus}</small>
+                </div>
+                <div>
+                  <span>Accuracy</span>
+                  <strong>{selectedGovernance.runtimeAccuracy}%</strong>
+                  <small>{selectedGovernance.validationAccuracy}% validation baseline</small>
+                </div>
+                <div>
+                  <span>Rollback</span>
+                  <strong>
+                    {selectedGovernance.rollbackAvailable ? "Available" : "Not available"}
+                  </strong>
+                  <small>{selectedGovernance.rollbackTarget || "No prior approved version"}</small>
+                </div>
+                <div>
+                  <span>Owner</span>
+                  <strong>{selectedGovernance.owner}</strong>
+                  <small>{selectedGovernance.inputSchema}</small>
+                </div>
+              </div>
+              <div className="forecast-registry-flow">
+                <span>
+                  <GitBranch size={14} />
+                  {selectedGovernance.displayName}
+                </span>
+                <span>{selectedGovernance.version}</span>
+                <span>{selectedGovernance.validationAccuracy}% baseline</span>
+                <span>{selectedGovernance.stage}</span>
+                <span>
+                  <History size={14} />
+                  {selectedGovernance.rollbackAvailable
+                    ? `Rollback to ${selectedGovernance.previousVersion}`
+                    : "Rollback unavailable"}
+                </span>
+              </div>
+            </div>
+          )}
+
           {/* All Models Table */}
           {allModels && allModels.length > 0 && (
             <>
@@ -266,13 +332,15 @@ export function ForecastModelCard({ forecast }) {
           )}
 
           {/* Ensemble Weights */}
-          {ensembleModel && ensembleModel.models && ensembleModel.models.length > 0 && (
+          {resolvedEnsembleModel &&
+            resolvedEnsembleModel.models &&
+            resolvedEnsembleModel.models.length > 0 && (
             <div style={{ marginTop: "20px" }}>
               <div className="forecast-subsection-title" style={{ marginBottom: "12px" }}>
                 Ensemble Composition (inverse-RMSE weighted)
               </div>
               <div className="forecast-ensemble-list">
-                {ensembleModel.models.map((m, i) => (
+                {resolvedEnsembleModel.models.map((m, i) => (
                   <div key={i} className="forecast-ensemble-row">
                     <span>{m.name}</span>
                     <div className="forecast-ensemble-bar-track">
@@ -286,8 +354,8 @@ export function ForecastModelCard({ forecast }) {
               <div className="forecast-ensemble-summary">
                 <Info size={14} />
                 <span>
-                  Ensemble RMSE: <strong>{ensembleModel.rmse ?? "—"}</strong> · Weights are
-                  proportional to inverse of each model's RMSE (lower error = higher weight)
+                  Ensemble RMSE: <strong>{resolvedEnsembleModel.rmse ?? "—"}</strong> · Weights are
+                  proportional to inverse RMSE for each model (lower error = higher weight)
                 </span>
               </div>
             </div>
