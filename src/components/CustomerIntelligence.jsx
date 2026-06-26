@@ -203,7 +203,7 @@ const CustomerIntelligence = memo(() => {
                 </td>
                 <td>{customer.lastAssessment}</td>
                 <td>{customer.accounts}</td>
-                <td>${(customer.totalDeposits / 1000).toFixed(0)}k</td>
+                <td>₹{(customer.totalDeposits / 1000).toFixed(0)}k</td>
                 <td>
                   <span
                     className={`trend-indicator ${customer.trend}`}

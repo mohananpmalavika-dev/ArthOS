@@ -1,4 +1,7 @@
 import React, { memo, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext.jsx";
+import { LogOut } from "lucide-react";
 import EnterpriseFlowNavigation from "./EnterpriseFlowNavigation.jsx";
 import PortfolioDashboard from "./PortfolioDashboard.jsx";
 import CustomerIntelligence from "./CustomerIntelligence.jsx";
@@ -12,6 +15,13 @@ import ComplianceReports from "./ComplianceReports.jsx";
  */
 const EnterpriseBankPortal = memo(() => {
   const [activeTab, setActiveTab] = useState("dashboard");
+  const { logout } = useAuth();
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    logout();
+    navigate("/launch", { replace: true });
+  };
 
   const renderContent = () => {
     switch (activeTab) {
@@ -34,7 +44,18 @@ const EnterpriseBankPortal = memo(() => {
 
   return (
     <div className="enterprise-portal">
-      <EnterpriseFlowNavigation activeHash={`#${activeTab}`} onTabSelect={setActiveTab} />
+      <div className="enterprise-portal-topbar">
+        <EnterpriseFlowNavigation activeHash={`#${activeTab}`} onTabSelect={setActiveTab} />
+        <button
+          type="button"
+          className="enterprise-btn-secondary enterprise-logout-btn"
+          onClick={handleLogout}
+          title="Logout"
+        >
+          <LogOut size={16} />
+          Logout
+        </button>
+      </div>
       <div className="enterprise-main-content">
         <div className="enterprise-container">
           {renderContent()}
