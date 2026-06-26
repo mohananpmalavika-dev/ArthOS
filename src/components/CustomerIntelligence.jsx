@@ -288,9 +288,8 @@ const CustomerIntelligence = memo(() => {
             <tr>
               <th>Customer</th>
               <th>Health Score</th>
-              <th>Risk Level</th>
-              <th>Last Assessment</th>
-              <th>Accounts</th>
+              <th>Credit Score</th>
+              <th>Days Past Due</th>
               <th>Loan Balance</th>
               <th>On-time Rate</th>
               <th>Trend</th>
@@ -303,7 +302,7 @@ const CustomerIntelligence = memo(() => {
                 <td className="customer-cell">
                   <div className="customer-info">
                     <div className="customer-name">{customer.name}</div>
-                    <div className="customer-id">{customer.id}</div>
+                    <div className="customer-id">{customer.id} ({customer.loanType})</div>
                   </div>
                 </td>
                 <td>
@@ -323,19 +322,23 @@ const CustomerIntelligence = memo(() => {
                     );
                   })()}
                 </td>
+                <td>{customer.creditScore}</td>
                 <td>
                   <span
-                    className={`risk-badge risk-${customer.riskLevel}`}
+                    className={`dpd-badge ${
+                      customer.dpd > 60
+                        ? "dpd-critical"
+                        : customer.dpd > 30
+                        ? "dpd-high"
+                        : customer.dpd > 0
+                        ? "dpd-medium"
+                        : "dpd-low"
+                    }`}
                   >
-                    {customer.riskLevel === "critical" && (
-                      <AlertTriangle size={14} />
-                    )}
-                    {customer.riskLevel.charAt(0).toUpperCase() +
-                      customer.riskLevel.slice(1)}
+                    {customer.dpd > 0 && <AlertTriangle size={14} />}
+                    {customer.dpd} days
                   </span>
                 </td>
-                <td>{customer.lastAssessment}</td>
-                <td>{customer.accounts}</td>
                 <td>₹{(customer.loanBalance / 1000).toFixed(0)}k</td>
                 <td>{Math.round((customer.onTimePaymentRate ?? 0) * 100)}%</td>
                 <td>
